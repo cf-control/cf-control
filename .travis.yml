@@ -1,0 +1,17 @@
+# tell Travis it's Java -- that'll allow us to pick multiple JDK versions, preinstalls a few dev tools, ...
+# see https://docs.travis-ci.com/user/languages/java/ for more information
+language: java
+
+# we build on the latest (available on Travis) Ubuntu LTS
+dist: bionic
+
+# we test against Java 10 and 11 by default
+# Java 8 might be too old, but we can always include it into our build matrix
+jdk:
+  - openjdk10
+  - openjdk11
+
+script:
+  # our source code is currently in a subdirectory
+  - cd cloud.foundry.cli
+  - ./gradlew build
