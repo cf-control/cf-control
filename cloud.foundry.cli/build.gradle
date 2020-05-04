@@ -39,6 +39,7 @@ dependencies {
     implementation 'com.google.guava:guava:28.0-jre'
     
     compile 'info.picocli:picocli:4.2.0'
+    compile 'org.yaml:snakeyaml:1.26'
 
     // Use JUnit test framework
     testRuntime("org.junit.jupiter:junit-jupiter-engine:5.5.2")
