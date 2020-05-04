@@ -1,5 +1,8 @@
 package cloud.foundry.cli;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+
 import org.junit.jupiter.api.Test;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
@@ -7,9 +10,6 @@ import org.yaml.snakeyaml.Yaml;
 import java.util.List;
 import java.util.LinkedList;
 import java.util.HashMap;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
 
 public class YamlDemoTest {
 
@@ -35,7 +35,8 @@ public class YamlDemoTest {
         list.add("front");
 
         DumperOptions options = new DumperOptions();
-        options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK); // in order to get list entries across multiple lines
+        // in order to get list entries across multiple lines:
+        options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
 
         Yaml yaml = new Yaml(options);
         String yamlDocument = yaml.dump(list);
