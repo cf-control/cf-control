@@ -7,38 +7,37 @@ import org.yaml.snakeyaml.Yaml;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.util.Scanner;
 
 public class RefResolverTest {
 
-    private static final Yaml DEFAULT_PARSER = new Yaml();
-    private static final String RESOURCES_PATH = "src/test/resources/refresolver/";
+    private static final Yaml DEFAULT_PROCESSOR = new Yaml();
+    private static final String RESOURCES_PATH = "./src/test/resources/refresolver/";
 
     @Test
-    public void testTopLevelListNoPath() throws FileNotFoundException {
-        Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + "TopLevelListNoPathRef.yaml");
+    public void testTopLevelOccurrence() throws FileNotFoundException {
+        assertSemanticEquality("TopLevelOccurrenceReferring.yaml",
+                "TopLevelOccurrenceReferred.yaml");
+    }
 
-        Object treeResult = RefResolver.resolve(treeRoot, DEFAULT_PARSER);
+    private void assertSemanticEquality(String yamlFileContainingRef, String yamlFileExpected)
+            throws FileNotFoundException {
+        Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + yamlFileContainingRef);
+
+        Object treeResult = RefResolver.resolve(treeRoot, DEFAULT_PROCESSOR);
         String yamlResult = convertTreeToYaml(treeResult);
 
-        String yamlExpected = readFile(RESOURCES_PATH + "TopLevelListNoPathExpected.yaml");
-        Assertions.assertEquals(yamlResult, yamlExpected);
+        Object treeRootExpected = parseYamlFileAsTree(RESOURCES_PATH + yamlFileExpected);
+        String yamlResultExpected = convertTreeToYaml(treeRootExpected);
+        Assertions.assertEquals(yamlResult, yamlResultExpected);
     }
 
     private String convertTreeToYaml(Object tree) {
-        return DEFAULT_PARSER.dump(tree);
+        return DEFAULT_PROCESSOR.dump(tree);
     }
 
     private Object parseYamlFileAsTree(String filePath) throws FileNotFoundException {
         FileInputStream inputStream = new FileInputStream(new File(filePath));
-        return DEFAULT_PARSER.load(inputStream);
-    }
-
-    private String readFile(String filePath) throws FileNotFoundException {
-        Scanner scanner = new Scanner( new File(filePath), "UTF-8" );
-        String fileContent = scanner.useDelimiter("\\A").next();
-        scanner.close();
-        return fileContent;
+        return DEFAULT_PROCESSOR.load(inputStream);
     }
 
 }
