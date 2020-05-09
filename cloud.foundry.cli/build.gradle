@@ -43,6 +43,8 @@ dependencies {
     compile group: 'commons-io', name: 'commons-io', version: '2.6'
     compile 'org.apache.httpcomponents.client5:httpclient5:5.0'
 
+    testCompile "com.github.tomakehurst:wiremock-jre8:2.26.3"
+
     // Use JUnit test framework
     testRuntime("org.junit.jupiter:junit-jupiter-engine:5.5.2")
     testRuntime("org.junit.platform:junit-platform-runner:1.5.2")
