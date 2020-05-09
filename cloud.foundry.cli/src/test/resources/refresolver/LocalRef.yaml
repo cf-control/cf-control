@@ -1,0 +1,12 @@
+companyName: Yaml Inc
+employees:
+  -
+    name: John
+    age: 42
+  -
+    name: Jane
+    age: 37
+employeeOfTheMonth:
+  name: John
+  age: 42
+  $ref: '#/employees/1'

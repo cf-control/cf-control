@@ -1,0 +1,3 @@
+rights:
+  $ref: './src/test/resources/refresolver/referred/SpecialCharacters.yaml#/~1users~1user~0id'
+  shouldBe: overridden

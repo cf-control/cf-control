@@ -1,0 +1,11 @@
+companyName: Yaml Inc
+employees:
+  -
+    name: John
+    age: 42
+  -
+    name: Jane
+    age: 37
+employeeOfTheMonth:
+  name: Jane
+  age: 37
