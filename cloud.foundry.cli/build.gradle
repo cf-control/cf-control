@@ -41,6 +41,8 @@ dependencies {
     compile 'info.picocli:picocli:4.2.0'
     compile 'org.yaml:snakeyaml:1.26'
 
+    testCompile "com.github.tomakehurst:wiremock-jre8:2.26.3"
+
     // Use JUnit test framework
     testRuntime("org.junit.jupiter:junit-jupiter-engine:5.5.2")
     testRuntime("org.junit.platform:junit-platform-runner:1.5.2")
