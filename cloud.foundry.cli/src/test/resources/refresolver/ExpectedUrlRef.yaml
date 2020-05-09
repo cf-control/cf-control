@@ -1,0 +1,11 @@
+myList:
+  - first
+  - second
+  - third
+myFriends:
+  -
+    name: John
+    age: 42
+  -
+    name: Jane
+    age: 37

@@ -1,12 +1,22 @@
 package cloud.foundry.cli.mapping;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
 
 public class RefResolverTest {
 
@@ -14,21 +24,54 @@ public class RefResolverTest {
     private static final String RESOURCES_PATH = "./src/test/resources/refresolver/";
 
     @Test
-    public void testTopLevelOccurrence() throws FileNotFoundException {
-        assertSemanticEquality("TopLevelOccurrenceReferring.yaml",
-                "TopLevelOccurrenceReferred.yaml");
+    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
+    public void testLocalRef() throws FileNotFoundException {
+        assertSemanticEquality("ExpectedLocalRef.yaml", "LocalRef.yaml");
     }
 
-    private void assertSemanticEquality(String yamlFileContainingRef, String yamlFileExpected)
+    @Test
+    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
+    public void testRemoteRef() throws FileNotFoundException {
+        assertSemanticEquality("ExpectedRemoteRef.yaml", "RemoteRef.yaml");
+    }
+
+    @Test
+    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
+    public void testTopLevelRef() throws FileNotFoundException {
+        assertSemanticEquality("referred/VariousContents.yaml", "TopLevelRef.yaml");
+    }
+
+    @Test
+    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
+    public void testEscapeCharactersRef() throws FileNotFoundException {
+        assertSemanticEquality("ExpectedEscapeCharactersRef.yaml", "EscapeCharactersRef.yaml");
+    }
+
+    @Test
+    @Timeout(value = 10000, unit = TimeUnit.MILLISECONDS)
+    public void testUrlRef() throws IOException {
+        // http://localhost:8070/resources/SimpleList.yaml will have the contents of SimpleList.yaml as response body
+        WireMockServer firstServer = setupWireMockServer(8070, "SimpleList.yaml");
+
+        // http://localhost:8090/resources/VariousContents.yaml will have the contents of VariousContents.yaml as response body
+        WireMockServer secondServer = setupWireMockServer(8090, "VariousContents.yaml");
+
+        assertSemanticEquality("ExpectedUrlRef.yaml", "UrlRef.yaml");
+
+        firstServer.stop();
+        secondServer.stop();
+    }
+
+    private void assertSemanticEquality(String preresolvedYamlFile, String yamlFileContainingRef)
             throws FileNotFoundException {
         Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + yamlFileContainingRef);
 
-        Object treeResult = RefResolver.resolve(treeRoot, DEFAULT_PROCESSOR);
-        String yamlResult = convertTreeToYaml(treeResult);
+        Object rootOfResolvedTree = RefResolver.resolve(treeRoot, DEFAULT_PROCESSOR);
+        String resolvedYamlResult = convertTreeToYaml(rootOfResolvedTree);
 
-        Object treeRootExpected = parseYamlFileAsTree(RESOURCES_PATH + yamlFileExpected);
-        String yamlResultExpected = convertTreeToYaml(treeRootExpected);
-        Assertions.assertEquals(yamlResult, yamlResultExpected);
+        Object preresolvedTreeRoot = parseYamlFileAsTree(RESOURCES_PATH + preresolvedYamlFile);
+        String expectedYamlResult = convertTreeToYaml(preresolvedTreeRoot);
+        Assertions.assertEquals(expectedYamlResult, resolvedYamlResult);
     }
 
     private String convertTreeToYaml(Object tree) {
@@ -38,6 +81,27 @@ public class RefResolverTest {
     private Object parseYamlFileAsTree(String filePath) throws FileNotFoundException {
         FileInputStream inputStream = new FileInputStream(new File(filePath));
         return DEFAULT_PROCESSOR.load(inputStream);
+    }
+
+    private String readFileContent(String filename) throws FileNotFoundException {
+        File file = new File(filename);
+        Scanner scanner = new Scanner(file);
+        return scanner.useDelimiter("\\Z").next();
+    }
+
+    private WireMockServer setupWireMockServer(int port, String fileAsResponseBody)
+            throws FileNotFoundException {
+        WireMockConfiguration serverConfig = WireMockConfiguration.options().port(port);
+        WireMockServer server = new WireMockServer(serverConfig);
+        server.start();
+
+        String pathToFileAsResponseBody = RESOURCES_PATH + "referred/" + fileAsResponseBody;
+
+        server.stubFor(get(urlEqualTo("/resources/" + fileAsResponseBody))
+                .willReturn(aResponse()
+                        .withBody(readFileContent(pathToFileAsResponseBody))));
+
+        return server;
     }
 
 }

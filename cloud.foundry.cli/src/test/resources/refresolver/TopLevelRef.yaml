@@ -1,0 +1,4 @@
+should: be
+$ref : './src/test/resources/refresolver/referred/VariousContents.yaml'
+over:
+  rid: den
