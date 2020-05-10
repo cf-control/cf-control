@@ -66,14 +66,10 @@ public class RefResolverTest {
     @Test
     @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testNonExistentFileRemoteRef() throws IOException {
-        Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + "NonExistentFileRemoteRef.yaml");
-
-        Exception thrownException = assertThrows(
-                Exception.class, // TODO replace by a custom exception class
-                () -> {
-                    RefResolver.resolve(treeRoot, DEFAULT_PROCESSOR);
-                }
-        );
+        // TODO replace exception class by a custom one
+        Exception thrownException = assertThrownExceptionWhenResolvingRef(
+                Exception.class,
+                "NonExistentFileRemoteRef.yaml");
 
         // TODO check exception contents
     }
@@ -81,14 +77,10 @@ public class RefResolverTest {
     @Test
     @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testWronglyFormattedUrlRef() throws IOException {
-        Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + "WronglyFormattedUrlRef.yaml");
-
-        Exception thrownException = assertThrows(
-                Exception.class, // TODO replace by a custom exception class
-                () -> {
-                    RefResolver.resolve(treeRoot, DEFAULT_PROCESSOR);
-                }
-        );
+        // TODO replace exception class by a custom one
+        Exception thrownException = assertThrownExceptionWhenResolvingRef(
+                Exception.class,
+                "WronglyFormattedUrlRef.yaml");
 
         // TODO check exception contents
     }
@@ -96,14 +88,10 @@ public class RefResolverTest {
     @Test
     @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testUnreachableUrlRef() throws IOException {
-        Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + "UnreachableUrlRef.yaml");
-
-        Exception thrownException = assertThrows(
-                Exception.class, // TODO replace by a custom exception class
-                () -> {
-                    RefResolver.resolve(treeRoot, DEFAULT_PROCESSOR);
-                }
-        );
+        // TODO replace exception class by a custom one
+        Exception thrownException = assertThrownExceptionWhenResolvingRef(
+                Exception.class,
+                "UnreachableUrlRef.yaml");
 
         // TODO check exception contents
     }
@@ -111,14 +99,10 @@ public class RefResolverTest {
     @Test
     @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testNoYamlFileRef() throws IOException {
-        Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + "NoYamlFileRef.yaml");
-
-        Exception thrownException = assertThrows(
-                Exception.class, // TODO replace by a custom exception class
-                () -> {
-                    RefResolver.resolve(treeRoot, DEFAULT_PROCESSOR);
-                }
-        );
+        // TODO replace exception class by a custom one
+        Exception thrownException = assertThrownExceptionWhenResolvingRef(
+                Exception.class,
+                "NoYamlFileRef.yaml");
 
         // TODO check exception contents
     }
@@ -126,14 +110,10 @@ public class RefResolverTest {
     @Test
     @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testEmptyFileRef() throws IOException {
-        Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + "EmptyFileRef.yaml");
-
-        Exception thrownException = assertThrows(
-                Exception.class, // TODO replace by a custom exception class
-                () -> {
-                    RefResolver.resolve(treeRoot, DEFAULT_PROCESSOR);
-                }
-        );
+        // TODO replace exception class by a custom one
+        Exception thrownException = assertThrownExceptionWhenResolvingRef(
+                Exception.class,
+                "EmptyFileRef.yaml");
 
         // TODO check exception contents
     }
@@ -141,14 +121,10 @@ public class RefResolverTest {
     @Test
     @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testInvalidPointerInRef() throws IOException {
-        Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + "InvalidPointerInRef.yaml");
-
-        Exception thrownException = assertThrows(
-                Exception.class, // TODO replace by a custom exception class
-                () -> {
-                    RefResolver.resolve(treeRoot, DEFAULT_PROCESSOR);
-                }
-        );
+        // TODO replace exception class by a custom one
+        Exception thrownException = assertThrownExceptionWhenResolvingRef(
+                Exception.class,
+                "InvalidPointerInRef.yaml");
 
         // TODO check exception contents
     }
@@ -163,6 +139,19 @@ public class RefResolverTest {
         Object preresolvedTreeRoot = parseYamlFileAsTree(RESOURCES_PATH + preresolvedYamlFile);
         String expectedYamlResult = convertTreeToYaml(preresolvedTreeRoot);
         Assertions.assertEquals(expectedYamlResult, resolvedYamlResult);
+    }
+
+    private <T extends Throwable> T assertThrownExceptionWhenResolvingRef(
+            Class<T> expectedType, String yamlFileContainingRef)
+            throws FileNotFoundException {
+        Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + yamlFileContainingRef);
+
+        return assertThrows(
+                expectedType,
+                () -> {
+                    RefResolver.resolve(treeRoot, DEFAULT_PROCESSOR);
+                }
+        );
     }
 
     private String convertTreeToYaml(Object tree) {
