@@ -3,10 +3,4 @@
 
 # Ignore Gradle build output directory
 build
-/.idea/$PRODUCT_WORKSPACE_FILE$
-/.idea/.gitignore
-/.idea/compiler.xml
-/.idea/gradle.xml
-/.idea/jarRepositories.xml
-/.idea/misc.xml
-/.idea/vcs.xml
+/.idea
