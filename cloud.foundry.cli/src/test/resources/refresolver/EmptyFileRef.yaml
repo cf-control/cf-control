@@ -1,0 +1,4 @@
+-
+  $ref: './src/test/resources/refresolver/referred/Empty.yaml'
+- in this case the
+- referenced file is empty
