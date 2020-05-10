@@ -1,9 +1,9 @@
 package cloud.foundry.cli.mapping;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -21,16 +21,16 @@ public class RefUtils {
             "YML"
     ));
 
-    public static String readExternalFile(String filePath) throws IOException {
+    public static String readLocalFile(String filePath) throws IOException {
         checkNotNull(filePath);
 
-        String content = doReadExternalFile(filePath);
+        String content = doReadLocalFile(filePath);
 
         assert content != null;
         return content;
     }
 
-    private static String doReadExternalFile(String filePath) throws IOException {
+    private static String doReadLocalFile(String filePath) throws IOException {
         File file = new File(filePath);
         if (!isYamlFile(file.getName())) {
             throw new InvalidFileTypeException();
