@@ -3,6 +3,7 @@ package cloud.foundry.cli.mapping;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
@@ -60,6 +61,96 @@ public class RefResolverTest {
 
         firstServer.stop();
         secondServer.stop();
+    }
+
+    @Test
+    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
+    public void testNonExistentFileRemoteRef() throws IOException {
+        Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + "NonExistentFileRemoteRef.yaml");
+
+        Exception thrownException = assertThrows(
+                Exception.class, // TODO replace by a custom exception class
+                () -> {
+                    RefResolver.resolve(treeRoot, DEFAULT_PROCESSOR);
+                }
+        );
+
+        // TODO check exception contents
+    }
+
+    @Test
+    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
+    public void testWronglyFormattedUrlRef() throws IOException {
+        Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + "WronglyFormattedUrlRef.yaml");
+
+        Exception thrownException = assertThrows(
+                Exception.class, // TODO replace by a custom exception class
+                () -> {
+                    RefResolver.resolve(treeRoot, DEFAULT_PROCESSOR);
+                }
+        );
+
+        // TODO check exception contents
+    }
+
+    @Test
+    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
+    public void testUnreachableUrlRef() throws IOException {
+        Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + "UnreachableUrlRef.yaml");
+
+        Exception thrownException = assertThrows(
+                Exception.class, // TODO replace by a custom exception class
+                () -> {
+                    RefResolver.resolve(treeRoot, DEFAULT_PROCESSOR);
+                }
+        );
+
+        // TODO check exception contents
+    }
+
+    @Test
+    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
+    public void testNoYamlFileRef() throws IOException {
+        Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + "NoYamlFileRef.yaml");
+
+        Exception thrownException = assertThrows(
+                Exception.class, // TODO replace by a custom exception class
+                () -> {
+                    RefResolver.resolve(treeRoot, DEFAULT_PROCESSOR);
+                }
+        );
+
+        // TODO check exception contents
+    }
+
+    @Test
+    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
+    public void testEmptyFileRef() throws IOException {
+        Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + "EmptyFileRef.yaml");
+
+        Exception thrownException = assertThrows(
+                Exception.class, // TODO replace by a custom exception class
+                () -> {
+                    RefResolver.resolve(treeRoot, DEFAULT_PROCESSOR);
+                }
+        );
+
+        // TODO check exception contents
+    }
+
+    @Test
+    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
+    public void testInvalidPointerInRef() throws IOException {
+        Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + "InvalidPointerInRef.yaml");
+
+        Exception thrownException = assertThrows(
+                Exception.class, // TODO replace by a custom exception class
+                () -> {
+                    RefResolver.resolve(treeRoot, DEFAULT_PROCESSOR);
+                }
+        );
+
+        // TODO check exception contents
     }
 
     private void assertSemanticEquality(String preresolvedYamlFile, String yamlFileContainingRef)
