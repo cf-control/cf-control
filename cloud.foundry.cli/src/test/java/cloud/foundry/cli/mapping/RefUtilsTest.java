@@ -15,55 +15,55 @@ public class RefUtilsTest {
 
 
     @Test
-    public void testReadExternalFileOnEmptyFileReturnsEmptyString() throws IOException {
+    public void testreadLocalFileOnEmptyFileReturnsEmptyString() throws IOException {
         //Arrange
         String expectedYaml = "";
 
         //Act
-        String actualYaml = RefUtils.readExternalFile(RESOURCE_PATH + "referred/Empty.yaml");
+        String actualYaml = RefUtils.readLocalFile(RESOURCE_PATH + "referred/Empty.yaml");
 
         //Verify
         assertThat(actualYaml, is(expectedYaml));
     }
 
     @Test
-    public void testReadExternalFileReturnsFileContent() throws IOException {
+    public void testreadLocalFileReturnsFileContent() throws IOException {
         //Arrange
         String expectedYaml =   "- first\n" +
                 "- second\n" +
                 "- third";
 
         //Act
-        String actualYaml = RefUtils.readExternalFile(RESOURCE_PATH + "referred/SimpleList.yaml");
+        String actualYaml = RefUtils.readLocalFile(RESOURCE_PATH + "referred/SimpleList.yaml");
 
         //Verify
         assertThat(actualYaml, is(expectedYaml));
     }
 
     @Test
-    public void testReadExternalFileOnDirectoryWithCommaSucceeds() throws IOException {
+    public void testreadLocalFileOnDirectoryWithCommaSucceeds() throws IOException {
         //Arrange
         String expectedYaml =   "- first\n" +
                 "- second\n" +
                 "- third";
 
         //Act
-        String actualYaml = RefUtils.readExternalFile(RESOURCE_PATH + "comma.path/SimpleList.yaml");
+        String actualYaml = RefUtils.readLocalFile(RESOURCE_PATH + "comma.path/SimpleList.yaml");
 
         //Verify
         assertThat(actualYaml, is(expectedYaml));
     }
 
     @Test
-    public void testReadExternalFileOnValidFileTypesSucceeds() throws IOException {
+    public void testreadLocalFileOnValidFileTypesSucceeds() throws IOException {
         //Arrange
         String expectedYaml =   "- first\n" +
                 "- second\n" +
                 "- third";
 
         //Act
-        String actualYaml = RefUtils.readExternalFile(RESOURCE_PATH + "referred/SimpleList.yaml");
-        String actualYml = RefUtils.readExternalFile(RESOURCE_PATH + "referred/SimpleList.yml");
+        String actualYaml = RefUtils.readLocalFile(RESOURCE_PATH + "referred/SimpleList.yaml");
+        String actualYml = RefUtils.readLocalFile(RESOURCE_PATH + "referred/SimpleList.yml");
 
         //Verify
         assertThat(actualYaml, is(expectedYaml));
@@ -71,30 +71,30 @@ public class RefUtilsTest {
     }
 
     @Test
-    public void testReadExternalFileOnMissingFileThrowsException() {
+    public void testreadLocalFileOnMissingFileThrowsException() {
         //Act and Verify
         assertThrows(FileNotFoundException.class,
-                () -> RefUtils.readExternalFile(RESOURCE_PATH + "Missing.yaml"));
+                () -> RefUtils.readLocalFile(RESOURCE_PATH + "Missing.yaml"));
     }
 
     @Test
-    public void testReadExternalFileOnMissingFilePathThrowsException() {
+    public void testreadLocalFileOnMissingFilePathThrowsException() {
         //Act and Verify
         assertThrows(IOException.class,
-                () -> RefUtils.readExternalFile(RESOURCE_PATH + "no/path/Missing.yaml"));
+                () -> RefUtils.readLocalFile(RESOURCE_PATH + "no/path/Missing.yaml"));
     }
 
     @Test
-    public void testReadExternalFileOnInvalidFileExtensionThrowsException() {
+    public void testreadLocalFileOnInvalidFileExtensionThrowsException() {
         //Act and Verify
         assertThrows(InvalidFileTypeException.class,
-                () -> RefUtils.readExternalFile(RESOURCE_PATH + "InvalidFileExtension.txt"));
+                () -> RefUtils.readLocalFile(RESOURCE_PATH + "InvalidFileExtension.txt"));
     }
 
     @Test
-    public void testReadExternalFileOnFileWithoutExtensionThrowsException() {
+    public void testreadLocalFileOnFileWithoutExtensionThrowsException() {
         //Act and Verify
         assertThrows(InvalidFileTypeException.class,
-                () -> RefUtils.readExternalFile(RESOURCE_PATH + "NoFileExtension"));
+                () -> RefUtils.readLocalFile(RESOURCE_PATH + "NoFileExtension"));
     }
 }
