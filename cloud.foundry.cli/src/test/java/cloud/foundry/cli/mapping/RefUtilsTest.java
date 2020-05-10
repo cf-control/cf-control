@@ -15,7 +15,7 @@ public class RefUtilsTest {
 
 
     @Test
-    public void testGetOnEmptyFileReturnsEmptyString() throws IOException {
+    public void testReadExternalFileOnEmptyFileReturnsEmptyString() throws IOException {
         //Arrange
         String expectedYaml = "";
 
@@ -27,7 +27,7 @@ public class RefUtilsTest {
     }
 
     @Test
-    public void testGetReturnsFileContent() throws IOException {
+    public void testReadExternalFileReturnsFileContent() throws IOException {
         //Arrange
         String expectedYaml =   "- first\n" +
                 "- second\n" +
@@ -41,7 +41,7 @@ public class RefUtilsTest {
     }
 
     @Test
-    public void testGetOnDirectoryWithCommaSucceeds() throws IOException {
+    public void testReadExternalFileOnDirectoryWithCommaSucceeds() throws IOException {
         //Arrange
         String expectedYaml =   "- first\n" +
                 "- second\n" +
@@ -55,7 +55,7 @@ public class RefUtilsTest {
     }
 
     @Test
-    public void testGetOnValidFileTypesSucceeds() throws IOException {
+    public void testReadExternalFileOnValidFileTypesSucceeds() throws IOException {
         //Arrange
         String expectedYaml =   "- first\n" +
                 "- second\n" +
@@ -71,28 +71,28 @@ public class RefUtilsTest {
     }
 
     @Test
-    public void testGetOnMissingFileThrowsException() {
+    public void testReadExternalFileOnMissingFileThrowsException() {
         //Act and Verify
         assertThrows(FileNotFoundException.class,
                 () -> RefUtils.readExternalFile(RESOURCE_PATH + "Missing.yaml"));
     }
 
     @Test
-    public void testGetOnMissingFilePathThrowsException() {
+    public void testReadExternalFileOnMissingFilePathThrowsException() {
         //Act and Verify
         assertThrows(IOException.class,
                 () -> RefUtils.readExternalFile(RESOURCE_PATH + "no/path/Missing.yaml"));
     }
 
     @Test
-    public void testGetOnInvalidFileExtensionThrowsException() {
+    public void testReadExternalFileOnInvalidFileExtensionThrowsException() {
         //Act and Verify
         assertThrows(InvalidFileTypeException.class,
                 () -> RefUtils.readExternalFile(RESOURCE_PATH + "InvalidFileExtension.txt"));
     }
 
     @Test
-    public void testGetOnFileWithoutExtensionThrowsException() {
+    public void testReadExternalFileOnFileWithoutExtensionThrowsException() {
         //Act and Verify
         assertThrows(InvalidFileTypeException.class,
                 () -> RefUtils.readExternalFile(RESOURCE_PATH + "NoFileExtension"));
