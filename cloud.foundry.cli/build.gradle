@@ -48,6 +48,11 @@ dependencies {
     
     testImplementation 'org.hamcrest:hamcrest:2.2'
     testImplementation "org.mockito:mockito-core:2.+"
+
+    compile 'io.swagger.parser.v3:swagger-parser:2.0.19'
+
+    compile 'org.cloudfoundry:cloudfoundry-client-reactor:4.6.0.RELEASE'
+    compile 'org.cloudfoundry:cloudfoundry-operations:4.6.0.RELEASE'
 }
 
 test {
@@ -55,3 +60,14 @@ test {
 
     maxHeapSize = '1G'
 }
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'cloud.foundry.cli.getservice.GetService',
+                'Class-Path': configurations.runtime.files.collect { "lib/$it.name" }.join(' ')
+                }
+
+        from {
+            configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+        }
+    }
