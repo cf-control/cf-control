@@ -59,7 +59,8 @@ public class GetService implements Runnable {
             // RUFE SERVICE AUF
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator
                     .createCfOperations(commandOptions);
-            List<ServiceInstanceSummary> services = cfOperations.services().listInstances().collectSortedList().block();
+            List<ServiceInstanceSummary> services = cfOperations.services()
+                    .listInstances().collectSortedList().block();
             for (ServiceInstanceSummary serviceInstanceSummary : services) {
                 System.out.println("Service: " +  serviceInstanceSummary.toString());
             }
