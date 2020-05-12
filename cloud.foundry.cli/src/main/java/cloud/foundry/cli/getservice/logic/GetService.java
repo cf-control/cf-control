@@ -17,17 +17,20 @@ public class GetService {
     }
 
     public String getServices() {
-        List<ServiceInstanceSummary> services = this.cfOperations.services()
-                .listInstances().collectList().block();
+        List<ServiceInstanceSummary> services = this.cfOperations.services().listInstances().collectList().block();
+
         for (ServiceInstanceSummary serviceInstanceSummary : services) {
-            // do not dump tags into the document
             ServiceInstanceSummaryBean serviceInstance = new ServiceInstanceSummaryBean(serviceInstanceSummary);
+
             DumperOptions options = new DumperOptions();
-            options.setTags(new HashMap<String, String>()); // do not dump tags into the document
+            // do not dump tags into the document
+            options.setTags(new HashMap<String, String>());
+
             Yaml yaml = new Yaml(options);
             String yamlDocument = yaml.dumpAsMap(serviceInstance);
             return yamlDocument;
         }
+
         return null;
     }
 
