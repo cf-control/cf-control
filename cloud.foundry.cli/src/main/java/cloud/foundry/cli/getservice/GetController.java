@@ -11,45 +11,43 @@ import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
 
-import java.util.HashMap;
-import java.util.List;
-
-
-@Command(name = "Get-Service",
-        header = "%n@|green Get-Service|@",
+/**
+ * Controller for the Get-Commands
+ */
+@Command(name = "Get-Controller",
+        header = "%n@|green Get-Controller|@",
         subcommands = {
-                GetService.GetServicesCommand.class,
-                GetService.GetSpaceDevelopersCommand.class,
-                GetService.GetApplicationsCommand.class})
-public class GetService implements Runnable {
+                GetController.GetServicesCommand.class,
+                GetController.GetSpaceDevelopersCommand.class,
+                GetController.GetApplicationsCommand.class})
+public class GetController implements Runnable {
 
     @Override
     public void run() {
 
     }
 
-    @Command(name = "getSpaceDevelopers", description = "List all space developers")
+    @Command(name = "get-space-developers",
+            description = "List all space developers in the target space")
     static class GetSpaceDevelopersCommand implements Runnable {
         @Mixin
-        GetServiceCommandOptions commandOptions;
+        GetControllerCommandOptions commandOptions;
 
         @Override
         public void run() {
-            // FIXME
-            System.out.println("SOME DUMMY SPACE DEVELOPERS");
-            // RUFE SERVICE AUF
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator
                     .createCfOperations(commandOptions);
 
-            SpaceDevelopersProvider provider = new SpaceDevelopersProvider();
-            provider.machWas(cfOperations);
+            SpaceDevelopersProvider provider = new SpaceDevelopersProvider(cfOperations);
+            String  spaceDevelopers =  provider.getSpaceDevelopers();
+            System.out.println(spaceDevelopers);
         }
     }
 
-    @Command(name = "getServices", description = "List all applications in the target space")
+    @Command(name = "get-services", description = "List all applications in the target space")
     static class GetServicesCommand implements Runnable {
         @Mixin
-        GetServiceCommandOptions commandOptions;
+        GetControllerCommandOptions commandOptions;
 
         @Override
         public void run() {
@@ -73,10 +71,10 @@ public class GetService implements Runnable {
         }
     }
 
-    @Command(name = "getApplications", description = "List all applications in the target space")
+    @Command(name = "get-applications", description = "List all applications in the target space")
     static class GetApplicationsCommand implements Runnable {
         @Mixin
-        GetServiceCommandOptions commandOptions;
+        GetControllerCommandOptions commandOptions;
 
         @Override
         public void run() {

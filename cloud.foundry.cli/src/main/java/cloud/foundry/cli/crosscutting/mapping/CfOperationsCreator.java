@@ -1,6 +1,6 @@
 package cloud.foundry.cli.crosscutting.mapping;
 
-import cloud.foundry.cli.getservice.GetServiceCommandOptions;
+import cloud.foundry.cli.getservice.GetControllerCommandOptions;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.reactor.DefaultConnectionContext;
 import org.cloudfoundry.reactor.client.ReactorCloudFoundryClient;
@@ -8,31 +8,19 @@ import org.cloudfoundry.reactor.doppler.ReactorDopplerClient;
 import org.cloudfoundry.reactor.tokenprovider.PasswordGrantTokenProvider;
 import org.cloudfoundry.reactor.uaa.ReactorUaaClient;
 
-
 public class CfOperationsCreator {
 
     public static DefaultCloudFoundryOperations createCfOperations(
-            GetServiceCommandOptions commandOptions) {
+            GetControllerCommandOptions commandOptions) {
 
-        DefaultConnectionContext connectionContext = DefaultConnectionContext.builder()
-                .apiHost(commandOptions.getApiHost())
-                .build();
-        PasswordGrantTokenProvider tokenProvider = PasswordGrantTokenProvider.builder()
-                .password(commandOptions.getPassword())
-                .username(commandOptions.getUserName())
-                .build();
-        ReactorCloudFoundryClient cfClient = ReactorCloudFoundryClient.builder()
-                .connectionContext(connectionContext)
-                .tokenProvider(tokenProvider)
-                .build();
-        ReactorDopplerClient reactorDopplerClient = ReactorDopplerClient.builder()
-                .connectionContext(connectionContext)
-                .tokenProvider(tokenProvider)
-                .build();
-        ReactorUaaClient reactorUaaClient = ReactorUaaClient.builder()
-                .connectionContext(connectionContext)
-                .tokenProvider(tokenProvider)
-                .build();
+        DefaultConnectionContext connectionContext = createConnectionContext(commandOptions);
+        PasswordGrantTokenProvider tokenProvider = createTokenProvider(commandOptions);
+        ReactorCloudFoundryClient cfClient =
+                createCloudFoundryClient(connectionContext, tokenProvider);
+        ReactorDopplerClient reactorDopplerClient =
+                createReactorDopplerClient(connectionContext, tokenProvider);
+        ReactorUaaClient reactorUaaClient =
+                createReactorUaaClient(connectionContext, tokenProvider);
 
         return DefaultCloudFoundryOperations.builder()
                 .cloudFoundryClient(cfClient)
@@ -40,6 +28,52 @@ public class CfOperationsCreator {
                 .uaaClient(reactorUaaClient)
                 .organization(commandOptions.getOrganization())
                 .space(commandOptions.getSpace())
+                .build();
+    }
+
+    private static ReactorUaaClient createReactorUaaClient(
+            DefaultConnectionContext connectionContext,
+            PasswordGrantTokenProvider tokenProvider) {
+
+        return ReactorUaaClient.builder()
+                .connectionContext(connectionContext)
+                .tokenProvider(tokenProvider)
+                .build();
+    }
+
+    private static ReactorDopplerClient createReactorDopplerClient(
+            DefaultConnectionContext connectionContext,
+            PasswordGrantTokenProvider tokenProvider) {
+
+        return ReactorDopplerClient.builder()
+                .connectionContext(connectionContext)
+                .tokenProvider(tokenProvider)
+                .build();
+    }
+
+    private static ReactorCloudFoundryClient createCloudFoundryClient(
+            DefaultConnectionContext connectionContext,
+            PasswordGrantTokenProvider tokenProvider) {
+
+        return ReactorCloudFoundryClient.builder()
+                .connectionContext(connectionContext)
+                .tokenProvider(tokenProvider)
+                .build();
+    }
+
+    private static PasswordGrantTokenProvider createTokenProvider(
+            GetControllerCommandOptions commandOptions) {
+
+        return PasswordGrantTokenProvider.builder()
+                .password(commandOptions.getPassword())
+                .username(commandOptions.getUserName())
+                .build();
+    }
+
+    private static DefaultConnectionContext createConnectionContext(
+            GetControllerCommandOptions commandOptions) {
+        return DefaultConnectionContext.builder()
+                .apiHost(commandOptions.getApiHost())
                 .build();
     }
 }
