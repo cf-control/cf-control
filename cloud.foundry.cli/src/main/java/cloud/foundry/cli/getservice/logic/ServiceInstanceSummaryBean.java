@@ -5,6 +5,9 @@ import org.cloudfoundry.operations.services.ServiceInstanceType;
 
 import java.util.List;
 
+/**
+ * Immutable data type used to generate nice YAML output for applications.
+ */
 public class ServiceInstanceSummaryBean {
 
     private  String id;
