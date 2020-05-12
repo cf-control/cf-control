@@ -9,36 +9,21 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
 import java.util.Arrays;
-import java.util.Collections;
 
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.useradmin.SpaceUsers;
 import org.cloudfoundry.operations.useradmin.UserAdmin;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import reactor.core.publisher.Mono;
 
 class SpaceDevelopersProviderTest {
-
     @Test
-    public void testGetListSpaceDevelopers() {
+    public void testGetSpaceDevelopers() {
         // given
-        DefaultCloudFoundryOperations cfOperationsMock =
-            mock(DefaultCloudFoundryOperations.class);
-        when(cfOperationsMock.getSpace()).thenReturn("development");
-        when(cfOperationsMock.getOrganization()).thenReturn("cloud.foundry.cli");
-
-        UserAdmin userAdminMock = Mockito.mock(UserAdmin.class);
-        when(cfOperationsMock.userAdmin()).thenReturn(userAdminMock);
-
-        Mono<SpaceUsers> monoMock = (Mono<SpaceUsers>) mock(Mono.class);
-        when(userAdminMock.listSpaceUsers(any())).thenReturn(monoMock);
-
-        SpaceUsers spaceUsersMock = mock(SpaceUsers.class);
-        when(monoMock.block()).thenReturn(spaceUsersMock);
-        when(spaceUsersMock.getDevelopers())
-            .thenReturn(Arrays.asList("one", "two", "three"));
+        DefaultCloudFoundryOperations cfOperationsMock = mockDefaultCloudFoundryOperations();
+        SpaceUsers spaceUsersMock = mockSpaceUsers(cfOperationsMock);
+        when(spaceUsersMock.getDevelopers()).thenReturn(Arrays.asList("one", "two", "three"));
         // when
         SpaceDevelopersProvider spaceDeveloperProvider = new SpaceDevelopersProvider(
             cfOperationsMock);
@@ -48,53 +33,47 @@ class SpaceDevelopersProviderTest {
     }
 
     @Test
-    public void testGetOneSpaceDeveloper() {
+    public void testGetSpaceDevelopers_returnOneDeveloper() {
         // given
-        DefaultCloudFoundryOperations cfOperationsMock =
-            mock(DefaultCloudFoundryOperations.class);
-        when(cfOperationsMock.getSpace()).thenReturn("development");
-        when(cfOperationsMock.getOrganization()).thenReturn("cloud.foundry.cli");
-        
-        UserAdmin userAdminMock = mock(UserAdmin.class);
-        when(cfOperationsMock.userAdmin()).thenReturn(userAdminMock);
-        
-        Mono<SpaceUsers> monoMock = (Mono<SpaceUsers>) mock(Mono.class);
-        when(userAdminMock.listSpaceUsers(any())).thenReturn(monoMock);
-        
-        SpaceUsers spaceUsersMock = mock(SpaceUsers.class);
-        when(monoMock.block()).thenReturn(spaceUsersMock);
-        when(spaceUsersMock.getDevelopers())
-            .thenReturn(singletonList("one"));
-        
+        DefaultCloudFoundryOperations cfOperationsMock = mockDefaultCloudFoundryOperations();
+        SpaceUsers spaceUsersMock = mockSpaceUsers(cfOperationsMock);
+        when(spaceUsersMock.getDevelopers()).thenReturn(singletonList("one"));
+        //when
         SpaceDevelopersProvider spaceDeveloperProvider = new SpaceDevelopersProvider(
             cfOperationsMock);
         String spaceDevelopers = spaceDeveloperProvider.getSpaceDevelopers();
+        //then
         assertThat(spaceDevelopers, is("spaceDevelopers: [one]\n"));
     }
 
     @Test
-    public void testGetNullSpaceDeveloper() {
-        DefaultCloudFoundryOperations cfOperationsMock =
-            mock(DefaultCloudFoundryOperations.class);
-        when(cfOperationsMock.getSpace()).thenReturn("development");
-        when(cfOperationsMock.getOrganization()).thenReturn("cloud.foundry.cli");
-        
-        UserAdmin userAdminMock = mock(UserAdmin.class);
-        when(cfOperationsMock.userAdmin()).thenReturn(userAdminMock);
-        
-        Mono<SpaceUsers> monoMock = (Mono<SpaceUsers>) mock(Mono.class);
-        when(userAdminMock.listSpaceUsers(any())).thenReturn(monoMock);
-        
-        SpaceUsers spaceUsersMock = mock(SpaceUsers.class);
-        when(monoMock.block()).thenReturn(spaceUsersMock);
-        when(spaceUsersMock.getDevelopers())
-            .thenReturn(emptyList());
-        
+    public void testGetSpaceDevelopers_returnNull() {
+        //given
+        DefaultCloudFoundryOperations cfOperationsMock = mockDefaultCloudFoundryOperations();
+        SpaceUsers spaceUsersMock = mockSpaceUsers(cfOperationsMock);
+        when(spaceUsersMock.getDevelopers()).thenReturn(emptyList());
+        //when
         SpaceDevelopersProvider spaceDeveloperProvider = new SpaceDevelopersProvider(
             cfOperationsMock);
-        
         String spaceDevelopers = spaceDeveloperProvider.getSpaceDevelopers();
-        
+        //then
         assertThat(spaceDevelopers, is("spaceDevelopers: []\n"));
+    }
+
+    private  DefaultCloudFoundryOperations mockDefaultCloudFoundryOperations() {
+        DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
+        when(cfOperationsMock.getSpace()).thenReturn("development");
+        when(cfOperationsMock.getOrganization()).thenReturn("cloud.foundry.cli");
+        return cfOperationsMock;
+    }
+
+    private SpaceUsers mockSpaceUsers(DefaultCloudFoundryOperations cfOperationsMock) {
+        UserAdmin userAdminMock = mock(UserAdmin.class);
+        when(cfOperationsMock.userAdmin()).thenReturn(userAdminMock);
+        Mono<SpaceUsers> monoMock = mock(Mono.class);
+        when(userAdminMock.listSpaceUsers(any())).thenReturn(monoMock);
+        SpaceUsers spaceUsersMock = mock(SpaceUsers.class);
+        when(monoMock.block()).thenReturn(spaceUsersMock);
+        return spaceUsersMock;
     }
 }
