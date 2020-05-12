@@ -32,11 +32,12 @@ public class GetController implements Runnable {
 
         @Override
         public void run() {
-            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator
-                    .createCfOperations(commandOptions);
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(commandOptions);
 
             SpaceDevelopersProvider provider = new SpaceDevelopersProvider(cfOperations);
-            String  spaceDevelopers =  provider.getSpaceDevelopers();
+
+            String spaceDevelopers =  provider.getSpaceDevelopers();
+
             System.out.println(spaceDevelopers);
         }
     }
@@ -48,13 +49,16 @@ public class GetController implements Runnable {
 
         @Override
         public void run() {
-            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator
-                    .createCfOperations(commandOptions);
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(commandOptions);
+
             GetService getService = new GetService(cfOperations);
+
             String services = getService.getServices();
+
             if (services == null) {
                 System.out.println("No services.");
             }
+
             System.out.println(services);
         }
     }
@@ -66,11 +70,8 @@ public class GetController implements Runnable {
 
         @Override
         public void run() {
-            // FIXME
-            System.out.println("SOME DUMMY APPLICATIONS");
-            // RUFE SERVICE AUF
-            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator
-                    .createCfOperations(commandOptions);
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(commandOptions);
+            // TODO
         }
     }
 
