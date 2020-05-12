@@ -8,6 +8,7 @@ import picocli.CommandLine.Option;
  * @see GetController
  */
 public class GetControllerCommandOptions {
+
     @Option(names = {"-u", "--user"}, required = false)
     String userName;
 
