@@ -1,9 +1,12 @@
 package cloud.foundry.cli.getservice.logic;
 
 import org.cloudfoundry.operations.CloudFoundryOperations;
+import org.cloudfoundry.operations.applications.GetApplicationManifestRequest;
 import org.cloudfoundry.operations.services.ServiceInstanceSummary;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.nodes.Tag;
+import org.yaml.snakeyaml.representer.Representer;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,14 +26,24 @@ public class GetService {
      */
     static private Yaml makeYaml() {
         DumperOptions options = new DumperOptions();
+
         // do not dump tags into the document
-        options.setTags(new HashMap<String, String>());
+        options.setTags(new HashMap<>());
+
+        // format all nested mappings in block style
+        options.setPrettyFlow(true);
+        options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
+
         // indentation aids readability
         options.setIndent(2);
-        // TODO: find out why !!<class path> is rendered into the string by SnakeYAML
-        // TODO: make SnakeYAML dump lists with the dash-list syntax
 
-        return new Yaml(options);
+        // use custom representer to hide bean class names in output
+        // we explicitly have to add _all_ custom bean types
+        Representer representer = new Representer();
+        representer.addClassTag(ServiceInstanceSummaryBean.class, Tag.MAP);
+
+
+        return new Yaml(representer, options);
     }
 
     public String getServices() {
