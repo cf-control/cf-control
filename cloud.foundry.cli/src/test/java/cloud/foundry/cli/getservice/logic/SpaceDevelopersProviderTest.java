@@ -23,7 +23,6 @@ class SpaceDevelopersProviderTest {
     @Test
     public void testGetListSpaceDevelopers() {
         // given
-        
         DefaultCloudFoundryOperations cfOperationsMock = Mockito.mock(DefaultCloudFoundryOperations.class);
         Mockito.when(cfOperationsMock.getSpace()).thenReturn("development");
         Mockito.when(cfOperationsMock.getOrganization()).thenReturn("cloud.foundry.cli");
@@ -44,7 +43,7 @@ class SpaceDevelopersProviderTest {
         
         String spaceDevelopers = spaceDeveloperProvider.getSpaceDevelopers();
         
-        assertThat(spaceDevelopers, is(Arrays.asList("one", "two", "three", "four")));
+        assertThat(spaceDevelopers, is("spaceDevelopers: [one, two, three, four]\n"));
     }
 
     @Test
