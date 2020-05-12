@@ -13,28 +13,22 @@ import org.yaml.snakeyaml.Yaml;
 import reactor.core.publisher.Mono;
 
 public class SpaceDevelopersProvider {
-    
     private DefaultCloudFoundryOperations cfOperations;
 
     public SpaceDevelopersProvider(DefaultCloudFoundryOperations cfOperations) {
-        
         this.cfOperations = cfOperations;
     }
 
     public String getSpaceDevelopers() {
-        
         ListSpaceUsersRequest request = ListSpaceUsersRequest.builder()
-            .spaceName(cfOperations.getSpace()).organizationName(cfOperations.getOrganization()).build();
-        
+            .spaceName(cfOperations.getSpace()).organizationName(cfOperations.getOrganization())
+            .build();
         Mono<SpaceUsers> spaceUsers = cfOperations.userAdmin().listSpaceUsers(request);
         SpaceUsers users = spaceUsers.block();
         
-        List<String> listDevelopers = users.getDevelopers().stream()
-            .collect(Collectors.toList());
-        
+        List<String> listDevelopers = users.getDevelopers();
         Map<String, List<String>> data = new HashMap<String, List<String>>();
         data.put("spaceDevelopers", listDevelopers);
-        
         return new Yaml().dump(data);
     }
 }
