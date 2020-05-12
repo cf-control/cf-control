@@ -60,11 +60,7 @@ public class GetService implements Runnable {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator
                     .createCfOperations(commandOptions);
             List<ServiceInstanceSummary> services = cfOperations.services()
-                    .listInstances().collectSortedList().block();
-            for (ServiceInstanceSummary serviceInstanceSummary : services) {
-                System.out.println("Service: " +  serviceInstanceSummary.toString());
-            }
-            System.out.println("Yaml representation");
+                    .listInstances().collectList().block();
             for (ServiceInstanceSummary serviceInstanceSummary : services) {
                 // do not dump tags into the document
                 ServiceInstanceSummaryBean serviceInstance = new ServiceInstanceSummaryBean(serviceInstanceSummary);
@@ -93,7 +89,6 @@ public class GetService implements Runnable {
     }
 
     public static void main(String... args) {
-        int exitCode = new CommandLine(new GetService()).execute(args);
-        System.exit(exitCode);
+        CommandLine.run(new GetServicesCommand(), System.err, args);
     }
 }
