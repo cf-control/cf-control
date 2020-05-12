@@ -63,7 +63,7 @@ test {
 
 jar {
     manifest {
-        attributes 'Main-Class': 'cloud.foundry.cli.getservice.GetService',
+        attributes 'Main-Class': 'cloud.foundry.cli.getservice.GetController',
                 'Class-Path': configurations.runtime.files.collect { "lib/$it.name" }.join(' ')
                 }
 

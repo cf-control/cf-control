@@ -7,24 +7,27 @@ import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
 
-
-@Command(name = "Get-Service",
-        header = "%n@|green Get-Service|@",
+/**
+ * Controller for the Get-Commands
+ */
+@Command(name = "Get-Controller",
+        header = "%n@|green Get-Controller|@",
         subcommands = {
-                GetService.GetServicesCommand.class,
-                GetService.GetSpaceDevelopersCommand.class,
-                GetService.GetApplicationsCommand.class})
-public class GetService implements Runnable {
+                GetController.GetServicesCommand.class,
+                GetController.GetSpaceDevelopersCommand.class,
+                GetController.GetApplicationsCommand.class})
+public class GetController implements Runnable {
 
     @Override
     public void run() {
 
     }
 
-    @Command(name = "getSpaceDevelopers", description = "List all space developers")
+    @Command(name = "get-space-developers",
+            description = "List all space developers in the target space")
     static class GetSpaceDevelopersCommand implements Runnable {
         @Mixin
-        GetServiceCommandOptions commandOptions;
+        GetControllerCommandOptions commandOptions;
 
         @Override
         public void run() {
@@ -39,10 +42,10 @@ public class GetService implements Runnable {
         }
     }
 
-    @Command(name = "getServices", description = "List all applications in the target space")
+    @Command(name = "get-services", description = "List all applications in the target space")
     static class GetServicesCommand implements Runnable {
         @Mixin
-        GetServiceCommandOptions commandOptions;
+        GetControllerCommandOptions commandOptions;
 
         @Override
         public void run() {
@@ -55,10 +58,10 @@ public class GetService implements Runnable {
         }
     }
 
-    @Command(name = "getApplications", description = "List all applications in the target space")
+    @Command(name = "get-applications", description = "List all applications in the target space")
     static class GetApplicationsCommand implements Runnable {
         @Mixin
-        GetServiceCommandOptions commandOptions;
+        GetControllerCommandOptions commandOptions;
 
         @Override
         public void run() {
@@ -71,7 +74,7 @@ public class GetService implements Runnable {
     }
 
     public static void main(String... args) {
-        int exitCode = new CommandLine(new GetService()).execute(args);
+        int exitCode = new CommandLine(new GetController()).execute(args);
         System.exit(exitCode);
     }
 }
