@@ -25,6 +25,8 @@ public class GetService {
             DumperOptions options = new DumperOptions();
             // do not dump tags into the document
             options.setTags(new HashMap<String, String>());
+            // indentation aids readability
+            options.setIndent(2);
 
             Yaml yaml = new Yaml(options);
             String yamlDocument = yaml.dumpAsMap(serviceInstance);
