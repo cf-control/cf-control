@@ -24,7 +24,7 @@ public class SpaceDevelopersProvider {
     public String getSpaceDevelopers() {
         
         ListSpaceUsersRequest request = ListSpaceUsersRequest.builder()
-            .spaceName(cfOperations.getSpace()).build();
+            .spaceName(cfOperations.getSpace()).organizationName(cfOperations.getOrganization()).build();
         
         Mono<SpaceUsers> spaceUsers = cfOperations.userAdmin().listSpaceUsers(request);
         SpaceUsers users = spaceUsers.block();
