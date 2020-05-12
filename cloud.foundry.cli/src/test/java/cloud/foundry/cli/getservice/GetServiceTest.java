@@ -23,10 +23,10 @@ import java.util.List;
 public class GetServiceTest {
 
     @Test
-    public void getServicesTest() {
+    public void testGetServicesWithMockData() {
         //given
-        ServiceInstanceSummary serviceInstanceSummary = mockServiceInstanceSummary();
-        DefaultCloudFoundryOperations cfMock = mockDefaultCloudFoundryOperations(serviceInstanceSummary);
+        ServiceInstanceSummary serviceInstanceSummary = createMockServiceInstanceSummary();
+        DefaultCloudFoundryOperations cfMock = createMockDefaultCloudFoundryOperations(serviceInstanceSummary);
         //when
         GetService getService = new GetService(cfMock);
         String s = getService.getServices();
@@ -45,9 +45,9 @@ public class GetServiceTest {
     }
 
     @Test
-    public void getServicesTest_noServices_returnNull() {
+    public void testGetServicesWithEmptyMockData() {
         //given
-        DefaultCloudFoundryOperations cfMock = mockDefaultCloudFoundryOperations(null);
+        DefaultCloudFoundryOperations cfMock = createMockDefaultCloudFoundryOperations(null);
         //when
         GetService getService = new GetService(cfMock);
         String s = getService.getServices();
@@ -55,7 +55,7 @@ public class GetServiceTest {
         assertEquals(s, "[]\n");
     }
 
-    private DefaultCloudFoundryOperations mockDefaultCloudFoundryOperations
+    private DefaultCloudFoundryOperations createMockDefaultCloudFoundryOperations
             (ServiceInstanceSummary serviceInstanceSummary) {
         DefaultCloudFoundryOperations cfMock = Mockito.mock(DefaultCloudFoundryOperations.class);
         Services servicesMock = Mockito.mock(Services.class);
@@ -72,7 +72,7 @@ public class GetServiceTest {
         return cfMock;
     }
 
-    private ServiceInstanceSummary mockServiceInstanceSummary() {
+    private ServiceInstanceSummary createMockServiceInstanceSummary() {
         ServiceInstanceSummary serviceInstanceSummary = Mockito.mock(ServiceInstanceSummary.class);
         LinkedList<String> apps = new LinkedList<>();
         apps.add("test-flask");
