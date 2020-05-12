@@ -5,6 +5,7 @@ import org.cloudfoundry.operations.services.ServiceInstanceSummary;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -16,24 +17,36 @@ public class GetService {
         this.cfOperations = cfOperations;
     }
 
+    /**
+     * Factory function creating a Yaml object with common options. Ensures a consistent output format.
+     * @return Yaml object preconfigured with proper options
+     */
+    static private Yaml makeYaml() {
+        DumperOptions options = new DumperOptions();
+        // do not dump tags into the document
+        options.setTags(new HashMap<String, String>());
+        // indentation aids readability
+        options.setIndent(2);
+        // TODO: find out why !!<class path> is rendered into the string by SnakeYAML
+        // TODO: make SnakeYAML dump lists with the dash-list syntax
+
+        return new Yaml(options);
+    }
+
     public String getServices() {
         List<ServiceInstanceSummary> services = this.cfOperations.services().listInstances().collectList().block();
 
+        // create a list of special bean data objects, as the summaries cannot be serialized directly
+        List<ServiceInstanceSummaryBean> beans = new ArrayList<>();
         for (ServiceInstanceSummary serviceInstanceSummary : services) {
-            ServiceInstanceSummaryBean serviceInstance = new ServiceInstanceSummaryBean(serviceInstanceSummary);
-
-            DumperOptions options = new DumperOptions();
-            // do not dump tags into the document
-            options.setTags(new HashMap<String, String>());
-            // indentation aids readability
-            options.setIndent(2);
-
-            Yaml yaml = new Yaml(options);
-            String yamlDocument = yaml.dumpAsMap(serviceInstance);
-            return yamlDocument;
+            beans.add(new ServiceInstanceSummaryBean(serviceInstanceSummary));
         }
 
-        return null;
+        // create YAML document
+        Yaml yaml = makeYaml();
+        String yamlDocument = yaml.dump(beans);
+
+        return yamlDocument;
     }
 
     public CloudFoundryOperations getCfOperations() {

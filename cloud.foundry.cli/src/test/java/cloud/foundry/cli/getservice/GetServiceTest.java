@@ -2,6 +2,7 @@ package cloud.foundry.cli.getservice;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import cloud.foundry.cli.getservice.logic.GetService;
@@ -30,16 +31,17 @@ public class GetServiceTest {
         GetService getService = new GetService(cfMock);
         String s = getService.getServices();
         //then
-        assertThat(s, is("applications:\n" +
-                "- test-flask\n" +
-                "id: serviceId\n" +
-                "lastOperation: lastOp\n" +
-                "name: serviceName\n" +
-                "plan: standardPlan\n" +
-                "service: service\n" +
-                "tags:\n" +
-                "- tag\n" +
-                "type: MANAGED\n"));
+        assertThat(s, is(
+                "- !!cloud.foundry.cli.getservice.logic.ServiceInstanceSummaryBean\n" +
+                "  applications: [test-flask]\n" +
+                "  id: serviceId\n" +
+                "  lastOperation: lastOp\n" +
+                "  name: serviceName\n" +
+                "  plan: standardPlan\n" +
+                "  service: service\n" +
+                "  tags: [tag]\n" +
+                "  type: MANAGED\n"
+        ));
     }
 
     @Test
@@ -50,7 +52,7 @@ public class GetServiceTest {
         GetService getService = new GetService(cfMock);
         String s = getService.getServices();
         //then
-        assertNull(s);
+        assertEquals(s, "[]\n");
     }
 
     private DefaultCloudFoundryOperations mockDefaultCloudFoundryOperations

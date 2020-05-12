@@ -55,10 +55,6 @@ public class GetController implements Runnable {
 
             String services = getService.getServices();
 
-            if (services == null) {
-                System.out.println("No services.");
-            }
-
             System.out.println(services);
         }
     }
