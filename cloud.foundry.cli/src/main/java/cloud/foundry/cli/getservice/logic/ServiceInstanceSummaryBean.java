@@ -7,22 +7,22 @@ import java.util.List;
 
 public class ServiceInstanceSummaryBean {
 
-    private  List<String> applications;
     private  String id;
-    private  String lastOperation;
     private  String name;
-    private  String plan;
     private  String service;
+    private  List<String> applications;
+    private  String lastOperation;
+    private  String plan;
     private  List<String> tags;
     private  ServiceInstanceType type;
 
     public ServiceInstanceSummaryBean(ServiceInstanceSummary serviceInstanceSummary) {
-        this.applications = serviceInstanceSummary.getApplications();
         this.id = serviceInstanceSummary.getId();
-        this.lastOperation = serviceInstanceSummary.getLastOperation();
         this.name = serviceInstanceSummary.getName();
-        this.plan = serviceInstanceSummary.getPlan();
         this.service = serviceInstanceSummary.getService();
+        this.applications = serviceInstanceSummary.getApplications();
+        this.lastOperation = serviceInstanceSummary.getLastOperation();
+        this.plan = serviceInstanceSummary.getPlan();
         this.tags = serviceInstanceSummary.getTags();
         this.type = serviceInstanceSummary.getType();
     }

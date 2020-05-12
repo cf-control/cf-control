@@ -1,12 +1,9 @@
 package cloud.foundry.cli.getservice;
 
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
-import cloud.foundry.cli.getservice.logic.ServiceInstanceSummaryBean;
+import cloud.foundry.cli.getservice.logic.GetService;
 import cloud.foundry.cli.getservice.logic.SpaceDevelopersProvider;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
-import org.cloudfoundry.operations.services.ServiceInstanceSummary;
-import org.yaml.snakeyaml.DumperOptions;
-import org.yaml.snakeyaml.Yaml;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
@@ -51,23 +48,14 @@ public class GetController implements Runnable {
 
         @Override
         public void run() {
-            // FIXME
-            System.out.println("SOME DUMMY SERVICES");
-
-            // RUFE SERVICE AUF
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator
                     .createCfOperations(commandOptions);
-            List<ServiceInstanceSummary> services = cfOperations.services()
-                    .listInstances().collectList().block();
-            for (ServiceInstanceSummary serviceInstanceSummary : services) {
-                // do not dump tags into the document
-                ServiceInstanceSummaryBean serviceInstance = new ServiceInstanceSummaryBean(serviceInstanceSummary);
-                DumperOptions options = new DumperOptions();
-                options.setTags(new HashMap<String, String>()); // do not dump tags into the document
-                Yaml yaml = new Yaml(options);
-                String yamlDocument = yaml.dumpAsMap(serviceInstance);
-                System.out.println(yamlDocument);
+            GetService getService = new GetService(cfOperations);
+            String services = getService.getServices();
+            if (services == null) {
+                System.out.println("No services.");
             }
+            System.out.println(services);
         }
     }
 
