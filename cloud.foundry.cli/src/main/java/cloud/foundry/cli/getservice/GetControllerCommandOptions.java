@@ -1,21 +1,27 @@
 package cloud.foundry.cli.getservice;
 
-import picocli.CommandLine;
+import picocli.CommandLine.Option;
 
-public class GetServiceCommandOptions {
-    @CommandLine.Option(names = {"-u", "--user"}, required = false)
+/**
+ * Common Options for the Get-Controller Sub commands.
+ *
+ * @see GetController
+ */
+public class GetControllerCommandOptions {
+
+    @Option(names = {"-u", "--user"}, required = false)
     String userName;
 
-    @CommandLine.Option(names = {"-p", "--password"}, required = false)
+    @Option(names = {"-p", "--password"}, required = false)
     String password;
 
-    @CommandLine.Option(names = {"-a", "--api"}, required = false)
+    @Option(names = {"-a", "--api"}, required = true)
     String apiHost;
 
-    @CommandLine.Option(names = {"-o", "--organization"}, required = false)
+    @Option(names = {"-o", "--organization"}, required = true)
     String organization;
 
-    @CommandLine.Option(names = {"-s", "--space"}, required = true)
+    @Option(names = {"-s", "--space"}, required = true)
     String space;
 
     public String getUserName() {

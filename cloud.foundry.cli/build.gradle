@@ -48,6 +48,9 @@ dependencies {
     
     testImplementation 'org.hamcrest:hamcrest:2.2'
     testImplementation "org.mockito:mockito-core:2.+"
+    testImplementation 'org.mockito:mockito-inline:2.15.0'
+
+	testImplementation 'net.bytebuddy:byte-buddy-gradle-plugin:1.10.10'
 
     compile 'io.swagger.parser.v3:swagger-parser:2.0.19'
 
@@ -63,9 +66,9 @@ test {
 
 jar {
     manifest {
-        attributes 'Main-Class': 'cloud.foundry.cli.getservice.GetService',
+        attributes 'Main-Class': 'cloud.foundry.cli.getservice.GetController',
                 'Class-Path': configurations.runtime.files.collect { "lib/$it.name" }.join(' ')
-                }
+        }
 
         from {
             configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
