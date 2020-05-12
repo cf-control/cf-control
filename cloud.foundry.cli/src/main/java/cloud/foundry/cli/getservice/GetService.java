@@ -28,14 +28,13 @@ public class GetService implements Runnable {
 
         @Override
         public void run() {
-            // FIXME
-            System.out.println("SOME DUMMY SPACE DEVELOPERS");
-            // RUFE SERVICE AUF
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator
                     .createCfOperations(commandOptions);
 
-            SpaceDevelopersProvider provider = new SpaceDevelopersProvider();
-            provider.machWas(cfOperations);
+            SpaceDevelopersProvider provider = new SpaceDevelopersProvider(cfOperations);
+            String  spaceDevs =  provider.getSpaceDevelopers();
+            System.out.println(spaceDevs);
+           
         }
     }
 
