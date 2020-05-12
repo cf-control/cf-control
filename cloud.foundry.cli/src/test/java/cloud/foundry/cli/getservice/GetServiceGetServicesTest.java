@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import cloud.foundry.cli.getservice.logic.GetService;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
+import org.cloudfoundry.operations.applications.ApplicationSummary;
 import org.cloudfoundry.operations.services.ServiceInstanceSummary;
 import org.cloudfoundry.operations.services.ServiceInstanceType;
 import org.cloudfoundry.operations.services.Services;
@@ -20,7 +21,7 @@ import java.util.List;
 
 
 
-public class GetServiceTest {
+public class GetServiceGetServicesTest {
 
     @Test
     public void testGetServicesWithMockData() {
