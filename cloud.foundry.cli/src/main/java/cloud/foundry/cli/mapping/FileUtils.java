@@ -2,12 +2,21 @@ package cloud.foundry.cli.mapping;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import cloud.foundry.cli.exceptions.InvalidFileTypeException;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.hc.client5.http.HttpResponseException;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.core5.http.ProtocolException;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -55,7 +64,7 @@ public class FileUtils {
      * @return      the content of the file as a String
      * @throws IOException
      */
-    public static String readRemoteFile(String url) throws IOException {
+    public static String readRemoteFile(String url) throws IOException, ProtocolException {
         checkNotNull(url);
 
         String content = doReadRemoteFile(url);
@@ -64,12 +73,41 @@ public class FileUtils {
         return content;
     }
 
-    private static String doReadRemoteFile(String url) throws IOException {
-        return null;
+    private static String doReadRemoteFile(String url) throws IOException, ProtocolException {
+        URI uri = URI.create(url);
+
+        if (!isYamlFile(uri.getPath()) && !emptyFileExtension(uri.getPath())) {
+            throw new InvalidFileTypeException("invalid file extension: "
+                    + FilenameUtils.getExtension(uri.getPath()));
+        }
+
+        try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+
+            try (CloseableHttpResponse response = httpClient.execute(new HttpGet(uri))) {
+
+                //TODO: more precise exception handling
+                if (response.getCode() != 200) {
+                    throw new HttpResponseException(response.getCode(), response.getReasonPhrase());
+                }
+
+                if (response.getHeader("Content-Type") != null
+                        && !response.getHeader("Content-Type").equals("text/plain")) {
+
+                    throw new HttpResponseException(response.getCode(),
+                            "invalid content type, was: " + response.getHeader("Content-Type"));
+                }
+
+                return EntityUtils.toString(response.getEntity());
+            }
+        }
     }
 
     public static boolean isYamlFile(String filename) {
         return ALLOWED_FILE_EXTENSIONS.contains(FilenameUtils.getExtension(filename).toUpperCase());
+    }
+
+    public static boolean emptyFileExtension(String filename) {
+        return FilenameUtils.getExtension(filename).isEmpty();
     }
 
     private static String readFile(File file) throws IOException {

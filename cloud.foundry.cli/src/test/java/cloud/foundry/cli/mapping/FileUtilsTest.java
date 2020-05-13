@@ -1,10 +1,14 @@
 package cloud.foundry.cli.mapping;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import cloud.foundry.cli.exceptions.InvalidFileTypeException;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
@@ -310,7 +314,7 @@ public class FileUtilsTest {
 
 
     @Test
-    public void testReadRemoteFileOnFalseContentTypeThrowsException(){
+    public void testReadRemoteFileOnFalseContentTypeThrowsException() {
         //Arrange
         // http://localhost:XXXX/SimpleList.yaml
         WireMockServer server = MockServerBuilder.builder()
@@ -318,7 +322,8 @@ public class FileUtilsTest {
         server.start();
 
         //Act
-        Exception exception = assertThrows(Exception.class, () -> FileUtils.readRemoteFile(server.url("").replace("8070", "9999")));
+        Exception exception = assertThrows(Exception.class,
+                () -> FileUtils.readRemoteFile(server.url("").replace("8070", "9999")));
 
         //Cleanup
         server.stop();
@@ -326,7 +331,7 @@ public class FileUtilsTest {
 
 
     @Test
-    public void testReadRemoteFileOnNonExistingHostThrowsException(){
+    public void testReadRemoteFileOnNonExistingHostThrowsException() {
         //Arrange
         // http://localhost:XXXX/SimpleList.yaml
         WireMockServer server = MockServerBuilder.builder()
@@ -334,7 +339,8 @@ public class FileUtilsTest {
         server.start();
 
         //Act
-        Exception exception = assertThrows(Exception.class, () -> FileUtils.readRemoteFile(server.url("").replace("8070", "9999")));
+        Exception exception = assertThrows(Exception.class,
+                () -> FileUtils.readRemoteFile(server.url("").replace("8070", "9999")));
 
         //Cleanup
         server.stop();
@@ -349,7 +355,8 @@ public class FileUtilsTest {
         server.start();
 
         //Act
-        Exception exception = assertThrows(Exception.class, () -> FileUtils.readRemoteFile(server.url("Missing.yml")));
+        Exception exception = assertThrows(Exception.class,
+                () -> FileUtils.readRemoteFile(server.url("Missing.yml")));
 
         //Cleanup
         server.stop();
@@ -365,7 +372,8 @@ public class FileUtilsTest {
         server.start();
 
         //Act
-        Exception exception = assertThrows(Exception.class, () -> FileUtils.readRemoteFile(server.url("resrcs/SimpleList.yml")));
+        Exception exception = assertThrows(Exception.class,
+                () -> FileUtils.readRemoteFile(server.url("resrcs/SimpleList.yml")));
 
         //Cleanup
         server.stop();
@@ -381,7 +389,8 @@ public class FileUtilsTest {
         server.start();
 
         //Act
-        InvalidFileTypeException exception = assertThrows(InvalidFileTypeException.class, () -> FileUtils.readRemoteFile(server.url("SimpleList.txt")));
+        InvalidFileTypeException exception = assertThrows(InvalidFileTypeException.class,
+                () -> FileUtils.readRemoteFile(server.url("SimpleList.txt")));
         assertThat(exception.getMessage(), containsString("invalid file extension"));
 
         //Cleanup
@@ -401,7 +410,8 @@ public class FileUtilsTest {
         server.start();
 
         //Act
-        HttpResponseException exception = assertThrows(HttpResponseException.class, () -> FileUtils.readRemoteFile(server.url("jsondata")));
+        HttpResponseException exception = assertThrows(HttpResponseException.class,
+                () -> FileUtils.readRemoteFile(server.url("jsondata")));
         assertThat(exception.getReasonPhrase(), containsString("invalid content type"));
 
         //Cleanup
@@ -424,11 +434,11 @@ public class FileUtilsTest {
             routes = new LinkedList<>();
         }
 
-        public static MockServerBuilder builder(){
+        public static MockServerBuilder builder() {
             return new MockServerBuilder();
         }
 
-        public MockServerBuilder setPort(int port){
+        public MockServerBuilder setPort(int port) {
             this.port = port;
             return this;
         }
@@ -455,8 +465,8 @@ public class FileUtilsTest {
             return this;
         }
 
-        public WireMockServer build(){
-            for(MappingBuilder route : routes){
+        public WireMockServer build() {
+            for (MappingBuilder route : routes) {
                 wireMockServer.stubFor(route);
             }
             return wireMockServer;
@@ -470,42 +480,42 @@ public class FileUtilsTest {
         int status;
         Map<String, String> header;
 
-        private MockRoute(){
+        private MockRoute() {
             path = "";
             content = "";
             status = 200;
             header = new HashMap<>();
         }
 
-        public static MockRoute builder(){
+        public static MockRoute builder() {
             return new MockRoute();
         }
 
-        public MockRoute setPath(String path){
+        public MockRoute setPath(String path) {
             this.path = path;
             return this;
         }
 
-        public MockRoute setContent(String content){
+        public MockRoute setContent(String content) {
             this.content = content;
             return this;
         }
 
-        public MockRoute addHeader(String key, String value){
+        public MockRoute addHeader(String key, String value) {
             header.put(key, value);
             return this;
         }
 
-        public MockRoute setStatus(int status){
+        public MockRoute setStatus(int status) {
             this.status = status;
             return this;
         }
 
-        public MappingBuilder build(){
+        public MappingBuilder build() {
             MappingBuilder mappingBuilder =  get(urlEqualTo("/" + path));
             ResponseDefinitionBuilder respBuilder = aResponse();
 
-            for(Map.Entry<String, String> headEntry : header.entrySet()){
+            for (Map.Entry<String, String> headEntry : header.entrySet()) {
                 respBuilder.withHeader(headEntry.getKey(), headEntry.getValue());
             }
 
