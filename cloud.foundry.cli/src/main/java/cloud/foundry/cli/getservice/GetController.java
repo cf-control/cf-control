@@ -67,7 +67,12 @@ public class GetController implements Runnable {
         @Override
         public void run() {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(commandOptions);
-            // TODO
+
+            GetService getService = new GetService(cfOperations);
+
+            String applications = getService.getApplications();
+
+            System.out.println(applications);
         }
     }
 

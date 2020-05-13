@@ -1,6 +1,8 @@
 package cloud.foundry.cli.getservice.logic;
 
 import org.cloudfoundry.operations.CloudFoundryOperations;
+import org.cloudfoundry.operations.applications.ApplicationManifest;
+import org.cloudfoundry.operations.applications.ApplicationSummary;
 import org.cloudfoundry.operations.applications.GetApplicationManifestRequest;
 import org.cloudfoundry.operations.services.ServiceInstanceSummary;
 import org.yaml.snakeyaml.DumperOptions;
@@ -41,7 +43,8 @@ public class GetService {
         // we explicitly have to add _all_ custom bean types
         Representer representer = new Representer();
         representer.addClassTag(ServiceInstanceSummaryBean.class, Tag.MAP);
-
+        representer.addClassTag(ApplicationBean.class, Tag.MAP);
+        representer.addClassTag(ApplicationManifestBean.class, Tag.MAP);
 
         return new Yaml(representer, options);
     }
@@ -53,6 +56,25 @@ public class GetService {
         List<ServiceInstanceSummaryBean> beans = new ArrayList<>();
         for (ServiceInstanceSummary serviceInstanceSummary : services) {
             beans.add(new ServiceInstanceSummaryBean(serviceInstanceSummary));
+        }
+
+        // create YAML document
+        Yaml yaml = makeYaml();
+        String yamlDocument = yaml.dump(beans);
+
+        return yamlDocument;
+    }
+
+    public String getApplications() {
+        List<ApplicationSummary> applications = this.cfOperations.applications().list().collectList().block();
+
+        // create a list of special bean data objects, as the summaries cannot be serialized directly
+        List<ApplicationBean> beans = new ArrayList<>();
+        for (ApplicationSummary summary : applications) {
+            GetApplicationManifestRequest manifestRequest = GetApplicationManifestRequest.builder().name(summary.getName()).build();
+            ApplicationManifest manifest = this.cfOperations.applications().getApplicationManifest(manifestRequest).block();
+
+            beans.add(new ApplicationBean(manifest));
         }
 
         // create YAML document
