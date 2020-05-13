@@ -1,6 +1,7 @@
 package cloud.foundry.cli.getservice;
 
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
+import cloud.foundry.cli.getservice.logic.GetService;
 import cloud.foundry.cli.getservice.logic.SpaceDevelopersProvider;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import picocli.CommandLine;
@@ -31,11 +32,12 @@ public class GetController implements Runnable {
 
         @Override
         public void run() {
-            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator
-                    .createCfOperations(commandOptions);
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(commandOptions);
 
             SpaceDevelopersProvider provider = new SpaceDevelopersProvider(cfOperations);
-            String  spaceDevelopers =  provider.getSpaceDevelopers();
+
+            String spaceDevelopers =  provider.getSpaceDevelopers();
+
             System.out.println(spaceDevelopers);
         }
     }
@@ -47,12 +49,13 @@ public class GetController implements Runnable {
 
         @Override
         public void run() {
-            // FIXME
-            System.out.println("SOME DUMMY SERVICES");
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(commandOptions);
 
-            // RUFE SERVICE AUF
-            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator
-                    .createCfOperations(commandOptions);
+            GetService getService = new GetService(cfOperations);
+
+            String services = getService.getServices();
+
+            System.out.println(services);
         }
     }
 
@@ -63,16 +66,17 @@ public class GetController implements Runnable {
 
         @Override
         public void run() {
-            // FIXME
-            System.out.println("SOME DUMMY APPLICATIONS");
-            // RUFE SERVICE AUF
-            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator
-                    .createCfOperations(commandOptions);
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(commandOptions);
+
+            GetService getService = new GetService(cfOperations);
+
+            String applications = getService.getApplications();
+
+            System.out.println(applications);
         }
     }
 
     public static void main(String... args) {
-        int exitCode = new CommandLine(new GetController()).execute(args);
-        System.exit(exitCode);
+        CommandLine.run(new GetApplicationsCommand(), System.err, args);
     }
 }
