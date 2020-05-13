@@ -26,7 +26,7 @@ public class GetService {
      * Factory function creating a Yaml object with common options. Ensures a consistent output format.
      * @return Yaml object preconfigured with proper options
      */
-    static private Yaml makeYaml() {
+    private static Yaml makeYaml() {
         DumperOptions options = new DumperOptions();
 
         // do not dump tags into the document
@@ -71,8 +71,10 @@ public class GetService {
         // create a list of special bean data objects, as the summaries cannot be serialized directly
         List<ApplicationBean> beans = new ArrayList<>();
         for (ApplicationSummary summary : applications) {
-            GetApplicationManifestRequest manifestRequest = GetApplicationManifestRequest.builder().name(summary.getName()).build();
-            ApplicationManifest manifest = this.cfOperations.applications().getApplicationManifest(manifestRequest).block();
+            GetApplicationManifestRequest manifestRequest = GetApplicationManifestRequest.builder()
+                    .name(summary.getName()).build();
+            ApplicationManifest manifest = this.cfOperations.applications()
+                    .getApplicationManifest(manifestRequest).block();
 
             beans.add(new ApplicationBean(manifest));
         }

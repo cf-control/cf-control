@@ -1,8 +1,10 @@
 package cloud.foundry.cli.getservice.logic;
 
-import org.cloudfoundry.operations.applications.*;
+import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
+import org.cloudfoundry.operations.applications.ApplicationManifest;
+import org.cloudfoundry.operations.applications.Docker;
+import org.cloudfoundry.operations.applications.Route;
 
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 

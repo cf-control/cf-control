@@ -77,6 +77,6 @@ public class GetController implements Runnable {
     }
 
     public static void main(String... args) {
-        CommandLine.run(new GetServicesCommand(), System.err, args);
+        CommandLine.run(new GetApplicationsCommand(), System.err, args);
     }
 }
