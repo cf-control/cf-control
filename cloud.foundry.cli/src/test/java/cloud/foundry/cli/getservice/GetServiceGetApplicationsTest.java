@@ -207,7 +207,7 @@ public class GetServiceGetApplicationsTest {
                 "    - serviceomega\n" +
                 "    stack: nope\n" +
                 "    timeout: 987654321\n" +
-                "  path: /test/uri\n"
+                "  path: " + Paths.get("/test/uri").toString() + "\n"
         ));
     }
 
