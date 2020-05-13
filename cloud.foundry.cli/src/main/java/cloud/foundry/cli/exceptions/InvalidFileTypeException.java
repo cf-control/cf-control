@@ -1,4 +1,4 @@
-package cloud.foundry.cli.mapping;
+package cloud.foundry.cli.exceptions;
 
 import java.io.IOException;
 

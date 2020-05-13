@@ -59,3 +59,13 @@ test {
 
     maxHeapSize = '1G'
 }
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'cloud.foundry.cli.Greet',
+        'Class-Path': configurations.runtime.files.collect { "lib/$it.name" }.join(' ')
+    }
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
