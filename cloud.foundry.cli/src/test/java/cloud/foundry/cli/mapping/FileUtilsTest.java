@@ -6,7 +6,11 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.MappingBuilder;
+import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import org.apache.hc.client5.http.HttpResponseException;
+import org.apache.hc.core5.http.ProtocolException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -19,6 +23,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.HashMap;
 
 public class FileUtilsTest {
 
@@ -156,23 +163,23 @@ public class FileUtilsTest {
                 ? Collections.emptyList()
                 : Arrays.asList(content.split("\n"));
         return Files
-                .write(Files.createDirectories(path).resolve(filename), contents)
+                .write(Files
+                        .createDirectories(path)
+                        .resolve(filename), contents)
                 .toFile();
     }
 
     @Test
-    public void testReadRemoteFileEmptySucceeds() throws IOException {
+    public void testReadRemoteFileEmptySucceeds() throws IOException, ProtocolException {
         //Arrange
         // http://localhost:8070/Empty.yaml
-        WireMockServer server = MockServerBuilder
-                .create()
-                .setPath("Empty.yaml")
-                .setFileContent("")
+        WireMockServer server = MockServerBuilder.builder()
+                .addRoute("Empty.yaml")
                 .build();
         server.start();
 
         //Act
-        String actualYaml = FileUtils.readRemoteFile(server.url(""));
+        String actualYaml = FileUtils.readRemoteFile(server.url("Empty.yaml"));
 
         //Verify
         assertThat(actualYaml, is(""));
@@ -182,13 +189,11 @@ public class FileUtilsTest {
     }
 
     @Test
-    public void testReadRemoteFileWithContentSucceeds() throws IOException {
+    public void testReadRemoteFileWithContentSucceeds() throws IOException, ProtocolException {
         //Arrange
         // http://localhost:8070/SimpleList.yaml
-        WireMockServer server = MockServerBuilder
-                .create()
-                .setPath("SimpleList.yaml")
-                .setFileContent(readFileContent(SIMPLE_LIST_FILE_PATH))
+        WireMockServer server = MockServerBuilder.builder()
+                .addRoute("SimpleList.yaml", readFileContent(SIMPLE_LIST_FILE_PATH))
                 .build();
         server.start();
 
@@ -203,17 +208,17 @@ public class FileUtilsTest {
     }
 
     @Test
-    public void testReadRemoteFileWithPathSucceeds() throws IOException {
+    public void testReadRemoteFileWithPathSucceeds() throws IOException, ProtocolException {
         //Arrange
-        // http://localhost:8070/resources/SimpleList.yaml
-        WireMockServer server = MockServerBuilder
-                .create()
-                .setPath("resources/SimpleList.yaml")
-                .setFileContent(readFileContent(SIMPLE_LIST_FILE_PATH))
+        // http://localhost:XXXX/resources/SimpleList.yaml
+        WireMockServer server = MockServerBuilder.builder()
+                .addRoute("resources/SimpleList.yaml", readFileContent(SIMPLE_LIST_FILE_PATH))
                 .build();
         server.start();
 
         //Act
+        System.out.println(server.getStubMappings());
+        System.out.println(server.url("resources/SimpleList.yaml"));
         String actualYaml = FileUtils.readRemoteFile(server.url("resources/SimpleList.yaml"));
 
         //Verify
@@ -224,56 +229,34 @@ public class FileUtilsTest {
     }
 
     @Test
-    public void testReadRemoteFileOnDirectoryWithCommaSucceeds() throws IOException {
+    public void testReadRemoteFileOnCaseInsensitiveFileExtensionSucceeds() throws IOException, ProtocolException {
         //Arrange
-        // http://localhost:8070/resources.path/SimpleList.yaml
-        WireMockServer server = MockServerBuilder
-                .create()
-                .setPath("resources.path/SimpleList.yaml")
-                .setFileContent(readFileContent(SIMPLE_LIST_FILE_PATH))
+        // http://localhost:XXXX/resources/SimpleList.yAMl
+        // http://localhost:XXXX/resources/SimpleList.ymL
+        WireMockServer server = MockServerBuilder.builder()
+                .addRoute("resources/SimpleList.yAMl", readFileContent(SIMPLE_LIST_FILE_PATH))
+                .addRoute("resources/SimpleList.ymL", readFileContent(SIMPLE_LIST_FILE_PATH))
                 .build();
         server.start();
 
         //Act
-        String actualYaml = FileUtils.readRemoteFile(server.url("resources.path/SimpleList.yaml"));
-
-        //Verify
-        assertThat(actualYaml, is(readFileContent(SIMPLE_LIST_FILE_PATH)));
-
-        //Cleanup
-        server.stop();
-        server.shutdown();
-    }
-
-    @Test
-    public void testReadRemoteFileOnCaseInsensitiveFileExtensionSucceeds() throws IOException {
-        //Arrange
-        // http://localhost:8070/resources.path/SimpleList.yaml
-        WireMockServer server = MockServerBuilder
-                .create()
-                .setPath("resources.path/SimpleList.yAMl")
-                .setFileContent(readFileContent(SIMPLE_LIST_FILE_PATH))
-                .build();
-        server.start();
-
-        //Act
-        String actualYaml = FileUtils.readRemoteFile(server.url("SimpleList.yAMl"));
+        String actualYaml = FileUtils.readRemoteFile(server.url("resources/SimpleList.yAMl"));
+        String actualYml = FileUtils.readRemoteFile(server.url("resources/SimpleList.ymL"));
 
         //Verify
         assertThat(actualYaml, is(readFileContent( SIMPLE_LIST_FILE_PATH)));
+        assertThat(actualYml, is(readFileContent( SIMPLE_LIST_FILE_PATH)));
 
         //Cleanup
         server.stop();
     }
 
     @Test
-    public void testReadRemoteFileOnValidFileTypesSucceeds() throws IOException {
+    public void testReadRemoteFileOnValidFileTypesSucceeds() throws IOException, ProtocolException {
         //Arrange
-        // http://localhost:8070/SimpleList.yaml
-        WireMockServer server = MockServerBuilder
-                .create()
-                .setPath("SimpleList.yml")
-                .setFileContent(readFileContent(SIMPLE_LIST_FILE_PATH))
+        // http://localhost:XXXX/SimpleList.yml
+        WireMockServer server = MockServerBuilder.builder()
+                .addRoute("SimpleList.yml", readFileContent(SIMPLE_LIST_FILE_PATH))
                 .build();
         server.start();
 
@@ -288,13 +271,11 @@ public class FileUtilsTest {
     }
 
     @Test
-    public void testReadRemoteFileOnPathWithoutFileExtensionSucceeds() throws IOException {
+    public void testReadRemoteFileOnPathWithoutFileExtensionSucceeds() throws IOException, ProtocolException {
         //Arrange
-        // http://localhost:8070/resources/SimpleList
-        WireMockServer server = MockServerBuilder
-                .create()
-                .setPath("SimpleList")
-                .setFileContent(readFileContent(SIMPLE_LIST_FILE_PATH))
+        // http://localhost:XXXX/resources/SimpleList
+        WireMockServer server = MockServerBuilder.builder()
+                .addRoute("SimpleList", readFileContent(SIMPLE_LIST_FILE_PATH))
                 .build();
         server.start();
 
@@ -306,15 +287,33 @@ public class FileUtilsTest {
 
         //Cleanup
         server.stop();
-        server.shutdown();
     }
 
     @Test
-    public void testReadRemoteFileOnFalseContentTypeThrowsException() throws IOException {
+    public void testReadRemoteFileOnPathIncludingPointSucceeds() throws IOException, ProtocolException {
         //Arrange
-        // http://localhost:8070/SimpleList.yaml
-        WireMockServer server = MockServerBuilder
-                .create()
+        // http://localhost:XXXX/resources.path/SimpleList.yaml
+        WireMockServer server = MockServerBuilder.builder()
+                .addRoute("resources.path/SimpleList.yaml", readFileContent(SIMPLE_LIST_FILE_PATH))
+                .build();
+        server.start();
+
+        //Act
+        String yaml = FileUtils.readRemoteFile(server.url("resources.path/SimpleList.yaml"));
+
+        //Verify
+        assertThat(yaml, is(readFileContent(SIMPLE_LIST_FILE_PATH)));
+
+        //Cleanup
+        server.stop();
+    }
+
+
+    @Test
+    public void testReadRemoteFileOnFalseContentTypeThrowsException(){
+        //Arrange
+        // http://localhost:XXXX/SimpleList.yaml
+        WireMockServer server = MockServerBuilder.builder()
                 .build();
         server.start();
 
@@ -327,11 +326,10 @@ public class FileUtilsTest {
 
 
     @Test
-    public void testReadRemoteFileOnNonExistingHostThrowsException() throws IOException {
+    public void testReadRemoteFileOnNonExistingHostThrowsException(){
         //Arrange
-        // http://localhost:8070/SimpleList.yaml
-        WireMockServer server = MockServerBuilder
-                .create(8070)
+        // http://localhost:XXXX/SimpleList.yaml
+        WireMockServer server = MockServerBuilder.builder()
                 .build();
         server.start();
 
@@ -340,16 +338,13 @@ public class FileUtilsTest {
 
         //Cleanup
         server.stop();
-        server.shutdownServer();
-        server.resetAll();
     }
 
     @Test
-    public void testReadRemoteFileOnMissingFileThrowsException() throws FileNotFoundException {
+    public void testReadRemoteFileOnMissingFileThrowsException() {
         //Arrange
-        // http://localhost:8070/SimpleList.yaml
-        WireMockServer server = MockServerBuilder
-                .create()
+        // http://localhost:XXXX
+        WireMockServer server = MockServerBuilder.builder()
                 .build();
         server.start();
 
@@ -363,11 +358,9 @@ public class FileUtilsTest {
     @Test
     public void testReadRemoteFileOnMissingFilePathThrowsException() throws FileNotFoundException {
         //Arrange
-        // http://localhost:8070/resources/SimpleList.yaml
-        WireMockServer server = MockServerBuilder
-                .create()
-                .setPath("resources/SimpleList.yaml")
-                .setFileContent(readFileContent(SIMPLE_LIST_FILE_PATH))
+        // http://localhost:XXXX/resources/SimpleList.yaml
+        WireMockServer server = MockServerBuilder.builder()
+                .addRoute("resources/SimpleList.yaml", readFileContent(SIMPLE_LIST_FILE_PATH))
                 .build();
         server.start();
 
@@ -381,15 +374,35 @@ public class FileUtilsTest {
     @Test
     public void testReadRemoteFileOnInvalidFileExtensionThrowsException() {
         //Arrange
-        // http://localhost:8070/SimpleList.txt
-        WireMockServer server = MockServerBuilder
-                .create()
-                .setPath("SimpleList.txt")
+        // http://localhost:XXXX/SimpleList.txt
+        WireMockServer server = MockServerBuilder.builder()
+                .addRoute("SimpleList.txt")
                 .build();
         server.start();
 
         //Act
-        Exception exception = assertThrows(Exception.class, () -> FileUtils.readRemoteFile(server.url("SimpleList.txt")));
+        InvalidFileTypeException exception = assertThrows(InvalidFileTypeException.class, () -> FileUtils.readRemoteFile(server.url("SimpleList.txt")));
+        assertThat(exception.getMessage(), containsString("invalid file extension"));
+
+        //Cleanup
+        server.stop();
+    }
+
+    @Test
+    public void testReadRemoteFileOnInvalidContentTypeThrowsException() {
+        //Arrange
+        // http://localhost:XXXX/jsondata
+        WireMockServer server = MockServerBuilder.builder()
+                .addRoute(MockRoute
+                        .builder()
+                        .setPath("jsondata")
+                        .addHeader("Content-Type", "application/json"))
+                .build();
+        server.start();
+
+        //Act
+        HttpResponseException exception = assertThrows(HttpResponseException.class, () -> FileUtils.readRemoteFile(server.url("jsondata")));
+        assertThat(exception.getReasonPhrase(), containsString("invalid content type"));
 
         //Cleanup
         server.stop();
@@ -398,45 +411,107 @@ public class FileUtilsTest {
     private static class MockServerBuilder {
 
         WireMockServer wireMockServer;
-        String content;
-        String path;
 
-        private MockServerBuilder(int port) {
-            WireMockConfiguration serverConfig = WireMockConfiguration.options().port(port);
-            wireMockServer = new WireMockServer(serverConfig);
-            content = "";
-            path = "";
-        }
+        String content;
+        List<MappingBuilder> routes;
+
+        int port;
 
         private MockServerBuilder() {
             WireMockConfiguration serverConfig = WireMockConfiguration.options().dynamicPort();
             wireMockServer = new WireMockServer(serverConfig);
             content = "";
-            path = "";
+            routes = new LinkedList<>();
         }
 
-        public static MockServerBuilder create(int port){
-            return new MockServerBuilder(port);
-        }
-
-        public static MockServerBuilder create(){
+        public static MockServerBuilder builder(){
             return new MockServerBuilder();
         }
 
-        public MockServerBuilder setPath(String path) {
-            this.path = path;
+        public MockServerBuilder setPort(int port){
+            this.port = port;
             return this;
         }
 
-        public MockServerBuilder setFileContent(String content){
-            this.content = content;
+        public MockServerBuilder addRoute(String path, String content) {
+            routes.add(MockRoute
+                    .builder()
+                    .setPath(path)
+                    .setContent(content)
+                    .build());
+            return this;
+        }
+
+        public MockServerBuilder addRoute(String path) {
+            routes.add(MockRoute
+                    .builder()
+                    .setPath(path)
+                    .build());
+            return this;
+        }
+
+        public MockServerBuilder addRoute(MockRoute route) {
+            routes.add(route.build());
             return this;
         }
 
         public WireMockServer build(){
-            wireMockServer.stubFor(get(urlEqualTo(path))
-                    .willReturn(aResponse().withBody(content)));
+            for(MappingBuilder route : routes){
+                wireMockServer.stubFor(route);
+            }
             return wireMockServer;
+        }
+    }
+
+    private static class MockRoute {
+
+        String path;
+        String content;
+        int status;
+        Map<String, String> header;
+
+        private MockRoute(){
+            path = "";
+            content = "";
+            status = 200;
+            header = new HashMap<>();
+        }
+
+        public static MockRoute builder(){
+            return new MockRoute();
+        }
+
+        public MockRoute setPath(String path){
+            this.path = path;
+            return this;
+        }
+
+        public MockRoute setContent(String content){
+            this.content = content;
+            return this;
+        }
+
+        public MockRoute addHeader(String key, String value){
+            header.put(key, value);
+            return this;
+        }
+
+        public MockRoute setStatus(int status){
+            this.status = status;
+            return this;
+        }
+
+        public MappingBuilder build(){
+            MappingBuilder mappingBuilder =  get(urlEqualTo("/" + path));
+            ResponseDefinitionBuilder respBuilder = aResponse();
+
+            for(Map.Entry<String, String> headEntry : header.entrySet()){
+                respBuilder.withHeader(headEntry.getKey(), headEntry.getValue());
+            }
+
+            respBuilder.withBody(content);
+            respBuilder.withStatus(status);
+            return mappingBuilder.willReturn(respBuilder);
         }
     }
 
