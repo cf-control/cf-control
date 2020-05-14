@@ -1,5 +1,6 @@
-package cloud.foundry.cli.getservice;
+package cloud.foundry.cli.services;
 
+import cloud.foundry.cli.services.GetController;
 import picocli.CommandLine.Option;
 
 /**

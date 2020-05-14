@@ -1,10 +1,11 @@
-package cloud.foundry.cli.getservice.logic;
+package cloud.foundry.cli.operations;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.cloudfoundry.operations.CloudFoundryOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.useradmin.ListSpaceUsersRequest;
 import org.cloudfoundry.operations.useradmin.SpaceUsers;
@@ -21,7 +22,7 @@ public class SpaceDevelopersProvider {
 
     /**
      * List all space developers
-     * 
+     *
      * @return list of space developers in YAML format
      */
     public String getSpaceDevelopers() {

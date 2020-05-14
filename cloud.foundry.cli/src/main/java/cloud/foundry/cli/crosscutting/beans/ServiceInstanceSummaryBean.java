@@ -1,4 +1,4 @@
-package cloud.foundry.cli.getservice.logic;
+package cloud.foundry.cli.crosscutting.beans;
 
 import org.cloudfoundry.operations.services.ServiceInstanceSummary;
 import org.cloudfoundry.operations.services.ServiceInstanceType;

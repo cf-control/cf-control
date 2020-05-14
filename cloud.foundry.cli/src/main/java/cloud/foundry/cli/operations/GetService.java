@@ -1,5 +1,8 @@
-package cloud.foundry.cli.getservice.logic;
+package cloud.foundry.cli.operations;
 
+import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
+import cloud.foundry.cli.crosscutting.beans.ApplicationManifestBean;
+import cloud.foundry.cli.crosscutting.beans.ServiceInstanceSummaryBean;
 import org.cloudfoundry.operations.CloudFoundryOperations;
 import org.cloudfoundry.operations.applications.ApplicationManifest;
 import org.cloudfoundry.operations.applications.ApplicationSummary;

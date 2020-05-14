@@ -1,11 +1,11 @@
-package cloud.foundry.cli.getservice;
+package cloud.foundry.cli.operations;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 
-import cloud.foundry.cli.getservice.logic.GetService;
+import cloud.foundry.cli.operations.GetService;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
 import org.cloudfoundry.operations.applications.ApplicationManifest;
@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 
-public class GetServiceGetApplicationsTest {
+public class ApplicationOperationsTest {
 
     /**
      * Creates and configures mock object for CF API client

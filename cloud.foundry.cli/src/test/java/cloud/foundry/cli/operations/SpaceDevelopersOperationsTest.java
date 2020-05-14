@@ -1,4 +1,4 @@
-package cloud.foundry.cli.getservice.logic;
+package cloud.foundry.cli.operations;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -10,6 +10,7 @@ import static java.util.Collections.singletonList;
 
 import java.util.Arrays;
 
+import cloud.foundry.cli.operations.SpaceDevelopersOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.useradmin.SpaceUsers;
 import org.cloudfoundry.operations.useradmin.UserAdmin;
@@ -17,7 +18,7 @@ import org.junit.jupiter.api.Test;
 
 import reactor.core.publisher.Mono;
 
-class SpaceDevelopersProviderTest {
+class SpaceDevelopersOperationsTest {
     @Test
     public void testGetSpaceDevelopers() {
         // given
@@ -25,9 +26,9 @@ class SpaceDevelopersProviderTest {
         SpaceUsers spaceUsersMock = mockSpaceUsers(cfOperationsMock);
         when(spaceUsersMock.getDevelopers()).thenReturn(Arrays.asList("one", "two", "three"));
         // when
-        SpaceDevelopersProvider spaceDeveloperProvider = new SpaceDevelopersProvider(
+        SpaceDevelopersOperations spaceDeveloperProvider = new SpaceDevelopersOperations(
             cfOperationsMock);
-        String spaceDevelopers = spaceDeveloperProvider.getSpaceDevelopers();
+        String spaceDevelopers = (String) spaceDeveloperProvider.get();
         // then
         assertThat(spaceDevelopers, is("spaceDevelopers: [one, two, three]\n"));
     }
@@ -39,9 +40,9 @@ class SpaceDevelopersProviderTest {
         SpaceUsers spaceUsersMock = mockSpaceUsers(cfOperationsMock);
         when(spaceUsersMock.getDevelopers()).thenReturn(singletonList("one"));
         //when
-        SpaceDevelopersProvider spaceDeveloperProvider = new SpaceDevelopersProvider(
+        SpaceDevelopersOperations spaceDeveloperProvider = new SpaceDevelopersOperations(
             cfOperationsMock);
-        String spaceDevelopers = spaceDeveloperProvider.getSpaceDevelopers();
+        String spaceDevelopers = (String) spaceDeveloperProvider.get();
         //then
         assertThat(spaceDevelopers, is("spaceDevelopers: [one]\n"));
     }
@@ -53,9 +54,9 @@ class SpaceDevelopersProviderTest {
         SpaceUsers spaceUsersMock = mockSpaceUsers(cfOperationsMock);
         when(spaceUsersMock.getDevelopers()).thenReturn(emptyList());
         //when
-        SpaceDevelopersProvider spaceDeveloperProvider = new SpaceDevelopersProvider(
+        SpaceDevelopersOperations spaceDeveloperProvider = new SpaceDevelopersOperations(
             cfOperationsMock);
-        String spaceDevelopers = spaceDeveloperProvider.getSpaceDevelopers();
+        String spaceDevelopers = (String) spaceDeveloperProvider.get();
         //then
         assertThat(spaceDevelopers, is("spaceDevelopers: []\n"));
     }

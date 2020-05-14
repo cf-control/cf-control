@@ -1,6 +1,6 @@
 package cloud.foundry.cli.crosscutting.mapping;
 
-import cloud.foundry.cli.getservice.GetControllerCommandOptions;
+import cloud.foundry.cli.services.GetControllerCommandOptions;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.reactor.DefaultConnectionContext;
 import org.cloudfoundry.reactor.client.ReactorCloudFoundryClient;
