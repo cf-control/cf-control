@@ -73,19 +73,12 @@ public class GetController implements Runnable {
 
         @Override
         public void run() {
-            try {
-                DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(CredentialsConfigReader.read());
-                GetService getService = new GetService(cfOperations);
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(commandOptions);
+            GetService getService = new GetService(cfOperations);
 
-                String applications = getService.getApplications();
+            String applications = getService.getApplications();
 
-                System.out.println(applications);
-            } catch (URISyntaxException e) {
-                e.printStackTrace();
-            } catch (IOException exception) {
-                exception.printStackTrace();
-            }
-
+            System.out.println(applications);
         }
     }
 
