@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * Immutable data type used to generate nice YAML output for applications.
  */
-public class ServiceInstanceSummaryBean {
+public class ServiceInstanceSummaryBean implements Bean {
 
     private  String id;
     private  String name;

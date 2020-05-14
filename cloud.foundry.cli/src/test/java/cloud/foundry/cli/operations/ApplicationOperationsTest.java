@@ -5,7 +5,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 
-import cloud.foundry.cli.operations.GetService;
+import cloud.foundry.cli.crosscutting.util.YamlUtils;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
 import org.cloudfoundry.operations.applications.ApplicationManifest;
@@ -149,8 +149,8 @@ public class ApplicationOperationsTest {
         DefaultCloudFoundryOperations cfMock = createMockCloudFoundryOperations(new ArrayList<>(), new ArrayList<>());
 
         // forge YAML document
-        GetService getService = new GetService(cfMock);
-        String yamlDoc = getService.getApplications();
+        ApplicationOperations applicationOperations = new ApplicationOperations(cfMock);
+        String yamlDoc = YamlUtils.createDefaultYamlParser().dump(applicationOperations.getAll());
 
         // check if it's really empty
         assertEquals(yamlDoc, "[\n  ]\n");
@@ -175,8 +175,8 @@ public class ApplicationOperationsTest {
         DefaultCloudFoundryOperations cfMock = createMockCloudFoundryOperations(summaries, manifests);
 
         // now, we can generate a YAML doc for our ApplicationSummary
-        GetService getService = new GetService(cfMock);
-        String yamlDoc = getService.getApplications();
+        ApplicationOperations applicationOperations = new ApplicationOperations(cfMock);
+        String yamlDoc = YamlUtils.createDefaultYamlParser().dump(applicationOperations.getAll());
 
         // ... and make sure it contains exactly what we'd expect
         assertThat(yamlDoc, is(

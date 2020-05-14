@@ -11,7 +11,7 @@ import java.util.Map;
 /**
  * Immutable data type used to generate nice YAML output for applications.
  */
-public class ApplicationManifestBean {
+public class ApplicationManifestBean implements Bean {
 
     // list of all attributes the manifest supports, except for path
     private String buildpack;

@@ -3,9 +3,8 @@ package cloud.foundry.cli.operations;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
-import cloud.foundry.cli.operations.GetService;
+import cloud.foundry.cli.crosscutting.util.YamlUtils;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.services.ServiceInstanceSummary;
 import org.cloudfoundry.operations.services.ServiceInstanceType;
@@ -28,8 +27,8 @@ public class ServicesOperationsTest {
         ServiceInstanceSummary serviceInstanceSummary = createMockServiceInstanceSummary();
         DefaultCloudFoundryOperations cfMock = createMockDefaultCloudFoundryOperations(serviceInstanceSummary);
         //when
-        GetService getService = new GetService(cfMock);
-        String s = getService.getServices();
+        ServicesOperations servicesOperations = new ServicesOperations(cfMock);
+        String s = YamlUtils.createDefaultYamlParser().dump(servicesOperations.getAll());
         //then
         assertThat(s, is(
                 "- applications:\n" +
@@ -50,8 +49,8 @@ public class ServicesOperationsTest {
         //given
         DefaultCloudFoundryOperations cfMock = createMockDefaultCloudFoundryOperations(null);
         //when
-        GetService getService = new GetService(cfMock);
-        String s = getService.getServices();
+        ServicesOperations servicesOperations = new ServicesOperations(cfMock);
+        String s = YamlUtils.createDefaultYamlParser().dump(servicesOperations.getAll());
         //then
         // FIXME: it should return just an empty bracket like []
         assertEquals("[\n  ]\n", s);

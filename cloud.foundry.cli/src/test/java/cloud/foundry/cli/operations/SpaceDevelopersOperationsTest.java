@@ -10,7 +10,7 @@ import static java.util.Collections.singletonList;
 
 import java.util.Arrays;
 
-import cloud.foundry.cli.operations.SpaceDevelopersOperations;
+import cloud.foundry.cli.crosscutting.util.YamlUtils;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.useradmin.SpaceUsers;
 import org.cloudfoundry.operations.useradmin.UserAdmin;
@@ -26,11 +26,10 @@ class SpaceDevelopersOperationsTest {
         SpaceUsers spaceUsersMock = mockSpaceUsers(cfOperationsMock);
         when(spaceUsersMock.getDevelopers()).thenReturn(Arrays.asList("one", "two", "three"));
         // when
-        SpaceDevelopersOperations spaceDeveloperProvider = new SpaceDevelopersOperations(
-            cfOperationsMock);
-        String spaceDevelopers = (String) spaceDeveloperProvider.get();
+        SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperationsMock);
+        String spaceDevelopers = YamlUtils.createDefaultYamlParser().dump(spaceDevelopersOperations.getAll());
         // then
-        assertThat(spaceDevelopers, is("spaceDevelopers: [one, two, three]\n"));
+        assertThat(spaceDevelopers, is("- spaceDevelopers:\n  - one\n  - two\n  - three\n"));
     }
 
     @Test
@@ -40,11 +39,10 @@ class SpaceDevelopersOperationsTest {
         SpaceUsers spaceUsersMock = mockSpaceUsers(cfOperationsMock);
         when(spaceUsersMock.getDevelopers()).thenReturn(singletonList("one"));
         //when
-        SpaceDevelopersOperations spaceDeveloperProvider = new SpaceDevelopersOperations(
-            cfOperationsMock);
-        String spaceDevelopers = (String) spaceDeveloperProvider.get();
+        SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperationsMock);
+        String spaceDevelopers = YamlUtils.createDefaultYamlParser().dump(spaceDevelopersOperations.getAll());
         //then
-        assertThat(spaceDevelopers, is("spaceDevelopers: [one]\n"));
+        assertThat(spaceDevelopers, is("- spaceDevelopers:\n  - one\n"));
     }
 
     @Test
@@ -54,11 +52,10 @@ class SpaceDevelopersOperationsTest {
         SpaceUsers spaceUsersMock = mockSpaceUsers(cfOperationsMock);
         when(spaceUsersMock.getDevelopers()).thenReturn(emptyList());
         //when
-        SpaceDevelopersOperations spaceDeveloperProvider = new SpaceDevelopersOperations(
-            cfOperationsMock);
-        String spaceDevelopers = (String) spaceDeveloperProvider.get();
+        SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperationsMock);
+        String spaceDevelopers = YamlUtils.createDefaultYamlParser().dump(spaceDevelopersOperations.getAll());
         //then
-        assertThat(spaceDevelopers, is("spaceDevelopers: []\n"));
+        assertThat(spaceDevelopers, is("- spaceDevelopers: [\n    ]\n"));
     }
 
     private  DefaultCloudFoundryOperations mockDefaultCloudFoundryOperations() {

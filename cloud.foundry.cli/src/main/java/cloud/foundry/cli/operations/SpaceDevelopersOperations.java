@@ -1,19 +1,15 @@
 package cloud.foundry.cli.operations;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import cloud.foundry.cli.crosscutting.beans.Bean;
 import cloud.foundry.cli.crosscutting.beans.SpaceDevelopersBean;
-import org.cloudfoundry.operations.CloudFoundryOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.useradmin.ListSpaceUsersRequest;
-import org.cloudfoundry.operations.useradmin.SpaceUsers;
 
-import reactor.core.publisher.Mono;
+import java.util.Arrays;
+import java.util.List;
 
-public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFoundryOperations>{
+
+public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFoundryOperations> {
 
     public SpaceDevelopersOperations(DefaultCloudFoundryOperations cfOperations) {
         super(cfOperations);
@@ -34,21 +30,31 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
 
     }
 
+    @Override
+    public Bean get(Bean bean) {
+        return null;
+    }
+
     /**
      * List all space developers
      *
      * @return list of space developers in YAML format
      */
-    public Object get() {
+    @Override
+    public List<SpaceDevelopersBean> getAll() {
         ListSpaceUsersRequest request = ListSpaceUsersRequest.builder()
-            .spaceName(cloudFoundryOperations.getSpace()).organizationName(cloudFoundryOperations.getOrganization())
-            .build();
-        Mono<SpaceUsers> spaceUsers = cloudFoundryOperations.userAdmin().listSpaceUsers(request);
-        SpaceUsers users = spaceUsers.block();
-        List<String> listDevelopers = users.getDevelopers();
-        Map<String, List<String>> data = new HashMap<String, List<String>>();
-        data.put("spaceDevelopers", listDevelopers);
-        return null;
-        //return new Yaml().dump(data);
+                .spaceName(cloudFoundryOperations.getSpace())
+                .organizationName(cloudFoundryOperations.getOrganization())
+                .build();
+        List<String> spaceDevelopers = cloudFoundryOperations
+                .userAdmin()
+                .listSpaceUsers(request)
+                .block()
+                .getDevelopers();
+
+        SpaceDevelopersBean spaceDevelopersBean = new SpaceDevelopersBean();
+        spaceDevelopersBean.setSpaceDevelopers(spaceDevelopers);
+        return Arrays.asList(spaceDevelopersBean);
     }
+
 }

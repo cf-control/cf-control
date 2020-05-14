@@ -1,16 +1,19 @@
 package cloud.foundry.cli.services;
 
+import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
+import cloud.foundry.cli.crosscutting.beans.ServiceInstanceSummaryBean;
+import cloud.foundry.cli.crosscutting.beans.SpaceDevelopersBean;
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
-import cloud.foundry.cli.crosscutting.mapping.CredentialsConfigReader;
-import cloud.foundry.cli.operations.GetService;
+import cloud.foundry.cli.crosscutting.util.YamlUtils;
+import cloud.foundry.cli.operations.ApplicationOperations;
+import cloud.foundry.cli.operations.ServicesOperations;
 import cloud.foundry.cli.operations.SpaceDevelopersOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
+import java.util.List;
 
 /**
  * Controller for the Get-Commands
@@ -27,7 +30,7 @@ public class GetController implements Runnable {
     public void run() {
         //getSpaceDevelopers
         //getServices
-        //getApp
+        //getApps
         // construct yaml
     }
 
@@ -40,12 +43,10 @@ public class GetController implements Runnable {
         @Override
         public void run() {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(commandOptions);
+            SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
+            List<SpaceDevelopersBean> spaceDevelopers = spaceDevelopersOperations.getAll();
 
-            SpaceDevelopersOperations provider = new SpaceDevelopersOperations(cfOperations);
-
-            String spaceDevelopers =(String) provider.get();
-
-            System.out.println(spaceDevelopers);
+            System.out.println(YamlUtils.createDefaultYamlParser().dump(spaceDevelopers));
         }
     }
 
@@ -57,12 +58,10 @@ public class GetController implements Runnable {
         @Override
         public void run() {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(commandOptions);
+            ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
+            List<ServiceInstanceSummaryBean> services = servicesOperations.getAll();
 
-            GetService getService = new GetService(cfOperations);
-
-            String services = getService.getServices();
-
-            System.out.println(services);
+            System.out.println(YamlUtils.createDefaultYamlParser().dump(services));
         }
     }
 
@@ -74,16 +73,15 @@ public class GetController implements Runnable {
         @Override
         public void run() {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(commandOptions);
-            GetService getService = new GetService(cfOperations);
+            ApplicationOperations applicationOperations = new ApplicationOperations(cfOperations);
+            List<ApplicationBean> applications = applicationOperations.getAll();
 
-            String applications = getService.getApplications();
-
-            System.out.println(applications);
+            System.out.println(YamlUtils.createDefaultYamlParser().dump(applications));
         }
     }
 
     public static void main(String... args)
     {
-        CommandLine.run(new GetApplicationsCommand(), System.err, args);
+        CommandLine.run(new GetController(), System.err, args);
     }
 }
