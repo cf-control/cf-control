@@ -6,7 +6,7 @@ import org.cloudfoundry.operations.services.ServiceInstanceType;
 import java.util.List;
 
 /**
- * Immutable data type used to generate nice YAML output for applications.
+ * Bean holding all data that is related to an instance of a service.
  */
 public class ServiceInstanceSummaryBean implements Bean {
 

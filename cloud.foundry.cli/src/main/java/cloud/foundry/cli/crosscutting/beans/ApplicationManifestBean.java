@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Immutable data type used to generate nice YAML output for applications.
+ * Bean holding all data of the manifest file from an application.
  */
 public class ApplicationManifestBean implements Bean {
 

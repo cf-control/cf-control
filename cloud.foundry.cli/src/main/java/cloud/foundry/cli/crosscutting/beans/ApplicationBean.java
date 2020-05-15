@@ -5,7 +5,7 @@ import org.cloudfoundry.operations.applications.ApplicationManifest;
 import java.util.List;
 
 /**
- * Immutable data type used to generate nice YAML output for applications.
+ * Bean holding all data that is related to an application.
  */
 public class ApplicationBean implements Bean {
 

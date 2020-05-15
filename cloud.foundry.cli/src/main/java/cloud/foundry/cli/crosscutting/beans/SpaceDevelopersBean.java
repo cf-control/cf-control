@@ -2,6 +2,9 @@ package cloud.foundry.cli.crosscutting.beans;
 
 import java.util.List;
 
+/**
+ * Bean holding all data about the space developers.
+ */
 public class SpaceDevelopersBean implements Bean {
 
     private List<String> spaceDevelopers;
@@ -15,6 +18,5 @@ public class SpaceDevelopersBean implements Bean {
     }
 
     public SpaceDevelopersBean() {
-
     }
 }
