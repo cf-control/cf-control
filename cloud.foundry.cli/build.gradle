@@ -25,10 +25,10 @@ checkstyle {
 }
 
 checkstyleMain {
-    source ='src/main/java'
+    source = 'src/main/java'
 }
 checkstyleTest {
-    source ='src/test/java'
+    source = 'src/test/java'
 }
 
 dependencies {
@@ -37,7 +37,7 @@ dependencies {
 
     // This dependency is used internally, and not exposed to consumers on their own compile classpath.
     implementation 'com.google.guava:guava:28.0-jre'
-    
+
     compile 'info.picocli:picocli:4.2.0'
     compile 'org.yaml:snakeyaml:1.26'
 
@@ -45,12 +45,12 @@ dependencies {
     testRuntime("org.junit.jupiter:junit-jupiter-engine:5.5.2")
     testRuntime("org.junit.platform:junit-platform-runner:1.5.2")
     testImplementation('org.junit.jupiter:junit-jupiter:5.5.2')
-    
+
     testImplementation 'org.hamcrest:hamcrest:2.2'
     testImplementation "org.mockito:mockito-core:2.+"
     testImplementation 'org.mockito:mockito-inline:2.15.0'
 
-	testImplementation 'net.bytebuddy:byte-buddy-gradle-plugin:1.10.10'
+    testImplementation 'net.bytebuddy:byte-buddy-gradle-plugin:1.10.10'
 
     compile 'io.swagger.parser.v3:swagger-parser:2.0.19'
 
@@ -68,9 +68,11 @@ jar {
     manifest {
         attributes 'Main-Class': 'cloud.foundry.cli.getservice.GetController',
                 'Class-Path': configurations.runtime.files.collect { "lib/$it.name" }.join(' ')
-        }
-
-        from {
-            configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
-        }
     }
+
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+
+    baseName 'cf-control'
+}
