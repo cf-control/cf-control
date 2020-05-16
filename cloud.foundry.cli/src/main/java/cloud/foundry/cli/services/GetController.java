@@ -17,7 +17,7 @@ import java.io.PrintWriter;
 import java.util.List;
 
 /**
- * Controller for the Get-Commands
+ * This class realizes the functionality that is needed for the get commands.
  */
 @Command(name = "get",
         header = "%n@|green Get-Controller|@",
@@ -29,7 +29,7 @@ public class GetController implements Runnable {
 
     @Override
     public void run() {
-
+        // this code is executed if the user runs the get command without specifying any sub-command
     }
 
     @Command(name = "space-developers",
@@ -76,12 +76,5 @@ public class GetController implements Runnable {
 
             System.out.println(YamlCreator.createDefaultYamlProcessor().dump(applications));
         }
-    }
-
-    public static void main(String... args)
-    {
-        CommandLine commandLine = new CommandLine(new GetController());
-        commandLine.setErr(new PrintWriter(System.err));
-        commandLine.execute(args);
     }
 }
