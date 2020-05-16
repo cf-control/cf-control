@@ -1,4 +1,4 @@
-package cloud.foundry.cli.getservice.logic;
+package cloud.foundry.cli.crosscutting.beans;
 
 import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
 import org.cloudfoundry.operations.applications.ApplicationManifest;
@@ -9,9 +9,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Immutable data type used to generate nice YAML output for applications.
+ * Bean holding all data of the manifest file from an application.
  */
-public class ApplicationManifestBean {
+public class ApplicationManifestBean implements Bean {
 
     // list of all attributes the manifest supports, except for path
     private String buildpack;

@@ -1,11 +1,11 @@
-package cloud.foundry.cli.getservice;
+package cloud.foundry.cli.operations;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 
-import cloud.foundry.cli.getservice.logic.GetService;
+import cloud.foundry.cli.crosscutting.util.YamlCreator;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
 import org.cloudfoundry.operations.applications.ApplicationManifest;
@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 
-public class GetServiceGetApplicationsTest {
+public class ApplicationOperationsTest {
 
     /**
      * Creates and configures mock object for CF API client
@@ -149,8 +149,8 @@ public class GetServiceGetApplicationsTest {
         DefaultCloudFoundryOperations cfMock = createMockCloudFoundryOperations(new ArrayList<>(), new ArrayList<>());
 
         // forge YAML document
-        GetService getService = new GetService(cfMock);
-        String yamlDoc = getService.getApplications();
+        ApplicationOperations applicationOperations = new ApplicationOperations(cfMock);
+        String yamlDoc = YamlCreator.createDefaultYamlProcessor().dump(applicationOperations.getAll());
 
         // check if it's really empty
         assertEquals(yamlDoc, "[\n  ]\n");
@@ -175,8 +175,8 @@ public class GetServiceGetApplicationsTest {
         DefaultCloudFoundryOperations cfMock = createMockCloudFoundryOperations(summaries, manifests);
 
         // now, we can generate a YAML doc for our ApplicationSummary
-        GetService getService = new GetService(cfMock);
-        String yamlDoc = getService.getApplications();
+        ApplicationOperations applicationOperations = new ApplicationOperations(cfMock);
+        String yamlDoc = YamlCreator.createDefaultYamlProcessor().dump(applicationOperations.getAll());
 
         // ... and make sure it contains exactly what we'd expect
         assertThat(yamlDoc, is(

@@ -1,13 +1,11 @@
-package cloud.foundry.cli.getservice;
+package cloud.foundry.cli.operations;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
-import cloud.foundry.cli.getservice.logic.GetService;
+import cloud.foundry.cli.crosscutting.util.YamlCreator;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
-import org.cloudfoundry.operations.applications.ApplicationSummary;
 import org.cloudfoundry.operations.services.ServiceInstanceSummary;
 import org.cloudfoundry.operations.services.ServiceInstanceType;
 import org.cloudfoundry.operations.services.Services;
@@ -21,7 +19,7 @@ import java.util.List;
 
 
 
-public class GetServiceGetServicesTest {
+public class ServicesOperationsTest {
 
     @Test
     public void testGetServicesWithMockData() {
@@ -29,8 +27,8 @@ public class GetServiceGetServicesTest {
         ServiceInstanceSummary serviceInstanceSummary = createMockServiceInstanceSummary();
         DefaultCloudFoundryOperations cfMock = createMockDefaultCloudFoundryOperations(serviceInstanceSummary);
         //when
-        GetService getService = new GetService(cfMock);
-        String s = getService.getServices();
+        ServicesOperations servicesOperations = new ServicesOperations(cfMock);
+        String s = YamlCreator.createDefaultYamlProcessor().dump(servicesOperations.getAll());
         //then
         assertThat(s, is(
                 "- applications:\n" +
@@ -51,8 +49,8 @@ public class GetServiceGetServicesTest {
         //given
         DefaultCloudFoundryOperations cfMock = createMockDefaultCloudFoundryOperations(null);
         //when
-        GetService getService = new GetService(cfMock);
-        String s = getService.getServices();
+        ServicesOperations servicesOperations = new ServicesOperations(cfMock);
+        String s = YamlCreator.createDefaultYamlProcessor().dump(servicesOperations.getAll());
         //then
         // FIXME: it should return just an empty bracket like []
         assertEquals("[\n  ]\n", s);

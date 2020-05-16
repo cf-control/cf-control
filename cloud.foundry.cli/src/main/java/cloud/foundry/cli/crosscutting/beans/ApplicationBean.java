@@ -1,15 +1,13 @@
-package cloud.foundry.cli.getservice.logic;
+package cloud.foundry.cli.crosscutting.beans;
 
 import org.cloudfoundry.operations.applications.ApplicationManifest;
-import org.cloudfoundry.operations.applications.ApplicationSummary;
 
-import java.nio.file.Path;
 import java.util.List;
 
 /**
- * Immutable data type used to generate nice YAML output for applications.
+ * Bean holding all data that is related to an application.
  */
-public class ApplicationBean {
+public class ApplicationBean implements Bean {
 
     private String id;
     private String name;

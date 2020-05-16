@@ -1,4 +1,4 @@
-package cloud.foundry.cli.getservice;
+package cloud.foundry.cli.services;
 
 import picocli.CommandLine.Option;
 

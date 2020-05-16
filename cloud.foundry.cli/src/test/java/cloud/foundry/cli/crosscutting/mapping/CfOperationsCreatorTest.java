@@ -7,7 +7,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 
-import cloud.foundry.cli.getservice.GetControllerCommandOptions;
+import cloud.foundry.cli.services.GetControllerCommandOptions;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.junit.jupiter.api.Test;
 
