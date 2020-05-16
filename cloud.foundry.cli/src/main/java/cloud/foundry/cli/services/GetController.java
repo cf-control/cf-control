@@ -13,6 +13,7 @@ import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
 
+import java.io.PrintWriter;
 import java.util.List;
 
 /**
@@ -79,6 +80,8 @@ public class GetController implements Runnable {
 
     public static void main(String... args)
     {
-        CommandLine.run(new GetController(), System.err, args);
+        CommandLine commandLine = new CommandLine(new GetController());
+        commandLine.setErr(new PrintWriter(System.err));
+        commandLine.execute(args);
     }
 }
