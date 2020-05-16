@@ -7,7 +7,9 @@ import org.cloudfoundry.operations.useradmin.ListSpaceUsersRequest;
 import java.util.Arrays;
 import java.util.List;
 
-
+/**
+ * Handles the operations for manipulating space developers on a cloud foundry instance.
+ */
 public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFoundryOperations> {
 
     public SpaceDevelopersOperations(DefaultCloudFoundryOperations cfOperations) {

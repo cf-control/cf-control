@@ -9,6 +9,9 @@ import org.cloudfoundry.operations.applications.GetApplicationManifestRequest;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Handles the operations for manipulating applications on a cloud foundry instance.
+ */
 public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundryOperations> {
 
     public ApplicationOperations(DefaultCloudFoundryOperations cloudFoundryOperations) {

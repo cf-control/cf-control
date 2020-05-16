@@ -2,9 +2,14 @@ package cloud.foundry.cli.operations;
 
 import org.cloudfoundry.operations.CloudFoundryOperations;
 
-import java.util.List;
-
-public abstract class AbstractOperations<T extends CloudFoundryOperations> {
+/**
+ * The base class of all operation classes. An operation class provides an interface for manipulating a certain aspect
+ * of a cloud foundry instance. {@link cloud.foundry.cli.crosscutting.beans.Bean Beans} should be used to provide and
+ * retrieve data.
+ * @param <T> The concrete operations class that is used in the derived class to communicate to the cloud foundry
+ *           instance
+ */
+public abstract class AbstractOperations<T  extends CloudFoundryOperations> {
 
     protected T cloudFoundryOperations;
 
@@ -12,8 +17,6 @@ public abstract class AbstractOperations<T extends CloudFoundryOperations> {
         this.cloudFoundryOperations = cloudFoundryOperations;
     }
 
-    public abstract void create(Bean bean);
-
-    public abstract void delete(Bean bean);
+    //TODO: find common methods at a later time and create a common interface for all operation classes
 
 }

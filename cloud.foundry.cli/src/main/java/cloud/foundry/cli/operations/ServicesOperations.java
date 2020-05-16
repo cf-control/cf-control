@@ -9,6 +9,9 @@ import org.yaml.snakeyaml.Yaml;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Handles the operations for manipulating services on a cloud foundry instance.
+ */
 public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOperations> {
 
     public ServicesOperations(DefaultCloudFoundryOperations cloudFoundryOperations) {
