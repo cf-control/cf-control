@@ -4,7 +4,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import cloud.foundry.cli.crosscutting.util.YamlUtils;
+import cloud.foundry.cli.crosscutting.util.YamlCreator;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.services.ServiceInstanceSummary;
 import org.cloudfoundry.operations.services.ServiceInstanceType;
@@ -28,7 +28,7 @@ public class ServicesOperationsTest {
         DefaultCloudFoundryOperations cfMock = createMockDefaultCloudFoundryOperations(serviceInstanceSummary);
         //when
         ServicesOperations servicesOperations = new ServicesOperations(cfMock);
-        String s = YamlUtils.createDefaultYamlParser().dump(servicesOperations.getAll());
+        String s = YamlCreator.createDefaultYamlProcessor().dump(servicesOperations.getAll());
         //then
         assertThat(s, is(
                 "- applications:\n" +
@@ -50,7 +50,7 @@ public class ServicesOperationsTest {
         DefaultCloudFoundryOperations cfMock = createMockDefaultCloudFoundryOperations(null);
         //when
         ServicesOperations servicesOperations = new ServicesOperations(cfMock);
-        String s = YamlUtils.createDefaultYamlParser().dump(servicesOperations.getAll());
+        String s = YamlCreator.createDefaultYamlProcessor().dump(servicesOperations.getAll());
         //then
         // FIXME: it should return just an empty bracket like []
         assertEquals("[\n  ]\n", s);

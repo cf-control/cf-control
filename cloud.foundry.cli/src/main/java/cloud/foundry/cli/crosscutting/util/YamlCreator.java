@@ -11,13 +11,13 @@ import org.yaml.snakeyaml.representer.Representer;
 
 import java.util.HashMap;
 
-public class YamlUtils {
+public class YamlCreator {
 
     /**
-     * Factory function creating a Yaml object with common options. Ensures a consistent output format.
-     * @return Yaml object preconfigured with proper options
+     * Factory function creating a yaml processor with common options for dumping (ensures a consistent output format).
+     * @return yaml processor preconfigured with proper dumping options
      */
-    public static Yaml createDefaultYamlParser() {
+    public static Yaml createDefaultYamlProcessor() {
         DumperOptions options = new DumperOptions();
 
         // do not dump tags into the document
@@ -33,9 +33,9 @@ public class YamlUtils {
         // use custom representer to hide bean class names in output
         // we explicitly have to add _all_ custom bean types
         Representer representer = new Representer();
-        representer.addClassTag(ServiceInstanceSummaryBean.class, Tag.MAP);
         representer.addClassTag(ApplicationBean.class, Tag.MAP);
         representer.addClassTag(ApplicationManifestBean.class, Tag.MAP);
+        representer.addClassTag(ServiceInstanceSummaryBean.class, Tag.MAP);
         representer.addClassTag(SpaceDevelopersBean.class, Tag.MAP);
 
 

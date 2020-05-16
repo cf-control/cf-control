@@ -10,7 +10,7 @@ import static java.util.Collections.singletonList;
 
 import java.util.Arrays;
 
-import cloud.foundry.cli.crosscutting.util.YamlUtils;
+import cloud.foundry.cli.crosscutting.util.YamlCreator;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.useradmin.SpaceUsers;
 import org.cloudfoundry.operations.useradmin.UserAdmin;
@@ -27,7 +27,7 @@ class SpaceDevelopersOperationsTest {
         when(spaceUsersMock.getDevelopers()).thenReturn(Arrays.asList("one", "two", "three"));
         // when
         SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperationsMock);
-        String spaceDevelopers = YamlUtils.createDefaultYamlParser().dump(spaceDevelopersOperations.getAll());
+        String spaceDevelopers = YamlCreator.createDefaultYamlProcessor().dump(spaceDevelopersOperations.getAll());
         // then
         assertThat(spaceDevelopers, is("- spaceDevelopers:\n  - one\n  - two\n  - three\n"));
     }
@@ -40,7 +40,7 @@ class SpaceDevelopersOperationsTest {
         when(spaceUsersMock.getDevelopers()).thenReturn(singletonList("one"));
         //when
         SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperationsMock);
-        String spaceDevelopers = YamlUtils.createDefaultYamlParser().dump(spaceDevelopersOperations.getAll());
+        String spaceDevelopers = YamlCreator.createDefaultYamlProcessor().dump(spaceDevelopersOperations.getAll());
         //then
         assertThat(spaceDevelopers, is("- spaceDevelopers:\n  - one\n"));
     }
@@ -53,7 +53,7 @@ class SpaceDevelopersOperationsTest {
         when(spaceUsersMock.getDevelopers()).thenReturn(emptyList());
         //when
         SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperationsMock);
-        String spaceDevelopers = YamlUtils.createDefaultYamlParser().dump(spaceDevelopersOperations.getAll());
+        String spaceDevelopers = YamlCreator.createDefaultYamlProcessor().dump(spaceDevelopersOperations.getAll());
         //then
         assertThat(spaceDevelopers, is("- spaceDevelopers: [\n    ]\n"));
     }

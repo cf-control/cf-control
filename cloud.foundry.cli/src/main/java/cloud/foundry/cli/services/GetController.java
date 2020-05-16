@@ -4,7 +4,7 @@ import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.beans.ServiceInstanceSummaryBean;
 import cloud.foundry.cli.crosscutting.beans.SpaceDevelopersBean;
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
-import cloud.foundry.cli.crosscutting.util.YamlUtils;
+import cloud.foundry.cli.crosscutting.util.YamlCreator;
 import cloud.foundry.cli.operations.ApplicationOperations;
 import cloud.foundry.cli.operations.ServicesOperations;
 import cloud.foundry.cli.operations.SpaceDevelopersOperations;
@@ -43,7 +43,7 @@ public class GetController implements Runnable {
             SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
             List<SpaceDevelopersBean> spaceDevelopers = spaceDevelopersOperations.getAll();
 
-            System.out.println(YamlUtils.createDefaultYamlParser().dump(spaceDevelopers));
+            System.out.println(YamlCreator.createDefaultYamlProcessor().dump(spaceDevelopers));
         }
     }
 
@@ -58,7 +58,7 @@ public class GetController implements Runnable {
             ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
             List<ServiceInstanceSummaryBean> services = servicesOperations.getAll();
 
-            System.out.println(YamlUtils.createDefaultYamlParser().dump(services));
+            System.out.println(YamlCreator.createDefaultYamlProcessor().dump(services));
         }
     }
 
@@ -73,7 +73,7 @@ public class GetController implements Runnable {
             ApplicationOperations applicationOperations = new ApplicationOperations(cfOperations);
             List<ApplicationBean> applications = applicationOperations.getAll();
 
-            System.out.println(YamlUtils.createDefaultYamlParser().dump(applications));
+            System.out.println(YamlCreator.createDefaultYamlProcessor().dump(applications));
         }
     }
 

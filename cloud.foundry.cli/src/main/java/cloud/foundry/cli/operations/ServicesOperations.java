@@ -2,7 +2,7 @@ package cloud.foundry.cli.operations;
 
 import cloud.foundry.cli.crosscutting.beans.Bean;
 import cloud.foundry.cli.crosscutting.beans.ServiceInstanceSummaryBean;
-import cloud.foundry.cli.crosscutting.util.YamlUtils;
+import cloud.foundry.cli.crosscutting.util.YamlCreator;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.services.ServiceInstanceSummary;
 import org.yaml.snakeyaml.Yaml;
@@ -50,7 +50,7 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
             beans.add(new ServiceInstanceSummaryBean(serviceInstanceSummary));
         }
         // create YAML document
-        Yaml yaml = YamlUtils.createDefaultYamlParser();
+        Yaml yaml = YamlCreator.createDefaultYamlProcessor();
 
         return yaml.loadAs(yaml.dump(beans), List.class);
     }
