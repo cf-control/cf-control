@@ -17,7 +17,8 @@ import java.io.PrintWriter;
 import java.util.List;
 
 /**
- * This class realizes the functionality that is needed for the get commands.
+ * This class realizes the functionality that is needed for the get commands. They provide various information about a
+ * cloud foundry instance.
  */
 @Command(name = "get",
         header = "%n@|green Get-Controller|@",
