@@ -28,10 +28,7 @@ public class GetController implements Runnable {
 
     @Override
     public void run() {
-        //getSpaceDevelopers
-        //getServices
-        //getApps
-        // construct yaml
+
     }
 
     @Command(name = "space-developers",
