@@ -56,7 +56,7 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
         }
         //Bind apps to service
         List<String> applications = serviceBean.getApplications();
-        for (String app: applications){
+        for (String app: applications) {
             BindServiceInstanceRequest.Builder bindServiceBuilder = BindServiceInstanceRequest.builder();
             bindServiceBuilder.applicationName(app);
             bindServiceBuilder.serviceInstanceName(serviceBean.getName());
