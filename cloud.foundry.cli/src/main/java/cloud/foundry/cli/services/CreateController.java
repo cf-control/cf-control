@@ -2,6 +2,7 @@ package cloud.foundry.cli.services;
 
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
+import org.cloudfoundry.operations.services.BindServiceInstanceRequest;
 import org.cloudfoundry.operations.services.CreateServiceInstanceRequest;
 import picocli.CommandLine;
 import reactor.core.publisher.Mono;
@@ -43,15 +44,26 @@ public class CreateController implements Runnable {
         public void run() {
             //TODO:Implement functionality
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(commandOptions);
-            CreateServiceInstanceRequest.Builder builder = CreateServiceInstanceRequest.builder();
-            builder.serviceName("elephantsql");
-            builder.planName("turtle");
-            builder.serviceInstanceName("Elephant");
-            CreateServiceInstanceRequest createServiceInstanceRequest = builder.build();
-            Mono<Void> completed = cfOperations.services().createInstance(createServiceInstanceRequest);
+            //Create Service
+            CreateServiceInstanceRequest.Builder createServiceBuilder = CreateServiceInstanceRequest.builder();
+            createServiceBuilder.serviceName("elephantsql");
+            createServiceBuilder.planName("turtle");
+            createServiceBuilder.serviceInstanceName("Elephant");
+            Mono<Void> created = cfOperations.services().createInstance(createServiceBuilder.build());
             try {
-                completed.block();
+                created.block();
                 System.out.println("Service has been created.");
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
+            //Bind apps to service
+            BindServiceInstanceRequest.Builder bindServiceBuilder = BindServiceInstanceRequest.builder();
+            bindServiceBuilder.applicationName("test-app");
+            bindServiceBuilder.serviceInstanceName("Elephant");
+            Mono<Void> bind = cfOperations.services().bind(bindServiceBuilder.build());
+            try {
+                bind.block();
+                System.out.println("Service has been binded.");
             } catch (Exception e) {
                 System.out.println(e.getMessage());
             }
