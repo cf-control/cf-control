@@ -1,6 +1,10 @@
 package cloud.foundry.cli.services;
 
+import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
+import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
+import org.cloudfoundry.operations.services.CreateServiceInstanceRequest;
 import picocli.CommandLine;
+import reactor.core.publisher.Mono;
 
 /**
  * This class realizes the functionality that is needed for the create commands.
@@ -12,6 +16,12 @@ import picocli.CommandLine;
                 CreateController.CreateSpaceDeveloperCommand.class,
                 CreateController.CreateApplicationCommand.class})
 public class CreateController implements Runnable {
+
+    public static void main(String... args) {
+//        CommandLine.run(new GetController.GetServicesCommand(), System.err, args);
+        CommandLine.run(new CreateServiceCommand(), System.err, args);
+
+    }
 
     @Override
     public void run() {
@@ -38,6 +48,19 @@ public class CreateController implements Runnable {
         @Override
         public void run() {
             //TODO:Implement functionality
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(commandOptions);
+            CreateServiceInstanceRequest.Builder builder = CreateServiceInstanceRequest.builder();
+            builder.serviceName("elephantsql");
+            builder.planName("turtle");
+            builder.serviceInstanceName("Elephant");
+            CreateServiceInstanceRequest createServiceInstanceRequest = builder.build();
+            Mono<Void> completed = cfOperations.services().createInstance(createServiceInstanceRequest);
+            try {
+                completed.block();
+                System.out.println("Service has been created.");
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
         }
     }
 
