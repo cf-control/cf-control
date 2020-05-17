@@ -17,12 +17,6 @@ import reactor.core.publisher.Mono;
                 CreateController.CreateApplicationCommand.class})
 public class CreateController implements Runnable {
 
-    public static void main(String... args) {
-//        CommandLine.run(new GetController.GetServicesCommand(), System.err, args);
-        CommandLine.run(new CreateServiceCommand(), System.err, args);
-
-    }
-
     @Override
     public void run() {
         // this code is executed if the user runs the create command without specifying any sub-command
@@ -73,6 +67,12 @@ public class CreateController implements Runnable {
         public void run() {
             //TODO:Implement functionality
         }
+    }
+
+    public static void main(String... args) {
+        // CommandLine.run(new GetController.GetServicesCommand(), System.err, args);
+        CommandLine.run(new CreateServiceCommand(), System.err, args);
+
     }
 
 }
