@@ -1,11 +1,13 @@
 package cloud.foundry.cli.services;
 
+import cloud.foundry.cli.crosscutting.beans.ServiceBean;
+import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
+import cloud.foundry.cli.operations.ServicesOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
-import org.cloudfoundry.operations.services.BindServiceInstanceRequest;
-import org.cloudfoundry.operations.services.CreateServiceInstanceRequest;
 import picocli.CommandLine;
-import reactor.core.publisher.Mono;
+
+import java.util.LinkedList;
 
 /**
  * This class realizes the functionality that is needed for the create commands.
@@ -45,26 +47,18 @@ public class CreateController implements Runnable {
             //TODO:Implement functionality
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(commandOptions);
             //Create Service
-            CreateServiceInstanceRequest.Builder createServiceBuilder = CreateServiceInstanceRequest.builder();
-            createServiceBuilder.serviceName("elephantsql");
-            createServiceBuilder.planName("turtle");
-            createServiceBuilder.serviceInstanceName("Elephant");
-            Mono<Void> created = cfOperations.services().createInstance(createServiceBuilder.build());
+            ServiceBean serviceBean = new ServiceBean();
+            serviceBean.setName("Elephant");
+            serviceBean.setPlan("turtle");
+            serviceBean.setService("elephantsql");
+            LinkedList<String> appList = new LinkedList<>();
+            appList.add("test-app");
+            appList.add("test-flask");
+            serviceBean.setApplications(appList);
+            ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
             try {
-                created.block();
-                System.out.println("Service has been created.");
-            } catch (Exception e) {
-                System.out.println(e.getMessage());
-            }
-            //Bind apps to service
-            BindServiceInstanceRequest.Builder bindServiceBuilder = BindServiceInstanceRequest.builder();
-            bindServiceBuilder.applicationName("test-app");
-            bindServiceBuilder.serviceInstanceName("Elephant");
-            Mono<Void> bind = cfOperations.services().bind(bindServiceBuilder.build());
-            try {
-                bind.block();
-                System.out.println("Service has been binded.");
-            } catch (Exception e) {
+                servicesOperations.create(serviceBean);
+            } catch (CreationException e) {
                 System.out.println(e.getMessage());
             }
         }

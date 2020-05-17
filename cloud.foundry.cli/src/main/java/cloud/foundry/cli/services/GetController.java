@@ -9,11 +9,9 @@ import cloud.foundry.cli.operations.ApplicationOperations;
 import cloud.foundry.cli.operations.ServicesOperations;
 import cloud.foundry.cli.operations.SpaceDevelopersOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
-import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
 
-import java.io.PrintWriter;
 import java.util.List;
 
 /**
