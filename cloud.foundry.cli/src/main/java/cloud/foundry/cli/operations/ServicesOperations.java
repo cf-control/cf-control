@@ -1,6 +1,7 @@
 package cloud.foundry.cli.operations;
 
-import cloud.foundry.cli.crosscutting.beans.ServiceInstanceSummaryBean;
+import cloud.foundry.cli.crosscutting.beans.ServiceBean;
+import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import cloud.foundry.cli.crosscutting.util.YamlCreator;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.services.ServiceInstanceSummary;
@@ -19,7 +20,7 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
     }
 
 
-    public List<ServiceInstanceSummaryBean> getAll() {
+    public List<ServiceBean> getAll() {
         List<ServiceInstanceSummary> services = this.cloudFoundryOperations
                 .services()
                 .listInstances()
@@ -28,9 +29,9 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
 
 
         // create a list of special bean data objects, as the summaries cannot be serialized directly
-        List<ServiceInstanceSummaryBean> beans = new ArrayList<>();
+        List<ServiceBean> beans = new ArrayList<>();
         for (ServiceInstanceSummary serviceInstanceSummary : services) {
-            beans.add(new ServiceInstanceSummaryBean(serviceInstanceSummary));
+            beans.add(new ServiceBean(serviceInstanceSummary));
         }
         // create YAML document
         Yaml yaml = YamlCreator.createDefaultYamlProcessor();
