@@ -3,7 +3,8 @@ package cloud.foundry.cli.services;
 import picocli.CommandLine.Option;
 
 /**
- * Common options for the initialization process of the {@link org.cloudfoundry.operations.CloudFoundryOperations operations} object.
+ * Common options for the initialization process of the
+ * {@link org.cloudfoundry.operations.CloudFoundryOperations operations} object.
  *
  * @see cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator
  */
