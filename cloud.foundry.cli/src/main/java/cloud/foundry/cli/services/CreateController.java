@@ -60,8 +60,6 @@ public class CreateController implements Runnable {
             }
         }
     }
-    
-    
     @CommandLine.Command(name = "service", description = "Create a service in the target space")
     static class CreateServiceCommand implements Runnable {
         @CommandLine.Mixin

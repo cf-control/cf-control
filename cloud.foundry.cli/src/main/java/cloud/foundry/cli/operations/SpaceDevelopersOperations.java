@@ -4,6 +4,7 @@ import cloud.foundry.cli.crosscutting.beans.SpaceDevelopersBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 
 import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperByUsernameRequest;
+import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperByUsernameResponse;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.useradmin.ListSpaceUsersRequest;
 import org.cloudfoundry.operations.useradmin.SpaceUsers;
@@ -47,6 +48,7 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
      * @param username the username to assign as space developer
      */
     public void assignSpaceDeveloper(String username) throws CreationException {
+        
         String spaceId = cloudFoundryOperations.getSpaceId().block();
         String organization = cloudFoundryOperations.getOrganization();
         String space = cloudFoundryOperations.getSpace();
@@ -69,10 +71,12 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
                 .spaceId(spaceId)
                 .build();
             try {
-                cloudFoundryOperations.getCloudFoundryClient()
+             cloudFoundryOperations.getCloudFoundryClient()
                     .spaces()
                     .associateDeveloperByUsername(request)
                     .block();
+                
+                
                 System.out.println("OK \n");
             } catch (Exception e) {
                 throw new CreationException("FAILED \n " + e.getMessage());
