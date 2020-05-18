@@ -58,6 +58,9 @@ public class ServiceBean implements Bean {
     }
 
     public String getName() {
+        if (name == null) {
+            return service;
+        }
         return name;
     }
 
