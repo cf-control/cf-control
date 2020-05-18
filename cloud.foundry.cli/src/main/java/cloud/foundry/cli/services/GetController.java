@@ -47,7 +47,7 @@ public class GetController implements Runnable {
         }
     }
 
-    @Command(name = "services", description = "List all applications in the target space")
+    @Command(name = "services", description = "List all services in the target space")
     static class GetServicesCommand implements Runnable {
         @Mixin
         LoginCommandOptions loginOptions;

@@ -3,10 +3,14 @@ package cloud.foundry.cli.services;
 import cloud.foundry.cli.crosscutting.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
+import cloud.foundry.cli.crosscutting.util.FileUtils;
+import cloud.foundry.cli.crosscutting.util.YamlCreator;
 import cloud.foundry.cli.operations.ServicesOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
+import org.yaml.snakeyaml.Yaml;
 import picocli.CommandLine;
 
+import java.io.IOException;
 import java.util.LinkedList;
 
 /**
@@ -48,16 +52,19 @@ public class CreateController implements Runnable {
         @Override
         public void run() {
             //TODO:Implement functionality
+            String yamlFileContent;
+            try {
+                yamlFileContent = FileUtils.readLocalFile(commandOptions.getYamlFilePath());
+            } catch (IOException e) {
+                System.err.println(e.getMessage());
+                return;
+            }
+
+            Yaml yamlLoader = YamlCreator.createDefaultYamlProcessor();
+            ServiceBean serviceBean = yamlLoader.loadAs(yamlFileContent, ServiceBean.class);
+
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             //Create Service
-            ServiceBean serviceBean = new ServiceBean();
-            serviceBean.setName("Elephant");
-            serviceBean.setPlan("turtle");
-            serviceBean.setService("elephantsql");
-            LinkedList<String> appList = new LinkedList<>();
-            appList.add("test-app");
-            appList.add("test-flask");
-            serviceBean.setApplications(appList);
             ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
             try {
                 servicesOperations.create(serviceBean);
