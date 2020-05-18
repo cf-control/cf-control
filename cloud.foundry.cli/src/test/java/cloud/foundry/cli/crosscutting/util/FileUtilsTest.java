@@ -13,6 +13,7 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import org.apache.commons.io.IOUtils;
 import org.apache.hc.client5.http.HttpResponseException;
 import org.apache.hc.core5.http.ProtocolException;
 import org.junit.jupiter.api.Test;
@@ -20,11 +21,11 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
 import java.util.LinkedList;
@@ -53,9 +54,9 @@ public class FileUtilsTest {
     public void testReadLocalFileReturnsFileContent(@TempDir Path tempDir)
             throws IOException {
         //Arrange
-        String expectedYaml =   "- first\n" +
-                "- second\n" +
-                "- third\n";
+        String expectedYaml =   "- first" + System.lineSeparator()  +
+                "- second" + System.lineSeparator()  +
+                "- third" + System.lineSeparator() ;
         File file = createTempFile(tempDir, "files", "SimpleList.yaml", expectedYaml);
 
         //Act
@@ -69,9 +70,9 @@ public class FileUtilsTest {
     public void testReadLocalFileOnDirectoryWithCommaSucceeds(@TempDir Path tempDir)
             throws IOException {
         //Arrange
-        String expectedYaml =   "- first\n" +
-                "- second\n" +
-                "- third\n";
+        String expectedYaml =   "- first" + System.lineSeparator() +
+                "- second" + System.lineSeparator() +
+                "- third" + System.lineSeparator();
         File file = createTempFile(tempDir, "comma.path", "Extension.YMl", expectedYaml);
 
         //Act
@@ -85,9 +86,9 @@ public class FileUtilsTest {
     public void testReadLocalFileOnValidFileTypesSucceeds(@TempDir Path tempDir)
             throws IOException {
         //Arrange
-        String expectedYaml =   "- first\n" +
-                "- second\n" +
-                "- third\n";
+        String expectedYaml =   "- first" + System.lineSeparator()  +
+                "- second" + System.lineSeparator()  +
+                "- third" + System.lineSeparator() ;
         File fileYaml = createTempFile(tempDir, "","Extension.YMl", expectedYaml);
         File fileYml = createTempFile(tempDir, "","Extension.YAML", expectedYaml);
 
@@ -163,14 +164,16 @@ public class FileUtilsTest {
     private File createTempFile(Path tempDir, String directories, String filename, String content)
             throws IOException {
         Path path = tempDir.resolve(directories);
-        List<String> contents = content.isEmpty()
-                ? Collections.emptyList()
-                : Arrays.asList(content.split("\n"));
-        return Files
-                .write(Files
-                        .createDirectories(path)
-                        .resolve(filename), contents)
+
+        File tempFile = Files
+                .createDirectories(path)
+                .resolve(filename)
                 .toFile();
+
+        try(FileOutputStream out = new FileOutputStream(tempFile)){
+            IOUtils.write(content, out, Charset.defaultCharset());
+        }
+        return tempFile;
     }
 
     @Test
