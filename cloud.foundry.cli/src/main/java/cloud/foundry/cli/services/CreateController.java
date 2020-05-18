@@ -29,7 +29,7 @@ public class CreateController implements Runnable {
             description = "Create a space developer in the target space")
     static class CreateSpaceDeveloperCommand implements Runnable {
         @CommandLine.Mixin
-        GetControllerCommandOptions commandOptions;
+        LoginCommandOptions loginOptions;
 
         @Override
         public void run() {
@@ -40,12 +40,15 @@ public class CreateController implements Runnable {
     @CommandLine.Command(name = "service", description = "Create a service in the target space")
     static class CreateServiceCommand implements Runnable {
         @CommandLine.Mixin
-        GetControllerCommandOptions commandOptions;
+        LoginCommandOptions loginOptions;
+
+        @CommandLine.Mixin
+        CreateControllerCommandOptions commandOptions;
 
         @Override
         public void run() {
             //TODO:Implement functionality
-            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(commandOptions);
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             //Create Service
             ServiceBean serviceBean = new ServiceBean();
             serviceBean.setName("Elephant");
@@ -67,7 +70,7 @@ public class CreateController implements Runnable {
     @CommandLine.Command(name = "application", description = "Create a application in the target space")
     static class CreateApplicationCommand implements Runnable {
         @CommandLine.Mixin
-        GetControllerCommandOptions commandOptions;
+        LoginCommandOptions loginOptions;
 
         @Override
         public void run() {

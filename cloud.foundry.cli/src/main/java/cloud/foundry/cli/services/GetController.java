@@ -35,11 +35,11 @@ public class GetController implements Runnable {
             description = "List all space developers in the target space")
     static class GetSpaceDevelopersCommand implements Runnable {
         @Mixin
-        GetControllerCommandOptions commandOptions;
+        LoginCommandOptions loginOptions;
 
         @Override
         public void run() {
-            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(commandOptions);
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
             List<SpaceDevelopersBean> spaceDevelopers = spaceDevelopersOperations.getAll();
 
@@ -50,11 +50,11 @@ public class GetController implements Runnable {
     @Command(name = "services", description = "List all applications in the target space")
     static class GetServicesCommand implements Runnable {
         @Mixin
-        GetControllerCommandOptions commandOptions;
+        LoginCommandOptions loginOptions;
 
         @Override
         public void run() {
-            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(commandOptions);
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
             List<ServiceBean> services = servicesOperations.getAll();
 
@@ -65,11 +65,11 @@ public class GetController implements Runnable {
     @Command(name = "applications", description = "List all applications in the target space")
     static class GetApplicationsCommand implements Runnable {
         @Mixin
-        GetControllerCommandOptions commandOptions;
+        LoginCommandOptions loginOptions;
 
         @Override
         public void run() {
-            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(commandOptions);
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             ApplicationOperations applicationOperations = new ApplicationOperations(cfOperations);
             List<ApplicationBean> applications = applicationOperations.getAll();
 

@@ -3,11 +3,11 @@ package cloud.foundry.cli.services;
 import picocli.CommandLine.Option;
 
 /**
- * Common Options for the Get-Controller Sub commands.
+ * Common options for the initialization process of the {@link org.cloudfoundry.operations.CloudFoundryOperations operations} object.
  *
- * @see GetController
+ * @see cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator
  */
-public class GetControllerCommandOptions {
+public class LoginCommandOptions {
 
     @Option(names = {"-u", "--user"}, required = false)
     String userName;

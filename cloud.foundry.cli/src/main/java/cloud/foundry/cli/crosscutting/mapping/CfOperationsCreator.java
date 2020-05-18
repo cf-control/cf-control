@@ -1,6 +1,6 @@
 package cloud.foundry.cli.crosscutting.mapping;
 
-import cloud.foundry.cli.services.GetControllerCommandOptions;
+import cloud.foundry.cli.services.LoginCommandOptions;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.reactor.DefaultConnectionContext;
 import org.cloudfoundry.reactor.client.ReactorCloudFoundryClient;
@@ -11,7 +11,7 @@ import org.cloudfoundry.reactor.uaa.ReactorUaaClient;
 public class CfOperationsCreator {
 
     public static DefaultCloudFoundryOperations createCfOperations(
-            GetControllerCommandOptions commandOptions) {
+            LoginCommandOptions commandOptions) {
 
         DefaultConnectionContext connectionContext = createConnectionContext(commandOptions);
         PasswordGrantTokenProvider tokenProvider = createTokenProvider(commandOptions);
@@ -62,7 +62,7 @@ public class CfOperationsCreator {
     }
 
     private static PasswordGrantTokenProvider createTokenProvider(
-            GetControllerCommandOptions commandOptions) {
+            LoginCommandOptions commandOptions) {
 
         return PasswordGrantTokenProvider.builder()
                 .password(commandOptions.getPassword())
@@ -71,7 +71,7 @@ public class CfOperationsCreator {
     }
 
     private static DefaultConnectionContext createConnectionContext(
-            GetControllerCommandOptions commandOptions) {
+            LoginCommandOptions commandOptions) {
         return DefaultConnectionContext.builder()
                 .apiHost(commandOptions.getApiHost())
                 .build();
