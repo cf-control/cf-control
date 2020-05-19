@@ -1,14 +1,11 @@
 package cloud.foundry.cli.operations;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
+import cloud.foundry.cli.crosscutting.beans.ServiceBean;
+import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import cloud.foundry.cli.crosscutting.util.YamlCreator;
+import org.cloudfoundry.client.v2.ClientV2Exception;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
-import org.cloudfoundry.operations.services.ServiceInstanceSummary;
-import org.cloudfoundry.operations.services.ServiceInstanceType;
-import org.cloudfoundry.operations.services.Services;
+import org.cloudfoundry.operations.services.*;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import reactor.core.publisher.Flux;
@@ -17,6 +14,13 @@ import reactor.core.publisher.Mono;
 import java.util.LinkedList;
 import java.util.List;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 
 public class ServicesOperationsTest {
@@ -25,29 +29,30 @@ public class ServicesOperationsTest {
     public void testGetServicesWithMockData() {
         //given
         ServiceInstanceSummary serviceInstanceSummary = createMockServiceInstanceSummary();
-        DefaultCloudFoundryOperations cfMock = createMockDefaultCloudFoundryOperations(serviceInstanceSummary);
+        DefaultCloudFoundryOperations cfMock = createMockDefaultCloudFoundryOperationsWithServiceInstanceSummary(serviceInstanceSummary);
         //when
         ServicesOperations servicesOperations = new ServicesOperations(cfMock);
         String s = YamlCreator.createDefaultYamlProcessor().dump(servicesOperations.getAll());
         //then
         assertThat(s, is(
                 "- applications:\n" +
-                "  - test-flask\n" +
-                "  id: serviceId\n" +
-                "  lastOperation: lastOp\n" +
-                "  name: serviceName\n" +
-                "  plan: standardPlan\n" +
-                "  service: service\n" +
-                "  tags:\n" +
-                "  - tag\n" +
-                "  type: MANAGED\n"
+                        "  - test-flask\n" +
+                        "  id: serviceId\n" +
+                        "  lastOperation: lastOp\n" +
+                        "  name: serviceName\n" +
+                        "  plan: standardPlan\n" +
+                        "  service: service\n" +
+                        "  tags:\n" +
+                        "  - tag\n" +
+                        "  type: MANAGED\n"
         ));
     }
 
     @Test
     public void testGetServicesWithEmptyMockData() {
         //given
-        DefaultCloudFoundryOperations cfMock = createMockDefaultCloudFoundryOperations(null);
+        DefaultCloudFoundryOperations cfMock =
+                createMockDefaultCloudFoundryOperationsWithServiceInstanceSummary(null);
         //when
         ServicesOperations servicesOperations = new ServicesOperations(cfMock);
         String s = YamlCreator.createDefaultYamlProcessor().dump(servicesOperations.getAll());
@@ -56,7 +61,59 @@ public class ServicesOperationsTest {
         assertEquals("[\n  ]\n", s);
     }
 
-    private DefaultCloudFoundryOperations createMockDefaultCloudFoundryOperations
+    @Test
+    public void testCreateExceptionWhenCreatingService() throws CreationException {
+        //given
+        ServiceBean serviceBean = getServiceBeanMock();
+        DefaultCloudFoundryOperations cfMock = Mockito.mock(DefaultCloudFoundryOperations.class);
+        Services servicesMock = Mockito.mock(Services.class);
+        Mono<Void> monoCreated = mock(Mono.class);
+        Mockito.when(cfMock.services()).thenReturn(servicesMock);
+        Mockito.when(servicesMock.createInstance(any(CreateServiceInstanceRequest.class)))
+                .thenReturn(monoCreated);
+        Mockito.when(monoCreated.block()).thenThrow(new ClientV2Exception(400,
+                60002, "The service instance name is taken: Elephant", "CF-ServiceInstanceNameTaken"));
+        //when + then
+        ServicesOperations servicesOperations = new ServicesOperations(cfMock);
+        assertThrows(CreationException.class, () -> {
+            servicesOperations.create(serviceBean);
+        });
+    }
+
+    @Test
+    public void testCreateExceptionWhenBindingApps() throws CreationException {
+        //given
+        ServiceBean serviceBean = getServiceBeanMock();
+        List<String> apps = new LinkedList<>();
+        apps.add("test");
+        when(serviceBean.getApplications()).thenReturn(apps);
+        DefaultCloudFoundryOperations cfMock = Mockito.mock(DefaultCloudFoundryOperations.class);
+        Services servicesMock = Mockito.mock(Services.class);
+        Mono<Void> monoCreated = mock(Mono.class);
+        Mono<Void> monoBind = mock(Mono.class);
+        Mockito.when(cfMock.services()).thenReturn(servicesMock);
+        Mockito.when(servicesMock.createInstance(any(CreateServiceInstanceRequest.class)))
+                .thenReturn(monoCreated);
+        Mockito.when(monoCreated.block()).thenReturn(null);
+        Mockito.when(servicesMock.bind(any(BindServiceInstanceRequest.class))).thenReturn(monoBind);
+        Mockito.when(monoBind.block()).thenThrow(new IllegalArgumentException("Application test does not exist"));
+        //when + then
+        ServicesOperations servicesOperations = new ServicesOperations(cfMock);
+        assertThrows(CreationException.class, () -> {
+            servicesOperations.create(serviceBean);
+        });
+    }
+
+
+    private ServiceBean getServiceBeanMock() {
+        ServiceBean serviceBean = mock(ServiceBean.class);
+        when(serviceBean.getService()).thenReturn("elephantsql");
+        when(serviceBean.getName()).thenReturn("Elephant");
+        when(serviceBean.getPlan()).thenReturn("standard");
+        return serviceBean;
+    }
+
+    private DefaultCloudFoundryOperations createMockDefaultCloudFoundryOperationsWithServiceInstanceSummary
             (ServiceInstanceSummary serviceInstanceSummary) {
         DefaultCloudFoundryOperations cfMock = Mockito.mock(DefaultCloudFoundryOperations.class);
         Services servicesMock = Mockito.mock(Services.class);
