@@ -53,28 +53,35 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      * @throws CreationException when the creation or the binding was not successful
      */
     public void create(ServiceBean serviceBean) throws CreationException {
-        CreateServiceInstanceRequest.Builder createServiceBuilder = CreateServiceInstanceRequest.builder();
-        createServiceBuilder.serviceName(serviceBean.getService());
-        createServiceBuilder.planName(serviceBean.getPlan());
-        createServiceBuilder.serviceInstanceName(serviceBean.getName());
-        Mono<Void> created = this.cloudFoundryOperations.services().createInstance(createServiceBuilder.build());
+        CreateServiceInstanceRequest createServiceRequest = CreateServiceInstanceRequest.builder()
+                .serviceName(serviceBean.getService())
+                .planName(serviceBean.getPlan())
+                .serviceInstanceName(serviceBean.getName())
+                .build();
+
+        Mono<Void> created = this.cloudFoundryOperations.services().createInstance(createServiceRequest);
+
         try {
             created.block();
-            System.out.println("Service has been created.");
-        } catch (Exception e) {
+            System.out.println("Service \"" + serviceBean.getName() + "\" has been created.");
+        } catch (RuntimeException e) {
             throw new CreationException(e.getMessage());
         }
-        //Bind apps to service
+
+        // bind the newly created service instance to its applications
         List<String> applications = serviceBean.getApplications();
         for (String app: applications) {
-            BindServiceInstanceRequest.Builder bindServiceBuilder = BindServiceInstanceRequest.builder();
-            bindServiceBuilder.applicationName(app);
-            bindServiceBuilder.serviceInstanceName(serviceBean.getName());
-            Mono<Void> bind = this.cloudFoundryOperations.services().bind(bindServiceBuilder.build());
+            BindServiceInstanceRequest bindServiceRequest = BindServiceInstanceRequest.builder()
+                .applicationName(app)
+                .serviceInstanceName(serviceBean.getName())
+                .build();
+
+            Mono<Void> bind = this.cloudFoundryOperations.services().bind(bindServiceRequest);
+
             try {
                 bind.block();
-                System.out.println("Service has been bound.");
-            } catch (Exception e) {
+                System.out.println("Service has been bound to the application \"" + app + "\".");
+            } catch (RuntimeException e) {
                 throw new CreationException(e.getMessage());
             }
         }
