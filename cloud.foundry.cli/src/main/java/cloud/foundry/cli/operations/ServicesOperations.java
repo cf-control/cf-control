@@ -23,7 +23,9 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
         super(cloudFoundryOperations);
     }
 
-
+    /**
+     * @return all service instances in the space
+     */
     public List<ServiceBean> getAll() {
         List<ServiceInstanceSummary> services = this.cloudFoundryOperations
                 .services()
@@ -44,6 +46,12 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
         return beans;
     }
 
+    /**
+     * Creates a new service in the space and binds apps to it. In case of an error, the creation- and binding-process
+     * is discontinued.
+     * @param serviceBean serves as template for the service to create
+     * @throws CreationException when the creation was not successful
+     */
     public void create(ServiceBean serviceBean) throws CreationException {
         CreateServiceInstanceRequest.Builder createServiceBuilder = CreateServiceInstanceRequest.builder();
         createServiceBuilder.serviceName(serviceBean.getService());
@@ -65,7 +73,7 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
             Mono<Void> bind = this.cloudFoundryOperations.services().bind(bindServiceBuilder.build());
             try {
                 bind.block();
-                System.out.println("Service has been binded.");
+                System.out.println("Service has been bound.");
             } catch (Exception e) {
                 throw new CreationException(e.getMessage());
             }
