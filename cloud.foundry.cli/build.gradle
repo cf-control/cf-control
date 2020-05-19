@@ -55,8 +55,6 @@ dependencies {
 
     testImplementation 'net.bytebuddy:byte-buddy-gradle-plugin:1.10.10'
 
-    compile 'io.swagger.parser.v3:swagger-parser:2.0.19'
-
     compile 'org.cloudfoundry:cloudfoundry-client-reactor:4.6.0.RELEASE'
     compile 'org.cloudfoundry:cloudfoundry-operations:4.6.0.RELEASE'
 }
