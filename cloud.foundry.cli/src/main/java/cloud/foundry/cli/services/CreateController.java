@@ -14,7 +14,6 @@ import org.yaml.snakeyaml.Yaml;
 import picocli.CommandLine;
 
 import java.io.IOException;
-import java.util.LinkedList;
 
 /**
  * This class realizes the functionality that is needed for the create commands.
@@ -60,6 +59,7 @@ public class CreateController implements Runnable {
             }
         }
     }
+
     @CommandLine.Command(name = "service", description = "Create a service in the target space")
     static class CreateServiceCommand implements Runnable {
         @CommandLine.Mixin
@@ -69,7 +69,6 @@ public class CreateController implements Runnable {
 
         @Override
         public void run() {
-            // TODO:Implement functionality
             String yamlFileContent;
             try {
                 yamlFileContent = FileUtils.readLocalFile(commandOptions.getYamlFilePath());
@@ -89,6 +88,7 @@ public class CreateController implements Runnable {
             }
         }
     }
+
     @CommandLine.Command(name = "application", description = "Create a application in the target space")
     static class CreateApplicationCommand implements Runnable {
         @CommandLine.Mixin
