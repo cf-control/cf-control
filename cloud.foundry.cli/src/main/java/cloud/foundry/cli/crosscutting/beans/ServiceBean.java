@@ -57,6 +57,9 @@ public class ServiceBean implements Bean {
         this.lastOperation = lastOperation;
     }
 
+    /**
+     * @return the name if it is set, the service otherwise
+     */
     public String getName() {
         if (name == null) {
             return service;

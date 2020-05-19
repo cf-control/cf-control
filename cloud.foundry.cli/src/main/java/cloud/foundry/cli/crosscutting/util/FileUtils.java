@@ -38,7 +38,7 @@ public class FileUtils {
      *
      * @param filePath  a relative file path beginning from the working directory
      * @return          the content of the file as a String
-     * @throws IOException
+     * @throws IOException if the file cannot be accessed
      */
     public static String readLocalFile(String filePath) throws IOException {
         checkNotNull(filePath);
@@ -62,7 +62,7 @@ public class FileUtils {
      *
      * @param url   url to the host e.g. https://host.com/path/to/file.yml
      * @return      the content of the file as a String
-     * @throws IOException
+     * @throws IOException if the file cannot be accessed
      */
     public static String readRemoteFile(String url) throws IOException, ProtocolException {
         checkNotNull(url);
@@ -112,6 +112,7 @@ public class FileUtils {
 
     private static String readFile(File file) throws IOException {
         try (FileInputStream in = new FileInputStream(file)) {
+            //TODO: return InputStream object instead of a string
             return IOUtils.toString(in, StandardCharsets.UTF_8);
         }
     }
