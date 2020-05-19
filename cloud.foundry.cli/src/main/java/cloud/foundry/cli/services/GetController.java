@@ -1,8 +1,8 @@
 package cloud.foundry.cli.services;
 
 import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
+import cloud.foundry.cli.crosscutting.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.beans.GetAllBean;
-import cloud.foundry.cli.crosscutting.beans.ServiceInstanceSummaryBean;
 import cloud.foundry.cli.crosscutting.beans.SpaceDevelopersBean;
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
 import cloud.foundry.cli.crosscutting.util.YamlCreator;
@@ -49,11 +49,11 @@ public class GetController implements Runnable {
             description = "List all space developers in the target space")
     static class GetSpaceDevelopersCommand implements Runnable {
         @Mixin
-        GetControllerCommandOptions commandOptions;
+        LoginCommandOptions loginOptions;
 
         @Override
         public void run() {
-            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(commandOptions);
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
             SpaceDevelopersBean spaceDevelopers = spaceDevelopersOperations.getAll();
 
@@ -61,16 +61,16 @@ public class GetController implements Runnable {
         }
     }
 
-    @Command(name = "services", description = "List all applications in the target space")
+    @Command(name = "services", description = "List all services in the target space")
     static class GetServicesCommand implements Runnable {
         @Mixin
-        GetControllerCommandOptions commandOptions;
+        LoginCommandOptions loginOptions;
 
         @Override
         public void run() {
-            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(commandOptions);
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
-            List<ServiceInstanceSummaryBean> services = servicesOperations.getAll();
+            List<ServiceBean> services = servicesOperations.getAll();
 
             System.out.println(YamlCreator.createDefaultYamlProcessor().dump(services));
         }
@@ -79,11 +79,11 @@ public class GetController implements Runnable {
     @Command(name = "applications", description = "List all applications in the target space")
     static class GetApplicationsCommand implements Runnable {
         @Mixin
-        GetControllerCommandOptions commandOptions;
+        LoginCommandOptions loginOptions;
 
         @Override
         public void run() {
-            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(commandOptions);
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             ApplicationOperations applicationOperations = new ApplicationOperations(cfOperations);
             List<ApplicationBean> applications = applicationOperations.getAll();
 
@@ -94,11 +94,11 @@ public class GetController implements Runnable {
     @Command(name = "all", description = "show all information in the target space")
     static class GetAllInformation implements Runnable {
         @Mixin
-        GetControllerCommandOptions commandOptions;
+        LoginCommandOptions loginOptions;
 
         @Override
         public void run() {
-            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(commandOptions);
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             AllInformationOperations allInformationOperations = new AllInformationOperations(cfOperations);
             GetAllBean allInformation = allInformationOperations.getAll();
 

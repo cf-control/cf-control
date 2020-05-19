@@ -8,7 +8,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
-import cloud.foundry.cli.crosscutting.beans.ServiceInstanceSummaryBean;
+import cloud.foundry.cli.crosscutting.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.beans.SpaceDevelopersBean;
 import cloud.foundry.cli.crosscutting.util.YamlCreator;
 import org.cloudfoundry.client.v2.info.GetInfoResponse;
@@ -128,7 +128,7 @@ public class AllInformationOperationsTest {
 
         // services
         ServicesOperations servicesOperationsMock = mock(ServicesOperations.class);
-        ServiceInstanceSummaryBean serviceInstanceSummaryBeanMock = mock(ServiceInstanceSummaryBean.class);
+        ServiceBean serviceInstanceSummaryBeanMock = mock(ServiceBean.class);
         mockServicesOperations(cfOperationsMock);
         when(servicesOperationsMock.getAll()).thenReturn(singletonList(serviceInstanceSummaryBeanMock));
 

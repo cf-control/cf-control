@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * Bean holding all data that is related to an instance of a service.
  */
-public class ServiceInstanceSummaryBean implements Bean {
+public class ServiceBean implements Bean {
 
     private  String id;
     private  String name;
@@ -19,7 +19,7 @@ public class ServiceInstanceSummaryBean implements Bean {
     private  List<String> tags;
     private  ServiceInstanceType type;
 
-    public ServiceInstanceSummaryBean(ServiceInstanceSummary serviceInstanceSummary) {
+    public ServiceBean(ServiceInstanceSummary serviceInstanceSummary) {
         this.id = serviceInstanceSummary.getId();
         this.name = serviceInstanceSummary.getName();
         this.service = serviceInstanceSummary.getService();
@@ -30,7 +30,7 @@ public class ServiceInstanceSummaryBean implements Bean {
         this.type = serviceInstanceSummary.getType();
     }
 
-    public ServiceInstanceSummaryBean() {
+    public ServiceBean() {
     }
 
     public List<String> getApplications() {
@@ -57,7 +57,13 @@ public class ServiceInstanceSummaryBean implements Bean {
         this.lastOperation = lastOperation;
     }
 
+    /**
+     * @return the name if it is set, the service otherwise
+     */
     public String getName() {
+        if (name == null) {
+            return service;
+        }
         return name;
     }
 

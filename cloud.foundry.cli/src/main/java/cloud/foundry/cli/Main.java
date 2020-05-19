@@ -14,8 +14,8 @@ public class Main {
     public static void main(String[] args) {
         //TODO delegate the arguments to the correct command class
 
-        CommandLine commandLine = new CommandLine(new GetController());
-        commandLine.setErr(new PrintWriter(System.err));
-        commandLine.execute(args);
+        int exitCode = new CommandLine(new GetController()).execute(args);
+
+        System.exit(exitCode);
     }
 }

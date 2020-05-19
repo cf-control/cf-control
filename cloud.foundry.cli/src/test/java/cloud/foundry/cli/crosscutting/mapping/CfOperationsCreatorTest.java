@@ -7,7 +7,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 
-import cloud.foundry.cli.services.GetControllerCommandOptions;
+import cloud.foundry.cli.services.LoginCommandOptions;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.junit.jupiter.api.Test;
 
@@ -25,7 +25,7 @@ public class CfOperationsCreatorTest {
     @Test
     public void createCfOperationsShouldCreateValidInstance() {
         // given
-        GetControllerCommandOptions commandOptions = mock(GetControllerCommandOptions.class);
+        LoginCommandOptions commandOptions = mock(LoginCommandOptions.class);
         when(commandOptions.getApiHost()).thenReturn(SOME_API);
         when(commandOptions.getOrganization()).thenReturn(SOME_ORGANIZATION);
         when(commandOptions.getPassword()).thenReturn(SOME_CREDENTIALS);
