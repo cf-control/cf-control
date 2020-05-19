@@ -28,7 +28,7 @@ public class GetAllBean implements Bean {
         this.target = target;
     }
 
-    public  Map<String, Object> getSpec(){
+    public  Map<String, Object> getSpec() {
         return spec;
     }
 

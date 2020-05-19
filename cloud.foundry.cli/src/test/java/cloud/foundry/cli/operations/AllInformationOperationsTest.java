@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -39,64 +40,66 @@ public class AllInformationOperationsTest {
     public void testGetAll() throws Exception {
         // given
         DefaultCloudFoundryOperations cfOperationsMock = mockDefaultCloudFoundryOperations();
+
         // when
         AllInformationOperations allInformationOperations = new AllInformationOperations(cfOperationsMock);
         String allInformation = YamlCreator.createDefaultYamlProcessor().dump(allInformationOperations.getAll());
+
         // then
         assertThat(allInformation, is("apiVersion: API VERSION\n" +
-            "spec:\n" +
-            "  spaceDevelopers: [\n" +
-            "    ]\n" +
-            "  services: [\n" +
-            "    ]\n" +
-            "  applications:\n" +
-            "  - manifest:\n" +
-            "      buildpack: null\n" +
-            "      command: null\n" +
-            "      disk: 0\n" +
-            "      docker: null\n" +
-            "      domains: [\n" +
-            "        ]\n" +
-            "      environmentVariables: {\n" +
-            "        }\n" +
-            "      healthCheckHttpEndpoint: null\n" +
-            "      healthCheckType: null\n" +
-            "      hosts: [\n" +
-            "        ]\n" +
-            "      instances: 0\n" +
-            "      memory: 0\n" +
-            "      name: null\n" +
-            "      noHostname: false\n" +
-            "      noRoute: false\n" +
-            "      randomRoute: false\n" +
-            "      routePath: null\n" +
-            "      routes: [\n" +
-            "        ]\n" +
-            "      services: [\n" +
-            "        ]\n" +
-            "      stack: null\n" +
-            "      timeout: 0\n" +
-            "    path: null\n" +
-            "target:\n" +
-            "  org: cloud.foundry.cli\n" +
-            "  api endpoint: SOME API ENDPOINT\n" +
-            "  space: development\n"));
+                "spec:\n" +
+                "  spaceDevelopers: [\n" +
+                "    ]\n" +
+                "  services: [\n" +
+                "    ]\n" +
+                "  applications:\n" +
+                "  - manifest:\n" +
+                "      buildpack: null\n" +
+                "      command: null\n" +
+                "      disk: 0\n" +
+                "      docker: null\n" +
+                "      domains: [\n" +
+                "        ]\n" +
+                "      environmentVariables: {\n" +
+                "        }\n" +
+                "      healthCheckHttpEndpoint: null\n" +
+                "      healthCheckType: null\n" +
+                "      hosts: [\n" +
+                "        ]\n" +
+                "      instances: 0\n" +
+                "      memory: 0\n" +
+                "      name: null\n" +
+                "      noHostname: false\n" +
+                "      noRoute: false\n" +
+                "      randomRoute: false\n" +
+                "      routePath: null\n" +
+                "      routes: [\n" +
+                "        ]\n" +
+                "      services: [\n" +
+                "        ]\n" +
+                "      stack: null\n" +
+                "      timeout: 0\n" +
+                "    path: null\n" +
+                "target:\n" +
+                "  org: cloud.foundry.cli\n" +
+                "  api endpoint: SOME API ENDPOINT\n" +
+                "  space: development\n"));
     }
 
-    private DefaultCloudFoundryOperations mockDefaultCloudFoundryOperations() throws Exception {
+    private DefaultCloudFoundryOperations mockDefaultCloudFoundryOperations() {
         DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
         when(cfOperationsMock.getSpace()).thenReturn("development");
         when(cfOperationsMock.getOrganization()).thenReturn("cloud.foundry.cli");
         ReactorCloudFoundryClient rclMock = mock(ReactorCloudFoundryClient.class);
-        
-        mockdetermineTarget(cfOperationsMock, rclMock);
-        mockdetermineApiVersion(rclMock);
-        mockdetermineSpec(cfOperationsMock);
-        
+
+        mockDetermineTarget(cfOperationsMock, rclMock);
+        mockDetermineApiVersion(rclMock);
+        mockDetermineSpec(cfOperationsMock);
+
         return cfOperationsMock;
     }
 
-    private void mockdetermineApiVersion(ReactorCloudFoundryClient rclMock) {
+    private void mockDetermineApiVersion(ReactorCloudFoundryClient rclMock) {
         Info cfClientInfoMock = mock(Info.class);
         when(rclMock.info()).thenReturn(cfClientInfoMock);
         Mono<GetInfoResponse> monoGetInfoResponseMock = mock(Mono.class);
@@ -106,8 +109,8 @@ public class AllInformationOperationsTest {
         when(getInfoResponseMock.getApiVersion()).thenReturn("API VERSION");
     }
 
-    private void mockdetermineTarget(DefaultCloudFoundryOperations cfOperationsMock,
-        ReactorCloudFoundryClient rclMock) {
+    private void mockDetermineTarget(DefaultCloudFoundryOperations cfOperationsMock,
+                                     ReactorCloudFoundryClient rclMock) {
         // mock for method determineTarget(
         when(cfOperationsMock.getCloudFoundryClient()).thenReturn(rclMock);
         DefaultConnectionContext ccMock = mock(DefaultConnectionContext.class);
@@ -115,17 +118,20 @@ public class AllInformationOperationsTest {
         when(ccMock.getApiHost()).thenReturn("SOME API ENDPOINT");
     }
 
-    private void mockdetermineSpec(DefaultCloudFoundryOperations cfOperationsMock) {
-        // spacedevelopers
-        SpaceDevelopersOperations spaceDevelopersOperationsMock = mock(SpaceDevelopersOperations.class);
+    private void mockDetermineSpec(DefaultCloudFoundryOperations cfOperationsMock) {
+        // space-developers
+        SpaceDevelopersOperations spaceDevelopersOperationsMock =
+                mock(SpaceDevelopersOperations.class);
         mockSpaceDevelopersOperations(cfOperationsMock);
         SpaceDevelopersBean spaceDevelopersBean = mock(SpaceDevelopersBean.class);
         when(spaceDevelopersOperationsMock.getAll()).thenReturn(spaceDevelopersBean);
+
         // services
         ServicesOperations servicesOperationsMock = mock(ServicesOperations.class);
         ServiceInstanceSummaryBean serviceInstanceSummaryBeanMock = mock(ServiceInstanceSummaryBean.class);
         mockServicesOperations(cfOperationsMock);
         when(servicesOperationsMock.getAll()).thenReturn(singletonList(serviceInstanceSummaryBeanMock));
+
         // applications
         ApplicationOperations applicationOperationsMock = mock(ApplicationOperations.class);
         ApplicationBean applicationBeanMock = mock(ApplicationBean.class);
@@ -136,17 +142,20 @@ public class AllInformationOperationsTest {
     private void mockSpaceDevelopersOperations(DefaultCloudFoundryOperations cfOperationsMock) {
         UserAdmin userAdminMock = mock(UserAdmin.class);
         when(cfOperationsMock.userAdmin()).thenReturn(userAdminMock);
+
         Mono<SpaceUsers> monoMock = mock(Mono.class);
         when(userAdminMock.listSpaceUsers(any())).thenReturn(monoMock);
+
         SpaceUsers spaceUsersMock = mock(SpaceUsers.class);
         when(monoMock.block()).thenReturn(spaceUsersMock);
     }
 
     private void mockServicesOperations(DefaultCloudFoundryOperations cfOperationsMock) {
-        Services servicesMock = Mockito.mock(Services.class);
-        Flux<ServiceInstanceSummary> flux = Mockito.mock(Flux.class);
-        Mono<List<ServiceInstanceSummary>> mono = Mockito.mock(Mono.class);
-        List<ServiceInstanceSummary> list = new LinkedList<ServiceInstanceSummary>();
+        Services servicesMock = mock(Services.class);
+        Flux<ServiceInstanceSummary> flux = mock(Flux.class);
+        Mono<List<ServiceInstanceSummary>> mono = mock(Mono.class);
+        List<ServiceInstanceSummary> list = new LinkedList<>();
+
         Mockito.when(cfOperationsMock.services()).thenReturn(servicesMock);
         Mockito.when(servicesMock.listInstances()).thenReturn(flux);
         Mockito.when(flux.collectList()).thenReturn(mono);
@@ -155,18 +164,24 @@ public class AllInformationOperationsTest {
 
     private void mockApplicationOperations(DefaultCloudFoundryOperations cfOperationsMock) {
         ApplicationManifest applicationManifestMock = mock(ApplicationManifest.class);
-        List<ApplicationManifest> manifests = new LinkedList<ApplicationManifest>();
-        manifests.add(applicationManifestMock);
+        List<ApplicationManifest> manifest = new LinkedList<>();
+        manifest.add(applicationManifestMock);
+
         ApplicationSummary applicationSummaryMock = mock(ApplicationSummary.class);
         when(applicationSummaryMock.getName()).thenReturn("somename");
-        Mono<List<ApplicationSummary>> summaryListMono = Mockito.mock(Mono.class);
+
+        Mono<List<ApplicationSummary>> summaryListMono = mock(Mono.class);
         Mockito.when(summaryListMono.block()).thenReturn(singletonList(applicationSummaryMock));
-        Flux<ApplicationSummary> flux = Mockito.mock(Flux.class);
+
+        Flux<ApplicationSummary> flux = mock(Flux.class);
         Mockito.when(flux.collectList()).thenReturn(summaryListMono);
-        Applications applicationsMock = Mockito.mock(Applications.class);
+
+        Applications applicationsMock = mock(Applications.class);
         Mockito.when(applicationsMock.list()).thenReturn(flux);
+
         Mockito.when(cfOperationsMock.applications()).thenReturn(applicationsMock);
         Mono<ApplicationManifest> monoMock = mock(Mono.class);
+
         when(applicationsMock.getApplicationManifest(any())).thenReturn(monoMock);
         when(monoMock.block()).thenReturn(applicationManifestMock);
     }

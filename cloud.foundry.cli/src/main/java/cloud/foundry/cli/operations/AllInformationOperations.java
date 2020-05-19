@@ -22,58 +22,83 @@ import org.cloudfoundry.reactor.client.ReactorCloudFoundryClient;
  * foundry instance.
  */
 public class AllInformationOperations extends AbstractOperations<DefaultCloudFoundryOperations> {
-    public static final String SPACE_DEVELOPERS = "spaceDevelopers";
-    public static final String SERVICES = "services";
-    public static final String APPLICATIONS = "applications";
-    public static final String API_ENDPOINT = "api endpoint";
-    public static final String ORG = "org";
-    public static final String SPACE = "space";
+    private static final String SPACE_DEVELOPERS = "spaceDevelopers";
+    private static final String SERVICES = "services";
+    private static final String APPLICATIONS = "applications";
+
+    private static final String API_ENDPOINT = "api endpoint";
+    private static final String ORG = "org";
+    private static final String SPACE = "space";
 
     public AllInformationOperations(DefaultCloudFoundryOperations cloudFoundryOperations) {
         super(cloudFoundryOperations);
     }
 
-    /** get all information from system
+    /**
+     * Gets all the necessary configuration-information from a cloud foundry instance.
+     *
      * @return GetAllBean
-     * */
+     */
     public GetAllBean getAll() {
         GetAllBean allInformation = new GetAllBean();
         allInformation.setApiVersion(determineApiVersion());
         allInformation.setTarget(determineTarget());
         allInformation.setSpec(determineSpec());
+
         return allInformation;
     }
 
+    /**
+     * Determines the API-Version from a a cloud foundry instance.
+     *
+     * @return API-Version
+     */
     private String determineApiVersion() {
         CloudFoundryClient cfClient = cloudFoundryOperations.getCloudFoundryClient();
         GetInfoRequest infoRequest = GetInfoRequest.builder().build();
         Info cfClientInfo = cfClient.info();
+
         return cfClientInfo.get(infoRequest).block().getApiVersion();
     }
 
+    /**
+     * Determines the Spec-Node configuration-information from a a cloud foundry instance.
+     *
+     * @return Spec-Data
+     */
     private Map<String, Object> determineSpec() {
         SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cloudFoundryOperations);
         SpaceDevelopersBean spaceDevelopers = spaceDevelopersOperations.getAll();
+
         ServicesOperations servicesOperations = new ServicesOperations(cloudFoundryOperations);
         List<ServiceInstanceSummaryBean> services = servicesOperations.getAll();
+
         ApplicationOperations applicationOperations = new ApplicationOperations(cloudFoundryOperations);
         List<ApplicationBean> applications = applicationOperations.getAll();
+
         Map<String, Object> spec = new HashMap<>();
         spec.put(SPACE_DEVELOPERS, spaceDevelopers.getSpaceDevelopers());
         spec.put(SERVICES, services);
         spec.put(APPLICATIONS, applications);
+
         return spec;
     }
 
-    
-    
+
+    /**
+     * Determines the Target-Node configuration-information from a a cloud foundry instance.
+     *
+     * @return Target-Data
+     */
     private Map<String, String> determineTarget() {
         ReactorCloudFoundryClient rcl = (ReactorCloudFoundryClient) cloudFoundryOperations.getCloudFoundryClient();
         DefaultConnectionContext cc = (DefaultConnectionContext) rcl.getConnectionContext();
+
         Map<String, String> target = new HashMap<>();
         target.put(API_ENDPOINT, cc.getApiHost());
         target.put(ORG, cloudFoundryOperations.getOrganization());
         target.put(SPACE, cloudFoundryOperations.getSpace());
+
         return target;
     }
 }
