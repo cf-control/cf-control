@@ -54,8 +54,7 @@ public class CreateController implements Runnable {
                     spaceDevelopersOperations.assignSpaceDeveloper(username);
                 }
             } catch (CreationException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                System.out.println(e.getMessage());
             }
         }
     }
@@ -98,11 +97,5 @@ public class CreateController implements Runnable {
         public void run() {
             // TODO:Implement functionality
         }
-    }
-
-    public static void main(String... args) {
-        // CommandLine.run(new GetController.GetServicesCommand(), System.err, args);
-        int exitCode = new CommandLine(new CreateController()).execute(args);
-        System.exit(exitCode);
     }
 }
