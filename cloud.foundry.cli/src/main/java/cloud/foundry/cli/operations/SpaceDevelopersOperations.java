@@ -24,7 +24,7 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
     /**
      * List all space developers
      *
-     * @return list of space developers in YAML format
+     * @return list of space developers
      */
     public List<SpaceDevelopersBean> getAll() {
         ListSpaceUsersRequest request = ListSpaceUsersRequest.builder()
@@ -42,17 +42,16 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
     }
 
     /**
-     * assign a user as a space developers
+     * Assign a user as a space developer
      * 
-     * @throws CreationException
-     * @param username the username to assign as space developer
+     * @throws CreationException when assignation was not successful
+     * @param username email of user to assign as space developer
      */
     public void assignSpaceDeveloper(String username) throws CreationException {
-        
+        assert (!username.isEmpty() && username != null);
         String spaceId = cloudFoundryOperations.getSpaceId().block();
         String organization = cloudFoundryOperations.getOrganization();
         String space = cloudFoundryOperations.getSpace();
-        
         ListSpaceUsersRequest spaceUsersRequest = ListSpaceUsersRequest.builder()
             .spaceName(space)
             .organizationName(organization)
@@ -61,22 +60,18 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
             .userAdmin()
             .listSpaceUsers(spaceUsersRequest)
             .block();
-        
         if (!spaceUsers.getDevelopers().contains(username)) {
             System.out.println("Assigning role SpaceDeveloper to user " + username + " in org "
                 + organization + "/ space " + space);
-            
             AssociateSpaceDeveloperByUsernameRequest request = AssociateSpaceDeveloperByUsernameRequest.builder()
                 .username(username)
                 .spaceId(spaceId)
                 .build();
             try {
-             cloudFoundryOperations.getCloudFoundryClient()
+                cloudFoundryOperations.getCloudFoundryClient()
                     .spaces()
                     .associateDeveloperByUsername(request)
                     .block();
-                
-                
                 System.out.println("OK \n");
             } catch (Exception e) {
                 throw new CreationException("FAILED \n " + e.getMessage());

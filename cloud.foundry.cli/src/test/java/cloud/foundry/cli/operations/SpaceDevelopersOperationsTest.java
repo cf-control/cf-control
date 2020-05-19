@@ -2,6 +2,7 @@ package cloud.foundry.cli.operations;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static java.util.Collections.emptyList;
 import static org.mockito.Mockito.verify;
@@ -15,6 +16,7 @@ import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import cloud.foundry.cli.crosscutting.util.YamlCreator;
 
 import org.cloudfoundry.client.CloudFoundryClient;
+import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperByUsernameRequest;
 import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperByUsernameResponse;
 import org.cloudfoundry.client.v2.spaces.Spaces;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
@@ -74,21 +76,16 @@ class SpaceDevelopersOperationsTest {
     public void testAssignSpaceDeveloper() throws CreationException {
         SpaceUsers spaceUsersMock = mockSpaceUsers(cfOperationsMock);
         when(spaceUsersMock.getDevelopers()).thenReturn(Arrays.asList("one", "two", "three"));
-        
         CloudFoundryClient cfClientMock = mock(CloudFoundryClient.class);
         when(cfOperationsMock.getCloudFoundryClient()).thenReturn(cfClientMock);
-        
         Spaces spacesMock = mock(Spaces.class);
         when(cfClientMock.spaces()).thenReturn(spacesMock);
-        
         Mono<AssociateSpaceDeveloperByUsernameResponse> monoMock = mock(Mono.class);
         when(spacesMock.associateDeveloperByUsername(any()))
             .thenReturn(monoMock);
-        
         AssociateSpaceDeveloperByUsernameResponse associateSpaceDeveloperByUsernameReponsetMock = mock(
             AssociateSpaceDeveloperByUsernameResponse.class);
         when(monoMock.block()).thenReturn(associateSpaceDeveloperByUsernameReponsetMock);
-        
         // call
         spaceDevelopersOperations.assignSpaceDeveloper("six");
         // then
@@ -97,7 +94,28 @@ class SpaceDevelopersOperationsTest {
         verify(spacesMock, times(1)).associateDeveloperByUsername(any());
         verify(monoMock, times(1)).block();
     }
-    
+
+    @Test
+    public void testAssignSpaceDeveloper_ThrowException() throws CreationException {
+        SpaceUsers spaceUsersMock = mockSpaceUsers(cfOperationsMock);
+        when(spaceUsersMock.getDevelopers()).thenReturn(Arrays.asList("one", "two", "three"));
+        CloudFoundryClient cfClientMock = mock(CloudFoundryClient.class);
+        when(cfOperationsMock.getCloudFoundryClient()).thenReturn(cfClientMock);
+        Spaces spacesMock = mock(Spaces.class);
+        when(cfClientMock.spaces()).thenReturn(spacesMock);
+        AssociateSpaceDeveloperByUsernameRequest associateSpaceDeveloperByUsernameRequest = mock(
+            AssociateSpaceDeveloperByUsernameRequest.class);
+        Mono<AssociateSpaceDeveloperByUsernameResponse> monoMock = mock(Mono.class);
+        when(spacesMock.associateDeveloperByUsername(associateSpaceDeveloperByUsernameRequest))
+            .thenReturn(monoMock);
+        AssociateSpaceDeveloperByUsernameResponse associateSpaceDeveloperByUsernameReponsetMock = mock(
+            AssociateSpaceDeveloperByUsernameResponse.class);
+        when(monoMock.block()).thenReturn(associateSpaceDeveloperByUsernameReponsetMock);
+        // then
+        assertThrows(CreationException.class, () -> {
+            spaceDevelopersOperations.assignSpaceDeveloper("four");
+        });
+    }
 
     /**
      * Mock the DefaultCloudFoundryOperations
