@@ -26,7 +26,7 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
      *
      * @return list of space developers
      */
-    public List<SpaceDevelopersBean> getAll() {
+    public SpaceDevelopersBean getAll() {
         ListSpaceUsersRequest request = ListSpaceUsersRequest.builder()
             .spaceName(cloudFoundryOperations.getSpace())
             .organizationName(cloudFoundryOperations.getOrganization())
@@ -38,7 +38,7 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
             .getDevelopers();
         SpaceDevelopersBean spaceDevelopersBean = new SpaceDevelopersBean();
         spaceDevelopersBean.setSpaceDevelopers(spaceDevelopers);
-        return Arrays.asList(spaceDevelopersBean);
+        return spaceDevelopersBean;
     }
 
     /**

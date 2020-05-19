@@ -2,7 +2,7 @@ package cloud.foundry.cli.operations;
 
 import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.beans.GetAllBean;
-import cloud.foundry.cli.crosscutting.beans.ServiceInstanceSummaryBean;
+import cloud.foundry.cli.crosscutting.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.beans.SpaceDevelopersBean;
 
 import java.util.HashMap;
@@ -71,7 +71,7 @@ public class AllInformationOperations extends AbstractOperations<DefaultCloudFou
         SpaceDevelopersBean spaceDevelopers = spaceDevelopersOperations.getAll();
 
         ServicesOperations servicesOperations = new ServicesOperations(cloudFoundryOperations);
-        List<ServiceInstanceSummaryBean> services = servicesOperations.getAll();
+        List<ServiceBean> services = servicesOperations.getAll();
 
         ApplicationOperations applicationOperations = new ApplicationOperations(cloudFoundryOperations);
         List<ApplicationBean> applications = applicationOperations.getAll();

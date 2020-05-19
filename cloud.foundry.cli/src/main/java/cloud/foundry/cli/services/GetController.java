@@ -94,11 +94,11 @@ public class GetController implements Runnable {
     @Command(name = "all", description = "show all information in the target space")
     static class GetAllInformation implements Runnable {
         @Mixin
-        GetControllerCommandOptions commandOptions;
+        LoginCommandOptions loginOptions;
 
         @Override
         public void run() {
-            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(commandOptions);
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             AllInformationOperations allInformationOperations = new AllInformationOperations(cfOperations);
             GetAllBean allInformation = allInformationOperations.getAll();
 

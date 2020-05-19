@@ -56,7 +56,7 @@ class SpaceDevelopersOperationsTest {
         // when
         String spaceDevelopers = YamlCreator.createDefaultYamlProcessor().dump(spaceDevelopersOperations.getAll());
         // then
-        assertThat(spaceDevelopers, is("- spaceDevelopers: [\n    ]\n"));
+        assertThat(spaceDevelopers, is("spaceDevelopers: [\n  ]\n"));
     }
 
     @Test
