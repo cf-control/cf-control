@@ -63,7 +63,7 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
             Mono<Void> bind = this.cloudFoundryOperations.services().bind(bindServiceBuilder.build());
             try {
                 bind.block();
-                System.out.println("Service has been binded.");
+                System.out.println("Service has been bound.");
             } catch (Exception e) {
                 throw new CreationException(e.getMessage());
             }
