@@ -11,6 +11,7 @@ import org.yaml.snakeyaml.Yaml;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -22,7 +23,9 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
         super(cloudFoundryOperations);
     }
 
-
+    /**
+     * @return all service instances in the space
+     */
     public List<ServiceBean> getAll() {
         List<ServiceInstanceSummary> services = this.cloudFoundryOperations
                 .services()
@@ -30,18 +33,25 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
                 .collectList()
                 .block();
 
+        if (services == null) {
+            services = new LinkedList<>();
+        }
 
         // create a list of special bean data objects, as the summaries cannot be serialized directly
-        List<ServiceBean> beans = new ArrayList<>();
+        List<ServiceBean> beans = new ArrayList<>(services.size());
         for (ServiceInstanceSummary serviceInstanceSummary : services) {
             beans.add(new ServiceBean(serviceInstanceSummary));
         }
-        // create YAML document
-        Yaml yaml = YamlCreator.createDefaultYamlProcessor();
 
-        return yaml.loadAs(yaml.dump(beans), List.class);
+        return beans;
     }
 
+    /**
+     * Creates a new service in the space and binds apps to it. In case of an error, the creation- and binding-process
+     * is discontinued.
+     * @param serviceBean serves as template for the service to create
+     * @throws CreationException when the creation was not successful
+     */
     public void create(ServiceBean serviceBean) throws CreationException {
         CreateServiceInstanceRequest.Builder createServiceBuilder = CreateServiceInstanceRequest.builder();
         createServiceBuilder.serviceName(serviceBean.getService());
