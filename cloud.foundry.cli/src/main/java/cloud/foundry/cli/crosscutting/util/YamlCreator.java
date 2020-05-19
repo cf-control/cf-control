@@ -1,9 +1,6 @@
 package cloud.foundry.cli.crosscutting.util;
 
-import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
-import cloud.foundry.cli.crosscutting.beans.ApplicationManifestBean;
-import cloud.foundry.cli.crosscutting.beans.ServiceInstanceSummaryBean;
-import cloud.foundry.cli.crosscutting.beans.SpaceDevelopersBean;
+import cloud.foundry.cli.crosscutting.beans.*;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.nodes.Tag;
@@ -37,7 +34,7 @@ public class YamlCreator {
         representer.addClassTag(ApplicationManifestBean.class, Tag.MAP);
         representer.addClassTag(ServiceInstanceSummaryBean.class, Tag.MAP);
         representer.addClassTag(SpaceDevelopersBean.class, Tag.MAP);
-
+        representer.addClassTag(GetAllBean.class, Tag.MAP);
 
         return new Yaml(representer, options);
 
