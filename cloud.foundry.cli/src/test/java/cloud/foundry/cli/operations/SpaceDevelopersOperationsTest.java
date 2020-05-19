@@ -29,7 +29,7 @@ class SpaceDevelopersOperationsTest {
         SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperationsMock);
         String spaceDevelopers = YamlCreator.createDefaultYamlProcessor().dump(spaceDevelopersOperations.getAll());
         // then
-        assertThat(spaceDevelopers, is("- spaceDevelopers:\n  - one\n  - two\n  - three\n"));
+        assertThat(spaceDevelopers, is("spaceDevelopers:\n- one\n- two\n- three\n"));
     }
 
     @Test
@@ -42,7 +42,7 @@ class SpaceDevelopersOperationsTest {
         SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperationsMock);
         String spaceDevelopers = YamlCreator.createDefaultYamlProcessor().dump(spaceDevelopersOperations.getAll());
         //then
-        assertThat(spaceDevelopers, is("- spaceDevelopers:\n  - one\n"));
+        assertThat(spaceDevelopers, is("spaceDevelopers:\n- one\n"));
     }
 
     @Test
@@ -55,7 +55,7 @@ class SpaceDevelopersOperationsTest {
         SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperationsMock);
         String spaceDevelopers = YamlCreator.createDefaultYamlProcessor().dump(spaceDevelopersOperations.getAll());
         //then
-        assertThat(spaceDevelopers, is("- spaceDevelopers: [\n    ]\n"));
+        assertThat(spaceDevelopers, is("spaceDevelopers: [\n  ]\n"));
     }
 
     private  DefaultCloudFoundryOperations mockDefaultCloudFoundryOperations() {

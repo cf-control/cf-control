@@ -56,7 +56,7 @@ public class ApplicationOperationsTest {
         // now, let's have the same fun for the manifests, which are queried in a different way
         // luckily, we already have the applicationsMock, which we also need to hook on here
         // unfortunately, the method matches a string on some map, so we have to rebuild something similar
-        // the following lambda construct does exactly that: search for the right manifest by name in the lsit we've
+        // the following lambda construct does exactly that: search for the right manifest by name in the list we've
         // been passed, and return that if possible (or otherwise throw some exception)
         // TODO: check which exception to throw
         // this.cfOperations.applications().getApplicationManifest(manifestRequest).block();
