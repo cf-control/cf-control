@@ -1,4 +1,4 @@
-# cf-compose
+# cf-control
 Main repository.
 
 ## How to execute the JAR output? 
