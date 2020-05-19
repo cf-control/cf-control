@@ -52,8 +52,10 @@ public class FileUtils {
     private static String doReadLocalFile(String filePath) throws IOException {
         File file = new File(filePath);
         if (!isYamlFile(file.getName())) {
-            throw new InvalidFileTypeException("invalid or missing file extension: "
+            throw new InvalidFileTypeException("invalid file extension: "
                     + FilenameUtils.getExtension(file.getName()));
+        } else if (emptyFileExtension(file.getName())) {
+            throw new InvalidFileTypeException("missing file extension");
         }
         return readFile(file);
     }
