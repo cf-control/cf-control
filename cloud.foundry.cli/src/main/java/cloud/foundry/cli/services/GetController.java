@@ -91,7 +91,7 @@ public class GetController implements Runnable {
         }
     }
 
-    @Command(name = "all", description = "List all information in the target space")
+    @Command(name = "all", description = "show all information in the target space")
     static class GetAllInformation implements Runnable {
         @Mixin
         GetControllerCommandOptions commandOptions;
