@@ -115,7 +115,8 @@ public class FileUtilsTest {
     }
 
 
-    //TODO: disabling this test for now, since setting readable to false might not work in some environments due to access rights
+    //TODO: disabling this test for now,
+    // since setting readable to false might not work in some environments due to access rights
 
     /*@Test
     public void testReadLocalFileOnMissingFilePermissionThrowsException(@TempDir Path tempDir)
@@ -172,7 +173,7 @@ public class FileUtilsTest {
                 .resolve(filename)
                 .toFile();
 
-        try(FileOutputStream out = new FileOutputStream(tempFile)){
+        try (FileOutputStream out = new FileOutputStream(tempFile)) {
             IOUtils.write(content, out, Charset.defaultCharset());
         }
         return tempFile;

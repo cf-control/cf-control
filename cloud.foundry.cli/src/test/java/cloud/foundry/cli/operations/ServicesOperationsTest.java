@@ -1,19 +1,5 @@
 package cloud.foundry.cli.operations;
 
-import cloud.foundry.cli.crosscutting.beans.ServiceBean;
-import cloud.foundry.cli.crosscutting.exceptions.CreationException;
-import cloud.foundry.cli.crosscutting.util.YamlCreator;
-import org.cloudfoundry.client.v2.ClientV2Exception;
-import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
-import org.cloudfoundry.operations.services.*;
-import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-
-import java.util.LinkedList;
-import java.util.List;
-
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -22,6 +8,26 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import cloud.foundry.cli.crosscutting.beans.ServiceBean;
+import cloud.foundry.cli.crosscutting.exceptions.CreationException;
+import cloud.foundry.cli.crosscutting.util.YamlCreator;
+import org.cloudfoundry.client.v2.ClientV2Exception;
+import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
+import org.cloudfoundry.operations.services.BindServiceInstanceRequest;
+import org.cloudfoundry.operations.services.CreateServiceInstanceRequest;
+import org.cloudfoundry.operations.services.ServiceInstanceSummary;
+import org.cloudfoundry.operations.services.Services;
+import org.cloudfoundry.operations.services.ServiceInstanceType;
+
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
+import java.util.LinkedList;
+import java.util.List;
+
+
 
 public class ServicesOperationsTest {
 
@@ -29,7 +35,8 @@ public class ServicesOperationsTest {
     public void testGetServicesWithMockData() {
         //given
         ServiceInstanceSummary serviceInstanceSummary = createMockServiceInstanceSummary();
-        DefaultCloudFoundryOperations cfMock = createMockDefaultCloudFoundryOperationsWithServiceInstanceSummary(serviceInstanceSummary);
+        DefaultCloudFoundryOperations cfMock =
+                createMockDefaultCloudFoundryOperationsWithServiceInstanceSummary(serviceInstanceSummary);
         //when
         ServicesOperations servicesOperations = new ServicesOperations(cfMock);
         String s = YamlCreator.createDefaultYamlProcessor().dump(servicesOperations.getAll());

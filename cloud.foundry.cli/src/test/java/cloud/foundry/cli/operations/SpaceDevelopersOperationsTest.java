@@ -2,14 +2,12 @@ package cloud.foundry.cli.operations;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.mock;
+import static java.util.Collections.emptyList;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.mock;
 
 import java.util.Arrays;
 
@@ -17,7 +15,6 @@ import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import cloud.foundry.cli.crosscutting.util.YamlCreator;
 
 import org.cloudfoundry.client.CloudFoundryClient;
-import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperByUsernameRequest;
 import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperByUsernameResponse;
 import org.cloudfoundry.client.v2.spaces.Spaces;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
