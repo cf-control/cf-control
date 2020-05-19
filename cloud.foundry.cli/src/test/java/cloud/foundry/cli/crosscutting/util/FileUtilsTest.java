@@ -133,21 +133,16 @@ public class FileUtilsTest {
 
     @Test
     public void testReadLocalFileOnMissingFileThrowsException() {
-
         //Act and Verify
-        IOException exception = assertThrows(FileNotFoundException.class,
+        assertThrows(FileNotFoundException.class,
                 () -> FileUtils.readLocalFile(RESOURCE_PATH + "Missing.yaml"));
-        assertThat(exception.getMessage(), containsString("No such file or directory"));
     }
 
     @Test
     public void testReadLocalFileOnMissingFilePathThrowsException() {
         //Act and Verify
-        //TODO
-
-        IOException exception = assertThrows(FileNotFoundException.class,
+        assertThrows(FileNotFoundException.class,
                 () -> FileUtils.readLocalFile(RESOURCE_PATH + "no/path/Missing.yaml"));
-        assertThat(exception.getMessage(), containsString("No such file or directory"));
     }
 
     @Test
