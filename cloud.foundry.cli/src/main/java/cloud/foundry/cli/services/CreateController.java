@@ -23,6 +23,7 @@ import java.io.IOException;
     CreateController.AssignSpaceDeveloperCommand.class,
     CreateController.CreateApplicationCommand.class })
 public class CreateController implements Runnable {
+
     @Override
     public void run() {
         // this code is executed if the user runs the create command without specifying
@@ -31,8 +32,10 @@ public class CreateController implements Runnable {
 
     @CommandLine.Command(name = "space-developer", description = "Assign users as space developers")
     static class AssignSpaceDeveloperCommand implements Runnable {
+
         @CommandLine.Mixin
         LoginCommandOptions loginOptions;
+
         @CommandLine.Mixin
         CreateControllerCommandOptions commandOptions;
 
@@ -49,6 +52,7 @@ public class CreateController implements Runnable {
             SpaceDevelopersBean spaceDevelopersBean = yamlLoader.loadAs(yamlFileContent, SpaceDevelopersBean.class);
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
+
             try {
                 for (String username : spaceDevelopersBean.getSpaceDevelopers()) {
                     spaceDevelopersOperations.assignSpaceDeveloper(username);
@@ -61,8 +65,10 @@ public class CreateController implements Runnable {
 
     @CommandLine.Command(name = "service", description = "Create a service in the target space")
     static class CreateServiceCommand implements Runnable {
+
         @CommandLine.Mixin
         LoginCommandOptions loginOptions;
+
         @CommandLine.Mixin
         CreateControllerCommandOptions commandOptions;
 
@@ -78,8 +84,9 @@ public class CreateController implements Runnable {
             Yaml yamlLoader = YamlCreator.createDefaultYamlProcessor();
             ServiceBean serviceBean = yamlLoader.loadAs(yamlFileContent, ServiceBean.class);
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
-            // Create Service
+
             ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
+
             try {
                 servicesOperations.create(serviceBean);
             } catch (CreationException e) {
@@ -90,6 +97,7 @@ public class CreateController implements Runnable {
 
     @CommandLine.Command(name = "application", description = "Create a application in the target space")
     static class CreateApplicationCommand implements Runnable {
+
         @CommandLine.Mixin
         LoginCommandOptions loginOptions;
 
