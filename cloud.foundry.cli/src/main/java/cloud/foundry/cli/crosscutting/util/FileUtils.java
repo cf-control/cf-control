@@ -60,51 +60,7 @@ public class FileUtils {
         return readFile(file);
     }
 
-    /**
-     *
-     * @param url   url to the host e.g. https://host.com/path/to/file.yml
-     * @return      the content of the file as a String
-     * @throws IOException if the file cannot be accessed
-     */
-    public static String readRemoteFile(String url) throws IOException, ProtocolException {
-        checkNotNull(url);
-
-        String content = doReadRemoteFile(url);
-
-        assert content != null;
-        return content;
-    }
-
-    private static String doReadRemoteFile(String url) throws IOException, ProtocolException {
-        URI uri = URI.create(url);
-
-        if (!isYamlFile(uri.getPath()) && !emptyFileExtension(uri.getPath())) {
-            throw new InvalidFileTypeException("invalid file extension: "
-                    + FilenameUtils.getExtension(uri.getPath()));
-        }
-
-        try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
-
-            try (CloseableHttpResponse response = httpClient.execute(new HttpGet(uri))) {
-
-                //TODO: more precise exception handling
-                if (response.getCode() != 200) {
-                    throw new HttpResponseException(response.getCode(), response.getReasonPhrase());
-                }
-
-                if (response.getHeader("Content-Type") != null
-                        && !response.getHeader("Content-Type").equals("text/plain")) {
-
-                    throw new HttpResponseException(response.getCode(),
-                            "invalid content type, was: " + response.getHeader("Content-Type"));
-                }
-
-                return EntityUtils.toString(response.getEntity());
-            }
-        }
-    }
-
-    public static boolean isYamlFile(String filename) {
+    private static boolean isYamlFile(String filename) {
         return ALLOWED_FILE_EXTENSIONS.contains(FilenameUtils.getExtension(filename).toUpperCase());
     }
 
