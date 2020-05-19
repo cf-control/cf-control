@@ -11,6 +11,7 @@ import org.yaml.snakeyaml.Yaml;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -30,16 +31,17 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
                 .collectList()
                 .block();
 
+        if (services == null) {
+            services = new LinkedList<>();
+        }
 
         // create a list of special bean data objects, as the summaries cannot be serialized directly
-        List<ServiceBean> beans = new ArrayList<>();
+        List<ServiceBean> beans = new ArrayList<>(services.size());
         for (ServiceInstanceSummary serviceInstanceSummary : services) {
             beans.add(new ServiceBean(serviceInstanceSummary));
         }
-        // create YAML document
-        Yaml yaml = YamlCreator.createDefaultYamlProcessor();
 
-        return yaml.loadAs(yaml.dump(beans), List.class);
+        return beans;
     }
 
     public void create(ServiceBean serviceBean) throws CreationException {
