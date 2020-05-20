@@ -246,6 +246,14 @@ public class ApplicationManifestBean implements Bean {
         this.timeout = timeout;
     }
 
+    public List<Route> getAppRoutes() {
+        return routes == null ? null : routes
+                .stream()
+                .filter(Objects::nonNull)
+                .map(route -> Route.builder().route(route).build())
+                .collect(Collectors.toList());
+    }
+
     public ApplicationManifest asApplicationManifest() {
         ApplicationManifest applicationManifest = ApplicationManifest
                 .builder()
@@ -275,12 +283,6 @@ public class ApplicationManifestBean implements Bean {
         return applicationManifest;
     }
 
-    private List<Route> asAppRoutes(List<String> routes) {
-        return routes == null ? null : routes
-                    .stream()
-                    .filter(Objects::nonNull)
-                    .map(route -> Route.builder().route(route).build())
-                    .collect(Collectors.toList());
-    }
+
 
 }
