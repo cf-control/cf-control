@@ -17,6 +17,7 @@ public class ApplicationManifestBean implements Bean {
     // list of all attributes the manifest supports, except for path
     private String buildpack;
     private String command;
+    private String path;
     private Integer disk;
     private Docker docker;
     private Map<String, Object> environmentVariables;
@@ -74,6 +75,10 @@ public class ApplicationManifestBean implements Bean {
 
     public void setCommand(String command) {
         this.command = command;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
     }
 
     public Integer getDisk() {
