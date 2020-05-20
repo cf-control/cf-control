@@ -5,6 +5,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.beans.ApplicationManifestBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
+import org.cloudfoundry.client.v3.applications.Application;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.applications.*;
 
@@ -80,51 +81,20 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
 
     private void doCreate(String name, ApplicationBean bean, boolean noStart) throws CreationException {
         try{
-            //the app manifest might not have been given, for example user didn't specify anything in the yaml file
-            if(bean.getManifest() == null){
-                pushApp(name, bean, noStart);
-            }else {
-                //path is not injected from yaml processor so setting it manually
-                bean.getManifest().setPath(bean.getPath());
-
-                //override any name set in bean so that there are no conflicts
-                bean.getManifest().setName(name);
-
-                pushAppManifest(bean.getManifest(), noStart);
-            }
-
+            pushAppManifest(name, bean, noStart);
         }catch (Exception e) {
             throw new CreationException("FAILED: " + e.getMessage());
         }
     }
 
-    private void pushApp(String name, ApplicationBean bean, boolean noStart) {
-        List<Throwable> errors = new LinkedList<>();
-
-        this.cloudFoundryOperations
-                .applications()
-                .push(PushApplicationRequest
-                        .builder()
-                        .name(name)
-                        .path(Paths.get(bean.getPath()))
-                        .noStart(noStart)
-                        .build())
-                .onErrorContinue((throwable, o) -> errors.add(throwable))
-                .block();
-
-        //TODO: temporary error printing, will be replaced at a future date
-        errors.forEach(throwable -> System.out.println(throwable.getMessage()));
-    }
-
-
-    private void pushAppManifest(ApplicationManifestBean bean, boolean noStart) {
+    private void pushAppManifest(String name, ApplicationBean bean, boolean noStart) {
         List<Throwable> errors = new LinkedList<>();
 
         this.cloudFoundryOperations
                 .applications()
                 .pushManifest(PushApplicationManifestRequest
                         .builder()
-                        .manifest(bean.asApplicationManifest())
+                        .manifest(buildApplicationManifest(name, bean))
                         .noStart(noStart)
                         .build())
                 .onErrorContinue((throwable, o) -> errors.add(throwable))
@@ -132,6 +102,21 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
 
         //TODO: temporary error printing, will be replaced at a future date
         errors.forEach(throwable -> System.out.println(throwable.getMessage()));
+    }
+
+    private ApplicationManifest buildApplicationManifest(String name, ApplicationBean bean) {
+        ApplicationManifest.Builder builder = ApplicationManifest.builder();
+
+        builder
+            .name(name)
+            .path(Paths.get(bean.getPath()));
+
+        if(bean.getManifest() != null) {
+            builder
+                .from(bean.getManifest().asApplicationManifest());
+        }
+
+        return builder.build();
     }
 
     /**
@@ -152,7 +137,6 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
      * assertion method
      */
     private void checkAppNotExists(String name) throws CreationException {
-
         // if an app does not exist it will throw an IllegalArgumentException so return without fail
         try{
             checkAppExists(name);
@@ -162,7 +146,6 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
 
         // if an app does exist it doesn't throw an error, so throw an error
         throw new CreationException("FAILED: app exists already");
-
     }
 
     /**
