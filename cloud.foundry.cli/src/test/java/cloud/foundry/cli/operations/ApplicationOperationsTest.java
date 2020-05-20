@@ -5,13 +5,21 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import cloud.foundry.cli.crosscutting.util.YamlCreator;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
-import org.cloudfoundry.operations.applications.*;
+import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
+import org.cloudfoundry.operations.applications.ApplicationManifest;
+import org.cloudfoundry.operations.applications.ApplicationSummary;
+import org.cloudfoundry.operations.applications.Applications;
+import org.cloudfoundry.operations.applications.GetApplicationManifestRequest;
+import org.cloudfoundry.operations.applications.GetApplicationRequest;
+import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
@@ -19,7 +27,11 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 public class ApplicationOperationsTest {
@@ -98,10 +110,10 @@ public class ApplicationOperationsTest {
         //given
         ApplicationManifest appManifest = createMockApplicationManifest();
         DefaultCloudFoundryOperations cfoMock = Mockito.mock(DefaultCloudFoundryOperations.class);
-
-        ApplicationOperations applicationOperations = new ApplicationOperations(cfoMock);
         Applications applicationsMock = Mockito.mock(Applications.class);
         Mono<Void> monoMock = Mockito.mock(Mono.class);
+
+        ApplicationOperations applicationOperations = new ApplicationOperations(cfoMock);
 
         when(cfoMock.applications()).thenReturn(applicationsMock);
         when(cfoMock.applications().get(any(GetApplicationRequest.class)))
@@ -126,22 +138,20 @@ public class ApplicationOperationsTest {
     public void testCreateApplicationsFailsWhenAlreadyExisting() {
         //given
         ApplicationManifest mockAppManifest = createMockApplicationManifest();
-        ApplicationSummary mockAppSummary = createMockApplicationSummary(mockAppManifest);
-        DefaultCloudFoundryOperations cfoMock = createMockCloudFoundryOperations(Arrays.asList(mockAppSummary), Arrays.asList(mockAppManifest));
+        DefaultCloudFoundryOperations cfoMock = Mockito.mock(DefaultCloudFoundryOperations.class);
+
         ApplicationOperations applicationOperations = new ApplicationOperations(cfoMock);
+        Applications applicationsMock = Mockito.mock(Applications.class);
+        Mono<Void> monoMock = Mockito.mock(Mono.class);
 
-        Mockito.when(cfoMock.applications().get(GetApplicationRequest
-                .builder()
-                .name(mockAppManifest.getName())
-                .build()))
+        when(cfoMock.applications()).thenReturn(applicationsMock);
+        when(cfoMock.applications().get(any(GetApplicationRequest.class)))
                 .thenReturn(Mockito.mock(Mono.class));
-
 
         ApplicationBean applicationsBean = new ApplicationBean(mockAppManifest);
 
         //then
         assertThrows( CreationException.class, () -> applicationOperations.create("notyetrandomname", applicationsBean, false));
-
     }
 
     @Test
@@ -169,7 +179,8 @@ public class ApplicationOperationsTest {
         //given
         ApplicationManifest mockAppManifest = createMockApplicationManifest();
         ApplicationSummary mockAppSummary = createMockApplicationSummary(mockAppManifest);
-        ApplicationOperations applicationOperations = new ApplicationOperations(createMockCloudFoundryOperations(Arrays.asList(mockAppSummary), Arrays.asList(mockAppManifest)));
+        ApplicationOperations applicationOperations = new ApplicationOperations(createMockCloudFoundryOperations(Arrays.asList(mockAppSummary),
+                Arrays.asList(mockAppManifest)));
 
         //then
         assertThrows(NullPointerException.class, () -> applicationOperations.create("testApp", null , false));
