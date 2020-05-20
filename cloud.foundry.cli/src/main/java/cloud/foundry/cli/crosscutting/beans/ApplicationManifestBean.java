@@ -34,6 +34,17 @@ public class ApplicationManifestBean implements Bean {
     private String stack;
     private Integer timeout;
 
+
+    /**
+     * these attributes are deprecated and have been replaced by the attribute 'routes'
+     * https://docs.cloudfoundry.org/devguide/deploy-apps/manifest-attributes.html#deprecated
+     *
+     * leaving them here for now, further clarification necessary
+     */
+    private List<String> domains;
+    private List<String> hosts;
+    private Boolean noHostname;
+
     public ApplicationManifestBean(ApplicationManifest manifest) {
         this.buildpack = manifest.getBuildpack();
         this.command = manifest.getCommand();
