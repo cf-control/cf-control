@@ -5,6 +5,8 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
@@ -64,7 +66,8 @@ public class ApplicationOperationsTest {
                 "    buildpack: test_buildpack\n" +
                 "    command: test command\n" +
                 "    disk: 1234\n" +
-                "    docker: null\n" +
+                "    dockerImage: null\n" +
+                "    dockerUsername: null\n" +
                 "    domains:\n" +
                 "    - example.test\n" +
                 "    - some.more.test\n" +

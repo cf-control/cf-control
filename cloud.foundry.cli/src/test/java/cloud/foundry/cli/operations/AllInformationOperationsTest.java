@@ -57,7 +57,8 @@ public class AllInformationOperationsTest {
                 "      buildpack: null\n" +
                 "      command: null\n" +
                 "      disk: 0\n" +
-                "      docker: null\n" +
+                "      dockerImage: null\n" +
+                "      dockerUsername: null\n" +
                 "      domains: [\n" +
                 "        ]\n" +
                 "      environmentVariables: {\n" +
