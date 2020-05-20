@@ -5,8 +5,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
@@ -92,6 +91,57 @@ public class ApplicationOperationsTest {
                 "    timeout: 987654321\n" +
                 "  path: " + Paths.get("/test/uri").toString() + "\n"
         ));
+    }
+
+    @Test
+    public void testCreateApplicationsPushesAppManifestSucceeds() throws CreationException {
+        //given
+        ApplicationManifest appManifest = createMockApplicationManifest();
+        DefaultCloudFoundryOperations cfoMock = Mockito.mock(DefaultCloudFoundryOperations.class);
+
+        ApplicationOperations applicationOperations = new ApplicationOperations(cfoMock);
+        Applications applicationsMock = Mockito.mock(Applications.class);
+        Mono<Void> monoMock = Mockito.mock(Mono.class);
+
+        when(cfoMock.applications()).thenReturn(applicationsMock);
+        when(cfoMock.applications().get(any(GetApplicationRequest.class)))
+                .thenThrow(new IllegalArgumentException());
+        when(applicationsMock.pushManifest(any(PushApplicationManifestRequest.class)))
+                .thenReturn(monoMock);
+        when(monoMock.onErrorContinue(any())).thenReturn(monoMock);
+        when(monoMock.block()).thenReturn(null);
+
+        ApplicationBean applicationsBean = new ApplicationBean(appManifest);
+
+        //when
+        applicationOperations.create("notyetrandomname", applicationsBean, false);
+
+        //then
+        verify(applicationsMock, times(1)).pushManifest(any(PushApplicationManifestRequest.class));
+        verify(monoMock, times(1)).onErrorContinue(any());
+        verify(monoMock, times(1)).block();
+    }
+
+    @Test
+    public void testCreateApplicationsFailsWhenAlreadyExisting() {
+        //given
+        ApplicationManifest mockAppManifest = createMockApplicationManifest();
+        ApplicationSummary mockAppSummary = createMockApplicationSummary(mockAppManifest);
+        DefaultCloudFoundryOperations cfoMock = createMockCloudFoundryOperations(Arrays.asList(mockAppSummary), Arrays.asList(mockAppManifest));
+        ApplicationOperations applicationOperations = new ApplicationOperations(cfoMock);
+
+        Mockito.when(cfoMock.applications().get(GetApplicationRequest
+                .builder()
+                .name(mockAppManifest.getName())
+                .build()))
+                .thenReturn(Mockito.mock(Mono.class));
+
+
+        ApplicationBean applicationsBean = new ApplicationBean(mockAppManifest);
+
+        //then
+        assertThrows( CreationException.class, () -> applicationOperations.create("notyetrandomname", applicationsBean, false));
+
     }
 
     @Test

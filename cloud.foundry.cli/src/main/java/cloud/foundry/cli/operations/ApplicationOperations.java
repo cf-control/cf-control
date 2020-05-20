@@ -83,6 +83,7 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
         try{
             pushAppManifest(name, bean, noStart);
         }catch (Exception e) {
+            e.printStackTrace();
             throw new CreationException("FAILED: " + e.getMessage());
         }
     }
@@ -112,8 +113,7 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
             .path(Paths.get(bean.getPath()));
 
         if(bean.getManifest() != null) {
-            builder
-                .from(bean.getManifest().asApplicationManifest());
+            builder.from(bean.getManifest().asApplicationManifest());
         }
 
         return builder.build();
