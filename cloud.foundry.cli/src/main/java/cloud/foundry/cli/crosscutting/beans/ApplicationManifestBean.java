@@ -19,7 +19,8 @@ public class ApplicationManifestBean implements Bean {
     private String command;
     private String path;
     private Integer disk;
-    private Docker docker;
+    private String dockerImage;
+    private String dockerUsername;
     private Map<String, Object> environmentVariables;
     private String healthCheckHttpEndpoint;
     private ApplicationHealthCheck healthCheckType;
@@ -49,7 +50,8 @@ public class ApplicationManifestBean implements Bean {
         this.buildpack = manifest.getBuildpack();
         this.command = manifest.getCommand();
         this.disk = manifest.getDisk();
-        this.docker = manifest.getDocker();
+        this.dockerImage =  manifest.getDocker() == null ? null : manifest.getDocker().getImage();
+        this.dockerUsername =  manifest.getDocker() == null ? null :  manifest.getDocker().getUsername();
         this.domains = manifest.getDomains();
         this.environmentVariables = manifest.getEnvironmentVariables();
         this.healthCheckHttpEndpoint = manifest.getHealthCheckHttpEndpoint();
@@ -100,12 +102,20 @@ public class ApplicationManifestBean implements Bean {
         this.disk = disk;
     }
 
-    public Docker getDocker() {
-        return docker;
+    public String getDockerImage() {
+        return dockerImage;
     }
 
-    public void setDocker(Docker docker) {
-        this.docker = docker;
+    public void setDockerImage(String dockerImage) {
+        this.dockerImage = dockerImage;
+    }
+
+    public String getDockerUsername() {
+        return dockerUsername;
+    }
+
+    public void setDockerUsername(String dockerUsername) {
+        this.dockerUsername = dockerUsername;
     }
 
     public List<String> getDomains() {
@@ -244,7 +254,10 @@ public class ApplicationManifestBean implements Bean {
                 .buildpack(getBuildpack())
                 .command(getCommand())
                 .disk(getDisk())
-                .docker(getDocker())
+                .docker(Docker.builder()
+                        .image(getDockerImage())
+                        .username(getDockerUsername())
+                        .password(null /*TODO: fetch environment variable*/).build())
                 .healthCheckHttpEndpoint(getHealthCheckHttpEndpoint())
                 .healthCheckType(getHealthCheckType())
                 .instances(getInstances())
@@ -252,7 +265,7 @@ public class ApplicationManifestBean implements Bean {
                 .noRoute(getNoRoute())
                 .routePath(getRoutePath())
                 .randomRoute(getRandomRoute())
-                .routes(asAppRoutes(getRoutes()))
+                .routes(getAppRoutes())
                 .stack(getStack())
                 .timeout(getTimeout())
                 .putAllEnvironmentVariables(Optional.ofNullable(getEnvironmentVariables()).orElse(Collections.emptyMap()))
