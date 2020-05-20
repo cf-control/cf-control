@@ -10,13 +10,6 @@ import java.util.List;
 public class ApplicationBean implements Bean {
 
     private String id;
-    private String name;
-    private List<String> urls;
-    private int instances;
-    private int runningInstances;
-    private int memoryLimit;
-    private int diskQuota;
-    private String requestedState;
     private ApplicationManifestBean manifest;
     private String path;
 
