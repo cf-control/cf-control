@@ -6,7 +6,11 @@ import org.cloudfoundry.operations.applications.Docker;
 import org.cloudfoundry.operations.applications.Route;
 
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -64,7 +68,10 @@ public class ApplicationManifestBean implements Bean {
         this.noRoute = manifest.getNoRoute();
         this.randomRoute = manifest.getRandomRoute();
         this.routePath = manifest.getRoutePath();
-        this.routes = manifest.getRoutes() == null ? null : manifest.getRoutes().stream().map(Route::getRoute).collect(Collectors.toList());
+        this.routes = manifest.getRoutes() == null ? null : manifest.getRoutes()
+                .stream()
+                .map(Route::getRoute)
+                .collect(Collectors.toList());
         this.services = manifest.getServices();
         this.stack = manifest.getStack();
         this.timeout = manifest.getTimeout();
@@ -276,7 +283,8 @@ public class ApplicationManifestBean implements Bean {
                 .routes(getAppRoutes())
                 .stack(getStack())
                 .timeout(getTimeout())
-                .putAllEnvironmentVariables(Optional.ofNullable(getEnvironmentVariables()).orElse(Collections.emptyMap()))
+                .putAllEnvironmentVariables(Optional.ofNullable(getEnvironmentVariables())
+                        .orElse(Collections.emptyMap()))
                 .services(getServices())
                 .build();
         System.out.println(applicationManifest);

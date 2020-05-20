@@ -3,11 +3,13 @@ package cloud.foundry.cli.operations;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
-import cloud.foundry.cli.crosscutting.beans.ApplicationManifestBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
-import org.cloudfoundry.client.v3.applications.Application;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
-import org.cloudfoundry.operations.applications.*;
+import org.cloudfoundry.operations.applications.ApplicationManifest;
+import org.cloudfoundry.operations.applications.ApplicationSummary;
+import org.cloudfoundry.operations.applications.GetApplicationManifestRequest;
+import org.cloudfoundry.operations.applications.GetApplicationRequest;
+import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
 
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -80,9 +82,9 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
     }
 
     private void doCreate(String name, ApplicationBean bean, boolean noStart) throws CreationException {
-        try{
+        try {
             pushAppManifest(name, bean, noStart);
-        }catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             throw new CreationException("FAILED: " + e.getMessage());
         }
@@ -112,7 +114,7 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
             .name(name)
             .path(Paths.get(bean.getPath()));
 
-        if(bean.getManifest() != null) {
+        if (bean.getManifest() != null) {
             builder.from(bean.getManifest().asApplicationManifest());
         }
 
@@ -138,7 +140,7 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
      */
     private void checkAppNotExists(String name) throws CreationException {
         // if an app does not exist it will throw an IllegalArgumentException so return without fail
-        try{
+        try {
             checkAppExists(name);
         } catch ( IllegalArgumentException e) {
             return;
@@ -152,7 +154,7 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
      * assertion method
      */
     private void checkNotEmpty(String value) {
-        if(value.isEmpty()){
+        if (value.isEmpty()) {
             throw new IllegalArgumentException("empty string");
         }
     }

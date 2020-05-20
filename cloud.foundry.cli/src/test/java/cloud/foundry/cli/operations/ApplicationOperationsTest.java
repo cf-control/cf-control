@@ -151,7 +151,8 @@ public class ApplicationOperationsTest {
         ApplicationBean applicationsBean = new ApplicationBean(mockAppManifest);
 
         //then
-        assertThrows( CreationException.class, () -> applicationOperations.create("notyetrandomname", applicationsBean, false));
+        assertThrows( CreationException.class,
+                () -> applicationOperations.create("notyetrandomname", applicationsBean, false));
     }
 
     @Test
@@ -159,27 +160,36 @@ public class ApplicationOperationsTest {
         //given
         ApplicationManifest mockAppManifest = createMockApplicationManifest();
         ApplicationSummary mockAppSummary = createMockApplicationSummary(mockAppManifest);
-        ApplicationOperations applicationOperations = new ApplicationOperations(createMockCloudFoundryOperations(Arrays.asList(mockAppSummary), Arrays.asList(mockAppManifest)));
+        ApplicationOperations applicationOperations = new ApplicationOperations(createMockCloudFoundryOperations(
+                Arrays.asList(mockAppSummary),
+                Arrays.asList(mockAppManifest)));
 
         //then
-        assertThrows(NullPointerException.class, () -> applicationOperations.create(null, new ApplicationBean(), false));
+        assertThrows(NullPointerException.class,
+                () -> applicationOperations.create(null, new ApplicationBean(), false));
     }
+
     @Test
     public void testCreateOnEmptyNameThrowsIllegalArgumentException() {
         //given
         ApplicationManifest mockAppManifest = createMockApplicationManifest();
         ApplicationSummary mockAppSummary = createMockApplicationSummary(mockAppManifest);
-        ApplicationOperations applicationOperations = new ApplicationOperations(createMockCloudFoundryOperations(Arrays.asList(mockAppSummary), Arrays.asList(mockAppManifest)));
+        ApplicationOperations applicationOperations = new ApplicationOperations(createMockCloudFoundryOperations(
+                Arrays.asList(mockAppSummary),
+                Arrays.asList(mockAppManifest)));
 
         //then
-        assertThrows(IllegalArgumentException.class, () -> applicationOperations.create("", new ApplicationBean(), false));
+        assertThrows(IllegalArgumentException.class,
+                () -> applicationOperations.create("", new ApplicationBean(), false));
     }
+
     @Test
     public void testCreateOnNullBeanThrowsNullPointerException() {
         //given
         ApplicationManifest mockAppManifest = createMockApplicationManifest();
         ApplicationSummary mockAppSummary = createMockApplicationSummary(mockAppManifest);
-        ApplicationOperations applicationOperations = new ApplicationOperations(createMockCloudFoundryOperations(Arrays.asList(mockAppSummary),
+        ApplicationOperations applicationOperations = new ApplicationOperations(createMockCloudFoundryOperations(
+                Arrays.asList(mockAppSummary),
                 Arrays.asList(mockAppManifest)));
 
         //then
