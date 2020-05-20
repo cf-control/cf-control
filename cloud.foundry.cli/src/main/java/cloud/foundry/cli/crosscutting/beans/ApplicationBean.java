@@ -2,8 +2,6 @@ package cloud.foundry.cli.crosscutting.beans;
 
 import org.cloudfoundry.operations.applications.ApplicationManifest;
 
-import java.util.List;
-
 /**
  * Bean holding all data that is related to an application.
  */
@@ -30,15 +28,8 @@ public class ApplicationBean implements Bean {
         this.path = path;
     }
 
-
     public ApplicationBean(ApplicationManifest manifest) {
-        // prevent null pointer errors
-        if (manifest.getPath() != null) {
-            this.path = manifest.getPath().toString();
-        } else {
-            this.path = null;
-        }
-
+        this.path = manifest.getPath() == null ? null : manifest.getPath().toString();
         this.manifest = new ApplicationManifestBean(manifest);
     }
 
