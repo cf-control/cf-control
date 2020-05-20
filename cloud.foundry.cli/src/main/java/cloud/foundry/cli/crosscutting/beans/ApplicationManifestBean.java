@@ -5,8 +5,9 @@ import org.cloudfoundry.operations.applications.ApplicationManifest;
 import org.cloudfoundry.operations.applications.Docker;
 import org.cloudfoundry.operations.applications.Route;
 
-import java.util.List;
-import java.util.Map;
+import java.nio.file.Paths;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Bean holding all data of the manifest file from an application.
@@ -18,19 +19,16 @@ public class ApplicationManifestBean implements Bean {
     private String command;
     private Integer disk;
     private Docker docker;
-    private List<String> domains;
     private Map<String, Object> environmentVariables;
     private String healthCheckHttpEndpoint;
     private ApplicationHealthCheck healthCheckType;
-    private List<String> hosts;
     private Integer instances;
     private Integer memory;
     private String name;
-    private Boolean noHostname;
     private Boolean noRoute;
     private Boolean randomRoute;
     private String routePath;
-    private List<Route> routes;
+    private List<String> routes;
     private List<String> services;
     private String stack;
     private Integer timeout;
@@ -52,7 +50,7 @@ public class ApplicationManifestBean implements Bean {
         this.noRoute = manifest.getNoRoute();
         this.randomRoute = manifest.getRandomRoute();
         this.routePath = manifest.getRoutePath();
-        this.routes = manifest.getRoutes();
+        this.routes = manifest.getRoutes() == null ? null : manifest.getRoutes().stream().map(Route::getRoute).collect(Collectors.toList());
         this.services = manifest.getServices();
         this.stack = manifest.getStack();
         this.timeout = manifest.getTimeout();
@@ -190,11 +188,11 @@ public class ApplicationManifestBean implements Bean {
         this.routePath = routePath;
     }
 
-    public List<Route> getRoutes() {
+    public List<String> getRoutes() {
         return routes;
     }
 
-    public void setRoutes(List<Route> routes) {
+    public void setRoutes(List<String> routes) {
         this.routes = routes;
     }
 
@@ -220,6 +218,40 @@ public class ApplicationManifestBean implements Bean {
 
     public void setTimeout(Integer timeout) {
         this.timeout = timeout;
+    }
+
+    public ApplicationManifest asApplicationManifest() {
+        ApplicationManifest applicationManifest = ApplicationManifest
+                .builder()
+                .name(getName())
+                .path(path != null ? Paths.get(path) : null)
+                .buildpack(getBuildpack())
+                .command(getCommand())
+                .disk(getDisk())
+                .docker(getDocker())
+                .healthCheckHttpEndpoint(getHealthCheckHttpEndpoint())
+                .healthCheckType(getHealthCheckType())
+                .instances(getInstances())
+                .memory(getMemory())
+                .noRoute(getNoRoute())
+                .routePath(getRoutePath())
+                .randomRoute(getRandomRoute())
+                .routes(asAppRoutes(getRoutes()))
+                .stack(getStack())
+                .timeout(getTimeout())
+                .putAllEnvironmentVariables(Optional.ofNullable(getEnvironmentVariables()).orElse(Collections.emptyMap()))
+                .services(getServices())
+                .build();
+        System.out.println(applicationManifest);
+        return applicationManifest;
+    }
+
+    private List<Route> asAppRoutes(List<String> routes) {
+        return routes == null ? null : routes
+                    .stream()
+                    .filter(Objects::nonNull)
+                    .map(route -> Route.builder().route(route).build())
+                    .collect(Collectors.toList());
     }
 
 }
