@@ -10,6 +10,9 @@ import org.cloudfoundry.reactor.uaa.ReactorUaaClient;
 
 public class CfOperationsCreator {
 
+    private static final String CF_CONTROL_USER = "CF_CONTROL_USER";
+    private static final String CF_CONTROL_PASSWORD = "CF_CONTROL_PASSWORD";
+
     public static DefaultCloudFoundryOperations createCfOperations(
             LoginCommandOptions commandOptions) {
 
@@ -64,10 +67,18 @@ public class CfOperationsCreator {
     private static PasswordGrantTokenProvider createTokenProvider(
             LoginCommandOptions commandOptions) {
 
+        String user = determineCredential(commandOptions.getUserName(), CF_CONTROL_USER);
+        String password = determineCredential(commandOptions.getPassword(), CF_CONTROL_PASSWORD);
+
         return PasswordGrantTokenProvider.builder()
-                .password(commandOptions.getPassword())
-                .username(commandOptions.getUserName())
+                .username(user)
+                .password(password)
                 .build();
+    }
+
+    private static String determineCredential(String credential, String environmentVariableName) {
+        String environmentVariableValue = System.getenv(environmentVariableName);
+        return credential != null ? credential : environmentVariableValue;
     }
 
     private static DefaultConnectionContext createConnectionContext(

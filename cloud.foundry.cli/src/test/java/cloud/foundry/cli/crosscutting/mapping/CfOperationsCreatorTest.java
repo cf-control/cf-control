@@ -18,6 +18,7 @@ public class CfOperationsCreatorTest {
 
     public static final String SOME_API = "api.local.pcf.dev.io";
     public static final String SOME_SPACE = "SOME_SPACE";
+
     public static final String SOME_ORGANIZATION = "SOME_ORGANIZATION";
     public static final String SOME_CREDENTIALS = "SOME_CREDENTIALS ;)";
     public static final String SOME_USER_NAME = "SOME_USER_NAME";
