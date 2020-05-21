@@ -1,0 +1,15 @@
+name: testApp
+path: src/test/resources/jar/helloworld.jar
+manifest:
+  memory : 2048
+  instances : 1
+  timeout : 80
+  stack : cflinuxfs3
+  randomRoute : true
+  healthCheckType : PORT
+  healthCheckHttpEndpoint: /health
+  buildpack : https://github.com/cloudfoundry/java-buildpack.git
+  environmentVariables :
+    TEST : somval
+    PROD : someotherval
+  disk : 2048
