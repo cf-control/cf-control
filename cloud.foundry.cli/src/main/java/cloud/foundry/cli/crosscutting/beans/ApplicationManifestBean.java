@@ -2,15 +2,10 @@ package cloud.foundry.cli.crosscutting.beans;
 
 import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
 import org.cloudfoundry.operations.applications.ApplicationManifest;
-import org.cloudfoundry.operations.applications.Docker;
 import org.cloudfoundry.operations.applications.Route;
 
-import java.nio.file.Paths;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -21,7 +16,6 @@ public class ApplicationManifestBean implements Bean {
     // list of all attributes the manifest supports, except for path
     private String buildpack;
     private String command;
-    private String path;
     private Integer disk;
     private String dockerImage;
     private String dockerUsername;
@@ -30,7 +24,6 @@ public class ApplicationManifestBean implements Bean {
     private ApplicationHealthCheck healthCheckType;
     private Integer instances;
     private Integer memory;
-    private String name;
     private Boolean noRoute;
     private Boolean randomRoute;
     private String routePath;
@@ -63,7 +56,6 @@ public class ApplicationManifestBean implements Bean {
         this.hosts = manifest.getHosts();
         this.instances = manifest.getInstances();
         this.memory = manifest.getMemory();
-        this.name = manifest.getName();
         this.noHostname = manifest.getNoHostname();
         this.noRoute = manifest.getNoRoute();
         this.randomRoute = manifest.getRandomRoute();
@@ -95,10 +87,6 @@ public class ApplicationManifestBean implements Bean {
 
     public void setCommand(String command) {
         this.command = command;
-    }
-
-    public void setPath(String path) {
-        this.path = path;
     }
 
     public Integer getDisk() {
@@ -181,14 +169,6 @@ public class ApplicationManifestBean implements Bean {
         this.memory = memory;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public Boolean getNoHostname() {
         return noHostname;
     }
@@ -252,45 +232,4 @@ public class ApplicationManifestBean implements Bean {
     public void setTimeout(Integer timeout) {
         this.timeout = timeout;
     }
-
-    public List<Route> getAppRoutes() {
-        return routes == null ? null : routes
-                .stream()
-                .filter(Objects::nonNull)
-                .map(route -> Route.builder().route(route).build())
-                .collect(Collectors.toList());
-    }
-
-    public ApplicationManifest asApplicationManifest() {
-        ApplicationManifest applicationManifest = ApplicationManifest
-                .builder()
-                .name(getName())
-                .path(path != null ? Paths.get(path) : null)
-                .buildpack(getBuildpack())
-                .command(getCommand())
-                .disk(getDisk())
-                .docker(Docker.builder()
-                        .image(getDockerImage())
-                        .username(getDockerUsername())
-                        .password(null /*TODO: fetch environment variable*/).build())
-                .healthCheckHttpEndpoint(getHealthCheckHttpEndpoint())
-                .healthCheckType(getHealthCheckType())
-                .instances(getInstances())
-                .memory(getMemory())
-                .noRoute(getNoRoute())
-                .routePath(getRoutePath())
-                .randomRoute(getRandomRoute())
-                .routes(getAppRoutes())
-                .stack(getStack())
-                .timeout(getTimeout())
-                .putAllEnvironmentVariables(Optional.ofNullable(getEnvironmentVariables())
-                        .orElse(Collections.emptyMap()))
-                .services(getServices())
-                .build();
-        System.out.println(applicationManifest);
-        return applicationManifest;
-    }
-
-
-
 }
