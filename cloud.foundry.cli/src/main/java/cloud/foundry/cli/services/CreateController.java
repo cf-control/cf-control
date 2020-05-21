@@ -1,11 +1,13 @@
 package cloud.foundry.cli.services;
 
+import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.beans.SpaceDevelopersBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
 import cloud.foundry.cli.crosscutting.util.FileUtils;
 import cloud.foundry.cli.crosscutting.util.YamlCreator;
+import cloud.foundry.cli.operations.ApplicationOperations;
 import cloud.foundry.cli.operations.ServicesOperations;
 import cloud.foundry.cli.operations.SpaceDevelopersOperations;
 
@@ -86,7 +88,6 @@ public class CreateController implements Runnable {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
 
             ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
-
             try {
                 servicesOperations.create(serviceBean);
             } catch (CreationException e) {
@@ -101,9 +102,37 @@ public class CreateController implements Runnable {
         @CommandLine.Mixin
         LoginCommandOptions loginOptions;
 
+        @CommandLine.Mixin
+        CreateControllerCommandOptions commandOptions;
+
         @Override
         public void run() {
-            // TODO:Implement functionality
+
+            String yamlFileContent;
+            try {
+                yamlFileContent = FileUtils.readLocalFile(commandOptions.getYamlFilePath());
+            } catch (IOException e) {
+                System.err.println(e.getMessage());
+                return;
+            }
+            Yaml yamlLoader = YamlCreator.createDefaultYamlProcessor();
+            ApplicationBean applicationBean = yamlLoader.loadAs(yamlFileContent, ApplicationBean.class);
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+
+            ApplicationOperations applicationOperations = new ApplicationOperations(cfOperations);
+            try {
+                applicationOperations.create(applicationBean, true);
+                System.out.println("App created");
+            } catch (CreationException e) {
+                System.out.println("FAILED:" + e.getMessage());
+                e.printStackTrace();
+            }
+
         }
+    }
+
+    public static void main(String... args) {
+        int exitCode = new CommandLine(new CreateApplicationCommand()).execute(args);
+        System.exit(exitCode);
     }
 }
