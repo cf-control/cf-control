@@ -91,7 +91,6 @@ public class ApplicationOperationsTest {
                 "    - testhost17\n" +
                 "    instances: 42\n" +
                 "    memory: 2147483647\n" +
-                "    name: notyetrandomname\n" +
                 "    noHostname: false\n" +
                 "    noRoute: false\n" +
                 "    randomRoute: true\n" +
@@ -101,6 +100,7 @@ public class ApplicationOperationsTest {
                 "    - serviceomega\n" +
                 "    stack: nope\n" +
                 "    timeout: 987654321\n" +
+                "  name: notyetrandomname\n" +
                 "  path: " + Paths.get("/test/uri").toString() + "\n"
         ));
     }
@@ -126,7 +126,7 @@ public class ApplicationOperationsTest {
         ApplicationBean applicationsBean = new ApplicationBean(appManifest);
 
         //when
-        applicationOperations.create("notyetrandomname", applicationsBean, false);
+        applicationOperations.create(applicationsBean, false);
 
         //then
         verify(applicationsMock, times(1)).pushManifest(any(PushApplicationManifestRequest.class));
@@ -152,48 +152,50 @@ public class ApplicationOperationsTest {
 
         //then
         assertThrows( CreationException.class,
-                () -> applicationOperations.create("notyetrandomname", applicationsBean, false));
+                () -> applicationOperations.create(applicationsBean, false));
     }
 
     @Test
     public void testCreateOnNullNameThrowsNullPointerException() throws CreationException {
         //given
-        ApplicationManifest mockAppManifest = createMockApplicationManifest();
-        ApplicationSummary mockAppSummary = createMockApplicationSummary(mockAppManifest);
-        ApplicationOperations applicationOperations = new ApplicationOperations(createMockCloudFoundryOperations(
-                Arrays.asList(mockAppSummary),
-                Arrays.asList(mockAppManifest)));
+        ApplicationOperations applicationOperations = new ApplicationOperations(Mockito.mock(DefaultCloudFoundryOperations.class));
 
         //then
-        assertThrows(NullPointerException.class,
-                () -> applicationOperations.create(null, new ApplicationBean(), false));
+        assertThrows(NullPointerException.class, () -> applicationOperations.create(new ApplicationBean(), false));
+    }
+
+    @Test
+    public void testCreateOnNullPathAndDockerNullThrowsCreationException() throws CreationException {
+        //given
+        ApplicationOperations applicationOperations = new ApplicationOperations(Mockito.mock(DefaultCloudFoundryOperations.class));
+        ApplicationBean applicationBean = new ApplicationBean();
+        applicationBean.setName("app");
+
+        //then
+        assertThrows(IllegalArgumentException.class, () -> applicationOperations.create(applicationBean, false));
     }
 
     @Test
     public void testCreateOnEmptyNameThrowsIllegalArgumentException() {
         //given
-        ApplicationManifest mockAppManifest = createMockApplicationManifest();
-        ApplicationSummary mockAppSummary = createMockApplicationSummary(mockAppManifest);
-        ApplicationOperations applicationOperations = new ApplicationOperations(createMockCloudFoundryOperations(
-                Arrays.asList(mockAppSummary),
-                Arrays.asList(mockAppManifest)));
+        ApplicationOperations applicationOperations = new ApplicationOperations(Mockito.mock(DefaultCloudFoundryOperations.class));
+
+        ApplicationBean applicationBean = new ApplicationBean();
+        applicationBean.setName("");
+        applicationBean.setPath("some/path");
 
         //then
         assertThrows(IllegalArgumentException.class,
-                () -> applicationOperations.create("", new ApplicationBean(), false));
+                () -> applicationOperations.create(applicationBean, false));
     }
 
     @Test
     public void testCreateOnNullBeanThrowsNullPointerException() {
         //given
-        ApplicationManifest mockAppManifest = createMockApplicationManifest();
-        ApplicationSummary mockAppSummary = createMockApplicationSummary(mockAppManifest);
-        ApplicationOperations applicationOperations = new ApplicationOperations(createMockCloudFoundryOperations(
-                Arrays.asList(mockAppSummary),
-                Arrays.asList(mockAppManifest)));
+        ApplicationOperations applicationOperations = new ApplicationOperations(Mockito.mock(DefaultCloudFoundryOperations.class));
 
         //then
-        assertThrows(NullPointerException.class, () -> applicationOperations.create("testApp", null , false));
+        assertThrows(NullPointerException.class, () -> applicationOperations.create(null, false));
     }
 
 
