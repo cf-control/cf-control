@@ -1,5 +1,5 @@
 name: testApp
-path: src/test/resources/jar/helloworld.jar
+path: path/to/specify
 manifest:
   memory : 2048
   instances : 1
