@@ -158,7 +158,8 @@ public class ApplicationOperationsTest {
     @Test
     public void testCreateOnNullNameThrowsNullPointerException() throws CreationException {
         //given
-        ApplicationOperations applicationOperations = new ApplicationOperations(Mockito.mock(DefaultCloudFoundryOperations.class));
+        ApplicationOperations applicationOperations = new ApplicationOperations(
+                Mockito.mock(DefaultCloudFoundryOperations.class));
 
         //then
         assertThrows(NullPointerException.class, () -> applicationOperations.create(new ApplicationBean(), false));
@@ -167,7 +168,8 @@ public class ApplicationOperationsTest {
     @Test
     public void testCreateOnNullPathAndDockerNullThrowsCreationException() throws CreationException {
         //given
-        ApplicationOperations applicationOperations = new ApplicationOperations(Mockito.mock(DefaultCloudFoundryOperations.class));
+        ApplicationOperations applicationOperations = new ApplicationOperations(
+                Mockito.mock(DefaultCloudFoundryOperations.class));
         ApplicationBean applicationBean = new ApplicationBean();
         applicationBean.setName("app");
 
@@ -178,7 +180,8 @@ public class ApplicationOperationsTest {
     @Test
     public void testCreateOnEmptyNameThrowsIllegalArgumentException() {
         //given
-        ApplicationOperations applicationOperations = new ApplicationOperations(Mockito.mock(DefaultCloudFoundryOperations.class));
+        ApplicationOperations applicationOperations = new ApplicationOperations(
+                Mockito.mock(DefaultCloudFoundryOperations.class));
 
         ApplicationBean applicationBean = new ApplicationBean();
         applicationBean.setName("");
@@ -192,7 +195,8 @@ public class ApplicationOperationsTest {
     @Test
     public void testCreateOnNullBeanThrowsNullPointerException() {
         //given
-        ApplicationOperations applicationOperations = new ApplicationOperations(Mockito.mock(DefaultCloudFoundryOperations.class));
+        ApplicationOperations applicationOperations = new ApplicationOperations(
+                Mockito.mock(DefaultCloudFoundryOperations.class));
 
         //then
         assertThrows(NullPointerException.class, () -> applicationOperations.create(null, false));

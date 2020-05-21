@@ -5,10 +5,21 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
-import org.cloudfoundry.operations.applications.*;
+import org.cloudfoundry.operations.applications.ApplicationManifest;
+import org.cloudfoundry.operations.applications.ApplicationSummary;
+import org.cloudfoundry.operations.applications.Docker;
+import org.cloudfoundry.operations.applications.GetApplicationManifestRequest;
+import org.cloudfoundry.operations.applications.GetApplicationRequest;
+import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
+import org.cloudfoundry.operations.applications.Route;
 
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 
@@ -101,7 +112,7 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
                 .block();
 
         //TODO: temporary error printing, will be replaced at a future date
-        errors.forEach(throwable ->{
+        errors.forEach(throwable -> {
             System.out.println(throwable.getMessage());
         } );
     }
@@ -191,7 +202,9 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
     private void checkIfPathOrDockerGiven(ApplicationBean bean) {
         if (bean.getPath() == null && bean.getManifest() == null) {
             throw new IllegalArgumentException("app path or docker image must be given");
-        }else if(bean.getPath() == null && bean.getManifest() != null && bean.getManifest().getDockerImage() == null){
+        } else if (bean.getPath() == null
+                && bean.getManifest() != null
+                && bean.getManifest().getDockerImage() == null) {
             throw new IllegalArgumentException("app path or docker image must be given");
         }
     }
