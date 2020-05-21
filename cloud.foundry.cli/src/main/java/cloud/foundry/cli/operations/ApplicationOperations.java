@@ -5,16 +5,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
-import org.cloudfoundry.operations.applications.ApplicationManifest;
-import org.cloudfoundry.operations.applications.ApplicationSummary;
-import org.cloudfoundry.operations.applications.GetApplicationManifestRequest;
-import org.cloudfoundry.operations.applications.GetApplicationRequest;
-import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
+import org.cloudfoundry.operations.applications.*;
 
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 
 /**
@@ -66,59 +61,90 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
      *
      *  Pushes the app to the cloud foundry instance specified within the cloud foundry operations instance
      *
-     * @param name  name of the app
      * @param bean  application bean
      * @param noStart   if the app should not start after being created
      * @throws CreationException
      */
-    public void create(String name, ApplicationBean bean, boolean noStart) throws CreationException {
-        checkNotNull(name);
+    public void create(ApplicationBean bean, boolean noStart) throws CreationException {
+        checkNotNull(bean.getName());
+        checkNotEmpty(bean.getName());
         checkNotNull(bean);
-        checkNotEmpty(name);
+        //otherwise IllegalArgumentException is thrown within reactor stream which is difficult to handle
+        //TODO directly handle error in stream if there is more knowledge about how to do that
+        checkIfPathOrDockerGiven(bean);
         // this check is important, otherwise an app could get overwritten
-        checkAppNotExists(name);
+        checkAppNotExists(bean.getName());
 
-        doCreate(name, bean, noStart);
+        doCreate(bean, noStart);
     }
 
-    private void doCreate(String name, ApplicationBean bean, boolean noStart) throws CreationException {
+    private void doCreate(ApplicationBean bean, boolean noStart) throws CreationException {
         try {
-            pushAppManifest(name, bean, noStart);
+            pushAppManifest(bean, noStart);
         } catch (Exception e) {
             e.printStackTrace();
             throw new CreationException("FAILED: " + e.getMessage());
         }
     }
 
-    private void pushAppManifest(String name, ApplicationBean bean, boolean noStart) {
+    private void pushAppManifest(ApplicationBean bean, boolean noStart) {
         List<Throwable> errors = new LinkedList<>();
 
         this.cloudFoundryOperations
                 .applications()
                 .pushManifest(PushApplicationManifestRequest
                         .builder()
-                        .manifest(buildApplicationManifest(name, bean))
+                        .manifest(buildApplicationManifest(bean))
                         .noStart(noStart)
                         .build())
                 .onErrorContinue((throwable, o) -> errors.add(throwable))
                 .block();
 
         //TODO: temporary error printing, will be replaced at a future date
-        errors.forEach(throwable -> System.out.println(throwable.getMessage()));
+        errors.forEach(throwable ->{
+            System.out.println(throwable.getMessage());
+        } );
     }
 
-    private ApplicationManifest buildApplicationManifest(String name, ApplicationBean bean) {
+    private ApplicationManifest buildApplicationManifest(ApplicationBean bean) {
         ApplicationManifest.Builder builder = ApplicationManifest.builder();
 
         builder
-            .name(name)
-            .path(Paths.get(bean.getPath()));
+            .name(bean.getName())
+            .path(bean.getPath() == null ? null : Paths.get(bean.getPath()));
 
         if (bean.getManifest() != null) {
-            builder.from(bean.getManifest().asApplicationManifest());
+            builder.buildpack(bean.getManifest().getBuildpack())
+                .command(bean.getManifest().getCommand())
+                .disk(bean.getManifest().getDisk())
+                .docker(Docker.builder()
+                        .image(bean.getManifest().getDockerImage())
+                        .username(bean.getManifest().getDockerUsername())
+                        .password(null /*TODO: fetch environment variable*/).build())
+                .healthCheckHttpEndpoint(bean.getManifest().getHealthCheckHttpEndpoint())
+                .healthCheckType(bean.getManifest().getHealthCheckType())
+                .instances(bean.getManifest().getInstances())
+                .memory(bean.getManifest().getMemory())
+                .noRoute(bean.getManifest().getNoRoute())
+                .routePath(bean.getManifest().getRoutePath())
+                .randomRoute(bean.getManifest().getRandomRoute())
+                .routes(getAppRoutes(bean.getManifest().getRoutes()))
+                .stack(bean.getManifest().getStack())
+                .timeout(bean.getManifest().getTimeout())
+                .putAllEnvironmentVariables(Optional.ofNullable(bean.getManifest().getEnvironmentVariables())
+                        .orElse(Collections.emptyMap()))
+                .services(bean.getManifest().getServices());
         }
 
         return builder.build();
+    }
+
+    public List<Route> getAppRoutes(List<String> routes) {
+        return routes == null ? null : routes
+                .stream()
+                .filter(Objects::nonNull)
+                .map(route -> Route.builder().route(route).build())
+                .collect(Collectors.toList());
     }
 
     /**
@@ -156,6 +182,17 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
     private void checkNotEmpty(String value) {
         if (value.isEmpty()) {
             throw new IllegalArgumentException("empty string");
+        }
+    }
+
+    /**
+     * assertion method
+     */
+    private void checkIfPathOrDockerGiven(ApplicationBean bean) {
+        if (bean.getPath() == null && bean.getManifest() == null) {
+            throw new IllegalArgumentException("app path or docker image must be given");
+        }else if(bean.getPath() == null && bean.getManifest() != null && bean.getManifest().getDockerImage() == null){
+            throw new IllegalArgumentException("app path or docker image must be given");
         }
     }
 
