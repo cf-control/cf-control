@@ -1,4 +1,4 @@
-name: testApp
+name: testApp2
 path: path/to/specify
 manifest:
   memory : 2048
@@ -9,6 +9,8 @@ manifest:
   healthCheckType : PORT
   healthCheckHttpEndpoint: /health
   buildpack : https://github.com/cloudfoundry/java-buildpack.git
+  services:
+    - elephantsql
   environmentVariables :
     TEST : somval
     PROD : someotherval
