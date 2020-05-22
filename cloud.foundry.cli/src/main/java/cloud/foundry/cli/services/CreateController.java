@@ -130,8 +130,4 @@ public class CreateController implements Runnable {
         }
     }
 
-    public static void main(String... args) {
-        int exitCode = new CommandLine(new CreateController()).execute(args);
-        System.exit(exitCode);
-    }
 }
