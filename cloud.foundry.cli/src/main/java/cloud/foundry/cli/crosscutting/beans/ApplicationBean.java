@@ -7,7 +7,6 @@ import org.cloudfoundry.operations.applications.ApplicationManifest;
  */
 public class ApplicationBean implements Bean {
 
-    private String id;
     private String name;
     private ApplicationManifestBean manifest;
     private String path;
