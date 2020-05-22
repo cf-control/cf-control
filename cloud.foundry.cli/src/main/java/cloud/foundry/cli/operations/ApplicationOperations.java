@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
+import org.cloudfoundry.client.v2.ClientV2Exception;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.applications.ApplicationManifest;
 import org.cloudfoundry.operations.applications.ApplicationSummary;
@@ -72,33 +73,41 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
      *
      *  Pushes the app to the cloud foundry instance specified within the cloud foundry operations instance
      *
-     * @param bean  application bean
-     * @param noStart   if the app should not start after being created
-     * @throws CreationException
+     * @param bean  application bean that holds the configuration settings to deploy the app to the cloud foundry instance
+     * @param shouldStart   if the app should not start after being created
+     * @throws NullPointerException when bean or app name is null
+     * @throws IllegalArgumentException when neither a path nor a docker image were specified, or app name empty
+     * @throws CreationException when app already exists or any fatal error occurs during creation of the app
      */
-    public void create(ApplicationBean bean, boolean noStart) throws CreationException {
+    public void create(ApplicationBean bean, boolean shouldStart) throws CreationException {
         checkNotNull(bean.getName());
         checkNotEmpty(bean.getName());
         checkNotNull(bean);
-        //otherwise IllegalArgumentException is thrown within reactor stream which is difficult to handle
-        //TODO directly handle error in stream if there is more knowledge about how to do that
-        checkIfPathOrDockerGiven(bean);
-        // this check is important, otherwise an app could get overwritten
-        checkAppNotExists(bean.getName());
 
-        doCreate(bean, noStart);
+        // useful, otherwise 3rd party library might behave in a weird way
+        // path null + docker image null => NullPointer Exception that is not intuitive
+        // and when setting docker image to empty string to prevent this can lead to clash when path and buildpack was set
+        checkIfPathOrDockerGiven(bean);
+
+        // this check is important, otherwise an app could get overwritten
+        if(appExists(bean.getName())){
+            throw new CreationException("app exists already");
+        }
+
+
+        doCreate(bean, shouldStart);
     }
 
-    private void doCreate(ApplicationBean bean, boolean noStart) throws CreationException {
+    private void doCreate(ApplicationBean bean, boolean shouldStart) throws CreationException {
         try {
-            pushAppManifest(bean, noStart);
+            pushAppManifest(bean, shouldStart);
         } catch (Exception e) {
             e.printStackTrace();
             throw new CreationException("FAILED: " + e.getMessage());
         }
     }
 
-    private void pushAppManifest(ApplicationBean bean, boolean noStart) {
+    private void pushAppManifest(ApplicationBean bean, boolean shouldStart) {
         List<Throwable> errors = new LinkedList<>();
 
         this.cloudFoundryOperations
@@ -106,7 +115,7 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
                 .pushManifest(PushApplicationManifestRequest
                         .builder()
                         .manifest(buildApplicationManifest(bean))
-                        .noStart(noStart)
+                        .noStart(!shouldStart)
                         .build())
                 .onErrorContinue((throwable, o) -> errors.add(throwable))
                 .block();
@@ -161,30 +170,20 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
     /**
      * assertion method
      */
-    private void checkAppExists(String name) {
+    private boolean appExists(String name) {
         // if app does not exists an IllegalArgumentException will be thrown
-        this.cloudFoundryOperations
-                .applications()
-                .get(GetApplicationRequest
-                        .builder()
-                        .name(name)
-                        .build())
-                .block();
-    }
-
-    /**
-     * assertion method
-     */
-    private void checkAppNotExists(String name) throws CreationException {
-        // if an app does not exist it will throw an IllegalArgumentException so return without fail
         try {
-            checkAppExists(name);
-        } catch ( IllegalArgumentException e) {
-            return;
+            this.cloudFoundryOperations
+                    .applications()
+                    .get(GetApplicationRequest
+                            .builder()
+                            .name(name)
+                            .build())
+                    .block();
+        } catch (IllegalArgumentException e) {
+            return false;
         }
-
-        // if an app does exist it doesn't throw an error, so throw an error
-        throw new CreationException("FAILED: app exists already");
+        return true;
     }
 
     /**
@@ -192,7 +191,7 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
      */
     private void checkNotEmpty(String value) {
         if (value.isEmpty()) {
-            throw new IllegalArgumentException("empty string");
+            throw new IllegalArgumentException("empty name");
         }
     }
 
@@ -200,12 +199,13 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
      * assertion method
      */
     private void checkIfPathOrDockerGiven(ApplicationBean bean) {
+        String message = "app path or docker image must be given";
         if (bean.getPath() == null && bean.getManifest() == null) {
-            throw new IllegalArgumentException("app path or docker image must be given");
+            throw new IllegalArgumentException(message);
         } else if (bean.getPath() == null
                 && bean.getManifest() != null
                 && bean.getManifest().getDockerImage() == null) {
-            throw new IllegalArgumentException("app path or docker image must be given");
+            throw new IllegalArgumentException(message);
         }
     }
 
