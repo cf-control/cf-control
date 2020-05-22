@@ -102,8 +102,7 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
         try {
             pushAppManifest(bean, shouldStart);
         } catch (Exception e) {
-            e.printStackTrace();
-            throw new CreationException("FAILED: " + e.getMessage());
+            throw new CreationException(e.getMessage());
         }
     }
 
@@ -159,7 +158,7 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
         return builder.build();
     }
 
-    public List<Route> getAppRoutes(List<String> routes) {
+    private List<Route> getAppRoutes(List<String> routes) {
         return routes == null ? null : routes
                 .stream()
                 .filter(Objects::nonNull)
