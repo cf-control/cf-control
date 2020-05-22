@@ -28,12 +28,13 @@ import reactor.core.publisher.Mono;
 
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
+/**
+ * Test for {@link ApplicationOperations}
+ */
 public class ApplicationOperationsTest {
 
     @Test
@@ -120,7 +121,7 @@ public class ApplicationOperationsTest {
                 .thenThrow(new IllegalArgumentException());
         when(applicationsMock.pushManifest(any(PushApplicationManifestRequest.class)))
                 .thenReturn(monoMock);
-        when(monoMock.onErrorContinue(any())).thenReturn(monoMock);
+        when(monoMock.onErrorContinue((Class<Throwable>) any(), any())).thenReturn(monoMock);
         when(monoMock.block()).thenReturn(null);
 
         ApplicationBean applicationsBean = new ApplicationBean(appManifest);
@@ -130,7 +131,7 @@ public class ApplicationOperationsTest {
 
         //then
         verify(applicationsMock, times(1)).pushManifest(any(PushApplicationManifestRequest.class));
-        verify(monoMock, times(1)).onErrorContinue(any());
+        verify(monoMock, times(1)).onErrorContinue((Class<Throwable>) any(), any());
         verify(monoMock, times(1)).block();
     }
 
@@ -166,7 +167,7 @@ public class ApplicationOperationsTest {
     }
 
     @Test
-    public void testCreateOnNullPathAndDockerNullThrowsCreationException() throws CreationException {
+    public void testCreateOnNullPathAndDockerNullThrowsIllegalArgumentException() throws CreationException {
         //given
         ApplicationOperations applicationOperations = new ApplicationOperations(
                 Mockito.mock(DefaultCloudFoundryOperations.class));
