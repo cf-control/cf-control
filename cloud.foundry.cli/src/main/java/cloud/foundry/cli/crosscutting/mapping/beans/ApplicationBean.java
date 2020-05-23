@@ -42,4 +42,8 @@ public class ApplicationBean implements Bean {
     public ApplicationBean() {
     }
 
+    @Override
+    public void visit(BeanVisitor visitor) {
+        visitor.visit(this);
+    }
 }
