@@ -1,6 +1,7 @@
 package cloud.foundry.cli.operations;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -135,6 +136,32 @@ public class ApplicationOperationsTest {
         verify(applicationsMock, times(1)).pushManifest(any(PushApplicationManifestRequest.class));
         verify(monoMock, times(2)).onErrorContinue( any(Predicate.class), any());
         verify(monoMock, times(1)).block();
+    }
+
+    @Test
+    public void testCreateApplicationsOnMissingDockerPasswordThrowsCreationException() {
+        //given
+        DefaultCloudFoundryOperations cfoMock = Mockito.mock(DefaultCloudFoundryOperations.class);
+        Applications applicationsMock = Mockito.mock(Applications.class);
+
+        ApplicationOperations applicationOperations = new ApplicationOperations(cfoMock);
+
+        when(cfoMock.applications()).thenReturn(applicationsMock);
+        when(cfoMock.applications().get(any(GetApplicationRequest.class)))
+                .thenThrow(new IllegalArgumentException());
+        when(applicationsMock.delete(Mockito.mock(DeleteApplicationRequest.class))).then(Mockito.mock(Answer.class));
+
+        ApplicationBean applicationsBean = new ApplicationBean();
+        ApplicationManifestBean applicationManifestBean = new ApplicationManifestBean();
+        applicationManifestBean.setDockerImage("some/image");
+        applicationManifestBean.setDockerUsername("username");
+
+        applicationsBean.setName("someapp");
+        applicationsBean.setManifest(applicationManifestBean);
+
+        //when
+        NullPointerException exception = assertThrows(NullPointerException.class, () -> applicationOperations.create(applicationsBean, false));
+        assertThat(exception.getMessage(), containsString("Docker password not set"));
     }
 
     @Test

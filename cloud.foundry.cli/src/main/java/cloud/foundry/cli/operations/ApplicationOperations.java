@@ -69,8 +69,11 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
      *              to the cloud foundry instance
      * @param shouldStart   if the app should start after being created
      * @throws NullPointerException when bean or app name is null
+     * or docker password was not set in environment variables when creating app via dockerImage and docker credentials
      * @throws IllegalArgumentException when neither a path nor a docker image were specified, or app name empty
-     * @throws CreationException when app already exists or any fatal error occurs during creation of the app
+     * @throws CreationException when app already exists
+     * or any fatal error occurs during creation of the app
+     * @throws SecurityException when there is no permission to access environment variable CF_DOCKER_PASSWORD
      */
     public void create(ApplicationBean bean, boolean shouldStart) throws CreationException {
         checkNotNull(bean.getName());
@@ -180,12 +183,16 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
     }
 
     private String getDockerPassword(ApplicationBean bean) {
-       if (bean.getManifest().getDockerImage() == null  || bean.getManifest().getDockerUsername() == null) {
-           return null;
-       }
+        if (bean.getManifest().getDockerImage() == null  || bean.getManifest().getDockerUsername() == null) {
+            return null;
+        }
 
-       //TODO: Maybe outsource retrieving env variables to a dedicated class in a future feature.
-       return System.getenv("CF_DOCKER_PASSWORD");
+        //TODO: Maybe outsource retrieving env variables to a dedicated class in a future feature.
+        String password = System.getenv("CF_DOCKER_PASSWORD");
+        if(password == null) {
+           throw new NullPointerException("Docker password not set in Environment Variable: CG_DOCKER_PASSWORD");
+        }
+        return password;
     }
 
     private List<Route> getAppRoutes(List<String> routes) {
