@@ -52,14 +52,15 @@ public class CreateController implements Runnable {
             }
             Yaml yamlLoader = YamlCreator.createDefaultYamlProcessor();
             SpaceDevelopersBean spaceDevelopersBean = yamlLoader.loadAs(yamlFileContent, SpaceDevelopersBean.class);
-            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
-            SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
 
             try {
+                DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+                SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
+
                 for (String username : spaceDevelopersBean.getSpaceDevelopers()) {
                     spaceDevelopersOperations.assignSpaceDeveloper(username);
                 }
-            } catch (CreationException e) {
+            } catch (Exception e) {
                 System.out.println(e.getMessage());
             }
         }
@@ -84,13 +85,14 @@ public class CreateController implements Runnable {
                 return;
             }
             Yaml yamlLoader = YamlCreator.createDefaultYamlProcessor();
-            ServiceBean serviceBean = yamlLoader.loadAs(yamlFileContent, ServiceBean.class);
-            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
 
-            ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
             try {
+                ServiceBean serviceBean = yamlLoader.loadAs(yamlFileContent, ServiceBean.class);
+                DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+
+                ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
                 servicesOperations.create(serviceBean);
-            } catch (CreationException e) {
+            } catch (Exception e) {
                 System.out.println(e.getMessage());
             }
         }
