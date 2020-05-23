@@ -18,6 +18,7 @@ public class CfOperationsCreator {
     private static final String CF_CONTROL_PASSWORD = "CF_CONTROL_PASSWORD";
 
     private static final String SECURITY_EXCEPTION = "Security policy doesn't allow access to system environment";
+    private static final String CREDENTIAL_INFORMATION_HAS_NOT_BEEN_DEFINED = "Credential information has not been defined";
 
     /**
      * Creates the cfOperations object, which is needed by our operations classes in the package.
@@ -108,7 +109,7 @@ public class CfOperationsCreator {
         }
 
         if (credential == null && environmentVariableValue == null) {
-            throw new CredentialException("BLA");
+            throw new CredentialException(CREDENTIAL_INFORMATION_HAS_NOT_BEEN_DEFINED);
         }
 
         return credential != null ? credential : environmentVariableValue;
