@@ -180,7 +180,7 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
     }
 
     private String getDockerPassword(ApplicationBean bean) {
-       if (bean.getManifest().getDockerImage() == null  && bean.getManifest().getDockerUsername() == null) {
+       if (bean.getManifest().getDockerImage() == null  || bean.getManifest().getDockerUsername() == null) {
            return null;
        }
 
