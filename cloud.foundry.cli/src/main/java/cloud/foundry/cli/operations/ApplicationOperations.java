@@ -159,7 +159,8 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
                 .docker(Docker.builder()
                         .image(bean.getManifest().getDockerImage())
                         .username(bean.getManifest().getDockerUsername())
-                        .password(null /*TODO: fetch environment variable*/).build())
+                        .password(getDockerPassword(bean))
+                        .build())
                 .healthCheckHttpEndpoint(bean.getManifest().getHealthCheckHttpEndpoint())
                 .healthCheckType(bean.getManifest().getHealthCheckType())
                 .instances(bean.getManifest().getInstances())
@@ -176,6 +177,15 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
         }
 
         return builder.build();
+    }
+
+    private String getDockerPassword(ApplicationBean bean) {
+       if (bean.getManifest().getDockerImage() == null  && bean.getManifest().getDockerUsername() == null) {
+           return null;
+       }
+
+       //TODO: Maybe outsource retrieving env variables to a dedicated class in a future feature.
+       return System.getenv("CF_DOCKER_PASSWORD");
     }
 
     private List<Route> getAppRoutes(List<String> routes) {
