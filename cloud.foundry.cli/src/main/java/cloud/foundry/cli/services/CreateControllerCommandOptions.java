@@ -7,7 +7,7 @@ import picocli.CommandLine;
  */
 public class CreateControllerCommandOptions {
 
-    @CommandLine.Option(names = {"-y", "--yaml"}, required = true)
+    @CommandLine.Option(names = {"-y", "--yaml"}, required = true, description = "The path to the yaml file.")
     String yamlFilePath;
 
     public String getYamlFilePath() {
