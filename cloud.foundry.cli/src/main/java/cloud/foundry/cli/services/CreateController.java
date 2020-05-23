@@ -122,7 +122,7 @@ public class CreateController implements Runnable {
             ApplicationOperations applicationOperations = new ApplicationOperations(cfOperations);
             try {
                 applicationOperations.create(applicationBean, false);
-                System.out.println("Created " + applicationBean.getName());
+                System.out.println("App created: " + applicationBean.getName());
             } catch (CreationException e) {
                 System.out.println("FAILED:" + e.getMessage());
             }
