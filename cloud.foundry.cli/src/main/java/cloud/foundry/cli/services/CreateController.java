@@ -118,15 +118,18 @@ public class CreateController implements Runnable {
                 return;
             }
             Yaml yamlLoader = YamlCreator.createDefaultYamlProcessor();
-            ApplicationBean applicationBean = yamlLoader.loadAs(yamlFileContent, ApplicationBean.class);
-            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
-
-            ApplicationOperations applicationOperations = new ApplicationOperations(cfOperations);
             try {
+                ApplicationBean applicationBean = yamlLoader.loadAs(yamlFileContent, ApplicationBean.class);
+                DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+
+                ApplicationOperations applicationOperations = new ApplicationOperations(cfOperations);
+
                 applicationOperations.create(applicationBean, false);
                 System.out.println("App created: " + applicationBean.getName());
             } catch (CreationException e) {
                 System.out.println("FAILED:" + e.getMessage());
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
             }
 
         }
