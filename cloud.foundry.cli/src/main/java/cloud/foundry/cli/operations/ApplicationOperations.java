@@ -29,6 +29,11 @@ import java.util.stream.Collectors;
  */
 public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundryOperations> {
 
+    /**
+     * Name of the environment variable that hold the docker password.
+     */
+    private static final String DOCKER_PASSWORD_VAR_NAME = "CF_DOCKER_PASSWORD";
+
     public ApplicationOperations(DefaultCloudFoundryOperations cloudFoundryOperations) {
         super(cloudFoundryOperations);
     }
@@ -188,9 +193,10 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
         }
 
         //TODO: Maybe outsource retrieving env variables to a dedicated class in a future feature.
-        String password = System.getenv("CF_DOCKER_PASSWORD");
+        String password = System.getenv(DOCKER_PASSWORD_VAR_NAME);
         if (password == null) {
-           throw new NullPointerException("Docker password not set in Environment Variable: CG_DOCKER_PASSWORD");
+           throw new NullPointerException("Docker password not set in environment variable: "
+                   + DOCKER_PASSWORD_VAR_NAME);
         }
         return password;
     }
