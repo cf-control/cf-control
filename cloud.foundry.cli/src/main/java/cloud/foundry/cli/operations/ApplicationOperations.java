@@ -189,7 +189,7 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
 
         //TODO: Maybe outsource retrieving env variables to a dedicated class in a future feature.
         String password = System.getenv("CF_DOCKER_PASSWORD");
-        if(password == null) {
+        if (password == null) {
            throw new NullPointerException("Docker password not set in Environment Variable: CG_DOCKER_PASSWORD");
         }
         return password;

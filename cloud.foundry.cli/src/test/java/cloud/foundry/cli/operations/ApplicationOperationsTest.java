@@ -160,7 +160,8 @@ public class ApplicationOperationsTest {
         applicationsBean.setManifest(applicationManifestBean);
 
         //when
-        NullPointerException exception = assertThrows(NullPointerException.class, () -> applicationOperations.create(applicationsBean, false));
+        NullPointerException exception = assertThrows(NullPointerException.class,
+                () -> applicationOperations.create(applicationsBean, false));
         assertThat(exception.getMessage(), containsString("Docker password not set"));
     }
 
