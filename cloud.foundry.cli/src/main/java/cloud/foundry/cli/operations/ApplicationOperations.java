@@ -1,13 +1,14 @@
 package cloud.foundry.cli.operations;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
-import org.cloudfoundry.client.v2.ClientV2Exception;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.applications.ApplicationManifest;
 import org.cloudfoundry.operations.applications.ApplicationSummary;
+import org.cloudfoundry.operations.applications.DeleteApplicationRequest;
 import org.cloudfoundry.operations.applications.Docker;
 import org.cloudfoundry.operations.applications.GetApplicationManifestRequest;
 import org.cloudfoundry.operations.applications.GetApplicationRequest;
@@ -17,7 +18,6 @@ import org.cloudfoundry.operations.applications.Route;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -62,18 +62,11 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
     }
 
     /**
-     * TODO: Clarification with project owner necessary:
-     * TODO: how to proceed when push fails to apply some settings?
-     * TODO: remove on fail ?
-     * TODO: keep on fail and only print errors as warnings ?
-     *
-     * for now keep on fail with error messages
-     */
-    /**
      *
      *  Pushes the app to the cloud foundry instance specified within the cloud foundry operations instance
      *
-     * @param bean  application bean that holds the configuration settings to deploy the app to the cloud foundry instance
+     * @param bean  application bean that holds the configuration settings to deploy the app
+     *              to the cloud foundry instance
      * @param shouldStart   if the app should not start after being created
      * @throws NullPointerException when bean or app name is null
      * @throws IllegalArgumentException when neither a path nor a docker image were specified, or app name empty
@@ -81,19 +74,19 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
      */
     public void create(ApplicationBean bean, boolean shouldStart) throws CreationException {
         checkNotNull(bean.getName());
-        checkNotEmpty(bean.getName());
+        checkArgument(!bean.getName().isEmpty(), "empty name");
         checkNotNull(bean);
 
-        // useful, otherwise 3rd party library might behave in a weird way
+        // useful, otherwise cloud foundry operations library might behave in a weird way
         // path null + docker image null => NullPointer Exception that is not intuitive
-        // and when setting docker image to empty string to prevent this can lead to clash when path and buildpack was set
+        // and when setting docker image to empty string to prevent this
+        // can lead to clash when path and buildpack was set
         checkIfPathOrDockerGiven(bean);
 
         // this check is important, otherwise an app could get overwritten
-        if(appExists(bean.getName())){
+        if (appExists(bean.getName())) {
             throw new CreationException("app exists already");
         }
-
 
         doCreate(bean, shouldStart);
     }
@@ -101,14 +94,36 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
     private void doCreate(ApplicationBean bean, boolean shouldStart) throws CreationException {
         try {
             pushAppManifest(bean, shouldStart);
-        } catch (Exception e) {
-            throw new CreationException(e.getMessage());
+        } catch (IllegalArgumentException e) {
+            cleanUp(bean);
+            throw new CreationException(e);
         }
     }
 
-    private void pushAppManifest(ApplicationBean bean, boolean shouldStart) {
-        List<Throwable> errors = new LinkedList<>();
+    private void cleanUp(ApplicationBean bean) {
+        // Could fail when app wasn't created, but that's ok, because we just wanted to delete it anyway.
+        try {
+            this.cloudFoundryOperations
+                    .applications()
+                    .delete(DeleteApplicationRequest
+                            .builder()
+                            .name(bean.getName())
+                            .build())
+                    .block();
+        } catch (Exception e ) {
+            //TODO: log warn or log debug
+        }
+    }
 
+    /**
+     * TODO: Clarification with project owner necessary:
+     * TODO: how to proceed when push fails to apply some settings?
+     * TODO: remove on fail ?
+     * TODO: keep on fail and only print errors as warnings ?
+     *
+     * for now keep on fail with error messages
+     */
+    private void pushAppManifest(ApplicationBean bean, boolean shouldStart) {
         this.cloudFoundryOperations
                 .applications()
                 .pushManifest(PushApplicationManifestRequest
@@ -116,13 +131,18 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
                         .manifest(buildApplicationManifest(bean))
                         .noStart(!shouldStart)
                         .build())
-                .onErrorContinue((throwable, o) -> errors.add(throwable))
+                // Cloud Foundry Operations Library Throws either IllegalArgumentException or IllegalStateException.
+                .onErrorContinue(throwable -> throwable instanceof IllegalArgumentException
+                                //Fatal errors, exclude them.
+                                && !throwable.getMessage().contains("Application")
+                                && !throwable.getMessage().contains("Stack"),
+                        //TODO log warn instead
+                        (throwable, o) -> System.out.println("Warning: " + throwable.getMessage()))
+                //Error when staging or starting. So don't throw error, only log error.
+                .onErrorContinue(throwable -> throwable instanceof IllegalStateException,
+                        //TODO log warn instead
+                        (throwable, o) -> System.out.println("Warning: " + throwable.getMessage()))
                 .block();
-
-        //TODO: temporary error printing, will be replaced at a future date
-        errors.forEach(throwable -> {
-            System.out.println(throwable.getMessage());
-        } );
     }
 
     private ApplicationManifest buildApplicationManifest(ApplicationBean bean) {
@@ -170,7 +190,7 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
      * assertion method
      */
     private boolean appExists(String name) {
-        // if app does not exists an IllegalArgumentException will be thrown
+        // If app does not exists an IllegalArgumentException will be thrown.
         try {
             this.cloudFoundryOperations
                     .applications()
@@ -183,15 +203,6 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
             return false;
         }
         return true;
-    }
-
-    /**
-     * assertion method
-     */
-    private void checkNotEmpty(String value) {
-        if (value.isEmpty()) {
-            throw new IllegalArgumentException("empty name");
-        }
     }
 
     /**
