@@ -10,6 +10,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
+import cloud.foundry.cli.crosscutting.beans.ApplicationManifestBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import cloud.foundry.cli.crosscutting.util.YamlCreator;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
@@ -17,9 +18,11 @@ import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
 import org.cloudfoundry.operations.applications.ApplicationManifest;
 import org.cloudfoundry.operations.applications.ApplicationSummary;
 import org.cloudfoundry.operations.applications.Applications;
+import org.cloudfoundry.operations.applications.DeleteApplicationRequest;
 import org.cloudfoundry.operations.applications.GetApplicationManifestRequest;
 import org.cloudfoundry.operations.applications.GetApplicationRequest;
 import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
+import org.cloudfoundry.operations.applications.Route;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
@@ -31,6 +34,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 /**
  * Test for {@link ApplicationOperations}
@@ -80,23 +84,21 @@ public class ApplicationOperationsTest {
                 "    disk: 1234\n" +
                 "    dockerImage: null\n" +
                 "    dockerUsername: null\n" +
-                "    domains:\n" +
-                "    - example.test\n" +
-                "    - some.more.test\n" +
+                "    domains: null\n" +
                 "    environmentVariables:\n" +
                 "      key: value\n" +
                 "    healthCheckHttpEndpoint: http://healthcheck.local\n" +
                 "    healthCheckType: HTTP\n" +
-                "    hosts:\n" +
-                "    - testhostalpha\n" +
-                "    - testhost17\n" +
+                "    hosts: null\n" +
                 "    instances: 42\n" +
                 "    memory: 2147483647\n" +
-                "    noHostname: false\n" +
+                "    noHostname: null\n" +
                 "    noRoute: false\n" +
                 "    randomRoute: true\n" +
                 "    routePath: null\n" +
-                "    routes: null\n" +
+                "    routes:\n" +
+                "    - route1\n" +
+                "    - route2\n" +
                 "    services:\n" +
                 "    - serviceomega\n" +
                 "    stack: nope\n" +
@@ -121,7 +123,7 @@ public class ApplicationOperationsTest {
                 .thenThrow(new IllegalArgumentException());
         when(applicationsMock.pushManifest(any(PushApplicationManifestRequest.class)))
                 .thenReturn(monoMock);
-        when(monoMock.onErrorContinue((Class<Throwable>) any(), any())).thenReturn(monoMock);
+        when(monoMock.onErrorContinue( any(Predicate.class), any())).thenReturn(monoMock);
         when(monoMock.block()).thenReturn(null);
 
         ApplicationBean applicationsBean = new ApplicationBean(appManifest);
@@ -131,8 +133,31 @@ public class ApplicationOperationsTest {
 
         //then
         verify(applicationsMock, times(1)).pushManifest(any(PushApplicationManifestRequest.class));
-        verify(monoMock, times(1)).onErrorContinue((Class<Throwable>) any(), any());
+        verify(monoMock, times(2)).onErrorContinue( any(Predicate.class), any());
         verify(monoMock, times(1)).block();
+    }
+
+    @Test
+    public void testCreateApplicationsOnFatalCreationErrorThrowsCreationException() throws CreationException {
+        //given
+        ApplicationManifest appManifest = createMockApplicationManifest();
+        DefaultCloudFoundryOperations cfoMock = Mockito.mock(DefaultCloudFoundryOperations.class);
+        Applications applicationsMock = Mockito.mock(Applications.class);
+
+        ApplicationOperations applicationOperations = new ApplicationOperations(cfoMock);
+
+        when(cfoMock.applications()).thenReturn(applicationsMock);
+        when(cfoMock.applications().get(any(GetApplicationRequest.class)))
+                .thenThrow(new IllegalArgumentException());
+        when(applicationsMock.pushManifest(any(PushApplicationManifestRequest.class)))
+                .thenThrow(new IllegalArgumentException());
+        when(applicationsMock.delete(Mockito.mock(DeleteApplicationRequest.class))).then(Mockito.mock(Answer.class));
+        ApplicationBean applicationsBean = new ApplicationBean(appManifest);
+
+        //when
+        assertThrows(CreationException.class, () -> applicationOperations.create(applicationsBean, false));
+        verify(applicationsMock, times(1)).pushManifest(any());
+        verify(applicationsMock, times(1)).delete(any());
     }
 
     @Test
@@ -143,7 +168,6 @@ public class ApplicationOperationsTest {
 
         ApplicationOperations applicationOperations = new ApplicationOperations(cfoMock);
         Applications applicationsMock = Mockito.mock(Applications.class);
-        Mono<Void> monoMock = Mockito.mock(Mono.class);
 
         when(cfoMock.applications()).thenReturn(applicationsMock);
         when(cfoMock.applications().get(any(GetApplicationRequest.class)))
@@ -167,14 +191,29 @@ public class ApplicationOperationsTest {
     }
 
     @Test
-    public void testCreateOnNullPathAndDockerNullThrowsIllegalArgumentException() throws CreationException {
+    public void testCreateOnNullPathAndNullDockerImageThrowsIllegalArgumentException() throws CreationException {
+        //given
+        ApplicationOperations applicationOperations = new ApplicationOperations(
+                Mockito.mock(DefaultCloudFoundryOperations.class));
+        ApplicationBean applicationBean = new ApplicationBean();
+        applicationBean.setName("app");
+        ApplicationManifestBean manifestBean = new ApplicationManifestBean();
+        manifestBean.setDockerImage(null);
+        applicationBean.setManifest(manifestBean);
+
+        //when
+        assertThrows(IllegalArgumentException.class, () -> applicationOperations.create(applicationBean, false));
+    }
+
+    @Test
+    public void testCreateOnNullPathAndNullManifestThrowsIllegalArgumentException() throws CreationException {
         //given
         ApplicationOperations applicationOperations = new ApplicationOperations(
                 Mockito.mock(DefaultCloudFoundryOperations.class));
         ApplicationBean applicationBean = new ApplicationBean();
         applicationBean.setName("app");
 
-        //then
+        //when
         assertThrows(IllegalArgumentException.class, () -> applicationOperations.create(applicationBean, false));
     }
 
@@ -199,7 +238,7 @@ public class ApplicationOperationsTest {
         ApplicationOperations applicationOperations = new ApplicationOperations(
                 Mockito.mock(DefaultCloudFoundryOperations.class));
 
-        //then
+        //when
         assertThrows(NullPointerException.class, () -> applicationOperations.create(null, false));
     }
 
@@ -279,18 +318,16 @@ public class ApplicationOperationsTest {
                 .buildpack("test_buildpack")
                 .command("test command")
                 .disk(1234)
-                .domains("example.test", "some.more.test")
                 .environmentVariables(envVars)
                 .healthCheckHttpEndpoint("http://healthcheck.local")
                 .healthCheckType(ApplicationHealthCheck.HTTP)
-                .hosts("testhostalpha", "testhost17")
                 .instances(42)
                 .memory(Integer.MAX_VALUE)
                 .name("notyetrandomname")
-                .noHostname(false)
                 .noRoute(false)
                 .path(Paths.get("/test/uri"))
                 .randomRoute(true)
+                .routes(Route.builder().route("route1").build(), Route.builder().route("route2").build())
                 .services("serviceomega")
                 .stack("nope")
                 .timeout(987654321)
