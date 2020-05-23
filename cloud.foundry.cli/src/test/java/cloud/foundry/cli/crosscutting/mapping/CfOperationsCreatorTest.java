@@ -24,7 +24,7 @@ public class CfOperationsCreatorTest {
     public static final String SOME_USER_NAME = "SOME_USER_NAME";
 
     @Test
-    public void createCfOperationsShouldCreateValidInstance() {
+    public void createCfOperationsShouldCreateValidInstance() throws Exception {
         // given
         LoginCommandOptions commandOptions = mock(LoginCommandOptions.class);
         when(commandOptions.getApiHost()).thenReturn(SOME_API);
