@@ -12,7 +12,9 @@ package cloud.foundry.cli.crosscutting.beans;
  */
 public interface Bean {
 
-    // in the future we might add a visit-method here in order to realize the visitor design pattern
-    // this allows us to implement algorithms over beans without changing their implementation
+    /**
+     * TODO doc
+     */
+    void visit(BeanVisitor visitor);
 
 }

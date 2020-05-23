@@ -3,6 +3,7 @@ package cloud.foundry.cli.crosscutting.beans;
 import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
 import org.cloudfoundry.operations.applications.ApplicationManifest;
 import org.cloudfoundry.operations.applications.Route;
+import org.javers.core.metamodel.annotation.DiffIgnore;
 
 import java.util.List;
 import java.util.Map;
@@ -32,6 +33,8 @@ public class ApplicationManifestBean implements Bean {
     private String stack;
     private Integer timeout;
 
+    @DiffIgnore
+    private ApplicationBean applicationBean;
 
     /**
      * TODO
@@ -71,6 +74,20 @@ public class ApplicationManifestBean implements Bean {
     }
 
     public ApplicationManifestBean() {
+    }
+
+    /**
+     * TODO doc
+     */
+    public void linkApplicationBean(ApplicationBean applicationBean) {
+        this.applicationBean = applicationBean;
+    }
+
+    /**
+     * TODO doc
+     */
+    public ApplicationBean provideLinkedApplicationBean() {
+        return this.applicationBean;
     }
 
 
@@ -232,5 +249,10 @@ public class ApplicationManifestBean implements Bean {
 
     public void setTimeout(Integer timeout) {
         this.timeout = timeout;
+    }
+
+    @Override
+    public void visit(BeanVisitor visitor) {
+        visitor.visit(this);
     }
 }

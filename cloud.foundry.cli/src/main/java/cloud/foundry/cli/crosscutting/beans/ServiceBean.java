@@ -58,7 +58,7 @@ public class ServiceBean implements Bean {
     }
 
     /**
-     * @return the name if it is set, the service otherwise
+     * @return the name if it is set, the service (equivalent to the marketplace name) otherwise
      */
     public String getName() {
         if (name == null) {
@@ -101,5 +101,13 @@ public class ServiceBean implements Bean {
 
     public void setType(ServiceInstanceType type) {
         this.type = type;
+    }
+
+    /**
+     * TODO doc
+     */
+    @Override
+    public void visit(BeanVisitor visitor) {
+        visitor.visit(this);
     }
 }
