@@ -67,7 +67,7 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
      *
      * @param bean  application bean that holds the configuration settings to deploy the app
      *              to the cloud foundry instance
-     * @param shouldStart   if the app should not start after being created
+     * @param shouldStart   if the app should start after being created
      * @throws NullPointerException when bean or app name is null
      * @throws IllegalArgumentException when neither a path nor a docker image were specified, or app name empty
      * @throws CreationException when app already exists or any fatal error occurs during creation of the app
