@@ -13,12 +13,23 @@ import org.javers.core.diff.changetype.ObjectRemoved;
 import java.util.Arrays;
 import java.util.LinkedList;
 
+import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
+
+import java.util.Set;
 
 /**
  * TODO doc
  */
 public class Differ {
 
+    /**
+     * TODO doc
+     */
+    public static Set<ApplicationDifference> diffApplications(Set<ApplicationBean> presentApplications,
+                                                              Set<ApplicationBean> desiredApplications) {
+        DifferenceCreator differenceCreator = new DifferenceCreator();
+        return differenceCreator.createApplicationDifference(presentApplications, desiredApplications);
+    }
     private static final Javers JAVERS = JaversBuilder.javers().build();
     private static final String ROOT_SYMBOL = "#";
     private static final String PATH_SEPARATOR_SYMBOL = "/";
