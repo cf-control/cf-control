@@ -1,6 +1,7 @@
 package cloud.foundry.cli.crosscutting.beans;
 
 import org.cloudfoundry.operations.applications.ApplicationManifest;
+import org.javers.core.metamodel.annotation.Id;
 
 import java.util.List;
 
@@ -18,6 +19,7 @@ public class ApplicationBean implements Bean {
     private int diskQuota;
     private String requestedState;
     private ApplicationManifestBean manifest;
+    @Id
     private String path;
 
 
@@ -27,6 +29,7 @@ public class ApplicationBean implements Bean {
 
     public void setManifest(ApplicationManifestBean manifestBean) {
         this.manifest = manifestBean;
+        manifest.linkApplicationBean(this);
     }
 
     public String getPath() {
@@ -52,4 +55,8 @@ public class ApplicationBean implements Bean {
     public ApplicationBean() {
     }
 
+    @Override
+    public void visit(BeanVisitor visitor) {
+        visitor.visit(this);
+    }
 }

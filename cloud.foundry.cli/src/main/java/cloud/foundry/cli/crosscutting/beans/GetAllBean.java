@@ -1,6 +1,5 @@
 package cloud.foundry.cli.crosscutting.beans;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -35,5 +34,13 @@ public class GetAllBean implements Bean {
     public void setSpec( Map<String, Object> spec) {
         this.spec = spec;
 
+    }
+
+    /**
+     * TODO doc
+     */
+    @Override
+    public void visit(BeanVisitor visitor) {
+        visitor.visit(this);
     }
 }
