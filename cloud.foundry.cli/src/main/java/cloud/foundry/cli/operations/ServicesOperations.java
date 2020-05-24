@@ -2,14 +2,17 @@ package cloud.foundry.cli.operations;
 
 import cloud.foundry.cli.crosscutting.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
-import cloud.foundry.cli.crosscutting.util.YamlCreator;
+
+import org.cloudfoundry.operations.services.GetServiceInstanceRequest;
+import org.cloudfoundry.operations.services.ServiceInstance;
+import org.cloudfoundry.client.v2.serviceinstances.UpdateServiceInstanceRequest;
+import org.cloudfoundry.client.v2.serviceinstances.UpdateServiceInstanceResponse;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.services.BindServiceInstanceRequest;
 import org.cloudfoundry.operations.services.CreateServiceInstanceRequest;
 import org.cloudfoundry.operations.services.ServiceInstanceSummary;
-import org.yaml.snakeyaml.Yaml;
-import reactor.core.publisher.Mono;
 
+import reactor.core.publisher.Mono;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -28,36 +31,60 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      */
     public List<ServiceBean> getAll() {
         List<ServiceInstanceSummary> services = this.cloudFoundryOperations
-                .services()
-                .listInstances()
-                .collectList()
-                .block();
+            .services()
+            .listInstances()
+            .collectList()
+            .block();
 
         if (services == null) {
             services = new LinkedList<>();
         }
 
-        // create a list of special bean data objects, as the summaries cannot be serialized directly
+        // create a list of special bean data objects, as the summaries cannot be
+        // serialized directly
         List<ServiceBean> beans = new ArrayList<>(services.size());
         for (ServiceInstanceSummary serviceInstanceSummary : services) {
-            beans.add(new ServiceBean(serviceInstanceSummary));
+
+            GetServiceInstanceRequest getServiceInstanceRequest = GetServiceInstanceRequest.builder()
+                .name(serviceInstanceSummary.getName())
+                .build();
+            ServiceInstance serviceInstance = this.cloudFoundryOperations
+                .services()
+                .getInstance(getServiceInstanceRequest)
+                .block();
+
+            ServiceBean serviceBean = new ServiceBean(serviceInstanceSummary);
+            
+            if (serviceInstance.getLastOperation() == null
+                || serviceInstance.getLastOperation().isEmpty()) {
+                serviceBean
+                    .setLastOperation("");
+            } else {
+                
+                serviceBean
+                    .setLastOperation(serviceInstance.getLastOperation() + " " + serviceInstance.getStatus());
+
+            }
+
+            beans.add(serviceBean);
         }
 
         return beans;
     }
 
     /**
-     * Creates a new service in the space and binds apps to it. In case of an error, the creation- and binding-process
-     * is discontinued.
+     * Creates a new service in the space and binds apps to it. In case of an error,
+     * the creation- and binding-process is discontinued.
+     * 
      * @param serviceBean serves as template for the service to create
      * @throws CreationException when the creation or the binding was not successful
      */
     public void create(ServiceBean serviceBean) throws CreationException {
         CreateServiceInstanceRequest createServiceRequest = CreateServiceInstanceRequest.builder()
-                .serviceName(serviceBean.getService())
-                .planName(serviceBean.getPlan())
-                .serviceInstanceName(serviceBean.getName())
-                .build();
+            .serviceName(serviceBean.getService())
+            .planName(serviceBean.getPlan())
+            .serviceInstanceName(serviceBean.getName())
+            .build();
 
         Mono<Void> created = this.cloudFoundryOperations.services().createInstance(createServiceRequest);
 
@@ -70,7 +97,7 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
 
         // bind the newly created service instance to its applications
         List<String> applications = serviceBean.getApplications();
-        for (String app: applications) {
+        for (String app : applications) {
             BindServiceInstanceRequest bindServiceRequest = BindServiceInstanceRequest.builder()
                 .applicationName(app)
                 .serviceInstanceName(serviceBean.getName())
@@ -87,4 +114,15 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
         }
     }
 
+    /**
+     * Update a service instance
+     * 
+     * @param serviceBean
+     * @throws CreationException
+     * @return
+     */
+    public void update(ServiceBean serviceBean) throws CreationException {
+        
+
+    }
 }
