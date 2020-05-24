@@ -1,11 +1,13 @@
 package cloud.foundry.cli.services;
 
+import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.beans.SpaceDevelopersBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
 import cloud.foundry.cli.crosscutting.util.FileUtils;
 import cloud.foundry.cli.crosscutting.util.YamlCreator;
+import cloud.foundry.cli.operations.ApplicationOperations;
 import cloud.foundry.cli.operations.ServicesOperations;
 import cloud.foundry.cli.operations.SpaceDevelopersOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
@@ -52,14 +54,15 @@ public class CreateController implements Runnable {
             }
             Yaml yamlLoader = YamlCreator.createDefaultYamlProcessor();
             SpaceDevelopersBean spaceDevelopersBean = yamlLoader.loadAs(yamlFileContent, SpaceDevelopersBean.class);
-            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
-            SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
 
             try {
+                DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+                SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
+
                 for (String username : spaceDevelopersBean.getSpaceDevelopers()) {
                     spaceDevelopersOperations.assignSpaceDeveloper(username);
                 }
-            } catch (CreationException e) {
+            } catch (Exception e) {
                 System.out.println(e.getMessage());
             }
         }
@@ -84,14 +87,14 @@ public class CreateController implements Runnable {
                 return;
             }
             Yaml yamlLoader = YamlCreator.createDefaultYamlProcessor();
-            ServiceBean serviceBean = yamlLoader.loadAs(yamlFileContent, ServiceBean.class);
-            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
-
-            ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
 
             try {
+                ServiceBean serviceBean = yamlLoader.loadAs(yamlFileContent, ServiceBean.class);
+                DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+
+                ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
                 servicesOperations.create(serviceBean);
-            } catch (CreationException e) {
+            } catch (Exception e) {
                 System.out.println(e.getMessage());
             }
         }
@@ -103,9 +106,35 @@ public class CreateController implements Runnable {
         @CommandLine.Mixin
         LoginCommandOptions loginOptions;
 
+        @CommandLine.Mixin
+        CreateControllerCommandOptions commandOptions;
+
         @Override
         public void run() {
-            // TODO:Implement functionality
+
+            String yamlFileContent;
+            try {
+                yamlFileContent = FileUtils.readLocalFile(commandOptions.getYamlFilePath());
+            } catch (IOException e) {
+                System.err.println(e.getMessage());
+                return;
+            }
+            Yaml yamlLoader = YamlCreator.createDefaultYamlProcessor();
+            try {
+                ApplicationBean applicationBean = yamlLoader.loadAs(yamlFileContent, ApplicationBean.class);
+                DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+
+                ApplicationOperations applicationOperations = new ApplicationOperations(cfOperations);
+
+                applicationOperations.create(applicationBean, false);
+                System.out.println("App created: " + applicationBean.getName());
+            } catch (CreationException e) {
+                System.out.println("FAILED:" + e.getMessage());
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
+
         }
     }
+
 }

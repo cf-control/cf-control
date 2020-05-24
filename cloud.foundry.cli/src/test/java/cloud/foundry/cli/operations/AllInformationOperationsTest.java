@@ -57,7 +57,8 @@ public class AllInformationOperationsTest {
                 "      buildpack: null\n" +
                 "      command: null\n" +
                 "      disk: 0\n" +
-                "      docker: null\n" +
+                "      dockerImage: null\n" +
+                "      dockerUsername: null\n" +
                 "      domains: [\n" +
                 "        ]\n" +
                 "      environmentVariables: {\n" +
@@ -68,7 +69,6 @@ public class AllInformationOperationsTest {
                 "        ]\n" +
                 "      instances: 0\n" +
                 "      memory: 0\n" +
-                "      name: null\n" +
                 "      noHostname: false\n" +
                 "      noRoute: false\n" +
                 "      randomRoute: false\n" +
@@ -79,6 +79,7 @@ public class AllInformationOperationsTest {
                 "        ]\n" +
                 "      stack: null\n" +
                 "      timeout: 0\n" +
+                "    name: null\n" +
                 "    path: null\n" +
                 "target:\n" +
                 "  org: cloud.foundry.cli\n" +
