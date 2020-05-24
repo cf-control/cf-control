@@ -5,12 +5,12 @@ import cloud.foundry.cli.crosscutting.beans.ApplicationManifestBean;
 /**
  * TODO doc
  */
-public class ApplicationManifestDifference extends AbstractDifference<ApplicationManifestBean> {
+public class ApplicationManifestDiff extends AbstractDiff<ApplicationManifestBean> {
 
     /**
      * TODO doc
      */
-    public ApplicationManifestDifference(ApplicationManifestBean affected) {
+    public ApplicationManifestDiff(ApplicationManifestBean affected) {
         super(affected);
     }
 }
