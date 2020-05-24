@@ -43,63 +43,6 @@ public abstract class AbstractDiff<B extends Bean> {
         changes.add(change);
     }
 
-    /**
-     * TODO doc
-     */
-    public NewObject getNewObjectChange() {
-        return getSoloChangeByType(NewObject.class);
-    }
-
-    /**
-     * TODO doc
-     */
-    public ObjectRemoved getObjectRemovedChange() {
-        return getSoloChangeByType(ObjectRemoved.class);
-    }
-
-    /**
-     * TODO doc
-     */
-    public List<ContainerChange> getContainerChanges() {
-        return getChangesByType(ContainerChange.class);
-    }
-
-    /**
-     * TODO doc
-     */
-    public List<MapChange> getMapChanges() {
-        return getChangesByType(MapChange.class);
-    }
-
-    // there is no getReferenceChange method because we are not interested in reference changes
-
-    /**
-     * TODO doc
-     */
-    public List<ValueChange> getValueChanges() {
-        return getChangesByType(ValueChange.class);
-    }
-
-    private <C extends Change> C getSoloChangeByType(Class<C> type) {
-        List<C> soloChanges = getChangesByType(type);
-        if (soloChanges.size() > 1) {
-            throw new IllegalStateException("There are multiple changes of the type " + type.getCanonicalName());
-        }
-        if (soloChanges.size() != changes.size()) {
-            throw new IllegalStateException("There are other changes besides the change of type" +
-                    type.getCanonicalName());
-        }
-        if (soloChanges.isEmpty()) {
-            return null;
-        }
-        return soloChanges.get(0);
-    }
-
-    private <C extends Change> List<C> getChangesByType(Class<C> type) {
-        Changes changesWrapper = new Changes(changes, PrettyValuePrinter.getDefault());
-        return changesWrapper.getChangesByType(type);
-    }
-
     private void assertChangeAffectsAffected(Change change) {
         Optional<Object> possiblyAffectedObject = change.getAffectedObject();
         if (!possiblyAffectedObject.isPresent() || !possiblyAffectedObject.get().equals(affected)) {
