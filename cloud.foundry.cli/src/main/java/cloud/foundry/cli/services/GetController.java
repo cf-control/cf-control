@@ -4,7 +4,6 @@ import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.beans.GetAllBean;
 import cloud.foundry.cli.crosscutting.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.beans.SpaceDevelopersBean;
-import cloud.foundry.cli.crosscutting.exceptions.CredentialException;
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
 import cloud.foundry.cli.crosscutting.util.YamlCreator;
 import cloud.foundry.cli.operations.AllInformationOperations;
@@ -12,6 +11,7 @@ import cloud.foundry.cli.operations.ApplicationOperations;
 import cloud.foundry.cli.operations.ServicesOperations;
 import cloud.foundry.cli.operations.SpaceDevelopersOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
+import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
 
