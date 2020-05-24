@@ -7,6 +7,7 @@ import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.beans.SpaceDevelopersBean;
 import org.javers.core.diff.Change;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -39,7 +40,7 @@ public class ApplicationDiffVisitor implements BeanVisitor {
 
     @Override
     public void visit(GetAllBean getAllBean) {
-
+        throw new NotImplementedException();
     }
 
     /**
@@ -83,12 +84,12 @@ public class ApplicationDiffVisitor implements BeanVisitor {
 
     @Override
     public void visit(ServiceBean serviceBean) {
-
+        throw new NotImplementedException();
     }
 
     @Override
     public void visit(SpaceDevelopersBean spaceDevelopersBean) {
-
+        throw new NotImplementedException();
     }
 
     private void assertChangeWasSet() {
