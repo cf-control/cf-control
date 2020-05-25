@@ -5,6 +5,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
+import cloud.foundry.cli.crosscutting.logging.Log;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.applications.ApplicationManifest;
 import org.cloudfoundry.operations.applications.ApplicationSummary;
@@ -144,12 +145,10 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
                                 //Fatal errors, exclude them.
                                 && !throwable.getMessage().contains("Application")
                                 && !throwable.getMessage().contains("Stack"),
-                        //TODO log warn instead
-                        (throwable, o) -> System.out.println("Warning: " + throwable.getMessage()))
+                        (throwable, o) -> Log.warn(throwable.getMessage()))
                 //Error when staging or starting. So don't throw error, only log error.
                 .onErrorContinue(throwable -> throwable instanceof IllegalStateException,
-                        //TODO log warn instead
-                        (throwable, o) -> System.out.println("Warning: " + throwable.getMessage()))
+                        (throwable, o) -> Log.warn(throwable.getMessage()))
                 .block();
     }
 
