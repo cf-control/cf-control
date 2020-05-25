@@ -22,7 +22,7 @@ public class LoginCommandOptions {
     @Option(names = {"-o", "--organization"}, required = true, description = "The name of your org in cf.")
     String organization;
 
-    @Option(names = {"-s", "--space"}, required = true, description = "The space of cf.")
+    @Option(names = {"-s", "--space"}, required = true, description = "Your CF space name.")
     String space;
 
     public String getUserName() {
