@@ -3,14 +3,14 @@ package cloud.foundry.cli.operations;
 import cloud.foundry.cli.crosscutting.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 
-import org.cloudfoundry.operations.services.GetServiceInstanceRequest;
 import org.cloudfoundry.operations.services.ServiceInstance;
-import org.cloudfoundry.client.v2.serviceinstances.UpdateServiceInstanceRequest;
-import org.cloudfoundry.client.v2.serviceinstances.UpdateServiceInstanceResponse;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.services.BindServiceInstanceRequest;
 import org.cloudfoundry.operations.services.CreateServiceInstanceRequest;
+import org.cloudfoundry.operations.services.GetServiceInstanceRequest;
+import org.cloudfoundry.operations.services.RenameServiceInstanceRequest;
 import org.cloudfoundry.operations.services.ServiceInstanceSummary;
+import org.cloudfoundry.operations.services.UpdateServiceInstanceRequest;
 
 import reactor.core.publisher.Mono;
 import java.util.ArrayList;
@@ -54,18 +54,17 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
                 .block();
 
             ServiceBean serviceBean = new ServiceBean(serviceInstanceSummary);
-            
+
             if (serviceInstance.getLastOperation() == null
                 || serviceInstance.getLastOperation().isEmpty()) {
-                serviceBean
-                    .setLastOperation("");
+
+                serviceBean.setLastOperation("");
+
             } else {
-                
+
                 serviceBean
                     .setLastOperation(serviceInstance.getLastOperation() + " " + serviceInstance.getStatus());
-
             }
-
             beans.add(serviceBean);
         }
 
@@ -84,6 +83,7 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
             .serviceName(serviceBean.getService())
             .planName(serviceBean.getPlan())
             .serviceInstanceName(serviceBean.getName())
+            .tags(serviceBean.getTags())
             .build();
 
         Mono<Void> created = this.cloudFoundryOperations.services().createInstance(createServiceRequest);
@@ -96,33 +96,101 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
         }
 
         // bind the newly created service instance to its applications
-        List<String> applications = serviceBean.getApplications();
-        for (String app : applications) {
-            BindServiceInstanceRequest bindServiceRequest = BindServiceInstanceRequest.builder()
-                .applicationName(app)
-                .serviceInstanceName(serviceBean.getName())
-                .build();
-
-            Mono<Void> bind = this.cloudFoundryOperations.services().bind(bindServiceRequest);
-
-            try {
-                bind.block();
-                System.out.println("Service has been bound to the application \"" + app + "\".");
-            } catch (RuntimeException e) {
-                throw new CreationException(e.getMessage());
-            }
-        }
+        bindToApplications(serviceBean);
     }
 
     /**
      * Update a service instance
      * 
-     * @param serviceBean
-     * @throws CreationException
-     * @return
+     * @param serviceBean serves as template for the service to update
+     * @throws CreationException when the creation or the binding was not successful
+     * 
      */
     public void update(ServiceBean serviceBean) throws CreationException {
-        
+        System.out.println("Updating service instance ID " + serviceBean.getId());
 
+        // rename a service instance
+        // TODO currentname should be changed, because we have no idea
+        // about the format of the input yaml file
+        String currentname = "Elephant3";
+        renameService(serviceBean.getName(), currentname);
+
+        // update plan, tags of a service instance
+        updateServiceInstance(serviceBean);
+
+        // bind a service instance to applications
+        bindToApplications(serviceBean);
+
+    }
+
+    /**
+     * Rename a service instance
+     * 
+     * @param currentName Current Name of the Service Instance
+     * @param newName     New Name of the Service Instance
+     */
+    private void renameService(String newName, String currentName) throws CreationException {
+        RenameServiceInstanceRequest renameServiceInstanceRequest = RenameServiceInstanceRequest.builder()
+            .name(currentName)
+            .newName(newName)
+            .build();
+
+        try {
+            this.cloudFoundryOperations.services()
+                .renameInstance(renameServiceInstanceRequest)
+                .block();
+
+            System.out.println("Name of Service Instance has been changed");
+        } catch (RuntimeException e) {
+            throw new CreationException(e.getMessage());
+        }
+    }
+
+    /**
+     * Update Tags, Plan of a Service Instance
+     * 
+     * @param serviceBean serves as template for the service to update
+     */
+    private void updateServiceInstance(ServiceBean serviceBean) throws CreationException {
+        UpdateServiceInstanceRequest updateServiceInstanceRequest = UpdateServiceInstanceRequest.builder()
+            .serviceInstanceName(serviceBean.getName())
+            .tags(serviceBean.getTags())
+            .planName(serviceBean.getPlan())
+            .build();
+
+        try {
+
+            this.cloudFoundryOperations.services()
+                .updateInstance(updateServiceInstanceRequest)
+                .block();
+
+            System.out.println("Service Plan and Tags haven been updated");
+        } catch (RuntimeException e) {
+            throw new CreationException(e.getMessage());
+        }
+    }
+
+    /**
+     * Bind a service instance to applications
+     *
+     * @param ServiceBean serves as template for the service to update
+     */
+    private void bindToApplications(ServiceBean serviceBean) throws CreationException {
+
+        for (String app : serviceBean.getApplications()) {
+            BindServiceInstanceRequest bindServiceRequest = BindServiceInstanceRequest.builder()
+                .applicationName(app)
+                .serviceInstanceName(serviceBean.getName())
+                .build();
+
+            try {
+                this.cloudFoundryOperations.services()
+                    .bind(bindServiceRequest)
+                    .block();
+                System.out.println("Service has been bound to the application " + app + ".");
+            } catch (RuntimeException e) {
+                throw new CreationException(e.getMessage());
+            }
+        }
     }
 }

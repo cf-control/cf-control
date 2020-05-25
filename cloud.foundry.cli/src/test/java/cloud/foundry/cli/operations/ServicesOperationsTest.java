@@ -7,6 +7,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import cloud.foundry.cli.crosscutting.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
@@ -15,6 +17,8 @@ import org.cloudfoundry.client.v2.ClientV2Exception;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.services.BindServiceInstanceRequest;
 import org.cloudfoundry.operations.services.CreateServiceInstanceRequest;
+import org.cloudfoundry.operations.services.UpdateServiceInstanceRequest;
+import org.cloudfoundry.operations.services.RenameServiceInstanceRequest;
 import org.cloudfoundry.operations.services.ServiceInstance;
 import org.cloudfoundry.operations.services.ServiceInstanceSummary;
 import org.cloudfoundry.operations.services.Services;
@@ -25,6 +29,7 @@ import org.mockito.Mockito;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -108,6 +113,46 @@ public class ServicesOperationsTest {
         });
     }
 
+    @Test
+    public void testUpdateService() throws CreationException {
+        // given
+        ServiceBean serviceBeanMock = getServiceBeanMock();
+        List<String> apps = new LinkedList<>();
+        apps.add("test");
+        when(serviceBeanMock.getApplications()).thenReturn(apps);
+        
+        
+        DefaultCloudFoundryOperations cfMock = Mockito.mock(DefaultCloudFoundryOperations.class);
+        Services servicesMock = Mockito.mock(Services.class);
+        when(cfMock.services()).thenReturn(servicesMock);
+        
+        Mono<Void> monoRenamed = mock(Mono.class);
+        when(servicesMock.renameInstance(any(RenameServiceInstanceRequest.class))).thenReturn(monoRenamed);
+        
+        Mono<Void> monoUpdatedService = mock(Mono.class);
+        when(servicesMock.updateInstance(any(UpdateServiceInstanceRequest.class))).thenReturn(monoUpdatedService);
+        
+        Mono<Void> monoBind = mock(Mono.class);
+        when(servicesMock.bind(any(BindServiceInstanceRequest.class))).thenReturn(monoBind);
+        
+        // when 
+        ServicesOperations servicesOperations = new ServicesOperations(cfMock);
+        servicesOperations.update(serviceBeanMock);
+        
+        //then
+        verify(servicesMock, times(1)).renameInstance(any(RenameServiceInstanceRequest.class));
+        verify(monoRenamed, times(1)).block();
+        
+        verify(servicesMock, times(1)).updateInstance(any(UpdateServiceInstanceRequest.class));
+        verify(monoUpdatedService, times(1)).block();
+        
+        verify(servicesMock, times(1)).bind(any(BindServiceInstanceRequest.class));
+        verify(monoBind, times(1)).block();
+        
+    }
+    
+  
+    
     private ServiceInstance getServiceInstanceMock() {
         ServiceInstance serviceInstanceMock = mock(ServiceInstance.class);
         when(serviceInstanceMock.getLastOperation()).thenReturn("create");
@@ -117,9 +162,11 @@ public class ServicesOperationsTest {
 
     private ServiceBean getServiceBeanMock() {
         ServiceBean serviceBean = mock(ServiceBean.class);
+        when(serviceBean.getId()).thenReturn("123");
         when(serviceBean.getService()).thenReturn("elephantsql");
         when(serviceBean.getName()).thenReturn("Elephant");
         when(serviceBean.getPlan()).thenReturn("standard");
+        when(serviceBean.getTags()).thenReturn(Arrays.asList("Tag1", "Tag2"));
         return serviceBean;
     }
 
@@ -128,22 +175,22 @@ public class ServicesOperationsTest {
         
         DefaultCloudFoundryOperations cfMock = Mockito.mock(DefaultCloudFoundryOperations.class);
         Services servicesMock = Mockito.mock(Services.class);
-        Flux<ServiceInstanceSummary> flux = Mockito.mock(Flux.class);
-        Mono<List<ServiceInstanceSummary>> mono = Mockito.mock(Mono.class);
-        Mono<ServiceInstance> monoServiceInstanceMock = Mockito.mock(Mono.class);
+        Flux<ServiceInstanceSummary> flux = mock(Flux.class);
+        Mono<List<ServiceInstanceSummary>> mono = mock(Mono.class);
+        Mono<ServiceInstance> monoServiceInstanceMock = mock(Mono.class);
 
         List<ServiceInstanceSummary> list = new LinkedList<ServiceInstanceSummary>();
         if (serviceInstanceSummary != null) {
             list.add(serviceInstanceSummary);
         }
-        Mockito.when(cfMock.services()).thenReturn(servicesMock);
-        Mockito.when(servicesMock.listInstances()).thenReturn(flux);
-        Mockito.when(servicesMock.getInstance(any())).thenReturn(monoServiceInstanceMock);
+        when(cfMock.services()).thenReturn(servicesMock);
+        when(servicesMock.listInstances()).thenReturn(flux);
+        when(servicesMock.getInstance(any())).thenReturn(monoServiceInstanceMock);
 
         ServiceInstance serviceInstanceMock = getServiceInstanceMock();
-        Mockito.when(monoServiceInstanceMock.block()).thenReturn(serviceInstanceMock);
-        Mockito.when(flux.collectList()).thenReturn(mono);
-        Mockito.when(mono.block()).thenReturn(list);
+        when(monoServiceInstanceMock.block()).thenReturn(serviceInstanceMock);
+        when(flux.collectList()).thenReturn(mono);
+        when(mono.block()).thenReturn(list);
         return cfMock;
     }
 
