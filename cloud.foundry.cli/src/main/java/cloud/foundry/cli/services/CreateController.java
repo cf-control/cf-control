@@ -10,7 +10,6 @@ import cloud.foundry.cli.crosscutting.util.YamlCreator;
 import cloud.foundry.cli.operations.ApplicationOperations;
 import cloud.foundry.cli.operations.ServicesOperations;
 import cloud.foundry.cli.operations.SpaceDevelopersOperations;
-
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.yaml.snakeyaml.Yaml;
 import picocli.CommandLine;
@@ -20,19 +19,22 @@ import java.io.IOException;
 /**
  * This class realizes the functionality that is needed for the create commands.
  */
-@CommandLine.Command(name = "create", header = "%n@|green Create-Controller|@", subcommands = {
-    CreateController.CreateServiceCommand.class,
-    CreateController.AssignSpaceDeveloperCommand.class,
-    CreateController.CreateApplicationCommand.class })
+@CommandLine.Command(name = "create", header = "%n@|green Create a new app, service or add a new " +
+        "space developer.|@",
+        mixinStandardHelpOptions = true,
+        subcommands = {
+                CreateController.CreateServiceCommand.class,
+                CreateController.AssignSpaceDeveloperCommand.class,
+                CreateController.CreateApplicationCommand.class})
 public class CreateController implements Runnable {
 
     @Override
     public void run() {
-        // this code is executed if the user runs the create command without specifying
-        // any sub-command
+        CommandLine.usage(this, System.out);
+        return;
     }
 
-    @CommandLine.Command(name = "space-developer", description = "Assign users as space developers")
+    @CommandLine.Command(name = "space-developer", description = "Assign users as space developers.")
     static class AssignSpaceDeveloperCommand implements Runnable {
 
         @CommandLine.Mixin
@@ -66,7 +68,7 @@ public class CreateController implements Runnable {
         }
     }
 
-    @CommandLine.Command(name = "service", description = "Create a service in the target space")
+    @CommandLine.Command(name = "service", description = "Create a service in the target space.")
     static class CreateServiceCommand implements Runnable {
 
         @CommandLine.Mixin
@@ -98,7 +100,7 @@ public class CreateController implements Runnable {
         }
     }
 
-    @CommandLine.Command(name = "application", description = "Create a application in the target space")
+    @CommandLine.Command(name = "application", description = "Create a application in the target space.")
     static class CreateApplicationCommand implements Runnable {
 
         @CommandLine.Mixin
