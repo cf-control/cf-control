@@ -10,7 +10,7 @@ import picocli.CommandLine.Option;
  */
 public class LoginCommandOptions {
 
-    @Option(names = {"-u", "--user"}, required = false, description = "Your email/username.")
+    @Option(names = {"-u", "--user"}, required = false, description = "Your account's e-mail address or username.")
     String userName;
 
     @Option(names = {"-p", "--password"}, required = false, description = "Your password of your cf account.")
