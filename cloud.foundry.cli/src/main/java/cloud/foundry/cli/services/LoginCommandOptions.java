@@ -16,7 +16,7 @@ public class LoginCommandOptions {
     @Option(names = {"-p", "--password"}, required = false, description = "Your password of your cf account.")
     String password;
 
-    @Option(names = {"-a", "--api"}, required = true, description = "The api of you cf instance.")
+    @Option(names = {"-a", "--api"}, required = true, description = "Your CF instance's API endpoint URL.")
     String apiHost;
 
     @Option(names = {"-o", "--organization"}, required = true, description = "The name of your org in cf.")
