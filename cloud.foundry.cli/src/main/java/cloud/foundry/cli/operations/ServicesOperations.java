@@ -179,7 +179,7 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
                     .block();
                 Log.info("Service \"" + service + "\" has been bound to the application \"" + app + "\".");
             } catch (RuntimeException e) {
-                throw new CreationException(e.getMessage());
+                throw new CreationException(e);
             }
         }
     }
