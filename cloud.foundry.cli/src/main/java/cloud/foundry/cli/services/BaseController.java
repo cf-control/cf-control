@@ -29,5 +29,3 @@ public class BaseController implements Runnable {
     }
 
 }
-
-
