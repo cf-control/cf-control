@@ -19,7 +19,7 @@ public class LoginCommandOptions {
     @Option(names = {"-a", "--api"}, required = true, description = "Your CF instance's API endpoint URL.")
     String apiHost;
 
-    @Option(names = {"-o", "--organization"}, required = true, description = "The name of your org in cf.")
+    @Option(names = {"-o", "--organization"}, required = true, description = "Your CF organization's name.")
     String organization;
 
     @Option(names = {"-s", "--space"}, required = true, description = "Your CF space name.")
