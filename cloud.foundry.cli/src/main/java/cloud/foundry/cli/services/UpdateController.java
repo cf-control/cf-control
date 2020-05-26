@@ -2,6 +2,7 @@ package cloud.foundry.cli.services;
 
 import java.io.IOException;
 
+import cloud.foundry.cli.crosscutting.logging.Log;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.yaml.snakeyaml.Yaml;
 
@@ -44,7 +45,7 @@ public class UpdateController implements Runnable {
             try {
                 yamlFileContent = FileUtils.readLocalFile(commandOptions.getYamlFilePath());
             } catch (IOException e) {
-                System.err.println(e.getMessage());
+                Log.exception(e, "Failed to read YAML file");
                 return;
             }
             Yaml yamlLoader = YamlCreator.createDefaultYamlProcessor();
@@ -56,7 +57,7 @@ public class UpdateController implements Runnable {
                 ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
                 servicesOperations.update(serviceBean);
             } catch (Exception e) {
-                System.out.println(e.getMessage());
+                Log.exception(e, "Unexpected error occurred");
             }
         }
     }

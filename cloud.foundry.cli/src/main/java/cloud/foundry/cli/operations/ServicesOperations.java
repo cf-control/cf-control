@@ -102,7 +102,7 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      * @throws CreationException when the creation or the binding was not successful
      */
     public void update(ServiceBean serviceBean) throws CreationException {
-        System.out.println("Updating service instance ID " + serviceBean.getId());
+        Log.info("Updating service instance ID", serviceBean.getId());
 
         // rename a service instance
         // TODO currentname should be changed, because we have no idea
@@ -133,7 +133,7 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
             this.cloudFoundryOperations.services()
                 .renameInstance(renameServiceInstanceRequest)
                 .block();
-            System.out.println("Name of Service Instance has been changed");
+            Log.info("Name of Service Instance has been changed");
         } catch (RuntimeException e) {
             throw new CreationException(e.getMessage());
         }
@@ -154,7 +154,7 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
             this.cloudFoundryOperations.services()
                 .updateInstance(updateServiceInstanceRequest)
                 .block();
-            System.out.println("Service Plan and Tags haven been updated");
+            Log.info("Service Plan and Tags haven been updated");
         } catch (RuntimeException e) {
             throw new CreationException(e.getMessage());
         }
