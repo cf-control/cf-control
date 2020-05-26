@@ -10,19 +10,19 @@ import picocli.CommandLine.Option;
  */
 public class LoginCommandOptions {
 
-    @Option(names = {"-u", "--user"}, required = false)
+    @Option(names = {"-u", "--user"}, required = false, description = "Your account's e-mail address or username.")
     String userName;
 
-    @Option(names = {"-p", "--password"}, required = false)
+    @Option(names = {"-p", "--password"}, required = false, description = "Your password of your cf account.")
     String password;
 
-    @Option(names = {"-a", "--api"}, required = true)
+    @Option(names = {"-a", "--api"}, required = true, description = "Your CF instance's API endpoint URL.")
     String apiHost;
 
-    @Option(names = {"-o", "--organization"}, required = true)
+    @Option(names = {"-o", "--organization"}, required = true, description = "Your CF organization's name.")
     String organization;
 
-    @Option(names = {"-s", "--space"}, required = true)
+    @Option(names = {"-s", "--space"}, required = true, description = "Your CF space name.")
     String space;
 
     public String getUserName() {

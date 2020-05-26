@@ -2,12 +2,12 @@ package cloud.foundry.cli.crosscutting.beans;
 
 import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
 import org.cloudfoundry.operations.applications.ApplicationManifest;
-import org.cloudfoundry.operations.applications.Docker;
 import org.cloudfoundry.operations.applications.Route;
 import org.javers.core.metamodel.annotation.DiffIgnore;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Bean holding all data of the manifest file from an application.
@@ -18,20 +18,17 @@ public class ApplicationManifestBean implements Bean {
     private String buildpack;
     private String command;
     private Integer disk;
-    private Docker docker;
-    private List<String> domains;
+    private String dockerImage;
+    private String dockerUsername;
     private Map<String, Object> environmentVariables;
     private String healthCheckHttpEndpoint;
     private ApplicationHealthCheck healthCheckType;
-    private List<String> hosts;
     private Integer instances;
     private Integer memory;
-    private String name;
-    private Boolean noHostname;
     private Boolean noRoute;
     private Boolean randomRoute;
     private String routePath;
-    private List<Route> routes;
+    private List<String> routes;
     private List<String> services;
     private String stack;
     private Integer timeout;
@@ -39,11 +36,23 @@ public class ApplicationManifestBean implements Bean {
     @DiffIgnore
     private ApplicationBean applicationBean;
 
+    /**
+     * TODO
+     * these attributes are deprecated and have been replaced by the attribute 'routes'
+     * https://docs.cloudfoundry.org/devguide/deploy-apps/manifest-attributes.html#deprecated
+     *
+     * leaving them here for now, further clarification necessary
+     */
+    private List<String> domains;
+    private List<String> hosts;
+    private Boolean noHostname;
+
     public ApplicationManifestBean(ApplicationManifest manifest) {
         this.buildpack = manifest.getBuildpack();
         this.command = manifest.getCommand();
         this.disk = manifest.getDisk();
-        this.docker = manifest.getDocker();
+        this.dockerImage =  manifest.getDocker() == null ? null : manifest.getDocker().getImage();
+        this.dockerUsername =  manifest.getDocker() == null ? null :  manifest.getDocker().getUsername();
         this.domains = manifest.getDomains();
         this.environmentVariables = manifest.getEnvironmentVariables();
         this.healthCheckHttpEndpoint = manifest.getHealthCheckHttpEndpoint();
@@ -51,12 +60,14 @@ public class ApplicationManifestBean implements Bean {
         this.hosts = manifest.getHosts();
         this.instances = manifest.getInstances();
         this.memory = manifest.getMemory();
-        this.name = manifest.getName();
         this.noHostname = manifest.getNoHostname();
         this.noRoute = manifest.getNoRoute();
         this.randomRoute = manifest.getRandomRoute();
         this.routePath = manifest.getRoutePath();
-        this.routes = manifest.getRoutes();
+        this.routes = manifest.getRoutes() == null ? null : manifest.getRoutes()
+                .stream()
+                .map(Route::getRoute)
+                .collect(Collectors.toList());
         this.services = manifest.getServices();
         this.stack = manifest.getStack();
         this.timeout = manifest.getTimeout();
@@ -104,12 +115,20 @@ public class ApplicationManifestBean implements Bean {
         this.disk = disk;
     }
 
-    public Docker getDocker() {
-        return docker;
+    public String getDockerImage() {
+        return dockerImage;
     }
 
-    public void setDocker(Docker docker) {
-        this.docker = docker;
+    public void setDockerImage(String dockerImage) {
+        this.dockerImage = dockerImage;
+    }
+
+    public String getDockerUsername() {
+        return dockerUsername;
+    }
+
+    public void setDockerUsername(String dockerUsername) {
+        this.dockerUsername = dockerUsername;
     }
 
     public List<String> getDomains() {
@@ -168,14 +187,6 @@ public class ApplicationManifestBean implements Bean {
         this.memory = memory;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public Boolean getNoHostname() {
         return noHostname;
     }
@@ -208,11 +219,11 @@ public class ApplicationManifestBean implements Bean {
         this.routePath = routePath;
     }
 
-    public List<Route> getRoutes() {
+    public List<String> getRoutes() {
         return routes;
     }
 
-    public void setRoutes(List<Route> routes) {
+    public void setRoutes(List<String> routes) {
         this.routes = routes;
     }
 
