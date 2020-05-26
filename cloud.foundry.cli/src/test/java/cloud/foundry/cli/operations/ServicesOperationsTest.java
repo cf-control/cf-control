@@ -114,13 +114,40 @@ public class ServicesOperationsTest {
     }
 
     @Test
-    public void testUpdateService() throws CreationException {
+    public void testUpdateService_ThrowException() throws CreationException {
         // given
         ServiceBean serviceBeanMock = getServiceBeanMock();
         List<String> apps = new LinkedList<>();
         apps.add("test");
         when(serviceBeanMock.getApplications()).thenReturn(apps);
         
+        DefaultCloudFoundryOperations cfMock = Mockito.mock(DefaultCloudFoundryOperations.class);
+        Services servicesMock = Mockito.mock(Services.class);
+        when(cfMock.services()).thenReturn(servicesMock);
+        when(servicesMock.renameInstance(any(RenameServiceInstanceRequest.class))).thenReturn(null);
+        
+        Mono<Void> monoUpdatedService = mock(Mono.class);
+        when(servicesMock.updateInstance(any(UpdateServiceInstanceRequest.class))).thenReturn(null);
+        Mockito.when(monoUpdatedService.block()).thenThrow(new NullPointerException("Service Instance can not update"));
+        
+        Mono<Void> monoBind = mock(Mono.class);
+        when(servicesMock.bind(any(BindServiceInstanceRequest.class))).thenReturn(null);
+        Mockito.when(monoBind.block()).thenThrow(new IllegalArgumentException("Application test does not exist"));
+        
+        // when + then
+        ServicesOperations servicesOperations = new ServicesOperations(cfMock);
+        assertThrows(CreationException.class, () -> {
+            servicesOperations.create(serviceBeanMock);
+        });
+    }
+    
+    @Test
+    public void testUpdateService() throws CreationException {
+        // given
+        ServiceBean serviceBeanMock = getServiceBeanMock();
+        List<String> apps = new LinkedList<>();
+        apps.add("test");
+        when(serviceBeanMock.getApplications()).thenReturn(apps);
         
         DefaultCloudFoundryOperations cfMock = Mockito.mock(DefaultCloudFoundryOperations.class);
         Services servicesMock = Mockito.mock(Services.class);

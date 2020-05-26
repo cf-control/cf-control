@@ -75,12 +75,4 @@ public class UpdateController implements Runnable {
             
         }
     }
-    
-    public static void main(String[] args) {
-        // TODO delegate the arguments to the correct command class
-
-        int exitCode = new CommandLine(new UpdateController()).execute(args);
-
-        System.exit(exitCode);
-    }
 }

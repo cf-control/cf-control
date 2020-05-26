@@ -57,17 +57,14 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
 
             if (serviceInstance.getLastOperation() == null
                 || serviceInstance.getLastOperation().isEmpty()) {
-
+             
                 serviceBean.setLastOperation("");
-
             } else {
-
                 serviceBean
                     .setLastOperation(serviceInstance.getLastOperation() + " " + serviceInstance.getStatus());
             }
             beans.add(serviceBean);
         }
-
         return beans;
     }
 
@@ -101,10 +98,8 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
 
     /**
      * Update a service instance
-     * 
      * @param serviceBean serves as template for the service to update
      * @throws CreationException when the creation or the binding was not successful
-     * 
      */
     public void update(ServiceBean serviceBean) throws CreationException {
         System.out.println("Updating service instance ID " + serviceBean.getId());
@@ -125,7 +120,6 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
 
     /**
      * Rename a service instance
-     * 
      * @param currentName Current Name of the Service Instance
      * @param newName     New Name of the Service Instance
      */
@@ -139,7 +133,6 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
             this.cloudFoundryOperations.services()
                 .renameInstance(renameServiceInstanceRequest)
                 .block();
-
             System.out.println("Name of Service Instance has been changed");
         } catch (RuntimeException e) {
             throw new CreationException(e.getMessage());
@@ -148,7 +141,6 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
 
     /**
      * Update Tags, Plan of a Service Instance
-     * 
      * @param serviceBean serves as template for the service to update
      */
     private void updateServiceInstance(ServiceBean serviceBean) throws CreationException {
@@ -159,11 +151,9 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
             .build();
 
         try {
-
             this.cloudFoundryOperations.services()
                 .updateInstance(updateServiceInstanceRequest)
                 .block();
-
             System.out.println("Service Plan and Tags haven been updated");
         } catch (RuntimeException e) {
             throw new CreationException(e.getMessage());
@@ -172,7 +162,6 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
 
     /**
      * Bind a service instance to applications
-     *
      * @param ServiceBean serves as template for the service to update
      */
     private void bindToApplications(ServiceBean serviceBean) throws CreationException {
