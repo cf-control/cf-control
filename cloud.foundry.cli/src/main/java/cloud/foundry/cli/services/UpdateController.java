@@ -48,13 +48,14 @@ public class UpdateController implements Runnable {
                 return;
             }
             Yaml yamlLoader = YamlCreator.createDefaultYamlProcessor();
-            ServiceBean serviceBean = yamlLoader.loadAs(yamlFileContent, ServiceBean.class);
-            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
-
-            ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
+            
             try {
+                ServiceBean serviceBean = yamlLoader.loadAs(yamlFileContent, ServiceBean.class);
+                DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+
+                ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
                 servicesOperations.update(serviceBean);
-            } catch (CreationException e) {
+            } catch (Exception e) {
                 System.out.println(e.getMessage());
             }
         }
