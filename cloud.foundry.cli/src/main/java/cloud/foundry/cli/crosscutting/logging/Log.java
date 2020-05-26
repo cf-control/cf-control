@@ -15,9 +15,14 @@ public class Log {
     // the name of the environment variable that needs to be set to turn on the debug messages
     private static final String DEBUG_ENV_VAR_NAME = "DEBUG";
 
+    /**
+     * The name of the CF-Control logger.
+     */
+    public static final String LOGGER_NAME = "cfctl";
+
     // initialize and configure logger initially
     static {
-        logger = java.util.logging.Logger.getLogger("cfctl");
+        logger = java.util.logging.Logger.getLogger(LOGGER_NAME);
 
         // by default, we don't want to log debug messages
         // however, the user can opt-in to them by setting the environment variable $DEBUG
