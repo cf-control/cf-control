@@ -12,13 +12,16 @@ public class Log {
     // we can internally use the Java logging facilities
     private static final java.util.logging.Logger logger;
 
+    // the name of the environment variable that needs to be set to turn on the debug messages
+    private static final String DEBUG_ENV_VAR_NAME = "DEBUG";
+
     // initialize and configure logger initially
     static {
         logger = java.util.logging.Logger.getLogger("cfctl");
 
         // by default, we don't want to log debug messages
         // however, the user can opt-in to them by setting the environment variable $DEBUG
-        if (System.getenv("DEBUG") != null) {
+        if (System.getenv(DEBUG_ENV_VAR_NAME) != null) {
             logger.setLevel(Level.FINE);
         } else {
             logger.setLevel(Level.INFO);
