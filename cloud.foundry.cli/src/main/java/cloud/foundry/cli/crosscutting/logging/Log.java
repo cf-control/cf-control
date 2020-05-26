@@ -20,7 +20,7 @@ public class Log {
      */
     public static final String LOGGER_NAME = "cfctl";
 
-    // initialize and configure logger initially
+    // initialize and configure logger
     static {
         logger = java.util.logging.Logger.getLogger(LOGGER_NAME);
 
