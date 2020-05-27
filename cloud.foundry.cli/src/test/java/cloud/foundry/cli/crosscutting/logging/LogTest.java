@@ -60,7 +60,7 @@ public class LogTest {
         // cache in separate variable to allow for introspection during debugging
         String stderr = stderrCache.toString();
 
-        assert stderr.contains("SEVERE: " + uniqueTestString + "\n");
+        assert stderr.contains("SEVERE: " + uniqueTestString);
     }
 
     @Test
@@ -76,7 +76,7 @@ public class LogTest {
         // cache in separate variable to allow for introspection during debugging
         String stderr = stderrCache.toString();
 
-        assert stderr.contains("WARNING: " + uniqueTestString + "\n");
+        assert stderr.contains("WARNING: " + uniqueTestString);
     }
 
     @Test
@@ -92,7 +92,7 @@ public class LogTest {
         // cache in separate variable to allow for introspection during debugging
         String stderr = stderrCache.toString();
 
-        assert stderr.contains("INFO: " + uniqueTestString + "\n");
+        assert stderr.contains("INFO: " + uniqueTestString);
     }
 
     @Test
@@ -113,8 +113,8 @@ public class LogTest {
         // cache in separate variable to allow for introspection during debugging
         String stderr = stderrCache.toString();
 
-        assert stderr.contains("SEVERE: " + uniqueTestString + "\n");
-        assert stderr.contains("java.lang.ArithmeticException: / by zero\n");
+        assert stderr.contains("SEVERE: " + uniqueTestString);
+        assert stderr.contains("java.lang.ArithmeticException: / by zero");
     }
 
 }
