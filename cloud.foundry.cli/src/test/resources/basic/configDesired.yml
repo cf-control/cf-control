@@ -1,0 +1,16 @@
+apiVersion: 1.2.0
+spec:
+  spaceDevelopers: ['t01234@datev.de', "other.mail@mailserbce.de", "another.mail@mailservice.de"]
+  services:
+    datev-http-routing:
+      name: mitarbeiter-web-route
+      plan: unsecure
+      tags:
+        - tag1
+        - tag2
+  apps:
+    firstApp:
+      name: app
+      path: src/app-1.0.1.jar
+      manifest:
+        buildpack: someBuildpack3

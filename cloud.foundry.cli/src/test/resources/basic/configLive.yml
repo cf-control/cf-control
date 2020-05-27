@@ -1,0 +1,27 @@
+apiVersion: 1.0.0
+target:
+  endpoint: 'api.pcfsys.dev.datev.de'
+  org: LOON
+  space: Master-Secure
+spec:
+  spaceDevelopers: ['t01234@datev.de', "other.mail@mailserbce.de"]
+  services:
+    datev-http-routing:
+      name: mitarbeiter-web-route
+      plan: secure
+      tags:
+       - tag1
+       - tag2
+  apps:
+    firstApp:
+      name: app
+      path: src/app-1.0.1.jar
+      manifest:
+        buildpack: someBuildpack2
+    secondApp:
+      name: app2
+      path: src/app2-1.0.jar
+      manifest:
+        buildpack: other buildpack
+        services:
+         - some service
