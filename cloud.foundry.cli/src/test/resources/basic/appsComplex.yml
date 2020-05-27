@@ -1,0 +1,13 @@
+apps:
+  firstApp:
+    name: app
+    path: src/app-1.0.0.jar
+    manifest:
+      buildpack: someBuildpack2
+  thirdApp:
+    name: app2
+    path: src/app2-1.0.jar
+    manifest:
+      buildpack: other buildpack
+      services:
+        - some service

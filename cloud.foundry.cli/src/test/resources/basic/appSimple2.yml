@@ -1,0 +1,6 @@
+name: app
+path: src/app-1.2.0.jar
+manifest:
+  buildpack: other buildpack
+  services:
+    - some service

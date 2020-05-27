@@ -1,0 +1,17 @@
+apps:
+  firstApp:
+    name: app
+    path: src/app-1.0.1.jar
+    manifest:
+      buildpack: someBuildpack
+      services:
+        - some service
+        - some other service
+      disk: 2048
+  secondApp:
+    name: app2
+    path: src/app2-1.0.jar
+    manifest:
+      buildpack: other buildpack
+      services:
+        - some service
