@@ -85,7 +85,9 @@ public class DiffStringBuilder {
         }
 
         sb.append(flagSymbol);
-        sb.append(" ".repeat(indentation));
+
+        repeat(sb, ' ', indentation);
+
         if (!propertyName.isEmpty()) {
             sb.append(propertyName).append(": ");
         }
@@ -99,5 +101,11 @@ public class DiffStringBuilder {
         }
 
         return sb.toString();
+    }
+
+    private void repeat(StringBuilder sb, char c, int times) {
+        for (int i = 0; i < times; i++) {
+            sb.append(c);
+        }
     }
 }
