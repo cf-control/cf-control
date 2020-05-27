@@ -1,5 +1,6 @@
 package cloud.foundry.cli.crosscutting.logging;
 
+import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -22,6 +23,10 @@ public class Log {
     public static final String LOGGER_NAME = "cfctl";
 
     static {
+        // enforce English log output format (especially important for log levels)
+        System.setProperty("user.language", "en");
+        Locale.setDefault(new Locale("en", "EN"));
+
         logger = java.util.logging.Logger.getLogger(LOGGER_NAME);
 
         // by default, we don't want to log debug messages
