@@ -4,6 +4,7 @@ import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.beans.SpaceDevelopersBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
+import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
 import cloud.foundry.cli.crosscutting.util.FileUtils;
 import cloud.foundry.cli.crosscutting.util.YamlCreator;
@@ -49,7 +50,7 @@ public class CreateController implements Runnable {
             try {
                 yamlFileContent = FileUtils.readLocalFile(commandOptions.getYamlFilePath());
             } catch (IOException e) {
-                System.err.println(e.getMessage());
+                Log.exception(e, "Failed to read YAML file");
                 return;
             }
             Yaml yamlLoader = YamlCreator.createDefaultYamlProcessor();
@@ -63,7 +64,7 @@ public class CreateController implements Runnable {
                     spaceDevelopersOperations.assignSpaceDeveloper(username);
                 }
             } catch (Exception e) {
-                System.out.println(e.getMessage());
+                Log.exception(e, "Unexpected error occurred");
             }
         }
     }
@@ -83,7 +84,7 @@ public class CreateController implements Runnable {
             try {
                 yamlFileContent = FileUtils.readLocalFile(commandOptions.getYamlFilePath());
             } catch (IOException e) {
-                System.err.println(e.getMessage());
+                Log.exception(e, "Failed to read YAML file");
                 return;
             }
             Yaml yamlLoader = YamlCreator.createDefaultYamlProcessor();
@@ -95,7 +96,7 @@ public class CreateController implements Runnable {
                 ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
                 servicesOperations.create(serviceBean);
             } catch (Exception e) {
-                System.out.println(e.getMessage());
+                Log.exception(e, "Unexpected error occurred");
             }
         }
     }
@@ -116,7 +117,7 @@ public class CreateController implements Runnable {
             try {
                 yamlFileContent = FileUtils.readLocalFile(commandOptions.getYamlFilePath());
             } catch (IOException e) {
-                System.err.println(e.getMessage());
+                Log.exception(e, "Failed to read YAML file");
                 return;
             }
             Yaml yamlLoader = YamlCreator.createDefaultYamlProcessor();
@@ -127,11 +128,11 @@ public class CreateController implements Runnable {
                 ApplicationOperations applicationOperations = new ApplicationOperations(cfOperations);
 
                 applicationOperations.create(applicationBean, false);
-                System.out.println("App created: " + applicationBean.getName());
+                Log.info("App created:", applicationBean.getName());
             } catch (CreationException e) {
-                System.out.println("FAILED:" + e.getMessage());
+                Log.error("Failed to create message:" + e.getMessage());
             } catch (Exception e) {
-                System.out.println(e.getMessage());
+                Log.exception(e, "Unexpected error occurred");
             }
 
         }

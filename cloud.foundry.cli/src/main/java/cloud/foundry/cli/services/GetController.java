@@ -4,6 +4,7 @@ import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.beans.GetAllBean;
 import cloud.foundry.cli.crosscutting.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.beans.SpaceDevelopersBean;
+import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
 import cloud.foundry.cli.crosscutting.util.YamlCreator;
 import cloud.foundry.cli.operations.AllInformationOperations;
@@ -55,7 +56,7 @@ public class GetController implements Runnable {
 
                 System.out.println(YamlCreator.createDefaultYamlProcessor().dump(spaceDevelopers));
             } catch (Exception e) {
-                System.out.println(e.getMessage());
+                Log.exception(e, "Unexpected error occurred");
             }
         }
     }
@@ -74,7 +75,7 @@ public class GetController implements Runnable {
 
                 System.out.println(YamlCreator.createDefaultYamlProcessor().dump(services));
             } catch (Exception e) {
-                System.out.println(e.getMessage());
+                Log.exception(e, "Unexpected error occurred");
             }
         }
     }
@@ -93,7 +94,7 @@ public class GetController implements Runnable {
 
                 System.out.println(YamlCreator.createDefaultYamlProcessor().dump(applications));
             } catch (Exception e) {
-                System.out.println(e.getMessage());
+                Log.exception(e, "Unexpected error occurred");
             }
         }
     }
@@ -112,7 +113,7 @@ public class GetController implements Runnable {
 
                 System.out.println(YamlCreator.createDefaultYamlProcessor().dump(allInformation));
             } catch (Exception e) {
-                System.out.println(e.getMessage());
+                Log.exception(e, "Unexpected error occurred");
             }
         }
     }

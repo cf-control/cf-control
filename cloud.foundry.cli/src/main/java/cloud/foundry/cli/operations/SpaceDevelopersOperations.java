@@ -3,6 +3,7 @@ package cloud.foundry.cli.operations;
 import cloud.foundry.cli.crosscutting.beans.SpaceDevelopersBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 
+import cloud.foundry.cli.crosscutting.logging.Log;
 import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperByUsernameRequest;
 import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperByUsernameResponse;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
@@ -61,8 +62,7 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
             .listSpaceUsers(spaceUsersRequest)
             .block();
         if (!spaceUsers.getDevelopers().contains(username)) {
-            System.out.println("Assigning role SpaceDeveloper to user " + username + " in org "
-                + organization + "/ space " + space);
+            Log.info("Assigning role SpaceDeveloper to user", username, "in org", organization, "/ space", space);
             AssociateSpaceDeveloperByUsernameRequest request = AssociateSpaceDeveloperByUsernameRequest.builder()
                 .username(username)
                 .spaceId(spaceId)
@@ -72,9 +72,8 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
                     .spaces()
                     .associateDeveloperByUsername(request)
                     .block();
-                System.out.println("OK \n");
             } catch (Exception e) {
-                throw new CreationException("FAILED \n " + e.getMessage());
+                throw new CreationException(e);
             }
         }
     }

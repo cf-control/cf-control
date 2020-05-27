@@ -2,8 +2,8 @@ package cloud.foundry.cli.operations;
 
 import cloud.foundry.cli.crosscutting.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
-
 import org.cloudfoundry.operations.services.ServiceInstance;
+import cloud.foundry.cli.crosscutting.logging.Log;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.services.BindServiceInstanceRequest;
 import org.cloudfoundry.operations.services.CreateServiceInstanceRequest;
@@ -87,7 +87,7 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
 
         try {
             created.block();
-            System.out.println("Service \"" + serviceBean.getName() + "\" has been created.");
+            Log.info("Service \"" + serviceBean.getName() + "\" has been created.");
         } catch (RuntimeException e) {
             throw new CreationException(e.getMessage());
         }
@@ -102,7 +102,7 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      * @throws CreationException when the creation or the binding was not successful
      */
     public void update(ServiceBean serviceBean) throws CreationException {
-        System.out.println("Updating service instance ID " + serviceBean.getId());
+        Log.info("Updating service instance ID", serviceBean.getId());
 
         // rename a service instance
         // TODO currentname should be changed, because we have no idea
@@ -133,7 +133,7 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
             this.cloudFoundryOperations.services()
                 .renameInstance(renameServiceInstanceRequest)
                 .block();
-            System.out.println("Name of Service Instance has been changed");
+            Log.info("Name of Service Instance has been changed");
         } catch (RuntimeException e) {
             throw new CreationException(e.getMessage());
         }
@@ -154,7 +154,7 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
             this.cloudFoundryOperations.services()
                 .updateInstance(updateServiceInstanceRequest)
                 .block();
-            System.out.println("Service Plan and Tags haven been updated");
+            Log.info("Service Plan and Tags haven been updated");
         } catch (RuntimeException e) {
             throw new CreationException(e.getMessage());
         }
@@ -165,20 +165,21 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      * @param ServiceBean serves as template for the service to update
      */
     private void bindToApplications(ServiceBean serviceBean) throws CreationException {
+        String service = serviceBean.getName();
 
         for (String app : serviceBean.getApplications()) {
             BindServiceInstanceRequest bindServiceRequest = BindServiceInstanceRequest.builder()
                 .applicationName(app)
-                .serviceInstanceName(serviceBean.getName())
+                .serviceInstanceName(service)
                 .build();
 
             try {
                 this.cloudFoundryOperations.services()
                     .bind(bindServiceRequest)
                     .block();
-                System.out.println("Service has been bound to the application " + app + ".");
+                Log.info("Service \"" + service + "\" has been bound to the application \"" + app + "\".");
             } catch (RuntimeException e) {
-                throw new CreationException(e.getMessage());
+                throw new CreationException(e);
             }
         }
     }
