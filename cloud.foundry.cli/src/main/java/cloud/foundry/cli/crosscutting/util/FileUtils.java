@@ -29,10 +29,10 @@ import java.util.Set;
  */
 public class FileUtils {
 
-    private static final Set<String> ALLOWED_FILE_EXTENSIONS = new HashSet<>(Arrays.asList(
+    private static final Set<String> ALLOWED_FILE_EXTENSIONS = Set.of(
             "YAML",
             "YML"
-    ));
+    );
 
     /**
      *
