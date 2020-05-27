@@ -1,5 +1,6 @@
 package cloud.foundry.cli.crosscutting.logging;
 
+import java.util.Arrays;
 import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -81,6 +82,7 @@ public class Log {
      */
     public static void setLogLevel(Level level) {
         logger.setLevel(level);
+        Arrays.stream(logger.getHandlers()).forEach(h -> h.setLevel(level));
     }
 
     /**
