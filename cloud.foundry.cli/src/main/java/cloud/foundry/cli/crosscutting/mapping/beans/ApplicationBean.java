@@ -18,6 +18,14 @@ public class ApplicationBean implements Bean {
         this.manifest = manifestBean;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public String getPath() {
         return path;
     }
