@@ -1,6 +1,7 @@
 package cloud.foundry.cli.crosscutting.logging;
 
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * The central logging module, providing a standardized interface for all logging activities in the project.
@@ -10,7 +11,7 @@ import java.util.logging.Level;
  */
 public class Log {
     // we can internally use the Java logging facilities
-    private static final java.util.logging.Logger logger;
+    private static final Logger logger;
 
     // the name of the environment variable that needs to be set to turn on the debug messages
     private static final String DEBUG_ENV_VAR_NAME = "DEBUG";
