@@ -5,7 +5,7 @@ import cloud.foundry.cli.crosscutting.beans.GetAllBean;
 import cloud.foundry.cli.crosscutting.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.beans.SpaceDevelopersBean;
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
-import cloud.foundry.cli.crosscutting.util.YamlCreator;
+import cloud.foundry.cli.crosscutting.util.YamlProcessorCreator;
 import cloud.foundry.cli.operations.AllInformationOperations;
 import cloud.foundry.cli.operations.ApplicationOperations;
 import cloud.foundry.cli.operations.ServicesOperations;
@@ -53,7 +53,7 @@ public class GetController implements Runnable {
                 SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
                 SpaceDevelopersBean spaceDevelopers = spaceDevelopersOperations.getAll();
 
-                System.out.println(YamlCreator.createDefaultYamlProcessor().dump(spaceDevelopers));
+                System.out.println(YamlProcessorCreator.createDefault().dump(spaceDevelopers));
             } catch (Exception e) {
                 System.out.println(e.getMessage());
             }
@@ -72,7 +72,7 @@ public class GetController implements Runnable {
                 ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
                 List<ServiceBean> services = servicesOperations.getAll();
 
-                System.out.println(YamlCreator.createDefaultYamlProcessor().dump(services));
+                System.out.println(YamlProcessorCreator.createDefault().dump(services));
             } catch (Exception e) {
                 System.out.println(e.getMessage());
             }
@@ -91,7 +91,7 @@ public class GetController implements Runnable {
                 ApplicationOperations applicationOperations = new ApplicationOperations(cfOperations);
                 List<ApplicationBean> applications = applicationOperations.getAll();
 
-                System.out.println(YamlCreator.createDefaultYamlProcessor().dump(applications));
+                System.out.println(YamlProcessorCreator.createDefault().dump(applications));
             } catch (Exception e) {
                 System.out.println(e.getMessage());
             }
@@ -110,7 +110,7 @@ public class GetController implements Runnable {
                 AllInformationOperations allInformationOperations = new AllInformationOperations(cfOperations);
                 GetAllBean allInformation = allInformationOperations.getAll();
 
-                System.out.println(YamlCreator.createDefaultYamlProcessor().dump(allInformation));
+                System.out.println(YamlProcessorCreator.createDefault().dump(allInformation));
             } catch (Exception e) {
                 System.out.println(e.getMessage());
             }

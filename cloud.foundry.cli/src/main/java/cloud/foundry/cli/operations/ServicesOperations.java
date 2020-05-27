@@ -2,12 +2,10 @@ package cloud.foundry.cli.operations;
 
 import cloud.foundry.cli.crosscutting.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
-import cloud.foundry.cli.crosscutting.util.YamlCreator;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.services.BindServiceInstanceRequest;
 import org.cloudfoundry.operations.services.CreateServiceInstanceRequest;
 import org.cloudfoundry.operations.services.ServiceInstanceSummary;
-import org.yaml.snakeyaml.Yaml;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;

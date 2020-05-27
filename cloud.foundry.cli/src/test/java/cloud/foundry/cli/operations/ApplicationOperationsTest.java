@@ -13,7 +13,7 @@ import static org.mockito.Mockito.when;
 import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.beans.ApplicationManifestBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
-import cloud.foundry.cli.crosscutting.util.YamlCreator;
+import cloud.foundry.cli.crosscutting.util.YamlProcessorCreator;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
 import org.cloudfoundry.operations.applications.ApplicationManifest;
@@ -49,7 +49,7 @@ public class ApplicationOperationsTest {
 
         // forge YAML document
         ApplicationOperations applicationOperations = new ApplicationOperations(cfMock);
-        String yamlDoc = YamlCreator.createDefaultYamlProcessor().dump(applicationOperations.getAll());
+        String yamlDoc = YamlProcessorCreator.createDefault().dump(applicationOperations.getAll());
 
         // check if it's really empty
         assertEquals(yamlDoc, "[\n  ]\n");
@@ -75,7 +75,7 @@ public class ApplicationOperationsTest {
 
         // now, we can generate a YAML doc for our ApplicationSummary
         ApplicationOperations applicationOperations = new ApplicationOperations(cfMock);
-        String yamlDoc = YamlCreator.createDefaultYamlProcessor().dump(applicationOperations.getAll());
+        String yamlDoc = YamlProcessorCreator.createDefault().dump(applicationOperations.getAll());
 
         // ... and make sure it contains exactly what we'd expect
         assertThat(yamlDoc, is(

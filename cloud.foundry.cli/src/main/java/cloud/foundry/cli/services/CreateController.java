@@ -6,7 +6,7 @@ import cloud.foundry.cli.crosscutting.beans.SpaceDevelopersBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
 import cloud.foundry.cli.crosscutting.util.FileUtils;
-import cloud.foundry.cli.crosscutting.util.YamlCreator;
+import cloud.foundry.cli.crosscutting.util.YamlProcessorCreator;
 import cloud.foundry.cli.operations.ApplicationOperations;
 import cloud.foundry.cli.operations.ServicesOperations;
 import cloud.foundry.cli.operations.SpaceDevelopersOperations;
@@ -52,7 +52,7 @@ public class CreateController implements Runnable {
                 System.err.println(e.getMessage());
                 return;
             }
-            Yaml yamlLoader = YamlCreator.createDefaultYamlProcessor();
+            Yaml yamlLoader = YamlProcessorCreator.createDefault();
             SpaceDevelopersBean spaceDevelopersBean = yamlLoader.loadAs(yamlFileContent, SpaceDevelopersBean.class);
 
             try {
@@ -86,7 +86,7 @@ public class CreateController implements Runnable {
                 System.err.println(e.getMessage());
                 return;
             }
-            Yaml yamlLoader = YamlCreator.createDefaultYamlProcessor();
+            Yaml yamlLoader = YamlProcessorCreator.createDefault();
 
             try {
                 ServiceBean serviceBean = yamlLoader.loadAs(yamlFileContent, ServiceBean.class);
@@ -119,7 +119,7 @@ public class CreateController implements Runnable {
                 System.err.println(e.getMessage());
                 return;
             }
-            Yaml yamlLoader = YamlCreator.createDefaultYamlProcessor();
+            Yaml yamlLoader = YamlProcessorCreator.createDefault();
             try {
                 ApplicationBean applicationBean = yamlLoader.loadAs(yamlFileContent, ApplicationBean.class);
                 DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
