@@ -1,9 +1,0 @@
-companyName: Yaml Inc
-employees:
-  - &bestEmployee
-    name: John
-    age: 42
-  -
-    name: Jane
-    age: 37
-employeeOfTheMonth: *bestEmployee

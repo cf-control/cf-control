@@ -26,12 +26,6 @@ public class RefResolverTest {
 
     @Test
     @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
-    public void testLocalRef() throws FileNotFoundException {
-        assertSemanticEquality("ExpectedLocalRef.yaml", "LocalRef.yaml");
-    }
-
-    @Test
-    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testRemoteRef() throws FileNotFoundException {
         assertSemanticEquality("ExpectedRemoteRef.yaml", "RemoteRef.yaml");
     }
