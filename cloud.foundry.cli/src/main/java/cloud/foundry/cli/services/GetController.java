@@ -17,6 +17,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * This class realizes the functionality that is needed for the get commands. They provide various information about a
@@ -71,7 +72,7 @@ public class GetController implements Runnable {
             try {
                 DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
                 ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
-                List<ServiceBean> services = servicesOperations.getAll();
+                Map<String,ServiceBean> services = servicesOperations.getAll();
 
                 System.out.println(YamlCreator.createDefaultYamlProcessor().dump(services));
             } catch (Exception e) {

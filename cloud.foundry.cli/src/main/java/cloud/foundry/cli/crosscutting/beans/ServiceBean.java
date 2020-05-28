@@ -1,6 +1,6 @@
 package cloud.foundry.cli.crosscutting.beans;
 
-import org.cloudfoundry.operations.services.ServiceInstanceSummary;
+import org.cloudfoundry.operations.services.ServiceInstance;
 import org.cloudfoundry.operations.services.ServiceInstanceType;
 
 import java.util.List;
@@ -10,56 +10,25 @@ import java.util.List;
  */
 public class ServiceBean implements Bean {
 
-    private String id;
-    /**
-     * TODO : replace this field, since it will be stored in the map in the bean above (SpecBean)
-     * TODO : requires adjustment in the service operations
-     */
-    private String name;
     private String service;
-    private List<String> applications;
     private String lastOperation;
     private String plan;
     private List<String> tags;
     private ServiceInstanceType type;
 
-    public ServiceBean(ServiceInstanceSummary serviceInstanceSummary) {
-        this.id = serviceInstanceSummary.getId();
-        this.service = serviceInstanceSummary.getService();
-        this.applications = serviceInstanceSummary.getApplications();
-        this.lastOperation = serviceInstanceSummary.getLastOperation();
-        this.plan = serviceInstanceSummary.getPlan();
-        this.tags = serviceInstanceSummary.getTags();
-        this.type = serviceInstanceSummary.getType();
+    public ServiceBean(ServiceInstance serviceInstance) {
+        this.service = serviceInstance.getService();
+        this.lastOperation = serviceInstance.getLastOperation() == null ? null
+                            : serviceInstance.getLastOperation() + " " + serviceInstance.getStatus();
+        this.plan = serviceInstance.getPlan();
+        this.tags = serviceInstance.getTags().isEmpty() ? null : serviceInstance.getTags();
+        this.type = serviceInstance.getType();
+
     }
 
     public ServiceBean() {
     }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public List<String> getApplications() {
-        return applications;
-    }
-
-    public void setApplications(List<String> applications) {
-        this.applications = applications;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
+    
     public String getLastOperation() {
         return lastOperation;
     }
@@ -89,6 +58,10 @@ public class ServiceBean implements Bean {
     }
 
     public void setTags(List<String> tags) {
+        if (tags == null || tags.isEmpty()) {
+            this.tags = null;
+        }
+
         this.tags = tags;
     }
 

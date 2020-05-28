@@ -16,17 +16,16 @@ import org.yaml.snakeyaml.Yaml;
 import picocli.CommandLine;
 
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * This class realizes the functionality that is needed for the create commands.
  */
 @CommandLine.Command(name = "create", header = "%n@|green Create a new app, service or add a new " +
-        "space developer.|@",
-        mixinStandardHelpOptions = true,
-        subcommands = {
-                CreateController.CreateServiceCommand.class,
-                CreateController.AssignSpaceDeveloperCommand.class,
-                CreateController.CreateApplicationCommand.class})
+    "space developer.|@", mixinStandardHelpOptions = true, subcommands = {
+        CreateController.CreateServiceCommand.class,
+        CreateController.AssignSpaceDeveloperCommand.class,
+        CreateController.CreateApplicationCommand.class })
 public class CreateController implements Runnable {
 
     @Override
@@ -90,11 +89,16 @@ public class CreateController implements Runnable {
             Yaml yamlLoader = YamlCreator.createDefaultYamlProcessor();
 
             try {
-                ServiceBean serviceBean = yamlLoader.loadAs(yamlFileContent, ServiceBean.class);
+
+                Map<String, Object> mapServiceBean = yamlLoader.loadAs(yamlFileContent, Map.class);
                 DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
 
                 ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
-                servicesOperations.create(serviceBean);
+                for (String serviceInstanceName : mapServiceBean.keySet()) {
+                    String serviceBeanYaml = yamlLoader.dump(mapServiceBean.get(serviceInstanceName));
+                    ServiceBean serviceBean = yamlLoader.loadAs(serviceBeanYaml, ServiceBean.class);
+                    servicesOperations.create(serviceInstanceName, serviceBean);
+                }
             } catch (Exception e) {
                 Log.exception(e, "Unexpected error occurred");
             }
