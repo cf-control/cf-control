@@ -57,7 +57,7 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
 
             if (serviceInstance.getLastOperation() == null
                 || serviceInstance.getLastOperation().isEmpty()) {
-             
+
                 serviceBean.setLastOperation("");
             } else {
                 serviceBean
@@ -71,7 +71,7 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
     /**
      * Creates a new service in the space and binds apps to it. In case of an error,
      * the creation- and binding-process is discontinued.
-     * 
+     *
      * @param serviceBean serves as template for the service to create
      * @throws CreationException when the creation or the binding was not successful
      */

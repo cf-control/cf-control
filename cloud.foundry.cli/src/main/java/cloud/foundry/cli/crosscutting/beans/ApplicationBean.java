@@ -7,6 +7,10 @@ import org.cloudfoundry.operations.applications.ApplicationManifest;
  */
 public class ApplicationBean implements Bean {
 
+    /**
+     * TODO : replace this field, since it will be stored in the map in the bean above (SpecBean)
+     * TODO : requires adjustment in the applications operations
+     */
     private String name;
     private ApplicationManifestBean manifest;
     private String path;
