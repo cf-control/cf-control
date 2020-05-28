@@ -10,18 +10,21 @@ import java.util.List;
  */
 public class ServiceBean implements Bean {
 
-    private  String id;
-    private  String name;
-    private  String service;
-    private  List<String> applications;
-    private  String lastOperation;
-    private  String plan;
-    private  List<String> tags;
-    private  ServiceInstanceType type;
+    private String id;
+    /**
+     * TODO : replace this field, since it will be stored in the map in the bean above (SpecBean)
+     * TODO : requires adjustment in the service operations
+     */
+    private String name;
+    private String service;
+    private List<String> applications;
+    private String lastOperation;
+    private String plan;
+    private List<String> tags;
+    private ServiceInstanceType type;
 
     public ServiceBean(ServiceInstanceSummary serviceInstanceSummary) {
         this.id = serviceInstanceSummary.getId();
-        this.name = serviceInstanceSummary.getName();
         this.service = serviceInstanceSummary.getService();
         this.applications = serviceInstanceSummary.getApplications();
         this.lastOperation = serviceInstanceSummary.getLastOperation();
@@ -31,6 +34,14 @@ public class ServiceBean implements Bean {
     }
 
     public ServiceBean() {
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public List<String> getApplications() {
@@ -55,20 +66,6 @@ public class ServiceBean implements Bean {
 
     public void setLastOperation(String lastOperation) {
         this.lastOperation = lastOperation;
-    }
-
-    /**
-     * @return the name if it is set, the service otherwise
-     */
-    public String getName() {
-        if (name == null) {
-            return service;
-        }
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public String getPlan() {

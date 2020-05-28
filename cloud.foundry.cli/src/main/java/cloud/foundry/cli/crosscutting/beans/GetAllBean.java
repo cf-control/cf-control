@@ -1,7 +1,10 @@
 package cloud.foundry.cli.crosscutting.beans;
 
-import java.util.List;
 import java.util.Map;
+
+/**
+ * TODO : replace this class with the ConfigBean and adjust references in AllInformationOperations and GetController
+ */
 
 /**
  * Bean holding all data of the current state of the live system.
