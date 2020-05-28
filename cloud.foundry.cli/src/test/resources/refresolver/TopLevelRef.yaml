@@ -1,4 +1,4 @@
 should: be
-$ref : './src/test/resources/refresolver/referred/VariousContents.yaml'
+$ref : './src/test/resources/basic/VariousContents.yaml'
 over:
   rid: den

@@ -1,4 +1,4 @@
 me:
-  $ref: './src/test/resources/refresolver/referred/SimpleMap.yaml'
+  $ref: './src/test/resources/basic/SimpleMap.yaml'
 myFriend:
-  $ref: './src/test/resources/refresolver/referred/VariousContents.yaml#/persons/1'
+  $ref: './src/test/resources/basic/VariousContents.yaml#/persons/1'
