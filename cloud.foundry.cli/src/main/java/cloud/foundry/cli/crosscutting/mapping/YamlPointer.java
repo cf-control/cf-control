@@ -1,4 +1,4 @@
-package cloud.foundry.cli.mapping;
+package cloud.foundry.cli.crosscutting.mapping;
 
 import cloud.foundry.cli.crosscutting.exceptions.InvalidPointerException;
 

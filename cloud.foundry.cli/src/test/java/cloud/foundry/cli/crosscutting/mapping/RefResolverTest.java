@@ -1,10 +1,11 @@
-package cloud.foundry.cli.mapping;
+package cloud.foundry.cli.crosscutting.mapping;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import cloud.foundry.cli.crosscutting.mapping.RefResolver;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import org.junit.jupiter.api.Assertions;

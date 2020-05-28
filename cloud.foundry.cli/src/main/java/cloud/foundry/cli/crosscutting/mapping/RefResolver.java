@@ -1,4 +1,4 @@
-package cloud.foundry.cli.mapping;
+package cloud.foundry.cli.crosscutting.mapping;
 
 import org.yaml.snakeyaml.Yaml;
 
