@@ -4,7 +4,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import cloud.foundry.cli.exceptions.InvalidPointerException;
+import cloud.foundry.cli.crosscutting.exceptions.InvalidPointerException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 

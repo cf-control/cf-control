@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
 public class YamlTreeUtilsTest {
@@ -53,7 +54,9 @@ public class YamlTreeUtilsTest {
     @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testVisitNonemptyMapping() {
         YamlTreeVisitor mockedVisitor = mock(YamlTreeVisitor.class);
-        Map<Object, Object> mapping = Map.of("key", 5, false, 2.72);
+        Map<Object, Object> mapping = new HashMap<>();
+        mapping.put("key", 5);
+        mapping.put(false, 2.72);
 
         YamlTreeUtils.visit(mockedVisitor, mapping);
 

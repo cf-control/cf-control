@@ -25,15 +25,15 @@ checkstyle {
 }
 
 checkstyleMain {
-    source ='src/main/java'
+    source = 'src/main/java'
 }
 checkstyleTest {
-    source ='src/test/java'
+    source = 'src/test/java'
 }
 
 dependencies {
     // This dependency is exported to consumers, that is to say found on their compile classpath.
-    //api 'org.apache.commons:commons-math3:3.6.1'
+    api 'org.apache.commons:commons-math3:3.6.1'
 
     // This dependency is used internally, and not exposed to consumers on their own compile classpath.
     implementation 'com.google.guava:guava:28.0-jre'
@@ -52,6 +52,12 @@ dependencies {
 
     testImplementation 'org.hamcrest:hamcrest:2.2'
     testImplementation "org.mockito:mockito-core:2.+"
+    testImplementation 'org.mockito:mockito-inline:2.15.0'
+
+    testImplementation 'net.bytebuddy:byte-buddy-gradle-plugin:1.10.10'
+
+    compile 'org.cloudfoundry:cloudfoundry-client-reactor:4.6.0.RELEASE'
+    compile 'org.cloudfoundry:cloudfoundry-operations:4.6.0.RELEASE'
 }
 
 test {
@@ -62,10 +68,13 @@ test {
 
 jar {
     manifest {
-        attributes 'Main-Class': 'cloud.foundry.cli.Greet',
-        'Class-Path': configurations.runtime.files.collect { "lib/$it.name" }.join(' ')
+        attributes 'Main-Class': 'cloud.foundry.cli.services.BaseController',
+                'Class-Path': configurations.runtime.files.collect { "lib/$it.name" }.join(' ')
     }
+
     from {
         configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
+
+    baseName 'cf-control'
 }
