@@ -8,6 +8,8 @@ import cloud.foundry.cli.crosscutting.beans.SpaceDevelopersBean;
 
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.introspector.Property;
+import org.yaml.snakeyaml.nodes.NodeTuple;
 import org.yaml.snakeyaml.nodes.Tag;
 import org.yaml.snakeyaml.representer.Representer;
 
@@ -31,7 +33,18 @@ public class YamlCreator {
         options.setIndent(2);
         // use custom representer to hide bean class names in output
         // we explicitly have to add _all_ custom bean types
-        Representer representer = new Representer();
+        Representer representer = new Representer() {
+                @Override
+                protected NodeTuple representJavaBeanProperty(Object javaBean, Property property, Object propertyValue,Tag customTag) {
+                    // if value of property is null, ignore it.
+                 if (propertyValue == null) {
+                       return null;
+                   }
+                    else {
+                        return super.representJavaBeanProperty(javaBean, property, propertyValue, customTag);
+                    }
+                }
+            };
         representer.addClassTag(ApplicationBean.class, Tag.MAP);
         representer.addClassTag(ApplicationManifestBean.class, Tag.MAP);
         representer.addClassTag(ServiceBean.class, Tag.MAP);
