@@ -1,6 +1,8 @@
 package cloud.foundry.cli.crosscutting.util;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
@@ -388,7 +390,7 @@ public class FileUtilsTest {
         server.start();
 
         //Act
-        cloud.foundry.cli.exceptions.InvalidFileTypeException exception = assertThrows(cloud.foundry.cli.exceptions.InvalidFileTypeException.class,
+        InvalidFileTypeException exception = assertThrows(InvalidFileTypeException.class,
                 () -> FileUtils.readRemoteFile(server.url("SimpleList.txt")));
         assertThat(exception.getMessage(), containsString("invalid file extension"));
 
@@ -511,7 +513,7 @@ public class FileUtilsTest {
         }
 
         public MappingBuilder build() {
-            MappingBuilder mappingBuilder =  get(urlEqualTo("/" + path));
+            MappingBuilder mappingBuilder = get(urlEqualTo("/" + path));
             ResponseDefinitionBuilder respBuilder = aResponse();
 
             for (Map.Entry<String, String> headEntry : header.entrySet()) {

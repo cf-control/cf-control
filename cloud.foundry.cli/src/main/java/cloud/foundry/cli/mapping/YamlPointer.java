@@ -1,6 +1,6 @@
 package cloud.foundry.cli.mapping;
 
-import cloud.foundry.cli.exceptions.InvalidPointerException;
+import cloud.foundry.cli.crosscutting.exceptions.InvalidPointerException;
 
 public class YamlPointer {
 

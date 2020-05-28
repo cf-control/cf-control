@@ -79,7 +79,7 @@ public class FileUtils {
         URI uri = URI.create(url);
 
         if (hasUnallowedFileExtension(uri.getPath()) && !emptyFileExtension(uri.getPath())) {
-            throw new cloud.foundry.cli.exceptions.InvalidFileTypeException("invalid file extension: "
+            throw new InvalidFileTypeException("invalid file extension: "
                     + FilenameUtils.getExtension(uri.getPath()));
         }
 

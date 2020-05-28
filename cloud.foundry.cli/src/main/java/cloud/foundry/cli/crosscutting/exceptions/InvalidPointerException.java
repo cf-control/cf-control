@@ -1,4 +1,4 @@
-package cloud.foundry.cli.exceptions;
+package cloud.foundry.cli.crosscutting.exceptions;
 
 public class InvalidPointerException extends RuntimeException {
 
