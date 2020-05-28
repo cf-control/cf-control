@@ -92,11 +92,16 @@ public class CreateController implements Runnable {
             Yaml yamlLoader = YamlCreator.createDefaultYamlProcessor();
 
             try {
-                ServiceBean serviceBean = yamlLoader.loadAs(yamlFileContent, ServiceBean.class);
+
+                Map<String, Object> mapServiceBean = yamlLoader.loadAs(yamlFileContent, Map.class);
                 DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
 
                 ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
-                servicesOperations.create(serviceBean);
+                for (String serviceInstanceName : mapServiceBean.keySet()) {
+                    String serviceBeanYaml = yamlLoader.dump(mapServiceBean.get(serviceInstanceName));
+                    ServiceBean serviceBean = yamlLoader.loadAs(serviceBeanYaml, ServiceBean.class);
+                    servicesOperations.create(serviceInstanceName, serviceBean);
+                }
             } catch (Exception e) {
                 Log.exception(e, "Unexpected error occurred");
             }
