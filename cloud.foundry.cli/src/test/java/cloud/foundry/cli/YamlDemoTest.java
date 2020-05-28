@@ -7,10 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.LinkedList;
-import java.util.HashMap;
+import java.util.*;
 
 public class YamlDemoTest {
 

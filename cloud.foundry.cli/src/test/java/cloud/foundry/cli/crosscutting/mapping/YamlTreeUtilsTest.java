@@ -1,8 +1,10 @@
-package cloud.foundry.cli.mapping;
+package cloud.foundry.cli.crosscutting.mapping;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+import cloud.foundry.cli.crosscutting.mapping.YamlTreeUtils;
+import cloud.foundry.cli.crosscutting.mapping.YamlTreeVisitor;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 

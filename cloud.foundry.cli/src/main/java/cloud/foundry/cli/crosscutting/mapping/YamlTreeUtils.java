@@ -1,4 +1,4 @@
-package cloud.foundry.cli.mapping;
+package cloud.foundry.cli.crosscutting.mapping;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
