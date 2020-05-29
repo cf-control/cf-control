@@ -1,6 +1,7 @@
 package cloud.foundry.cli.operations;
 
 import static java.util.Collections.singletonList;
+import static java.util.Collections.singletonMap;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
@@ -37,7 +38,7 @@ import java.util.List;
  */
 public class AllInformationOperationsTest {
     @Test
-    public void testGetAll() throws Exception {
+    public void testGetAll() {
         // given
         DefaultCloudFoundryOperations cfOperationsMock = mockDefaultCloudFoundryOperations();
 
@@ -48,10 +49,8 @@ public class AllInformationOperationsTest {
         // then
         assertThat(allInformation, is("apiVersion: API VERSION\n" +
                 "spec:\n" +
-                "  spaceDevelopers: [\n" +
-                "    ]\n" +
-                "  services: [\n" +
-                "    ]\n" +
+                "  services: {\n" +
+                "    }\n" +
                 "  applications:\n" +
                 "  - manifest:\n" +
                 "      buildpack: null\n" +
@@ -82,8 +81,8 @@ public class AllInformationOperationsTest {
                 "    name: null\n" +
                 "    path: null\n" +
                 "target:\n" +
+                "  endpoint: SOME API ENDPOINT\n" +
                 "  org: cloud.foundry.cli\n" +
-                "  api endpoint: SOME API ENDPOINT\n" +
                 "  space: development\n"));
     }
 
@@ -131,7 +130,7 @@ public class AllInformationOperationsTest {
         ServicesOperations servicesOperationsMock = mock(ServicesOperations.class);
         ServiceBean serviceInstanceSummaryBeanMock = mock(ServiceBean.class);
         mockServicesOperations(cfOperationsMock);
-        when(servicesOperationsMock.getAll()).thenReturn(singletonList(serviceInstanceSummaryBeanMock));
+        when(servicesOperationsMock.getAll()).thenReturn(singletonMap("someService", serviceInstanceSummaryBeanMock));
 
         // applications
         ApplicationOperations applicationOperationsMock = mock(ApplicationOperations.class);

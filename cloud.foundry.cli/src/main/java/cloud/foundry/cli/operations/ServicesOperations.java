@@ -41,9 +41,8 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
             services = new LinkedList<>();
         }
 
-        // create a list of special bean data objects, as the summaries cannot be
-        // serialized directly
-        Map<String, ServiceBean> mapBeans = new HashMap<String, ServiceBean>();
+        // create a map of special bean data objects, as the summaries cannot be serialized directly
+        Map<String, ServiceBean> mapBeans = new HashMap<>();
 
         for (ServiceInstanceSummary serviceInstanceSummary : services) {
 
