@@ -3,8 +3,8 @@ package cloud.foundry.cli.crosscutting.util;
 import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.beans.ApplicationManifestBean;
 import cloud.foundry.cli.crosscutting.beans.ServiceBean;
-import cloud.foundry.cli.crosscutting.beans.GetAllBean;
 import cloud.foundry.cli.crosscutting.beans.SpaceDevelopersBean;
+import cloud.foundry.cli.crosscutting.beans.ConfigBean;
 
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
@@ -32,24 +32,24 @@ public class YamlCreator {
         // indentation aids readability
         options.setIndent(2);
         // use custom representer to hide bean class names in output
-        // we explicitly have to add _all_ custom bean types
         Representer representer = new Representer() {
-                @Override
-                protected NodeTuple representJavaBeanProperty(Object javaBean, Property property, Object propertyValue,Tag customTag) {
-                    // if value of property is null, ignore it.
-                 if (propertyValue == null) {
-                       return null;
-                   }
-                    else {
-                        return super.representJavaBeanProperty(javaBean, property, propertyValue, customTag);
-                    }
+            @Override
+            protected NodeTuple representJavaBeanProperty(Object javaBean, Property property,
+                                                          Object propertyValue,Tag customTag) {
+                // if value of property is null, ignore it.
+                if (propertyValue == null) {
+                    return null;
+                } else {
+                    return super.representJavaBeanProperty(javaBean, property, propertyValue, customTag);
                 }
-            };
+            }
+        };
+        // we explicitly have to add _all_ custom bean types
         representer.addClassTag(ApplicationBean.class, Tag.MAP);
         representer.addClassTag(ApplicationManifestBean.class, Tag.MAP);
         representer.addClassTag(ServiceBean.class, Tag.MAP);
         representer.addClassTag(SpaceDevelopersBean.class, Tag.MAP);
-        representer.addClassTag(GetAllBean.class, Tag.MAP);
+        representer.addClassTag(ConfigBean.class, Tag.MAP);
         return new Yaml(representer, options);
     }
 }

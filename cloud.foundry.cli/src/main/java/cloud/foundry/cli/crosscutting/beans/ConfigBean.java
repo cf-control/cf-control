@@ -1,5 +1,8 @@
 package cloud.foundry.cli.crosscutting.beans;
 
+/**
+ * Bean holding all data of the state of a live system.
+ */
 public class ConfigBean {
 
     String apiVersion;

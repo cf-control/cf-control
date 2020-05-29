@@ -1,7 +1,7 @@
 package cloud.foundry.cli.services;
 
 import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
-import cloud.foundry.cli.crosscutting.beans.GetAllBean;
+import cloud.foundry.cli.crosscutting.beans.ConfigBean;
 import cloud.foundry.cli.crosscutting.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.beans.SpaceDevelopersBean;
 import cloud.foundry.cli.crosscutting.logging.Log;
@@ -37,7 +37,6 @@ public class GetController implements Runnable {
     public void run() {
         // this code is executed if the user runs the get command without specifying any sub-command
         CommandLine.usage(this, System.out);
-        return;
     }
 
     @Command(name = "space-developers",
@@ -110,7 +109,7 @@ public class GetController implements Runnable {
             try {
                 DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
                 AllInformationOperations allInformationOperations = new AllInformationOperations(cfOperations);
-                GetAllBean allInformation = allInformationOperations.getAll();
+                ConfigBean allInformation = allInformationOperations.getAll();
 
                 System.out.println(YamlCreator.createDefaultYamlProcessor().dump(allInformation));
             } catch (Exception e) {
