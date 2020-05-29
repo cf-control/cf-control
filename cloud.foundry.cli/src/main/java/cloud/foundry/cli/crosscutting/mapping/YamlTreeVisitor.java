@@ -5,10 +5,19 @@ import java.util.Map;
 
 public interface YamlTreeVisitor {
 
-    public void visitMapping(Map<Object, Object> mappingNode);
+    void visitMapping(Map<Object, Object> mappingNode);
 
-    public void visitSequence(List<Object> sequenceNode);
+    void visitSequence(List<Object> sequenceNode);
 
-    public void visitScalar(Object scalar);
+    void visitScalar(Object scalar);
 
+    static void visit(YamlTreeVisitor visitor, Object yamlTreeNode) {
+        if (yamlTreeNode instanceof List) {
+            visitor.visitSequence((List<Object>) yamlTreeNode);
+        } else if (yamlTreeNode instanceof Map) {
+            visitor.visitMapping((Map<Object, Object>) yamlTreeNode);
+        } else {
+            visitor.visitScalar(yamlTreeNode);
+        }
+    }
 }
