@@ -16,6 +16,7 @@ public class DescendingYamlTreeVisitor implements YamlTreeVisitor {
     public DescendingYamlTreeVisitor(Object yamlTreeRoot) {
         this.yamlTreeRoot = yamlTreeRoot;
         this.currentPointer = null;
+        this.currentNodeIndex = -1;
         this.resultingYamlTreeNode = null;
     }
 
@@ -27,11 +28,13 @@ public class DescendingYamlTreeVisitor implements YamlTreeVisitor {
         currentPointer = pointer;
         currentNodeIndex = 0;
         YamlTreeVisitor.visit(this, yamlTreeRoot);
+        currentPointer = null;
+        currentNodeIndex = -1;
     }
 
     @Override
     public void visitMapping(Map<Object, Object> mappingNode) {
-        assertCurrentPointerIsSet();
+        assertCurrentStateIsLegal();
 
         if (currentNodeIndex >= currentPointer.getNumberOfNodeNames()) {
             resultingYamlTreeNode = mappingNode;
@@ -51,7 +54,7 @@ public class DescendingYamlTreeVisitor implements YamlTreeVisitor {
 
     @Override
     public void visitSequence(List<Object> sequenceNode) {
-        assertCurrentPointerIsSet();
+        assertCurrentStateIsLegal();
 
         if (currentNodeIndex >= currentPointer.getNumberOfNodeNames()) {
             resultingYamlTreeNode = sequenceNode;
@@ -79,7 +82,7 @@ public class DescendingYamlTreeVisitor implements YamlTreeVisitor {
 
     @Override
     public void visitScalar(Object scalar) {
-        assertCurrentPointerIsSet();
+        assertCurrentStateIsLegal();
 
         if (currentNodeIndex != currentPointer.getNumberOfNodeNames()) {
             throw new YamlTreeNodeNotFoundException("The pointer references a non-existent node",
@@ -89,9 +92,9 @@ public class DescendingYamlTreeVisitor implements YamlTreeVisitor {
         resultingYamlTreeNode = scalar;
     }
 
-    private void assertCurrentPointerIsSet() {
-        if (currentPointer == null) {
-            throw new IllegalStateException("The yaml pointer was not set before a yaml tree node was visited");
+    private void assertCurrentStateIsLegal() {
+        if (currentPointer == null || currentNodeIndex == -1) {
+            throw new IllegalStateException("The descending process was not initiated by the correct method");
         }
     }
 }
