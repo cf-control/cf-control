@@ -2,7 +2,6 @@ package cloud.foundry.cli.operations;
 
 import cloud.foundry.cli.crosscutting.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
-import org.cloudfoundry.operations.services.ServiceInstance;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.services.CreateServiceInstanceRequest;
@@ -12,9 +11,11 @@ import org.cloudfoundry.operations.services.ServiceInstanceSummary;
 import org.cloudfoundry.operations.services.UpdateServiceInstanceRequest;
 
 import reactor.core.publisher.Mono;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.Map;
 
 /**
@@ -36,29 +37,12 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
             .collectList()
             .block();
 
-        if (services == null) {
-            services = new LinkedList<>();
-        }
-
-        // create a map of special bean data objects, as the summaries cannot be serialized directly
-        Map<String, ServiceBean> mapBeans = new HashMap<>();
-
-        for (ServiceInstanceSummary serviceInstanceSummary : services) {
-
-            GetServiceInstanceRequest getServiceInstanceRequest = GetServiceInstanceRequest.builder()
-                .name(serviceInstanceSummary.getName())
-                .build();
-            ServiceInstance serviceInstance = this.cloudFoundryOperations
-                .services()
-                .getInstance(getServiceInstanceRequest)
-                .block();
-
-            ServiceBean serviceBean = new ServiceBean(serviceInstance);
-            mapBeans.put(serviceInstance.getName(), serviceBean);
-        }
-
-        return mapBeans;
-
+        // create a list of special bean data objects, as the summaries cannot be
+        // serialized directly
+        return services == null ? Collections.emptyList() : services
+                .stream()
+                .map(ServiceBean::new)
+                .collect(Collectors.toList());
     }
 
     /**
