@@ -17,9 +17,9 @@ import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
 import org.cloudfoundry.operations.applications.Route;
 
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -39,7 +39,7 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
         super(cloudFoundryOperations);
     }
 
-    public List<ApplicationBean> getAll() {
+    public Map<String, ApplicationBean> getAll() {
         List<ApplicationSummary> applications = this.cloudFoundryOperations
                 .applications()
                 .list()
@@ -47,14 +47,10 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
                 .block();
 
         // create a list of special bean data objects, as the summaries cannot be serialized directly
-        List<ApplicationBean> beans = new ArrayList<>();
-        for (ApplicationSummary summary : applications) {
-            ApplicationManifest manifest = getApplicationManifest(summary);
-
-            beans.add(new ApplicationBean(manifest));
-        }
-
-        return beans;
+        return applications
+                .stream()
+                .map(this::getApplicationManifest)
+                .collect(Collectors.toMap(ApplicationManifest::getName, ApplicationBean::new));
     }
 
     private ApplicationManifest getApplicationManifest(ApplicationSummary applicationSummary) {
@@ -71,6 +67,7 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
      *
      *  Pushes the app to the cloud foundry instance specified within the cloud foundry operations instance
      *
+     * @param appName name of the application
      * @param bean  application bean that holds the configuration settings to deploy the app
      *              to the cloud foundry instance
      * @param shouldStart   if the app should start after being created
@@ -81,9 +78,9 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
      * or any fatal error occurs during creation of the app
      * @throws SecurityException when there is no permission to access environment variable CF_DOCKER_PASSWORD
      */
-    public void create(ApplicationBean bean, boolean shouldStart) throws CreationException {
-        checkNotNull(bean.getName());
-        checkArgument(!bean.getName().isEmpty(), "empty name");
+    public void create(String appName, ApplicationBean bean, boolean shouldStart) throws CreationException {
+        checkNotNull(appName);
+        checkArgument(!appName.isEmpty(), "empty name");
         checkNotNull(bean);
 
         // useful, otherwise cloud foundry operations library might behave in a weird way
@@ -93,51 +90,24 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
         checkIfPathOrDockerGiven(bean);
 
         // this check is important, otherwise an app could get overwritten
-        if (appExists(bean.getName())) {
+        if (appExists(appName)) {
             throw new CreationException("app exists already");
         }
 
-        doCreate(bean, shouldStart);
-    }
-
-    private void doCreate(ApplicationBean bean, boolean shouldStart) throws CreationException {
         try {
-            pushAppManifest(bean, shouldStart);
+            doCreate(appName, bean, shouldStart);
         } catch (IllegalArgumentException e) {
-            cleanUp(bean);
+            cleanUp(appName, bean);
             throw new CreationException(e);
         }
     }
 
-    private void cleanUp(ApplicationBean bean) {
-        // Could fail when app wasn't created, but that's ok, because we just wanted to delete it anyway.
-        try {
-            this.cloudFoundryOperations
-                    .applications()
-                    .delete(DeleteApplicationRequest
-                            .builder()
-                            .name(bean.getName())
-                            .build())
-                    .block();
-        } catch (Exception e ) {
-            //TODO: log warn or log debug
-        }
-    }
-
-    /**
-     * TODO: Clarification with project owner necessary:
-     * TODO: how to proceed when push fails to apply some settings?
-     * TODO: remove on fail ?
-     * TODO: keep on fail and only print errors as warnings ?
-     *
-     * for now keep on fail with error messages
-     */
-    private void pushAppManifest(ApplicationBean bean, boolean shouldStart) {
+    private void doCreate(String appName, ApplicationBean bean, boolean shouldStart) throws CreationException {
         this.cloudFoundryOperations
                 .applications()
                 .pushManifest(PushApplicationManifestRequest
                         .builder()
-                        .manifest(buildApplicationManifest(bean))
+                        .manifest(buildApplicationManifest(appName, bean))
                         .noStart(!shouldStart)
                         .build())
                 // Cloud Foundry Operations Library Throws either IllegalArgumentException or IllegalStateException.
@@ -152,11 +122,26 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
                 .block();
     }
 
-    private ApplicationManifest buildApplicationManifest(ApplicationBean bean) {
+    private void cleanUp(String appName, ApplicationBean bean) {
+        // Could fail when app wasn't created, but that's ok, because we just wanted to delete it anyway.
+        try {
+            this.cloudFoundryOperations
+                    .applications()
+                    .delete(DeleteApplicationRequest
+                            .builder()
+                            .name(appName)
+                            .build())
+                    .block();
+        } catch (Exception e ) {
+            //TODO: log warn or log debug
+        }
+    }
+
+    private ApplicationManifest buildApplicationManifest(String appName, ApplicationBean bean) {
         ApplicationManifest.Builder builder = ApplicationManifest.builder();
 
         builder
-            .name(bean.getName())
+            .name(appName)
             .path(bean.getPath() == null ? null : Paths.get(bean.getPath()));
 
         if (bean.getManifest() != null) {

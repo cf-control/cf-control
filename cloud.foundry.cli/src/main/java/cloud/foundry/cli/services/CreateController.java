@@ -120,22 +120,22 @@ public class CreateController implements Runnable {
         @Override
         public void run() {
 
-            String yamlFileContent;
             try {
-                yamlFileContent = FileUtils.readLocalFile(commandOptions.getYamlFilePath());
+                String yamlFileContent = FileUtils.readLocalFile(commandOptions.getYamlFilePath());
+                Yaml yamlProcessor = YamlCreator.createDefaultYamlProcessor();
+                Map.Entry<String, Object> appObj = yamlProcessor.loadAs(yamlFileContent, Map.Entry.class);
+                String name = appObj.getKey();
+                ApplicationBean applicationBean = yamlProcessor
+                        .loadAs(yamlProcessor.dump(appObj.getValue()), ApplicationBean.class);
+
+                DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+                ApplicationOperations applicationOperations = new ApplicationOperations(cfOperations);
+
+                applicationOperations.create(name, applicationBean, false);
+                Log.info("App created:", name);
             } catch (IOException e) {
                 Log.exception(e, "Failed to read YAML file");
                 return;
-            }
-            Yaml yamlLoader = YamlCreator.createDefaultYamlProcessor();
-            try {
-                ApplicationBean applicationBean = yamlLoader.loadAs(yamlFileContent, ApplicationBean.class);
-                DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
-
-                ApplicationOperations applicationOperations = new ApplicationOperations(cfOperations);
-
-                applicationOperations.create(applicationBean, false);
-                Log.info("App created:", applicationBean.getName());
             } catch (CreationException e) {
                 Log.error("Failed to create message:" + e.getMessage());
             } catch (Exception e) {

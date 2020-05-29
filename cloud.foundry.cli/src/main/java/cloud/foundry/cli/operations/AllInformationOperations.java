@@ -66,20 +66,19 @@ public class AllInformationOperations extends AbstractOperations<DefaultCloudFou
      * @return SpecBean
      */
     private SpecBean determineSpec() {
-        SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cloudFoundryOperations);
-        SpaceDevelopersBean spaceDevelopers = spaceDevelopersOperations.getAll();
-
         SpecBean spec = new SpecBean();
+
+        SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cloudFoundryOperations);
+        List<String> spaceDevelopers = spaceDevelopersOperations.getAll();
+        spec.setSpaceDevelopers(spaceDevelopers);
 
         ServicesOperations servicesOperations = new ServicesOperations(cloudFoundryOperations);
         Map<String, ServiceBean> services = servicesOperations.getAll();
         spec.setServices(services);
 
         ApplicationOperations applicationOperations = new ApplicationOperations(cloudFoundryOperations);
-        List<ApplicationBean> applications = applicationOperations.getAll();
-        //TODO do instead:
-        //Map<String, ApplicationBean> applications = applicationOperations.getAll();
-        //spec.setApps(applications);
+        Map<String, ApplicationBean> applications = applicationOperations.getAll();
+        spec.setApps(applications);
 
         return spec;
     }

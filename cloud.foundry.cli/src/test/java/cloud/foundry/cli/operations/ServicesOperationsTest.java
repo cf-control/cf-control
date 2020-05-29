@@ -1,9 +1,10 @@
 package cloud.foundry.cli.operations;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -12,7 +13,6 @@ import static org.mockito.Mockito.verify;
 
 import cloud.foundry.cli.crosscutting.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
-import cloud.foundry.cli.crosscutting.util.YamlCreator;
 import org.cloudfoundry.client.v2.ClientV2Exception;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.services.CreateServiceInstanceRequest;
@@ -31,6 +31,7 @@ import reactor.core.publisher.Mono;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 public class ServicesOperationsTest {
 
@@ -44,16 +45,16 @@ public class ServicesOperationsTest {
             serviceInstanceSummary);
         // when
         ServicesOperations servicesOperations = new ServicesOperations(cfMock);
-        String s = YamlCreator.createDefaultYamlProcessor().dump(servicesOperations.getAll());
+        Map<String, ServiceBean> services = servicesOperations.getAll();
         // then
-        assertThat(s, is(
-            "serviceName:\n" +
-                "  lastOperation: create succeeded\n" +
-                "  plan: standardPlan\n" +
-                "  service: service\n" +
-                "  tags:\n" +
-                "  - tag\n" +
-                "  type: MANAGED\n"));
+        assertThat(services.size(), is(1));
+        assertThat(services.containsKey("serviceName"), is(true));
+        assertThat(services.get("serviceName").getLastOperation(), is("create succeeded"));
+        assertThat(services.get("serviceName").getPlan(), is("standardPlan"));
+        assertThat(services.get("serviceName").getService(), is("service"));
+        assertThat(services.get("serviceName").getTags().size(), is(1));
+        assertThat(services.get("serviceName").getTags(), contains("tag"));
+        assertThat(services.get("serviceName").getType(), is(ServiceInstanceType.MANAGED));
     }
 
     @Test
@@ -62,10 +63,10 @@ public class ServicesOperationsTest {
         DefaultCloudFoundryOperations cfMock = createMockDefaultCloudFoundryOperationsWithServiceInstanceSummary(null);
         // when
         ServicesOperations servicesOperations = new ServicesOperations(cfMock);
-        String s = YamlCreator.createDefaultYamlProcessor().dump(servicesOperations.getAll());
+        Map<String, ServiceBean> services = servicesOperations.getAll();
         // then
         // FIXME: it should return just an empty bracket like {]
-        assertEquals("{\n  }\n", s);
+        assertTrue(services.isEmpty());
     }
 
     @Test
