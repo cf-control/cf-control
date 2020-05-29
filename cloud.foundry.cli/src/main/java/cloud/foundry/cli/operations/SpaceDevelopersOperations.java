@@ -27,7 +27,7 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
      *
      * @return list of space developers
      */
-    public SpaceDevelopersBean getAll() {
+    public List<String> getAll() {
         ListSpaceUsersRequest request = ListSpaceUsersRequest.builder()
             .spaceName(cloudFoundryOperations.getSpace())
             .organizationName(cloudFoundryOperations.getOrganization())
@@ -37,19 +37,18 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
             .listSpaceUsers(request)
             .block()
             .getDevelopers();
-        SpaceDevelopersBean spaceDevelopersBean = new SpaceDevelopersBean();
-        spaceDevelopersBean.setSpaceDevelopers(spaceDevelopers);
-        return spaceDevelopersBean;
+
+        return spaceDevelopers;
     }
 
     /**
      * Assign a user as a space developer
-     * 
+     *
      * @throws CreationException when assignation was not successful
      * @param username email of user to assign as space developer
      */
     public void assignSpaceDeveloper(String username) throws CreationException {
-        assert (!username.isEmpty() && username != null);
+        assert (username != null && !username.isEmpty());
         String spaceId = cloudFoundryOperations.getSpaceId().block();
         String organization = cloudFoundryOperations.getOrganization();
         String space = cloudFoundryOperations.getSpace();

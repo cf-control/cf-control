@@ -7,21 +7,8 @@ import org.cloudfoundry.operations.applications.ApplicationManifest;
  */
 public class ApplicationBean implements Bean {
 
-    /**
-     * TODO : replace this field, since it will be stored in the map in the bean above (SpecBean)
-     * TODO : requires adjustment in the applications operations
-     */
-    private String name;
     private ApplicationManifestBean manifest;
     private String path;
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
 
     public ApplicationManifestBean getManifest() {
         return manifest;
@@ -40,7 +27,6 @@ public class ApplicationBean implements Bean {
     }
 
     public ApplicationBean(ApplicationManifest manifest) {
-        this.name = manifest.getName();
         this.path = manifest.getPath() == null ? null : manifest.getPath().toString();
         this.manifest = new ApplicationManifestBean(manifest);
     }

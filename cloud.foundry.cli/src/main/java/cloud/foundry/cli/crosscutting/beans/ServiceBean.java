@@ -21,14 +21,16 @@ public class ServiceBean implements Bean {
         this.lastOperation = serviceInstance.getLastOperation() == null ? null
                             : serviceInstance.getLastOperation() + " " + serviceInstance.getStatus();
         this.plan = serviceInstance.getPlan();
-        this.tags = serviceInstance.getTags().isEmpty() ? null : serviceInstance.getTags();
+        this.tags = serviceInstance.getTags() == null || serviceInstance.getTags().isEmpty()
+                ? null
+                : serviceInstance.getTags();
         this.type = serviceInstance.getType();
 
     }
 
     public ServiceBean() {
     }
-    
+
     public String getLastOperation() {
         return lastOperation;
     }
