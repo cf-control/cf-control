@@ -5,7 +5,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import cloud.foundry.cli.crosscutting.exceptions.InvalidPointerException;
-import cloud.foundry.cli.crosscutting.mapping.YamlPointer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
@@ -27,6 +26,14 @@ public class YamlPointerTest {
 
     @Test
     @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
+    public void testEmptyPointer() {
+        YamlPointer pointer = new YamlPointer("#/");
+
+        assertThat(pointer.getNumberOfNodeNames(), is(0));
+    }
+
+    @Test
+    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testInvalidBeginningMissingSlash() {
         assertThrows(
                 InvalidPointerException.class,
@@ -43,14 +50,6 @@ public class YamlPointerTest {
 
     @Test
     @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
-    public void testEntirelyEmptyPointer() {
-        assertThrows(
-                InvalidPointerException.class,
-                () -> new YamlPointer("#/"));
-    }
-
-    @Test
-    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testEmptyNodeNameInPointer() {
         assertThrows(
                 InvalidPointerException.class,
@@ -63,6 +62,20 @@ public class YamlPointerTest {
         assertThrows(
                 InvalidPointerException.class,
                 () -> new YamlPointer("#/this/escape~2sequence/is/invalid"));
+    }
+
+    @Test
+    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
+    public void testNodeIndexOutOfBounds() {
+        YamlPointer pointer = new YamlPointer("#/some/pointer");
+
+        assertThrows(
+                IndexOutOfBoundsException.class,
+                () -> pointer.getNodeName(-1));
+
+        assertThrows(
+                IndexOutOfBoundsException.class,
+                () -> pointer.getNodeName(2));
     }
 
 }
