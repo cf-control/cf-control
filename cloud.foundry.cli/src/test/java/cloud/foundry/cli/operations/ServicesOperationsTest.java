@@ -49,7 +49,7 @@ public class ServicesOperationsTest {
             "- applications:\n" +
                 "  - test-flask\n" +
                 "  id: serviceId\n" +
-                "  lastOperation: create succeeded\n" +
+                "  lastOperation: null\n" +
                 "  name: serviceName\n" +
                 "  plan: standardPlan\n" +
                 "  service: service\n" +
@@ -120,27 +120,27 @@ public class ServicesOperationsTest {
         List<String> apps = new LinkedList<>();
         apps.add("test");
         when(serviceBeanMock.getApplications()).thenReturn(apps);
-        
+
         DefaultCloudFoundryOperations cfMock = Mockito.mock(DefaultCloudFoundryOperations.class);
         Services servicesMock = Mockito.mock(Services.class);
         when(cfMock.services()).thenReturn(servicesMock);
         when(servicesMock.renameInstance(any(RenameServiceInstanceRequest.class))).thenReturn(null);
-        
+
         Mono<Void> monoUpdatedService = mock(Mono.class);
         when(servicesMock.updateInstance(any(UpdateServiceInstanceRequest.class))).thenReturn(null);
         Mockito.when(monoUpdatedService.block()).thenThrow(new NullPointerException("Service Instance can not update"));
-        
+
         Mono<Void> monoBind = mock(Mono.class);
         when(servicesMock.bind(any(BindServiceInstanceRequest.class))).thenReturn(null);
         Mockito.when(monoBind.block()).thenThrow(new IllegalArgumentException("Application test does not exist"));
-        
+
         // when + then
         ServicesOperations servicesOperations = new ServicesOperations(cfMock);
         assertThrows(CreationException.class, () -> {
             servicesOperations.create(serviceBeanMock);
         });
     }
-    
+
     @Test
     public void testUpdateService() throws CreationException {
         // given
@@ -148,38 +148,38 @@ public class ServicesOperationsTest {
         List<String> apps = new LinkedList<>();
         apps.add("test");
         when(serviceBeanMock.getApplications()).thenReturn(apps);
-        
+
         DefaultCloudFoundryOperations cfMock = Mockito.mock(DefaultCloudFoundryOperations.class);
         Services servicesMock = Mockito.mock(Services.class);
         when(cfMock.services()).thenReturn(servicesMock);
-        
+
         Mono<Void> monoRenamed = mock(Mono.class);
         when(servicesMock.renameInstance(any(RenameServiceInstanceRequest.class))).thenReturn(monoRenamed);
-        
+
         Mono<Void> monoUpdatedService = mock(Mono.class);
         when(servicesMock.updateInstance(any(UpdateServiceInstanceRequest.class))).thenReturn(monoUpdatedService);
-        
+
         Mono<Void> monoBind = mock(Mono.class);
         when(servicesMock.bind(any(BindServiceInstanceRequest.class))).thenReturn(monoBind);
-        
-        // when 
+
+        // when
         ServicesOperations servicesOperations = new ServicesOperations(cfMock);
         servicesOperations.update(serviceBeanMock);
-        
+
         //then
         verify(servicesMock, times(1)).renameInstance(any(RenameServiceInstanceRequest.class));
         verify(monoRenamed, times(1)).block();
-        
+
         verify(servicesMock, times(1)).updateInstance(any(UpdateServiceInstanceRequest.class));
         verify(monoUpdatedService, times(1)).block();
-        
+
         verify(servicesMock, times(1)).bind(any(BindServiceInstanceRequest.class));
         verify(monoBind, times(1)).block();
-        
+
     }
-    
-  
-    
+
+
+
     private ServiceInstance getServiceInstanceMock() {
         ServiceInstance serviceInstanceMock = mock(ServiceInstance.class);
         when(serviceInstanceMock.getLastOperation()).thenReturn("create");
@@ -199,7 +199,7 @@ public class ServicesOperationsTest {
 
     private DefaultCloudFoundryOperations createMockDefaultCloudFoundryOperationsWithServiceInstanceSummary(
         ServiceInstanceSummary serviceInstanceSummary) {
-        
+
         DefaultCloudFoundryOperations cfMock = Mockito.mock(DefaultCloudFoundryOperations.class);
         Services servicesMock = Mockito.mock(Services.class);
         Flux<ServiceInstanceSummary> flux = mock(Flux.class);
