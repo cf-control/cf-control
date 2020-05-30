@@ -5,7 +5,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import cloud.foundry.cli.crosscutting.mapping.RefResolver;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import org.junit.jupiter.api.Assertions;
@@ -20,7 +19,7 @@ import java.io.IOException;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
-public class RefResolverTest {
+public class YamlMapperTest {
 
     private static final Yaml DEFAULT_PROCESSOR = new Yaml();
     private static final String RESOURCES_PATH = "./src/test/resources/refresolver/";
@@ -128,7 +127,7 @@ public class RefResolverTest {
             throws FileNotFoundException {
         Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + yamlFileContainingRef);
 
-        Object rootOfResolvedTree = RefResolver.resolve(treeRoot, DEFAULT_PROCESSOR);
+        Object rootOfResolvedTree = YamlMapper.resolve(treeRoot, DEFAULT_PROCESSOR);
         String resolvedYamlResult = convertTreeToYaml(rootOfResolvedTree);
 
         Object preresolvedTreeRoot = parseYamlFileAsTree(RESOURCES_PATH + preresolvedYamlFile);
@@ -144,7 +143,7 @@ public class RefResolverTest {
         return assertThrows(
                 expectedType,
                 () -> {
-                    RefResolver.resolve(treeRoot, DEFAULT_PROCESSOR);
+                    YamlMapper.resolve(treeRoot, DEFAULT_PROCESSOR);
                 }
         );
     }
