@@ -3,8 +3,6 @@ package cloud.foundry.cli.crosscutting.mapping;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-import cloud.foundry.cli.crosscutting.mapping.YamlTreeUtils;
-import cloud.foundry.cli.crosscutting.mapping.YamlTreeVisitor;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
@@ -15,9 +13,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
-public class YamlTreeUtilsTest {
-
-    //TODO tests for getDescendantNode
+public class YamlTreeVisitorTest {
 
     @Test
     @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
@@ -25,7 +21,7 @@ public class YamlTreeUtilsTest {
         YamlTreeVisitor mockedVisitor = mock(YamlTreeVisitor.class);
         List<Object> sequence = Collections.emptyList();
 
-        YamlTreeUtils.visit(mockedVisitor, sequence);
+        YamlTreeVisitor.visit(mockedVisitor, sequence);
 
         verify(mockedVisitor).visitSequence(sequence);
     }
@@ -36,7 +32,7 @@ public class YamlTreeUtilsTest {
         YamlTreeVisitor mockedVisitor = mock(YamlTreeVisitor.class);
         List<Object> sequence = Arrays.asList("element", 42, true, 3.14);
 
-        YamlTreeUtils.visit(mockedVisitor, sequence);
+        YamlTreeVisitor.visit(mockedVisitor, sequence);
 
         verify(mockedVisitor).visitSequence(sequence);
     }
@@ -47,7 +43,7 @@ public class YamlTreeUtilsTest {
         YamlTreeVisitor mockedVisitor = mock(YamlTreeVisitor.class);
         Map<Object, Object> mapping = Collections.emptyMap();
 
-        YamlTreeUtils.visit(mockedVisitor, mapping);
+        YamlTreeVisitor.visit(mockedVisitor, mapping);
 
         verify(mockedVisitor).visitMapping(mapping);
     }
@@ -60,7 +56,7 @@ public class YamlTreeUtilsTest {
         mapping.put("key", 5);
         mapping.put(false, 2.72);
 
-        YamlTreeUtils.visit(mockedVisitor, mapping);
+        YamlTreeVisitor.visit(mockedVisitor, mapping);
 
         verify(mockedVisitor).visitMapping(mapping);
     }
@@ -71,7 +67,7 @@ public class YamlTreeUtilsTest {
         YamlTreeVisitor mockedVisitor = mock(YamlTreeVisitor.class);
         String string = "scalar";
 
-        YamlTreeUtils.visit(mockedVisitor, string);
+        YamlTreeVisitor.visit(mockedVisitor, string);
 
         verify(mockedVisitor).visitScalar(string);
     }
@@ -82,7 +78,7 @@ public class YamlTreeUtilsTest {
         YamlTreeVisitor mockedVisitor = mock(YamlTreeVisitor.class);
         Integer integer = 42;
 
-        YamlTreeUtils.visit(mockedVisitor, integer);
+        YamlTreeVisitor.visit(mockedVisitor, integer);
 
         verify(mockedVisitor).visitScalar(integer);
     }
@@ -92,7 +88,7 @@ public class YamlTreeUtilsTest {
     public void testVisitNullScalar() {
         YamlTreeVisitor mockedVisitor = mock(YamlTreeVisitor.class);
 
-        YamlTreeUtils.visit(mockedVisitor, null);
+        YamlTreeVisitor.visit(mockedVisitor, null);
 
         verify(mockedVisitor).visitScalar(null);
     }

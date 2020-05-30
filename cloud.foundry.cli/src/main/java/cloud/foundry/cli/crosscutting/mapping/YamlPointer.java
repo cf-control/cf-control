@@ -18,6 +18,12 @@ public class YamlPointer {
     }
 
     private void initializeNodeNames() {
+        if (pointer.length() <= POINTER_START.length()) {
+            // empty pointer contents
+            nodeNames = new String[0];
+            return;
+        }
+
         String cutPointer = pointer.substring(POINTER_START.length());
         nodeNames = cutPointer.split(POINTER_DELIMITER);
 
@@ -27,6 +33,9 @@ public class YamlPointer {
     }
 
     public String getNodeName(int index) {
+        if (index < 0 || index >= nodeNames.length) {
+            throw new IndexOutOfBoundsException("The node index is out of bounds");
+        }
         return nodeNames[index];
     }
 
@@ -44,9 +53,6 @@ public class YamlPointer {
     private void checkValidPointer() {
         if (!pointer.startsWith(POINTER_START)) {
             throw new InvalidPointerException("The pointer does not start with '" + POINTER_START + "'", pointer);
-        }
-        if (pointer.length() <= POINTER_START.length()) {
-            throw new InvalidPointerException("The pointer has no contents", pointer);
         }
         if (pointer.contains(POINTER_DELIMITER + POINTER_DELIMITER)) {
             throw new InvalidPointerException("The pointer contains an empty node name", pointer);
