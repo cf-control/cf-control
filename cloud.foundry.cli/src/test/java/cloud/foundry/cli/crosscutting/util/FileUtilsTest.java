@@ -38,6 +38,40 @@ public class FileUtilsTest {
     private static String SIMPLE_LIST_FILE_PATH = "SimpleList.yaml";
 
     @Test
+    public void readLocalOrRemoteFileWithLocalFile(@TempDir Path tempDir) throws IOException, ProtocolException {
+        //Arrange
+        String expectedYaml =   "- first" + System.lineSeparator()  +
+                "- second" + System.lineSeparator()  +
+                "- third" + System.lineSeparator() ;
+        File file = createTempFile(tempDir, "files", "SimpleList.yaml", expectedYaml);
+
+        //Act
+        String actualYaml = FileUtils.readLocalOrRemoteFile(file.getPath());
+
+        //Verify
+        assertThat(actualYaml, is(expectedYaml));
+    }
+
+    @Test
+    public void readLocalOrRemoteFileWithRemoteFile(@TempDir Path tempDir) throws IOException, ProtocolException {
+        //Arrange
+        // http://localhost:8070/SimpleList.yaml
+        WireMockServer server = MockServerBuilder.builder()
+                .addRoute("SimpleList.yaml", readFileContent(SIMPLE_LIST_FILE_PATH))
+                .build();
+        server.start();
+
+        //Act
+        String actualYaml = FileUtils.readLocalOrRemoteFile(server.url("SimpleList.yaml"));
+
+        //Verify
+        assertThat(actualYaml, is(readFileContent(SIMPLE_LIST_FILE_PATH)));
+
+        //Cleanup
+        server.stop();
+    }
+
+    @Test
     public void testReadLocalFileOnEmptyFileReturnsEmptyString(@TempDir Path tempDir)
             throws IOException {
         //Arrange

@@ -21,11 +21,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * This utility class provides a more easy to use interface for handling
  * YAML files requested from a local file source or a remote host source.
- *
  */
 public class FileUtils {
 
@@ -33,6 +34,25 @@ public class FileUtils {
             "YAML",
             "YML"
     ));
+
+    public static String readLocalOrRemoteFile(String filepath) throws IOException, ProtocolException {
+        checkNotNull(filepath);
+        String content = null;
+        if (isRemoteFile(filepath)) {
+            content = doReadRemoteFile(filepath);
+        } else {
+            content = doReadLocalFile(filepath);
+        }
+        assert content != null;
+        return content;
+    }
+
+    private static boolean isRemoteFile(String filepath) {
+        Pattern p = Pattern.compile("\\w+?:\\/\\/");
+        Matcher m = p.matcher(filepath);
+        return m.find();
+    }
+
 
     /**
      *
