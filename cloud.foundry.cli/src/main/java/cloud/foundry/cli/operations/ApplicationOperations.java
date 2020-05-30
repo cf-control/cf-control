@@ -96,13 +96,13 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
 
         try {
             doCreate(appName, bean, shouldStart);
-        } catch (IllegalArgumentException e) {
-            cleanUp(appName, bean);
+        } catch (Exception e) {
+            cleanUp(appName);
             throw new CreationException(e);
         }
     }
 
-    private void doCreate(String appName, ApplicationBean bean, boolean shouldStart) throws CreationException {
+    private void doCreate(String appName, ApplicationBean bean, boolean shouldStart) {
         this.cloudFoundryOperations
                 .applications()
                 .pushManifest(PushApplicationManifestRequest
@@ -122,7 +122,7 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
                 .block();
     }
 
-    private void cleanUp(String appName, ApplicationBean bean) {
+    private void cleanUp(String appName) {
         // Could fail when app wasn't created, but that's ok, because we just wanted to delete it anyway.
         try {
             this.cloudFoundryOperations
