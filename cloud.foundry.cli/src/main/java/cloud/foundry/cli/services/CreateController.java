@@ -123,16 +123,20 @@ public class CreateController implements Runnable {
             try {
                 String yamlFileContent = FileUtils.readLocalFile(commandOptions.getYamlFilePath());
                 Yaml yamlProcessor = YamlCreator.createDefaultYamlProcessor();
-                Map.Entry<String, Object> appObj = yamlProcessor.loadAs(yamlFileContent, Map.Entry.class);
-                String name = appObj.getKey();
-                ApplicationBean applicationBean = yamlProcessor
-                        .loadAs(yamlProcessor.dump(appObj.getValue()), ApplicationBean.class);
+                Map<String, Object> appMap = yamlProcessor.loadAs(yamlFileContent, Map.class);
+                if(appMap.entrySet().iterator().hasNext()){
+                    Map.Entry<String, Object> appObj = appMap.entrySet().iterator().next();
+                    String name = appObj.getKey();
+                    ApplicationBean applicationBean = yamlProcessor
+                            .loadAs(yamlProcessor.dump(appObj.getValue()), ApplicationBean.class);
 
-                DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
-                ApplicationOperations applicationOperations = new ApplicationOperations(cfOperations);
+                    DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+                    ApplicationOperations applicationOperations = new ApplicationOperations(cfOperations);
 
-                applicationOperations.create(name, applicationBean, false);
-                Log.info("App created:", name);
+                    applicationOperations.create(name, applicationBean, false);
+                    Log.info("App created:", name);
+                }
+                Log.error("App entry in the yaml input file has not a valid format or was missing");
             } catch (IOException e) {
                 Log.exception(e, "Failed to read YAML file");
                 return;
