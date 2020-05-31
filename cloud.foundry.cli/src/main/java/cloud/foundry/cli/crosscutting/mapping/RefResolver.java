@@ -64,7 +64,7 @@ public class RefResolver implements YamlTreeVisitor {
         if (refValue.matches(".*#.*#.*")) {
             throw new IllegalArgumentException("More than one # occurences.");
         }
-        int indexOfPointerBeginning = refValue.indexOf("#");
+        int indexOfPointerBeginning = refValue.lastIndexOf("#");
         String filePath;
         String yamlPointerString = null;
         if (indexOfPointerBeginning == -1) {

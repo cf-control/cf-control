@@ -3,7 +3,7 @@ package cloud.foundry.cli.crosscutting.mapping;
 public class YamlPointer {
 
     private static final String POINTER_DELIMITER = "/";
-    private static final String POINTER_START = "#/";
+    private static final String POINTER_START = "#";
 
     String pointer;
     String[] nodeNames;
@@ -22,8 +22,7 @@ public class YamlPointer {
             return;
         }
 
-        String cutPointer = pointer.substring(POINTER_START.length());
-        nodeNames = cutPointer.split(POINTER_DELIMITER);
+        nodeNames = pointer.split(POINTER_DELIMITER);
 
         for (int index = 0; index < nodeNames.length; ++index) {
             nodeNames[index] = resolveEscapeCharacters(nodeNames[index]);
@@ -31,14 +30,15 @@ public class YamlPointer {
     }
 
     public String getNodeName(int index) {
-        if (index < 0 || index >= nodeNames.length) {
+        ++index; // skip pointer start
+        if (index <= 0 || index >= nodeNames.length) {
             throw new IndexOutOfBoundsException("The node index is out of bounds");
         }
         return nodeNames[index];
     }
 
     public int getNumberOfNodeNames() {
-        return nodeNames.length;
+        return Math.max(0, nodeNames.length - 1);
     }
 
     private static String resolveEscapeCharacters(String pointerContent) {
@@ -51,6 +51,10 @@ public class YamlPointer {
     private void checkValidPointer() {
         if (!pointer.startsWith(POINTER_START)) {
             throw new IllegalArgumentException("The pointer does not start with '" + POINTER_START + "'");
+        }
+        if (pointer.length() > POINTER_START.length() + POINTER_DELIMITER.length() &&
+                !pointer.startsWith(POINTER_START + POINTER_DELIMITER)) {
+            throw new IllegalArgumentException("The pointer misses a '" + POINTER_DELIMITER + "' at the beginning");
         }
         if (pointer.contains(POINTER_DELIMITER + POINTER_DELIMITER)) {
             throw new IllegalArgumentException("The pointer contains an empty node name");

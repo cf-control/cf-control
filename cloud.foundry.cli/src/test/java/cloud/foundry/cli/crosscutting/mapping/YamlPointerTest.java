@@ -13,7 +13,7 @@ public class YamlPointerTest {
 
     @Test
     @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
-    public void testGetters() {
+    public void testEscapeCharacters() {
         YamlPointer pointer = new YamlPointer("#/this/is~1a/valid/yaml~1~0pointer");
 
         assertThat(pointer.getNumberOfNodeNames(), is(4));
@@ -25,8 +25,25 @@ public class YamlPointerTest {
 
     @Test
     @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
+    public void testDelimiterAtTheEnd() {
+        YamlPointer pointer = new YamlPointer("#/delimiterAtTheEnd/");
+
+        assertThat(pointer.getNumberOfNodeNames(), is(1));
+        assertThat(pointer.getNodeName(0), is("delimiterAtTheEnd"));
+    }
+
+    @Test
+    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testEmptyPointer() {
         YamlPointer pointer = new YamlPointer("#/");
+
+        assertThat(pointer.getNumberOfNodeNames(), is(0));
+    }
+
+    @Test
+    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
+    public void testEmptyPointer2() {
+        YamlPointer pointer = new YamlPointer("#");
 
         assertThat(pointer.getNumberOfNodeNames(), is(0));
     }
