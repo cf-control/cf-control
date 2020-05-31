@@ -40,8 +40,7 @@ public class YamlTreeDescender implements YamlTreeVisitor {
 
         String currentNodeName = currentPointer.getNodeName(currentNodeIndex);
         if (!mappingNode.containsKey(currentNodeName)) {
-            throw new YamlTreeNodeNotFoundException("Could not find the key in a mapping",
-                    currentPointer, currentNodeIndex);
+            throw new YamlTreeNodeNotFoundException("Could not find the key '" + currentNodeName + "'");
         }
         Object descendantNode = mappingNode.get(currentNodeName);
 
@@ -61,12 +60,10 @@ public class YamlTreeDescender implements YamlTreeVisitor {
         try {
             listIndex = Integer.parseInt(currentNodeName);
         } catch (NumberFormatException e) {
-            throw new YamlTreeNodeNotFoundException("Could not convert a list index to an integer",
-                    currentPointer, currentNodeIndex);
+            throw new YamlTreeNodeNotFoundException("Could not convert '" + currentNodeName + "' to a list index");
         }
         if (listIndex < 0 || listIndex >= sequenceNode.size()) {
-            throw new YamlTreeNodeNotFoundException("A list index is out of range",
-                    currentPointer, currentNodeIndex);
+            throw new YamlTreeNodeNotFoundException("The list index '" + listIndex + "' is out of range");
         }
 
         Object descendantNode = sequenceNode.get(listIndex);
@@ -78,8 +75,8 @@ public class YamlTreeDescender implements YamlTreeVisitor {
     @Override
     public void visitScalar(Object scalar) {
         if (currentNodeIndex != currentPointer.getNumberOfNodeNames()) {
-            throw new YamlTreeNodeNotFoundException("The pointer references a non-existent node",
-                    currentPointer, currentNodeIndex);
+            throw new YamlTreeNodeNotFoundException("Cannot descend further to '" +
+                    currentPointer.getNodeName(currentNodeIndex) + "' because a scalar was reached");
         }
 
         resultingYamlTreeNode = scalar;
