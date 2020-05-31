@@ -37,12 +37,6 @@ public class RefResolver implements YamlTreeVisitor {
         return resolvedYamlTreeRoot;
     }
 
-    private Object doResolveRefs() {
-        YamlTreeVisitor.visit(this, yamlTreeRoot);
-        return overridingNode;
-    }
-
-
     @Override
     public void visitMapping(Map<Object, Object> mappingNode) {
         if (!mappingNode.containsKey(REF_KEY)) {
@@ -120,5 +114,10 @@ public class RefResolver implements YamlTreeVisitor {
     public void visitScalar(Object scalar) {
         // this scalar node remains unchanged
         overridingNode = scalar;
+    }
+
+    private Object doResolveRefs() {
+        YamlTreeVisitor.visit(this, yamlTreeRoot);
+        return overridingNode;
     }
 }

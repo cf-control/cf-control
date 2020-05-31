@@ -5,11 +5,10 @@ public class YamlPointer {
     private static final String POINTER_DELIMITER = "/";
     private static final String POINTER_START = "#";
 
-    String pointer;
-    String[] nodeNames;
+    private final String[] nodeNames;
 
     public YamlPointer(String pointer) {
-        this.pointer = pointer;
+        checkValidPointer(pointer);
 
         checkValidPointer();
         initializeNodeNames();
@@ -48,7 +47,7 @@ public class YamlPointer {
         return pointerContent;
     }
 
-    private void checkValidPointer() {
+    private void checkValidPointer(String pointer) {
         if (!pointer.startsWith(POINTER_START)) {
             throw new IllegalArgumentException("The pointer does not start with '" + POINTER_START + "'");
         }

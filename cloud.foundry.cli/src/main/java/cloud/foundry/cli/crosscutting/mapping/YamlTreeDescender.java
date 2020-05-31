@@ -7,16 +7,16 @@ import java.util.Map;
 
 public class YamlTreeDescender implements YamlTreeVisitor {
 
-    private Object yamlTreeRoot;
+    private final Object yamlTreeRoot;
+    private final YamlPointer pointer;
 
-    private YamlPointer currentPointer;
-    private int currentNodeIndex;
+    private int nodeIndex;
     private Object resultingYamlTreeNode;
 
     private YamlTreeDescender(Object yamlTreeRoot, YamlPointer pointer) {
         this.yamlTreeRoot = yamlTreeRoot;
-        this.currentPointer = pointer;
-        this.currentNodeIndex = 0;
+        this.pointer = pointer;
+        this.nodeIndex = 0;
         this.resultingYamlTreeNode = null;
     }
 
@@ -26,36 +26,31 @@ public class YamlTreeDescender implements YamlTreeVisitor {
         return descendingVisitor.doDescend();
     }
 
-    private Object doDescend() {
-        YamlTreeVisitor.visit(this, yamlTreeRoot);
-        return resultingYamlTreeNode;
-    }
-
     @Override
     public void visitMapping(Map<Object, Object> mappingNode) {
-        if (currentNodeIndex >= currentPointer.getNumberOfNodeNames()) {
+        if (nodeIndex >= pointer.getNumberOfNodeNames()) {
             resultingYamlTreeNode = mappingNode;
             return;
         }
 
-        String currentNodeName = currentPointer.getNodeName(currentNodeIndex);
+        String currentNodeName = pointer.getNodeName(nodeIndex);
         if (!mappingNode.containsKey(currentNodeName)) {
             throw new YamlTreeNodeNotFoundException("Could not find the key '" + currentNodeName + "'");
         }
         Object descendantNode = mappingNode.get(currentNodeName);
 
-        ++currentNodeIndex;
+        ++nodeIndex;
         YamlTreeVisitor.visit(this, descendantNode);
     }
 
     @Override
     public void visitSequence(List<Object> sequenceNode) {
-        if (currentNodeIndex >= currentPointer.getNumberOfNodeNames()) {
+        if (nodeIndex >= pointer.getNumberOfNodeNames()) {
             resultingYamlTreeNode = sequenceNode;
             return;
         }
 
-        String currentNodeName = currentPointer.getNodeName(currentNodeIndex);
+        String currentNodeName = pointer.getNodeName(nodeIndex);
         int listIndex;
         try {
             listIndex = Integer.parseInt(currentNodeName);
@@ -68,17 +63,22 @@ public class YamlTreeDescender implements YamlTreeVisitor {
 
         Object descendantNode = sequenceNode.get(listIndex);
 
-        ++currentNodeIndex;
+        ++nodeIndex;
         YamlTreeVisitor.visit(this, descendantNode);
     }
 
     @Override
     public void visitScalar(Object scalar) {
-        if (currentNodeIndex != currentPointer.getNumberOfNodeNames()) {
+        if (nodeIndex != pointer.getNumberOfNodeNames()) {
             throw new YamlTreeNodeNotFoundException("Cannot descend further to '" +
-                    currentPointer.getNodeName(currentNodeIndex) + "' because a scalar was reached");
+                    pointer.getNodeName(nodeIndex) + "' because a scalar was reached");
         }
 
         resultingYamlTreeNode = scalar;
+    }
+
+    private Object doDescend() {
+        YamlTreeVisitor.visit(this, yamlTreeRoot);
+        return resultingYamlTreeNode;
     }
 }
