@@ -14,7 +14,6 @@ import cloud.foundry.cli.crosscutting.exceptions.YamlTreeNodeNotFoundException;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Timeout;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
 
@@ -23,7 +22,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Scanner;
-import java.util.concurrent.TimeUnit;
 
 public class RefResolverTest {
 
@@ -33,7 +31,6 @@ public class RefResolverTest {
     private static final String BASIC_FOLDER = "basic/";
 
     @Test
-    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testRemoteRef() throws FileNotFoundException {
         Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + REFRESOLVER_FOLDER + "RemoteRef.yaml");
 
@@ -47,7 +44,6 @@ public class RefResolverTest {
     }
 
     @Test
-    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testTopLevelRef() throws FileNotFoundException {
         Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + REFRESOLVER_FOLDER + "TopLevelRef.yaml");
 
@@ -60,7 +56,6 @@ public class RefResolverTest {
     }
 
     @Test
-    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testEscapeCharactersRef() throws FileNotFoundException {
         Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + REFRESOLVER_FOLDER + "EscapeCharactersRef.yaml");
 
@@ -74,7 +69,6 @@ public class RefResolverTest {
     }
 
     @Test
-    @Timeout(value = 10000, unit = TimeUnit.MILLISECONDS)
     public void testUrlRef() throws IOException {
         // setup http://localhost:8070/SimpleList.yaml
         WireMockServer firstServer = setupWireMockServer(8070, "SimpleList.yaml", RESOURCES_PATH + BASIC_FOLDER);
@@ -96,7 +90,6 @@ public class RefResolverTest {
     }
 
     @Test
-    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testNonExistentFileRemoteRef() throws IOException {
         Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + REFRESOLVER_FOLDER + "NonExistentFileRemoteRef.yaml");
 
@@ -106,7 +99,6 @@ public class RefResolverTest {
     }
 
     @Test
-    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testWronglyFormattedUrlRef() throws IOException {
         Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + REFRESOLVER_FOLDER + "WronglyFormattedUrlRef.yaml");
 
@@ -116,7 +108,6 @@ public class RefResolverTest {
     }
 
     @Test
-    @Timeout(value = 10000, unit = TimeUnit.MILLISECONDS)
     public void testUnreachableUrlRef() throws IOException {
         Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + REFRESOLVER_FOLDER + "UnreachableUrlRef.yaml");
 
@@ -126,7 +117,6 @@ public class RefResolverTest {
     }
 
     @Test
-    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testEmptyFileRef() throws IOException {
         Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + REFRESOLVER_FOLDER + "EmptyFileRef.yaml");
 
@@ -136,7 +126,6 @@ public class RefResolverTest {
     }
 
     @Test
-    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testInvalidPointerInRef() throws IOException {
         Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + REFRESOLVER_FOLDER + "InvalidPointerInRef.yaml");
 

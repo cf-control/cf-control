@@ -8,14 +8,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import cloud.foundry.cli.crosscutting.exceptions.YamlTreeNodeNotFoundException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Timeout;
 
 import java.util.Map;
 import java.util.List;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Collections;
-import java.util.concurrent.TimeUnit;
 
 public class YamlTreeDescenderTest {
 
@@ -58,7 +56,6 @@ public class YamlTreeDescenderTest {
     }
 
     @Test
-    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testDescendToMappingScalar() {
         YamlPointer yamlPointer = new YamlPointer("#/" + valuesKey + "/0/" + luckyNumberKey);
 
@@ -68,7 +65,6 @@ public class YamlTreeDescenderTest {
     }
 
     @Test
-    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testDescendToListScalar() {
         YamlPointer yamlPointer = new YamlPointer("#/" + valuesKey + "/1");
 
@@ -78,7 +74,6 @@ public class YamlTreeDescenderTest {
     }
 
     @Test
-    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testDescendToNullScalar() {
         YamlPointer yamlPointer = new YamlPointer("#/" + valuesKey + "/0/" + nameKey);
 
@@ -88,7 +83,6 @@ public class YamlTreeDescenderTest {
     }
 
     @Test
-    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testDescendToList() {
         YamlPointer yamlPointer = new YamlPointer("#/" + valuesKey);
 
@@ -98,7 +92,6 @@ public class YamlTreeDescenderTest {
     }
 
     @Test
-    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testDescendToMap() {
         YamlPointer yamlPointer = new YamlPointer("#/" + valuesKey + "/0");
 
@@ -108,7 +101,6 @@ public class YamlTreeDescenderTest {
     }
 
     @Test
-    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testDescendToRoot() {
         YamlPointer yamlPointer = new YamlPointer("#/");
 
@@ -118,7 +110,6 @@ public class YamlTreeDescenderTest {
     }
 
     @Test
-    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testDescendToAnchorAlias() {
         YamlPointer yamlPointerAnchor = new YamlPointer("#/" + valuesKey + "/0");
         YamlPointer yamlPointerAlias = new YamlPointer("#/" + sameKey);
@@ -130,7 +121,6 @@ public class YamlTreeDescenderTest {
     }
 
     @Test
-    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testKeyNotInMap() {
         YamlPointer yamlPointer = new YamlPointer("#/nonExistentKey");
 
@@ -138,7 +128,6 @@ public class YamlTreeDescenderTest {
     }
 
     @Test
-    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testUnparsableListIndex() {
         YamlPointer yamlPointer = new YamlPointer("#/" + valuesKey + "/index");
 
@@ -146,7 +135,6 @@ public class YamlTreeDescenderTest {
     }
 
     @Test
-    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testListIndexOutOfRange() {
         YamlPointer yamlPointerLower = new YamlPointer("#/" + valuesKey + "/-1");
         YamlPointer yamlPointerUpper = new YamlPointer("#/" + valuesKey + "/2");
@@ -156,7 +144,6 @@ public class YamlTreeDescenderTest {
     }
 
     @Test
-    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testDescendBeyondScalar() {
         YamlPointer yamlPointer = new YamlPointer("#/" + valuesKey + "/0/" + luckyNumberKey + "/nonExistent");
 

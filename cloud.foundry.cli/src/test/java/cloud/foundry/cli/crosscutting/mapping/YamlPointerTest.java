@@ -5,14 +5,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Timeout;
-
-import java.util.concurrent.TimeUnit;
 
 public class YamlPointerTest {
 
     @Test
-    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testEscapeCharacters() {
         YamlPointer pointer = new YamlPointer("#/this/is~1a/valid/yaml~1~0pointer");
 
@@ -24,7 +20,6 @@ public class YamlPointerTest {
     }
 
     @Test
-    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testDelimiterAtTheEnd() {
         YamlPointer pointer = new YamlPointer("#/delimiterAtTheEnd/");
 
@@ -33,7 +28,6 @@ public class YamlPointerTest {
     }
 
     @Test
-    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testEmptyPointer() {
         YamlPointer pointer = new YamlPointer("#/");
 
@@ -41,7 +35,6 @@ public class YamlPointerTest {
     }
 
     @Test
-    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testEmptyPointer2() {
         YamlPointer pointer = new YamlPointer("#");
 
@@ -49,7 +42,6 @@ public class YamlPointerTest {
     }
 
     @Test
-    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testInvalidBeginningMissingSlash() {
         assertThrows(
                 IllegalArgumentException.class,
@@ -57,7 +49,6 @@ public class YamlPointerTest {
     }
 
     @Test
-    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testInvalidBeginningMissingHash() {
         assertThrows(
                 IllegalArgumentException.class,
@@ -65,7 +56,6 @@ public class YamlPointerTest {
     }
 
     @Test
-    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testEmptyNodeNameInPointer() {
         assertThrows(
                 IllegalArgumentException.class,
@@ -73,7 +63,6 @@ public class YamlPointerTest {
     }
 
     @Test
-    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testIllegalEscapeSequenceInPointer() {
         assertThrows(
                 IllegalArgumentException.class,
@@ -81,7 +70,6 @@ public class YamlPointerTest {
     }
 
     @Test
-    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testNodeIndexOutOfBounds() {
         YamlPointer pointer = new YamlPointer("#/some/pointer");
 
