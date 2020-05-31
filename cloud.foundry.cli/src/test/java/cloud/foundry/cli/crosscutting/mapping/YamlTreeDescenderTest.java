@@ -17,7 +17,7 @@ import java.util.LinkedList;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
-public class DescendingYamlTreeVisitorTest {
+public class YamlTreeDescenderTest {
 
     /*
       values:
