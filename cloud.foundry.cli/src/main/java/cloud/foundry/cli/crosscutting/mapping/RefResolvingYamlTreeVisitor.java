@@ -1,7 +1,8 @@
 package cloud.foundry.cli.crosscutting.mapping;
 
-import cloud.foundry.cli.crosscutting.exceptions.InvalidPointerException;
+import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.util.FileUtils;
+import org.apache.hc.core5.http.ProtocolException;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.IOException;
@@ -10,7 +11,7 @@ import java.util.Map;
 
 public class RefResolvingYamlTreeVisitor implements YamlTreeVisitor {
 
-    private static final String REF_INDICATOR = "$ref";
+    public static final String REF_INDICATOR = "$ref";
 
     private final Object yamlTreeRoot;
     private final Yaml yamlProcessor;
@@ -57,19 +58,28 @@ public class RefResolvingYamlTreeVisitor implements YamlTreeVisitor {
             throw new IllegalArgumentException("Ref no String");
         }
         String refValue = (String) refValueNode;
+        Log.debug("Encountered", RefResolvingYamlTreeVisitor.REF_INDICATOR + "-occurrence with value", refValue);
         if (refValue.matches(".*#.*#.*")) {
             throw new IllegalArgumentException("More than one # occurences.");
         }
-        String[] splittedRefValue = refValue.split("#");
-        //Regex only tolerates exactly 1 # in a Ref
-        assert splittedRefValue.length <= 2;
-        String filePath = splittedRefValue[0];
-        String yamlPointerString = (splittedRefValue.length == 1) ? null : splittedRefValue[1];
-        //TODO: Check if local or remote File, for now try local File
+        int indexOfPointerBeginning = refValue.indexOf("#");
+        String filePath;
+        String yamlPointerString = null;
+        if (indexOfPointerBeginning == -1) {
+            filePath = refValue;
+        } else {
+            filePath = refValue.substring(0, indexOfPointerBeginning);
+            yamlPointerString = refValue.substring(indexOfPointerBeginning);
+        }
+        Log.debug("Reading contents of", filePath);
         try {
-            String file = FileUtils.readLocalFile(filePath);
+            String file = FileUtils.readLocalOrRemoteFile(filePath);
+            if (file.isEmpty()) {
+                throw new RuntimeException("empty file");
+            }
             Object yamlRefTree = this.yamlProcessor.load(file);
             if (yamlPointerString != null) {
+                Log.debug("Getting contents at", yamlPointerString);
                 YamlPointer yamlPointer = new YamlPointer(yamlPointerString);
                 DescendingYamlTreeVisitor descendingYamlTreeVisitor = new DescendingYamlTreeVisitor(yamlRefTree);
                 descendingYamlTreeVisitor.descend(yamlPointer);
@@ -77,10 +87,8 @@ public class RefResolvingYamlTreeVisitor implements YamlTreeVisitor {
             }
             //For bedding in the ref
             this.nodeToOverwrite = yamlRefTree;
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InvalidPointerException e) {
-            throw e;
+        } catch (IOException | ProtocolException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -98,6 +106,5 @@ public class RefResolvingYamlTreeVisitor implements YamlTreeVisitor {
     @Override
     public void visitScalar(Object scalar) {
         nodeToOverwrite = scalar;
-        return;
     }
 }

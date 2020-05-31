@@ -1,6 +1,7 @@
 package cloud.foundry.cli.crosscutting.mapping;
 
 import cloud.foundry.cli.crosscutting.beans.Bean;
+import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.util.FileUtils;
 import org.yaml.snakeyaml.Yaml;
 
@@ -36,9 +37,12 @@ public class YamlMapper {
     public static Object resolve(Object yamlTreeRoot, Yaml yamlParser) {
         // TODO custom exceptions in case of error:
         // e.g. unknown node type
+        Log.debug("Resolve", RefResolvingYamlTreeVisitor.REF_INDICATOR + "-occurrences");
         RefResolvingYamlTreeVisitor refResolvingYamlTreeVisitor =
                 new RefResolvingYamlTreeVisitor(yamlTreeRoot, yamlParser);
-        return refResolvingYamlTreeVisitor.resolveRefs();
+        Object resolvedYamlTreeRoot = refResolvingYamlTreeVisitor.resolveRefs();
+        Log.debug("Resolving completed");
+        return resolvedYamlTreeRoot;
 
     }
 }

@@ -1,9 +1,9 @@
 myList:
-  $ref: 'http://localhost:8070/resources/SimpleList.yaml'
+  $ref: 'http://localhost:8070/SimpleList.yaml'
   shouldBe: overridden
 myFriends:
   -
     should: beOverridden
-    $ref: 'http://localhost:8090/resources/VariousContents.yaml#/persons/0'
+    $ref: 'http://localhost:8090/VariousContents.yaml#/persons/0'
   -
-    $ref: 'http://localhost:8090/resources/VariousContents.yaml#/persons/1'
+    $ref: 'http://localhost:8090/VariousContents.yaml#/persons/1'

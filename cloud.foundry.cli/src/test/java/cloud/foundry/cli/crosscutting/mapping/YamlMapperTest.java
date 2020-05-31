@@ -3,14 +3,18 @@ package cloud.foundry.cli.crosscutting.mapping;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import cloud.foundry.cli.crosscutting.logging.Log;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -18,40 +22,73 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
 public class YamlMapperTest {
 
-    private static final Yaml DEFAULT_PROCESSOR = new Yaml();
-    private static final String RESOURCES_PATH = "./src/test/resources/refresolver/";
+    private static final Yaml DEFAULT_PROCESSOR = new Yaml(new SafeConstructor());
+    private static final String RESOURCES_PATH = "./src/test/resources/";
+    private static final String REFRESOLVER_FOLDER = "refresolver/";
+    private static final String BASIC_FOLDER = "basic/";
 
     @Test
     @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testRemoteRef() throws FileNotFoundException {
-        assertSemanticEquality("ExpectedRemoteRef.yaml", "RemoteRef.yaml");
+        Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + REFRESOLVER_FOLDER + "RemoteRef.yaml");
+
+        Object rootOfResolvedTree = YamlMapper.resolve(treeRoot, DEFAULT_PROCESSOR);
+
+        String resolvedYamlResult = convertTreeToString(rootOfResolvedTree);
+        Object preresolvedTreeRoot = parseYamlFileAsTree(
+                RESOURCES_PATH + REFRESOLVER_FOLDER + "ExpectedRemoteRef.yaml");
+        String expectedYamlResult = convertTreeToString(preresolvedTreeRoot);
+        assertThat(resolvedYamlResult, is(expectedYamlResult));
     }
 
     @Test
     @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testTopLevelRef() throws FileNotFoundException {
-        assertSemanticEquality("referred/VariousContents.yaml", "TopLevelRef.yaml");
+        Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + REFRESOLVER_FOLDER + "TopLevelRef.yaml");
+
+        Object rootOfResolvedTree = YamlMapper.resolve(treeRoot, DEFAULT_PROCESSOR);
+
+        String resolvedYamlResult = convertTreeToString(rootOfResolvedTree);
+        Object preresolvedTreeRoot = parseYamlFileAsTree(RESOURCES_PATH + BASIC_FOLDER + "VariousContents.yaml");
+        String expectedYamlResult = convertTreeToString(preresolvedTreeRoot);
+        assertThat(resolvedYamlResult, is(expectedYamlResult));
     }
 
     @Test
     @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testEscapeCharactersRef() throws FileNotFoundException {
-        assertSemanticEquality("ExpectedEscapeCharactersRef.yaml", "EscapeCharactersRef.yaml");
+        Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + REFRESOLVER_FOLDER + "EscapeCharactersRef.yaml");
+
+        Object rootOfResolvedTree = YamlMapper.resolve(treeRoot, DEFAULT_PROCESSOR);
+
+        String resolvedYamlResult = convertTreeToString(rootOfResolvedTree);
+        Object preresolvedTreeRoot = parseYamlFileAsTree(
+                RESOURCES_PATH + REFRESOLVER_FOLDER + "ExpectedEscapeCharactersRef.yaml");
+        String expectedYamlResult = convertTreeToString(preresolvedTreeRoot);
+        assertThat(resolvedYamlResult, is(expectedYamlResult));
     }
 
     @Test
     @Timeout(value = 10000, unit = TimeUnit.MILLISECONDS)
     public void testUrlRef() throws IOException {
-        // http://localhost:8070/resources/SimpleList.yaml will have the contents of SimpleList.yaml as response body
-        WireMockServer firstServer = setupWireMockServer(8070, "SimpleList.yaml");
+        // setup http://localhost:8070/SimpleList.yaml
+        WireMockServer firstServer = setupWireMockServer(8070, "SimpleList.yaml", RESOURCES_PATH + BASIC_FOLDER);
 
-        // http://localhost:8090/resources/VariousContents.yaml will have the contents of VariousContents.yaml as response body
-        WireMockServer secondServer = setupWireMockServer(8090, "VariousContents.yaml");
+        // setup http://localhost:8090/VariousContents.yaml
+        WireMockServer secondServer = setupWireMockServer(8090, "VariousContents.yaml", RESOURCES_PATH + BASIC_FOLDER);
 
-        assertSemanticEquality("ExpectedUrlRef.yaml", "UrlRef.yaml");
+        Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + REFRESOLVER_FOLDER + "UrlRef.yaml");
+
+        Object rootOfResolvedTree = YamlMapper.resolve(treeRoot, DEFAULT_PROCESSOR);
+
+        String resolvedYamlResult = convertTreeToString(rootOfResolvedTree);
+        Object preresolvedTreeRoot = parseYamlFileAsTree(RESOURCES_PATH + REFRESOLVER_FOLDER + "ExpectedUrlRef.yaml");
+        String expectedYamlResult = convertTreeToString(preresolvedTreeRoot);
+        assertThat(resolvedYamlResult, is(expectedYamlResult));
 
         firstServer.stop();
         secondServer.stop();
@@ -60,95 +97,54 @@ public class YamlMapperTest {
     @Test
     @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testNonExistentFileRemoteRef() throws IOException {
-        // TODO replace exception class by a custom one
-        Exception thrownException = assertThrownExceptionWhenResolvingRef(
-                Exception.class,
-                "NonExistentFileRemoteRef.yaml");
+        Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + REFRESOLVER_FOLDER + "NonExistentFileRemoteRef.yaml");
 
+        // TODO replace exception class by a custom one
         // TODO check exception contents
+        assertThrows(Exception.class, () -> YamlMapper.resolve(treeRoot, DEFAULT_PROCESSOR));
     }
 
     @Test
     @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testWronglyFormattedUrlRef() throws IOException {
-        // TODO replace exception class by a custom one
-        Exception thrownException = assertThrownExceptionWhenResolvingRef(
-                Exception.class,
-                "WronglyFormattedUrlRef.yaml");
+        Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + REFRESOLVER_FOLDER + "WronglyFormattedUrlRef.yaml");
 
+        // TODO replace exception class by a custom one
         // TODO check exception contents
+        assertThrows(Exception.class, () -> YamlMapper.resolve(treeRoot, DEFAULT_PROCESSOR));
     }
 
     @Test
     @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testUnreachableUrlRef() throws IOException {
+        Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + REFRESOLVER_FOLDER + "UnreachableUrlRef.yaml");
+
         // TODO replace exception class by a custom one
-        Exception thrownException = assertThrownExceptionWhenResolvingRef(
-                Exception.class,
-                "UnreachableUrlRef.yaml");
-
         // TODO check exception contents
-    }
-
-    @Test
-    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
-    public void testNoYamlFileRef() throws IOException {
-        // TODO replace exception class by a custom one
-        Exception thrownException = assertThrownExceptionWhenResolvingRef(
-                Exception.class,
-                "NoYamlFileRef.yaml");
-
-        // TODO check exception contents
+        assertThrows(Exception.class, () -> YamlMapper.resolve(treeRoot, DEFAULT_PROCESSOR));
     }
 
     @Test
     @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testEmptyFileRef() throws IOException {
-        // TODO replace exception class by a custom one
-        Exception thrownException = assertThrownExceptionWhenResolvingRef(
-                Exception.class,
-                "EmptyFileRef.yaml");
+        Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + REFRESOLVER_FOLDER + "EmptyFileRef.yaml");
 
+        // TODO replace exception class by a custom one
         // TODO check exception contents
+        assertThrows(Exception.class, () -> YamlMapper.resolve(treeRoot, DEFAULT_PROCESSOR));
     }
 
     @Test
     @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testInvalidPointerInRef() throws IOException {
+        Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + REFRESOLVER_FOLDER + "InvalidPointerInRef.yaml");
+
         // TODO replace exception class by a custom one
-        Exception thrownException = assertThrownExceptionWhenResolvingRef(
-                Exception.class,
-                "InvalidPointerInRef.yaml");
-
         // TODO check exception contents
+        assertThrows(Exception.class, () -> YamlMapper.resolve(treeRoot, DEFAULT_PROCESSOR));
     }
 
-    private void assertSemanticEquality(String preresolvedYamlFile, String yamlFileContainingRef)
-            throws FileNotFoundException {
-        Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + yamlFileContainingRef);
-
-        Object rootOfResolvedTree = YamlMapper.resolve(treeRoot, DEFAULT_PROCESSOR);
-        String resolvedYamlResult = convertTreeToYaml(rootOfResolvedTree);
-
-        Object preresolvedTreeRoot = parseYamlFileAsTree(RESOURCES_PATH + preresolvedYamlFile);
-        String expectedYamlResult = convertTreeToYaml(preresolvedTreeRoot);
-        Assertions.assertEquals(expectedYamlResult, resolvedYamlResult);
-    }
-
-    private <T extends Throwable> T assertThrownExceptionWhenResolvingRef(
-            Class<T> expectedType, String yamlFileContainingRef)
-            throws FileNotFoundException {
-        Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + yamlFileContainingRef);
-
-        return assertThrows(
-                expectedType,
-                () -> {
-                    YamlMapper.resolve(treeRoot, DEFAULT_PROCESSOR);
-                }
-        );
-    }
-
-    private String convertTreeToYaml(Object tree) {
+    private String convertTreeToString(Object tree) {
         return DEFAULT_PROCESSOR.dump(tree);
     }
 
@@ -163,18 +159,16 @@ public class YamlMapperTest {
         return scanner.useDelimiter("\\Z").next();
     }
 
-    private WireMockServer setupWireMockServer(int port, String fileAsResponseBody)
+    private WireMockServer setupWireMockServer(int port, String filename, String path)
             throws FileNotFoundException {
         WireMockConfiguration serverConfig = WireMockConfiguration.options().port(port);
         WireMockServer server = new WireMockServer(serverConfig);
-        server.start();
 
-        String pathToFileAsResponseBody = RESOURCES_PATH + "referred/" + fileAsResponseBody;
-
-        server.stubFor(get(urlEqualTo("/resources/" + fileAsResponseBody))
+        server.stubFor(get(urlEqualTo("/" + filename))
                 .willReturn(aResponse()
-                        .withBody(readFileContent(pathToFileAsResponseBody))));
+                        .withBody(readFileContent(path + filename))));
 
+        server.start();
         return server;
     }
 
