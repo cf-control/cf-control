@@ -11,14 +11,17 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * TODO documentation
+ */
 public class RefResolver implements YamlTreeVisitor {
 
     private static final String REF_KEY = "$ref";
 
     private final Object yamlTreeRoot;
     private final Yaml yamlParser;
-    private Object overridingNode;
 
+    private Object overridingNode;
 
     private RefResolver(Object yamlTreeRoot, Yaml yamlParser) {
         this.yamlTreeRoot = yamlTreeRoot;
@@ -26,6 +29,9 @@ public class RefResolver implements YamlTreeVisitor {
         overridingNode = yamlTreeRoot;
     }
 
+    /**
+     * TODO documentation
+     */
     public static Object resolveRefs(Object yamlTreeRoot, Yaml yamlParser) {
         Log.debug("Resolve", RefResolver.REF_KEY + "-occurrences");
 
@@ -37,6 +43,9 @@ public class RefResolver implements YamlTreeVisitor {
         return resolvedYamlTreeRoot;
     }
 
+    /**
+     * TODO documentation
+     */
     @Override
     public void visitMapping(Map<Object, Object> mappingNode) {
         if (!mappingNode.containsKey(REF_KEY)) {
@@ -98,6 +107,9 @@ public class RefResolver implements YamlTreeVisitor {
         overridingNode = referredYamlTree;
     }
 
+    /**
+     * TODO documentation
+     */
     @Override
     public void visitSequence(List<Object> sequenceNode) {
         for (int sequenceNodeIndex = 0; sequenceNodeIndex < sequenceNode.size(); ++sequenceNodeIndex) {
@@ -110,6 +122,9 @@ public class RefResolver implements YamlTreeVisitor {
         overridingNode = sequenceNode;
     }
 
+    /**
+     * TODO documentation
+     */
     @Override
     public void visitScalar(Object scalar) {
         // this scalar node remains unchanged

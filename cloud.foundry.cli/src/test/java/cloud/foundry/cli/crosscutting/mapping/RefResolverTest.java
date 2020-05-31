@@ -23,6 +23,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Scanner;
 
+/**
+ * Test for {@link RefResolver}
+ */
 public class RefResolverTest {
 
     private static final Yaml DEFAULT_PROCESSOR = new Yaml(new SafeConstructor());

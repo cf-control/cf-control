@@ -32,6 +32,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
+/**
+ * Test for {@link FileUtils}
+ */
 public class FileUtilsTest {
 
     private static String RESOURCE_PATH = "./src/test/resources/basic/";

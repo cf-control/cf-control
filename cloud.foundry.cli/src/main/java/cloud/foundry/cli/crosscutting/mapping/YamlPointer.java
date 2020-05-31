@@ -1,5 +1,8 @@
 package cloud.foundry.cli.crosscutting.mapping;
 
+/**
+ * TODO documentation
+ */
 public class YamlPointer {
 
     private static final String POINTER_DELIMITER = "/";
@@ -7,14 +10,12 @@ public class YamlPointer {
 
     private final String[] nodeNames;
 
+    /**
+     * TODO documentation
+     */
     public YamlPointer(String pointer) {
         checkValidPointer(pointer);
 
-        checkValidPointer();
-        initializeNodeNames();
-    }
-
-    private void initializeNodeNames() {
         if (pointer.length() <= POINTER_START.length()) {
             // empty pointer contents
             nodeNames = new String[0];
@@ -28,6 +29,9 @@ public class YamlPointer {
         }
     }
 
+    /**
+     * TODO documentation
+     */
     public String getNodeName(int index) {
         ++index; // skip pointer start
         if (index <= 0 || index >= nodeNames.length) {
@@ -36,6 +40,9 @@ public class YamlPointer {
         return nodeNames[index];
     }
 
+    /**
+     * TODO documentation
+     */
     public int getNumberOfNodeNames() {
         return Math.max(0, nodeNames.length - 1);
     }

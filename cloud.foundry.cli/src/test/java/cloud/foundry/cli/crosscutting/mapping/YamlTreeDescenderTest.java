@@ -15,6 +15,9 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Collections;
 
+/**
+ * Test for {@link YamlTreeDescender}
+ */
 public class YamlTreeDescenderTest {
 
     /*

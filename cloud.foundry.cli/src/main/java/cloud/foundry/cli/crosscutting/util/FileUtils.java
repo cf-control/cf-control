@@ -35,6 +35,9 @@ public class FileUtils {
             "YML"
     ));
 
+    /**
+     * TODO documentation
+     */
     public static String readLocalOrRemoteFile(String filepath) throws IOException, ProtocolException {
         checkNotNull(filepath);
         String content;

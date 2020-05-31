@@ -11,6 +11,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 
+/**
+ * Test for {@link YamlTreeVisitor}
+ */
 public class YamlTreeVisitorTest {
 
     @Test

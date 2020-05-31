@@ -1,5 +1,8 @@
 package cloud.foundry.cli.crosscutting.exceptions;
 
+/**
+ * TODO documentation
+ */
 public class RefResolvingException extends RuntimeException {
 
     public RefResolvingException(String message) {

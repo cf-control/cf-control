@@ -5,6 +5,9 @@ import cloud.foundry.cli.crosscutting.exceptions.YamlTreeNodeNotFoundException;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * TODO documentation
+ */
 public class YamlTreeDescender implements YamlTreeVisitor {
 
     private final Object yamlTreeRoot;
@@ -20,12 +23,18 @@ public class YamlTreeDescender implements YamlTreeVisitor {
         this.resultingYamlTreeNode = null;
     }
 
+    /**
+     * TODO documentation
+     */
     public static Object descend(Object yamlTreeRoot, YamlPointer yamlPointer) {
         YamlTreeDescender descendingVisitor = new YamlTreeDescender(yamlTreeRoot, yamlPointer);
 
         return descendingVisitor.doDescend();
     }
 
+    /**
+     * TODO documentation
+     */
     @Override
     public void visitMapping(Map<Object, Object> mappingNode) {
         if (nodeIndex >= pointer.getNumberOfNodeNames()) {
@@ -43,6 +52,9 @@ public class YamlTreeDescender implements YamlTreeVisitor {
         YamlTreeVisitor.visit(this, descendantNode);
     }
 
+    /**
+     * TODO documentation
+     */
     @Override
     public void visitSequence(List<Object> sequenceNode) {
         if (nodeIndex >= pointer.getNumberOfNodeNames()) {
@@ -67,6 +79,9 @@ public class YamlTreeDescender implements YamlTreeVisitor {
         YamlTreeVisitor.visit(this, descendantNode);
     }
 
+    /**
+     * TODO documentation
+     */
     @Override
     public void visitScalar(Object scalar) {
         if (nodeIndex != pointer.getNumberOfNodeNames()) {
