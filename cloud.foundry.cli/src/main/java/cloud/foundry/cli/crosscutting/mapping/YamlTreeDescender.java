@@ -5,7 +5,7 @@ import cloud.foundry.cli.crosscutting.exceptions.YamlTreeNodeNotFoundException;
 import java.util.List;
 import java.util.Map;
 
-public class DescendingYamlTreeVisitor implements YamlTreeVisitor {
+public class YamlTreeDescender implements YamlTreeVisitor {
 
     private Object yamlTreeRoot;
 
@@ -13,23 +13,22 @@ public class DescendingYamlTreeVisitor implements YamlTreeVisitor {
     private int currentNodeIndex;
     private Object resultingYamlTreeNode;
 
-    public DescendingYamlTreeVisitor(Object yamlTreeRoot) {
+    private YamlTreeDescender(Object yamlTreeRoot, YamlPointer pointer) {
         this.yamlTreeRoot = yamlTreeRoot;
-        this.currentPointer = null;
-        this.currentNodeIndex = -1;
+        this.currentPointer = pointer;
+        this.currentNodeIndex = 0;
         this.resultingYamlTreeNode = null;
     }
 
-    public Object getResultingYamlTreeNode() {
-        return resultingYamlTreeNode;
+    public static Object descend(Object yamlTreeRoot, YamlPointer yamlPointer) {
+        YamlTreeDescender descendingVisitor = new YamlTreeDescender(yamlTreeRoot, yamlPointer);
+
+        return descendingVisitor.doDescend();
     }
 
-    public void descend(YamlPointer pointer) {
-        currentPointer = pointer;
-        currentNodeIndex = 0;
+    private Object doDescend() {
         YamlTreeVisitor.visit(this, yamlTreeRoot);
-        currentPointer = null;
-        currentNodeIndex = -1;
+        return resultingYamlTreeNode;
     }
 
     @Override

@@ -7,10 +7,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import cloud.foundry.cli.crosscutting.logging.Log;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.yaml.snakeyaml.Yaml;
@@ -22,9 +20,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
 
-public class YamlMapperTest {
+public class RefResolverTest {
 
     private static final Yaml DEFAULT_PROCESSOR = new Yaml(new SafeConstructor());
     private static final String RESOURCES_PATH = "./src/test/resources/";
@@ -36,7 +33,7 @@ public class YamlMapperTest {
     public void testRemoteRef() throws FileNotFoundException {
         Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + REFRESOLVER_FOLDER + "RemoteRef.yaml");
 
-        Object rootOfResolvedTree = YamlMapper.resolve(treeRoot, DEFAULT_PROCESSOR);
+        Object rootOfResolvedTree = RefResolver.resolveRefs(treeRoot, DEFAULT_PROCESSOR);
 
         String resolvedYamlResult = convertTreeToString(rootOfResolvedTree);
         Object preresolvedTreeRoot = parseYamlFileAsTree(
@@ -50,7 +47,7 @@ public class YamlMapperTest {
     public void testTopLevelRef() throws FileNotFoundException {
         Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + REFRESOLVER_FOLDER + "TopLevelRef.yaml");
 
-        Object rootOfResolvedTree = YamlMapper.resolve(treeRoot, DEFAULT_PROCESSOR);
+        Object rootOfResolvedTree = RefResolver.resolveRefs(treeRoot, DEFAULT_PROCESSOR);
 
         String resolvedYamlResult = convertTreeToString(rootOfResolvedTree);
         Object preresolvedTreeRoot = parseYamlFileAsTree(RESOURCES_PATH + BASIC_FOLDER + "VariousContents.yaml");
@@ -63,7 +60,7 @@ public class YamlMapperTest {
     public void testEscapeCharactersRef() throws FileNotFoundException {
         Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + REFRESOLVER_FOLDER + "EscapeCharactersRef.yaml");
 
-        Object rootOfResolvedTree = YamlMapper.resolve(treeRoot, DEFAULT_PROCESSOR);
+        Object rootOfResolvedTree = RefResolver.resolveRefs(treeRoot, DEFAULT_PROCESSOR);
 
         String resolvedYamlResult = convertTreeToString(rootOfResolvedTree);
         Object preresolvedTreeRoot = parseYamlFileAsTree(
@@ -83,7 +80,7 @@ public class YamlMapperTest {
 
         Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + REFRESOLVER_FOLDER + "UrlRef.yaml");
 
-        Object rootOfResolvedTree = YamlMapper.resolve(treeRoot, DEFAULT_PROCESSOR);
+        Object rootOfResolvedTree = RefResolver.resolveRefs(treeRoot, DEFAULT_PROCESSOR);
 
         String resolvedYamlResult = convertTreeToString(rootOfResolvedTree);
         Object preresolvedTreeRoot = parseYamlFileAsTree(RESOURCES_PATH + REFRESOLVER_FOLDER + "ExpectedUrlRef.yaml");
@@ -101,7 +98,7 @@ public class YamlMapperTest {
 
         // TODO replace exception class by a custom one
         // TODO check exception contents
-        assertThrows(Exception.class, () -> YamlMapper.resolve(treeRoot, DEFAULT_PROCESSOR));
+        assertThrows(Exception.class, () -> RefResolver.resolveRefs(treeRoot, DEFAULT_PROCESSOR));
     }
 
     @Test
@@ -111,7 +108,7 @@ public class YamlMapperTest {
 
         // TODO replace exception class by a custom one
         // TODO check exception contents
-        assertThrows(Exception.class, () -> YamlMapper.resolve(treeRoot, DEFAULT_PROCESSOR));
+        assertThrows(Exception.class, () -> RefResolver.resolveRefs(treeRoot, DEFAULT_PROCESSOR));
     }
 
     @Test
@@ -121,7 +118,7 @@ public class YamlMapperTest {
 
         // TODO replace exception class by a custom one
         // TODO check exception contents
-        assertThrows(Exception.class, () -> YamlMapper.resolve(treeRoot, DEFAULT_PROCESSOR));
+        assertThrows(Exception.class, () -> RefResolver.resolveRefs(treeRoot, DEFAULT_PROCESSOR));
     }
 
     @Test
@@ -131,7 +128,7 @@ public class YamlMapperTest {
 
         // TODO replace exception class by a custom one
         // TODO check exception contents
-        assertThrows(Exception.class, () -> YamlMapper.resolve(treeRoot, DEFAULT_PROCESSOR));
+        assertThrows(Exception.class, () -> RefResolver.resolveRefs(treeRoot, DEFAULT_PROCESSOR));
     }
 
     @Test
@@ -141,7 +138,7 @@ public class YamlMapperTest {
 
         // TODO replace exception class by a custom one
         // TODO check exception contents
-        assertThrows(Exception.class, () -> YamlMapper.resolve(treeRoot, DEFAULT_PROCESSOR));
+        assertThrows(Exception.class, () -> RefResolver.resolveRefs(treeRoot, DEFAULT_PROCESSOR));
     }
 
     private String convertTreeToString(Object tree) {

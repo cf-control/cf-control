@@ -9,32 +9,34 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-public class RefResolvingYamlTreeVisitor implements YamlTreeVisitor {
+public class RefResolver implements YamlTreeVisitor {
 
-    public static final String REF_INDICATOR = "$ref";
+    private static final String REF_INDICATOR = "$ref";
 
     private final Object yamlTreeRoot;
     private final Yaml yamlProcessor;
-    private boolean alreadyResolved;
     private Object nodeToOverwrite;
 
 
-    public RefResolvingYamlTreeVisitor(Object yamlTreeRoot, Yaml yamlParser) {
+    private RefResolver(Object yamlTreeRoot, Yaml yamlParser) {
         this.yamlTreeRoot = yamlTreeRoot;
         this.yamlProcessor = yamlParser;
-        alreadyResolved = false;
-        nodeToOverwrite = null;
+        nodeToOverwrite = yamlTreeRoot;
     }
 
-    public Object resolveRefs() {
-        //Man kann einen RefResolver nur einmal benutzen
-        if (alreadyResolved) {
-            throw new RuntimeException("Already Resolved error");
-        }
-        //start visit process
-        nodeToOverwrite = yamlTreeRoot;
+    public static Object resolveRefs(Object yamlTreeRoot, Yaml yamlParser) {
+        Log.debug("Resolve", RefResolver.REF_INDICATOR + "-occurrences");
+
+        RefResolver refResolvingYamlTreeVisitor =
+                new RefResolver(yamlTreeRoot, yamlParser);
+        Object resolvedYamlTreeRoot = refResolvingYamlTreeVisitor.doResolveRefs();
+
+        Log.debug("Resolving completed");
+        return resolvedYamlTreeRoot;
+    }
+
+    private Object doResolveRefs() {
         YamlTreeVisitor.visit(this, yamlTreeRoot);
-        alreadyResolved = true;
         return nodeToOverwrite;
     }
 
@@ -58,7 +60,7 @@ public class RefResolvingYamlTreeVisitor implements YamlTreeVisitor {
             throw new IllegalArgumentException("Ref no String");
         }
         String refValue = (String) refValueNode;
-        Log.debug("Encountered", RefResolvingYamlTreeVisitor.REF_INDICATOR + "-occurrence with value", refValue);
+        Log.debug("Encountered", RefResolver.REF_INDICATOR + "-occurrence with value", refValue);
         if (refValue.matches(".*#.*#.*")) {
             throw new IllegalArgumentException("More than one # occurences.");
         }
@@ -81,9 +83,7 @@ public class RefResolvingYamlTreeVisitor implements YamlTreeVisitor {
             if (yamlPointerString != null) {
                 Log.debug("Getting contents at", yamlPointerString);
                 YamlPointer yamlPointer = new YamlPointer(yamlPointerString);
-                DescendingYamlTreeVisitor descendingYamlTreeVisitor = new DescendingYamlTreeVisitor(yamlRefTree);
-                descendingYamlTreeVisitor.descend(yamlPointer);
-                yamlRefTree = descendingYamlTreeVisitor.getResultingYamlTreeNode();
+                yamlRefTree = YamlTreeDescender.descend(yamlRefTree, yamlPointer);
             }
             //For bedding in the ref
             this.nodeToOverwrite = yamlRefTree;
