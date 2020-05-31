@@ -12,7 +12,6 @@ import cloud.foundry.cli.operations.ApplicationOperations;
 import cloud.foundry.cli.operations.ServicesOperations;
 import cloud.foundry.cli.operations.SpaceDevelopersOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
-import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
 
@@ -35,8 +34,6 @@ public class GetController implements Runnable {
     @Override
     public void run() {
         // this code is executed if the user runs the get command without specifying any sub-command
-        CommandLine.usage(this, System.out);
-        return;
     }
 
     @Command(name = "space-developers",
