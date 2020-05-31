@@ -4,7 +4,6 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import cloud.foundry.cli.crosscutting.exceptions.InvalidPointerException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 
@@ -36,7 +35,7 @@ public class YamlPointerTest {
     @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testInvalidBeginningMissingSlash() {
         assertThrows(
-                InvalidPointerException.class,
+                IllegalArgumentException.class,
                 () -> new YamlPointer("#this/is/invalid"));
     }
 
@@ -44,7 +43,7 @@ public class YamlPointerTest {
     @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testInvalidBeginningMissingHash() {
         assertThrows(
-                InvalidPointerException.class,
+                IllegalArgumentException.class,
                 () -> new YamlPointer("/also/this/is/invalid"));
     }
 
@@ -52,7 +51,7 @@ public class YamlPointerTest {
     @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testEmptyNodeNameInPointer() {
         assertThrows(
-                InvalidPointerException.class,
+                IllegalArgumentException.class,
                 () -> new YamlPointer("#/this//is/invalid"));
     }
 
@@ -60,7 +59,7 @@ public class YamlPointerTest {
     @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testIllegalEscapeSequenceInPointer() {
         assertThrows(
-                InvalidPointerException.class,
+                IllegalArgumentException.class,
                 () -> new YamlPointer("#/this/escape~2sequence/is/invalid"));
     }
 

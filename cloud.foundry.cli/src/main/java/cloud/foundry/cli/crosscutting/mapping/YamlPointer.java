@@ -1,7 +1,5 @@
 package cloud.foundry.cli.crosscutting.mapping;
 
-import cloud.foundry.cli.crosscutting.exceptions.InvalidPointerException;
-
 public class YamlPointer {
 
     private static final String POINTER_DELIMITER = "/";
@@ -52,14 +50,14 @@ public class YamlPointer {
 
     private void checkValidPointer() {
         if (!pointer.startsWith(POINTER_START)) {
-            throw new InvalidPointerException("The pointer does not start with '" + POINTER_START + "'", pointer);
+            throw new IllegalArgumentException("The pointer does not start with '" + POINTER_START + "'");
         }
         if (pointer.contains(POINTER_DELIMITER + POINTER_DELIMITER)) {
-            throw new InvalidPointerException("The pointer contains an empty node name", pointer);
+            throw new IllegalArgumentException("The pointer contains an empty node name");
         }
         if (pointer.matches(".*~[^01].*")) {
-            throw new InvalidPointerException("The pointer contains an illegal escape sequence " +
-                    "(a '~'-character is not followed by '0' or '1')", pointer);
+            throw new IllegalArgumentException("The pointer contains an illegal escape sequence " +
+                    "(a '~'-character is not followed by '0' or '1')");
         }
     }
 }
