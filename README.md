@@ -1,4 +1,4 @@
-# cf-control [![Coverage Status](https://coveralls.io/repos/github/cf-control/cf-control/badge.svg?branch=master)](https://coveralls.io/github/cf-control/cf-control?branch=feature/code-coveragte-tool)
+# cf-control [![Coverage Status](https://coveralls.io/repos/github/cf-control/cf-control/badge.svg?branch=master)](https://coveralls.io/github/cf-control/cf-control?branch=master)
 
 Declarative command line tool for Pivotal Cloud Foundry.
 
