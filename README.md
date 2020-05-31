@@ -1,6 +1,6 @@
-# cf-control
+# cf-control [![Coverage Status](https://coveralls.io/repos/github/cf-control/cf-control/badge.svg?branch=feature/code-coveragte-tool)](https://coveralls.io/github/cf-control/cf-control?branch=feature/code-coveragte-tool)
+
 Declarative command line tool for Pivotal Cloud Foundry.
-[![Coverage Status](https://coveralls.io/repos/github/cf-control/cf-control/badge.svg?branch=feature/code-coveragte-tool)](https://coveralls.io/github/cf-control/cf-control?branch=feature/code-coveragte-tool)
 
 ## Prerequisites 
 * Java JRE (Version 8 or newer).
