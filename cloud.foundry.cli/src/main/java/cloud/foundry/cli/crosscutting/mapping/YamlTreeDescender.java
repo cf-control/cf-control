@@ -33,8 +33,6 @@ public class YamlTreeDescender implements YamlTreeVisitor {
 
     @Override
     public void visitMapping(Map<Object, Object> mappingNode) {
-        assertCurrentStateIsLegal();
-
         if (currentNodeIndex >= currentPointer.getNumberOfNodeNames()) {
             resultingYamlTreeNode = mappingNode;
             return;
@@ -53,8 +51,6 @@ public class YamlTreeDescender implements YamlTreeVisitor {
 
     @Override
     public void visitSequence(List<Object> sequenceNode) {
-        assertCurrentStateIsLegal();
-
         if (currentNodeIndex >= currentPointer.getNumberOfNodeNames()) {
             resultingYamlTreeNode = sequenceNode;
             return;
@@ -81,19 +77,11 @@ public class YamlTreeDescender implements YamlTreeVisitor {
 
     @Override
     public void visitScalar(Object scalar) {
-        assertCurrentStateIsLegal();
-
         if (currentNodeIndex != currentPointer.getNumberOfNodeNames()) {
             throw new YamlTreeNodeNotFoundException("The pointer references a non-existent node",
                     currentPointer, currentNodeIndex);
         }
 
         resultingYamlTreeNode = scalar;
-    }
-
-    private void assertCurrentStateIsLegal() {
-        if (currentPointer == null || currentNodeIndex == -1) {
-            throw new IllegalStateException("The descending process was not initiated by the correct method");
-        }
     }
 }
