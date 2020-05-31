@@ -5,8 +5,12 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import cloud.foundry.cli.crosscutting.exceptions.RefResolvingException;
+import cloud.foundry.cli.crosscutting.exceptions.YamlTreeNodeNotFoundException;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import org.junit.jupiter.api.Test;
@@ -96,9 +100,9 @@ public class RefResolverTest {
     public void testNonExistentFileRemoteRef() throws IOException {
         Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + REFRESOLVER_FOLDER + "NonExistentFileRemoteRef.yaml");
 
-        // TODO replace exception class by a custom one
-        // TODO check exception contents
-        assertThrows(Exception.class, () -> RefResolver.resolveRefs(treeRoot, DEFAULT_PROCESSOR));
+        RefResolvingException refResolvingException = assertThrows(RefResolvingException.class,
+                () -> RefResolver.resolveRefs(treeRoot, DEFAULT_PROCESSOR));
+        assertThat(refResolvingException.getCause(), is(instanceOf(IOException.class)));
     }
 
     @Test
@@ -106,19 +110,19 @@ public class RefResolverTest {
     public void testWronglyFormattedUrlRef() throws IOException {
         Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + REFRESOLVER_FOLDER + "WronglyFormattedUrlRef.yaml");
 
-        // TODO replace exception class by a custom one
-        // TODO check exception contents
-        assertThrows(Exception.class, () -> RefResolver.resolveRefs(treeRoot, DEFAULT_PROCESSOR));
+        RefResolvingException refResolvingException = assertThrows(RefResolvingException.class,
+                () -> RefResolver.resolveRefs(treeRoot, DEFAULT_PROCESSOR));
+        assertThat(refResolvingException.getCause(), is(instanceOf(IOException.class)));
     }
 
     @Test
-    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
+    @Timeout(value = 10000, unit = TimeUnit.MILLISECONDS)
     public void testUnreachableUrlRef() throws IOException {
         Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + REFRESOLVER_FOLDER + "UnreachableUrlRef.yaml");
 
-        // TODO replace exception class by a custom one
-        // TODO check exception contents
-        assertThrows(Exception.class, () -> RefResolver.resolveRefs(treeRoot, DEFAULT_PROCESSOR));
+        assertThrows(RefResolvingException.class,
+                () -> RefResolver.resolveRefs(treeRoot, DEFAULT_PROCESSOR));
+        // TODO check specific type of cause
     }
 
     @Test
@@ -126,9 +130,9 @@ public class RefResolverTest {
     public void testEmptyFileRef() throws IOException {
         Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + REFRESOLVER_FOLDER + "EmptyFileRef.yaml");
 
-        // TODO replace exception class by a custom one
-        // TODO check exception contents
-        assertThrows(Exception.class, () -> RefResolver.resolveRefs(treeRoot, DEFAULT_PROCESSOR));
+        RefResolvingException refResolvingException = assertThrows(RefResolvingException.class,
+                () -> RefResolver.resolveRefs(treeRoot, DEFAULT_PROCESSOR));
+        assertThat(refResolvingException.getCause(), is(nullValue()));
     }
 
     @Test
@@ -136,9 +140,9 @@ public class RefResolverTest {
     public void testInvalidPointerInRef() throws IOException {
         Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + REFRESOLVER_FOLDER + "InvalidPointerInRef.yaml");
 
-        // TODO replace exception class by a custom one
-        // TODO check exception contents
-        assertThrows(Exception.class, () -> RefResolver.resolveRefs(treeRoot, DEFAULT_PROCESSOR));
+        RefResolvingException refResolvingException = assertThrows(RefResolvingException.class,
+                () -> RefResolver.resolveRefs(treeRoot, DEFAULT_PROCESSOR));
+        assertThat(refResolvingException.getCause(), is(instanceOf(YamlTreeNodeNotFoundException.class)));
     }
 
     private String convertTreeToString(Object tree) {

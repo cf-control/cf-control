@@ -1,5 +1,7 @@
 package cloud.foundry.cli.crosscutting.mapping;
 
+import cloud.foundry.cli.crosscutting.exceptions.RefResolvingException;
+import cloud.foundry.cli.crosscutting.exceptions.YamlTreeNodeNotFoundException;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.util.FileUtils;
 import org.apache.hc.core5.http.ProtocolException;
@@ -11,21 +13,21 @@ import java.util.Map;
 
 public class RefResolver implements YamlTreeVisitor {
 
-    private static final String REF_INDICATOR = "$ref";
+    private static final String REF_KEY = "$ref";
 
     private final Object yamlTreeRoot;
-    private final Yaml yamlProcessor;
-    private Object nodeToOverwrite;
+    private final Yaml yamlParser;
+    private Object overridingNode;
 
 
     private RefResolver(Object yamlTreeRoot, Yaml yamlParser) {
         this.yamlTreeRoot = yamlTreeRoot;
-        this.yamlProcessor = yamlParser;
-        nodeToOverwrite = yamlTreeRoot;
+        this.yamlParser = yamlParser;
+        overridingNode = yamlTreeRoot;
     }
 
     public static Object resolveRefs(Object yamlTreeRoot, Yaml yamlParser) {
-        Log.debug("Resolve", RefResolver.REF_INDICATOR + "-occurrences");
+        Log.debug("Resolve", RefResolver.REF_KEY + "-occurrences");
 
         RefResolver refResolvingYamlTreeVisitor =
                 new RefResolver(yamlTreeRoot, yamlParser);
@@ -37,74 +39,86 @@ public class RefResolver implements YamlTreeVisitor {
 
     private Object doResolveRefs() {
         YamlTreeVisitor.visit(this, yamlTreeRoot);
-        return nodeToOverwrite;
+        return overridingNode;
     }
 
 
     @Override
     public void visitMapping(Map<Object, Object> mappingNode) {
-
-        if (!mappingNode.containsKey(REF_INDICATOR)) {
-            //We expect that the keys are scalar, so we only need to iterate over the values
+        if (!mappingNode.containsKey(REF_KEY)) {
             for (Map.Entry<Object, Object> entry : mappingNode.entrySet()) {
                 YamlTreeVisitor.visit(this, entry.getValue());
-                //Überschreibe o mit nodeToOverwrite
-                entry.setValue(nodeToOverwrite);
+
+                // after visiting the value node of the mapping, the node itself might have changed due to a ref
+                // resolution
+                entry.setValue(overridingNode);
             }
-            //Kein ref gefunden
-            nodeToOverwrite = mappingNode;
+
+            // this mapping node remains unchanged
+            overridingNode = mappingNode;
             return;
         }
-        Object refValueNode = mappingNode.get(REF_INDICATOR);
+
+        Object refValueNode = mappingNode.get(REF_KEY);
+        Log.debug("Encountered", RefResolver.REF_KEY + "-occurrence with value", String.valueOf(refValueNode));
         if (!(refValueNode instanceof String)) {
-            throw new IllegalArgumentException("Ref no String");
+            throw new RefResolvingException("Encountered a '" + REF_KEY + "'-occurrence where its value is not of" +
+                    " type string");
         }
         String refValue = (String) refValueNode;
-        Log.debug("Encountered", RefResolver.REF_INDICATOR + "-occurrence with value", refValue);
-        if (refValue.matches(".*#.*#.*")) {
-            throw new IllegalArgumentException("More than one # occurences.");
-        }
-        int indexOfPointerBeginning = refValue.lastIndexOf("#");
+        int beginningOfPointerIndex = refValue.lastIndexOf("#");
         String filePath;
         String yamlPointerString = null;
-        if (indexOfPointerBeginning == -1) {
+        if (beginningOfPointerIndex == -1) {
             filePath = refValue;
         } else {
-            filePath = refValue.substring(0, indexOfPointerBeginning);
-            yamlPointerString = refValue.substring(indexOfPointerBeginning);
+            filePath = refValue.substring(0, beginningOfPointerIndex);
+            yamlPointerString = refValue.substring(beginningOfPointerIndex);
         }
-        Log.debug("Reading contents of", filePath);
+        Log.debug("Reading content of", filePath);
+        String fileContent;
         try {
-            String file = FileUtils.readLocalOrRemoteFile(filePath);
-            if (file.isEmpty()) {
-                throw new RuntimeException("empty file");
-            }
-            Object yamlRefTree = this.yamlProcessor.load(file);
-            if (yamlPointerString != null) {
-                Log.debug("Getting contents at", yamlPointerString);
-                YamlPointer yamlPointer = new YamlPointer(yamlPointerString);
-                yamlRefTree = YamlTreeDescender.descend(yamlRefTree, yamlPointer);
-            }
-            //For bedding in the ref
-            this.nodeToOverwrite = yamlRefTree;
-        } catch (IOException | ProtocolException e) {
-            throw new RuntimeException(e);
+            fileContent = FileUtils.readLocalOrRemoteFile(filePath);
+        } catch (IOException | ProtocolException exception) {
+            throw new RefResolvingException(exception);
         }
+        if (fileContent.isEmpty()) {
+            throw new RefResolvingException("The file content of '" + filePath + "' is empty");
+        }
+        Object referredYamlTree = yamlParser.load(fileContent);
+        if (yamlPointerString != null) {
+            Log.debug("Getting contents at", yamlPointerString);
+            YamlPointer yamlPointer;
+            try {
+                yamlPointer = new YamlPointer(yamlPointerString);
+            } catch (IllegalArgumentException illegalArgumentException) {
+                throw new RefResolvingException(illegalArgumentException);
+            }
+            try {
+                referredYamlTree = YamlTreeDescender.descend(referredYamlTree, yamlPointer);
+            } catch (YamlTreeNodeNotFoundException nodeNotFoundException) {
+                throw new RefResolvingException(nodeNotFoundException);
+            }
+        }
+        // this current mapping should be overridden by the referred yaml tree
+        overridingNode = referredYamlTree;
     }
 
     @Override
     public void visitSequence(List<Object> sequenceNode) {
+        for (int sequenceNodeIndex = 0; sequenceNodeIndex < sequenceNode.size(); ++sequenceNodeIndex) {
+            YamlTreeVisitor.visit(this, sequenceNode.get(sequenceNodeIndex));
 
-        for (int i = 0; i < sequenceNode.size(); i++) {
-            YamlTreeVisitor.visit(this, sequenceNode.get(i));
-            //Überschreibe o mit nodeToOverwrite
-            sequenceNode.set(i, nodeToOverwrite);
+            // after visiting the sequence node, the node itself might have changed due to a ref resolution
+            sequenceNode.set(sequenceNodeIndex, overridingNode);
         }
-        nodeToOverwrite = sequenceNode;
+        // this sequence node remains unchanged
+        overridingNode = sequenceNode;
     }
 
     @Override
     public void visitScalar(Object scalar) {
-        nodeToOverwrite = scalar;
+        // this scalar node remains unchanged
+        overridingNode = scalar;
     }
 }
