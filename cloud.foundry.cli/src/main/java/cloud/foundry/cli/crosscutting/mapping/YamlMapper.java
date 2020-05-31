@@ -3,7 +3,8 @@ package cloud.foundry.cli.crosscutting.mapping;
 import cloud.foundry.cli.crosscutting.beans.Bean;
 
 /**
- * TODO documentation
+ * This class takes care about loading {@link Bean beans} from configuration files and dumping {@link Bean beans} as
+ * {@link String strings}. It can be used to perform consistent loading and dumping.
  */
 public class YamlMapper {
 

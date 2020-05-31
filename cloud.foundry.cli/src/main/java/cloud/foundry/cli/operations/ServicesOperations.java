@@ -162,7 +162,7 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
 
     /**
      * Bind a service instance to applications
-     * @param ServiceBean serves as template for the service to update
+     * @param serviceBean serves as template for the service to update
      */
     private void bindToApplications(ServiceBean serviceBean) throws CreationException {
         String service = serviceBean.getName();

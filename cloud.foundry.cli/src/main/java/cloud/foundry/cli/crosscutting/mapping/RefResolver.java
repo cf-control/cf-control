@@ -12,7 +12,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * TODO documentation
+ * This class is responsible to resolve ref-occurrences in yaml trees.
+ * It performs this task by implementing the {@link YamlTreeVisitor} interface. Its visitor-based implementation is
+ * entirely hidden to the user of this class.
  */
 public class RefResolver implements YamlTreeVisitor {
 

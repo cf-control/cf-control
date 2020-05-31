@@ -1,7 +1,7 @@
 package cloud.foundry.cli.crosscutting.exceptions;
 
 /**
- * TODO documentation
+ * Thrown to indicate that an error occurred during ref resolving.
  */
 public class RefResolvingException extends RuntimeException {
 

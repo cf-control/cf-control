@@ -4,10 +4,15 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * TODO documentation
+ * This provides a visitor interface for yaml trees. The node types of a yaml tree structure are {@link Map mappings},
+ * {@link List sequences} and {@link Object scalars}. Scalars are considered as atomic leafs of the tree. Scalars are
+ * neither mappings nor sequences.
  */
 public interface YamlTreeVisitor {
 
+    /**
+     * TODO documentation
+     */
     static void visit(YamlTreeVisitor visitor, Object yamlTreeNode) {
         if (yamlTreeNode instanceof List) {
             visitor.visitSequence((List<Object>) yamlTreeNode);

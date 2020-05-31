@@ -1,7 +1,9 @@
 package cloud.foundry.cli.crosscutting.mapping;
 
 /**
- * TODO documentation
+ * This class is a representation of yaml pointers. Yaml pointers point to a specific node in a yaml tree.
+ * They are noted in a path-like syntax (like {@code #/persons/0/name}). Strings in a pointer denote keys of mappings,
+ * whereas integers denote indices of sequence elements.
  */
 public class YamlPointer {
 
