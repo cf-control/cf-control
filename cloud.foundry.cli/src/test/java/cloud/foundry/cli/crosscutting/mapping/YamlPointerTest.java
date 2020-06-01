@@ -31,14 +31,14 @@ public class YamlPointerTest {
     }
 
     @Test
-    public void testEmptyPointer() {
+    public void testEmptyPointerWithSeparator() {
         YamlPointer pointer = new YamlPointer("#/");
 
         assertThat(pointer.getNumberOfNodeNames(), is(0));
     }
 
     @Test
-    public void testEmptyPointer2() {
+    public void testEmptyPointerWithoutSeparator() {
         YamlPointer pointer = new YamlPointer("#");
 
         assertThat(pointer.getNumberOfNodeNames(), is(0));

@@ -18,13 +18,17 @@ public class YamlPointer {
     public YamlPointer(String pointer) {
         checkValidPointer(pointer);
 
-        if (pointer.length() <= POINTER_START.length()) {
-            // empty pointer contents
+        String pointerWithoutStart = pointer.substring(POINTER_START.length());
+        if (pointerWithoutStart.startsWith(POINTER_DELIMITER)) {
+            pointerWithoutStart = pointerWithoutStart.substring(POINTER_DELIMITER.length());
+        }
+
+        if (pointerWithoutStart.isEmpty()) {
             nodeNames = new String[0];
             return;
         }
 
-        nodeNames = pointer.split(POINTER_DELIMITER);
+        nodeNames = pointerWithoutStart.split(POINTER_DELIMITER);
 
         for (int index = 0; index < nodeNames.length; ++index) {
             nodeNames[index] = resolveEscapeCharacters(nodeNames[index]);
@@ -35,8 +39,7 @@ public class YamlPointer {
      * TODO documentation
      */
     public String getNodeName(int index) {
-        ++index; // skip pointer start
-        if (index <= 0 || index >= nodeNames.length) {
+        if (index < 0 || index >= nodeNames.length) {
             throw new IndexOutOfBoundsException("The node index is out of bounds");
         }
         return nodeNames[index];
@@ -46,7 +49,7 @@ public class YamlPointer {
      * TODO documentation
      */
     public int getNumberOfNodeNames() {
-        return Math.max(0, nodeNames.length - 1);
+        return nodeNames.length;
     }
 
     private static String resolveEscapeCharacters(String pointerContent) {
