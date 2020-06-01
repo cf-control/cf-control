@@ -5,7 +5,6 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static java.util.Collections.emptyList;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.times;
@@ -112,7 +111,7 @@ class SpaceDevelopersOperationsTest {
     }
 
     @Test
-    public void testAssignSpaceDeveloper_ThrowException() throws CreationException {
+    public void testAssignSpaceDeveloper_ThrowException() {
         SpaceUsers spaceUsersMock = mockSpaceUsers(cfOperationsMock);
         when(spaceUsersMock.getDevelopers()).thenReturn(Arrays.asList("one", "two", "three"));
         CloudFoundryClient cfClientMock = mock(CloudFoundryClient.class);
