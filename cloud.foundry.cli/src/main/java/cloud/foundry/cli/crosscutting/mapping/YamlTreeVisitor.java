@@ -1,5 +1,7 @@
 package cloud.foundry.cli.crosscutting.mapping;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.List;
 import java.util.Map;
 
@@ -11,9 +13,14 @@ import java.util.Map;
 public interface YamlTreeVisitor {
 
     /**
-     * TODO documentation
+     * Calls the according visit method of a visitor for a yaml tree node.
+     * @param visitor the visitor to visit the node
+     * @param yamlTreeNode the yaml tree node to be visited
+     * @throws NullPointerException if the visitor parameter is null
      */
     static void visit(YamlTreeVisitor visitor, Object yamlTreeNode) {
+        checkNotNull(visitor);
+
         if (yamlTreeNode instanceof List) {
             visitor.visitSequence((List<Object>) yamlTreeNode);
         } else if (yamlTreeNode instanceof Map) {
@@ -24,17 +31,20 @@ public interface YamlTreeVisitor {
     }
 
     /**
-     * TODO documentation
+     * This method is called when the visitor visits a mapping node.
+     * @param mappingNode the mapping node to be visited
      */
     void visitMapping(Map<Object, Object> mappingNode);
 
     /**
-     * TODO documentation
+     * This method is called when the visitor visits a sequence node.
+     * @param sequenceNode the sequence node to be visited
      */
     void visitSequence(List<Object> sequenceNode);
 
     /**
-     * TODO documentation
+     * This method is called when the visitor visits a scalar node.
+     * @param scalarNode the scalar node to be visited
      */
-    void visitScalar(Object scalar);
+    void visitScalar(Object scalarNode);
 }

@@ -1,21 +1,31 @@
 package cloud.foundry.cli.crosscutting.mapping;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * This class is a representation of yaml pointers. Yaml pointers point to a specific node in a yaml tree.
- * They are noted in a path-like syntax (like {@code #/persons/0/name}). Strings in a pointer denote keys of mappings,
- * whereas integers denote indices of sequence elements.
+ * They are noted in a path-like syntax (like {@code #/persons/0/name}) which is similar to JSON pointers. Strings in a
+ * pointer denote keys of mappings, whereas integers denote indices of sequence elements.
  */
 public class YamlPointer {
 
+    /**
+     * The string that denotes the beginning of every yaml pointer.
+     */
+    public static final String POINTER_START = "#";
+
     private static final String POINTER_DELIMITER = "/";
-    private static final String POINTER_START = "#";
 
     private final String[] nodeNames;
 
     /**
-     * TODO documentation
+     * Creates a yaml pointer instance from a string.
+     * @param pointer the string to be parsed as yaml pointer
+     * @throws IllegalArgumentException if the pointer parameter has an invalid syntax
+     * @throws NullPointerException if the pointer parameter is null
      */
     public YamlPointer(String pointer) {
+        checkNotNull(pointer);
         checkValidPointer(pointer);
 
         String pointerWithoutStart = pointer.substring(POINTER_START.length());
@@ -36,7 +46,9 @@ public class YamlPointer {
     }
 
     /**
-     * TODO documentation
+     * @param index index of the node name to return
+     * @return the name of the node at the specified position
+     * @throws IndexOutOfBoundsException if the index parameter is out of range
      */
     public String getNodeName(int index) {
         if (index < 0 || index >= nodeNames.length) {
@@ -46,7 +58,7 @@ public class YamlPointer {
     }
 
     /**
-     * TODO documentation
+     * @return the number of node names in this pointer.
      */
     public int getNumberOfNodeNames() {
         return nodeNames.length;
