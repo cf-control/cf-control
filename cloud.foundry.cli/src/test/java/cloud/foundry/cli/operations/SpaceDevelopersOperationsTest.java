@@ -185,9 +185,11 @@ class SpaceDevelopersOperationsTest {
      */
     private static DefaultCloudFoundryOperations mockDefaultCloudFoundryOperations() {
         DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
+
         when(cfOperationsMock.getSpace()).thenReturn("development");
         when(cfOperationsMock.getOrganization()).thenReturn("cloud.foundry.cli");
         when(cfOperationsMock.getSpaceId()).thenReturn(Mono.just("1"));
+
         return cfOperationsMock;
     }
 
@@ -199,19 +201,20 @@ class SpaceDevelopersOperationsTest {
      */
     private SpaceUsers mockSpaceUsers(DefaultCloudFoundryOperations cfOperationsMock) {
         UserAdmin userAdminMock = mock(UserAdmin.class);
-        when(cfOperationsMock.userAdmin()).thenReturn(userAdminMock);
         Mono<SpaceUsers> monoMock = mock(Mono.class);
-        when(userAdminMock.listSpaceUsers(any())).thenReturn(monoMock);
         SpaceUsers spaceUsersMock = mock(SpaceUsers.class);
+
+        when(cfOperationsMock.userAdmin()).thenReturn(userAdminMock);
+        when(userAdminMock.listSpaceUsers(any())).thenReturn(monoMock);
         when(monoMock.block()).thenReturn(spaceUsersMock);
+
         return spaceUsersMock;
     }
 
     private UserAdmin mockGetAllMethod(List<String> developers) {
         UserAdmin userAdminMock = mock(UserAdmin.class);
 
-        when(cfOperationsMock.userAdmin())
-                .thenReturn(userAdminMock);
+        when(cfOperationsMock.userAdmin()).thenReturn(userAdminMock);
         when(userAdminMock.listSpaceUsers(any(ListSpaceUsersRequest.class)))
                 .thenReturn(Mono.just(SpaceUsers
                         .builder()

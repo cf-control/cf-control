@@ -267,20 +267,12 @@ public class ApplicationOperationsTest {
      */
     private DefaultCloudFoundryOperations createMockCloudFoundryOperations(List<ApplicationSummary> appSummaries,
                                                                            List<ApplicationManifest> manifests) {
-        // the way the ApplicationSummary list is fetched is rather complex thanks to this Mono stuff
-        // we need to create _four_ mock objects of which one returns another on a specific method call
-        // we do this in reverse order, as it's easier that way
-
-        // first, we create the mock object we want to return later on
-        // it's configured after creating all the other mock objects
+        // first, we create the mock objects we want to return later on
         DefaultCloudFoundryOperations cfMock = Mockito.mock(DefaultCloudFoundryOperations.class);
-
-
+        Applications applicationsMock = Mockito.mock(Applications.class);
         Flux<ApplicationSummary> flux = Flux.fromIterable(appSummaries);
 
-        Applications applicationsMock = Mockito.mock(Applications.class);
-        Mockito.when(applicationsMock.list()).thenReturn(flux);
-
+        // then we mock the necessary method calls
         Mockito.when(cfMock.applications()).thenReturn(applicationsMock);
         // now, let's have the same fun for the manifests, which are queried in a different way
         // luckily, we already have the applicationsMock, which we also need to hook on here
@@ -288,7 +280,6 @@ public class ApplicationOperationsTest {
         // the following lambda construct does exactly that: search for the right manifest by name in the list we've
         // been passed, and return that if possible (or otherwise throw some exception)
         // TODO: check which exception to throw
-        // this.cfOperations.applications().getApplicationManifest(manifestRequest).block();
         Mockito.when(applicationsMock.getApplicationManifest(any(GetApplicationManifestRequest.class)))
                 .thenAnswer((Answer<Mono<ApplicationManifest>>) invocation -> {
                     GetApplicationManifestRequest request = invocation.getArgument(0);
@@ -296,13 +287,14 @@ public class ApplicationOperationsTest {
                     // simple linear search; this is not about performance, really
                     for (ApplicationManifest manifest : manifests) {
                         if (manifest.getName().equals(request.getName())) {
-                            // we need to return a mock object that supports the .block()
+                            // we need to return a mono mock object so that
                             return Mono.just(manifest);
                         }
                     }
 
                     throw new RuntimeException("fixme");
                 });
+        Mockito.when(applicationsMock.list()).thenReturn(flux);
 
         return cfMock;
     }
@@ -339,27 +331,6 @@ public class ApplicationOperationsTest {
                 .build();
 
         return manifest;
-    }
-
-    private void mockGetAllMethod(List<ApplicationManifest> apps, DefaultCloudFoundryOperations cfMock) {
-        List<ApplicationSummary> summaries = apps
-                .stream()
-                .map(this::createMockApplicationSummary)
-                .collect(Collectors.toList());
-
-
-        Applications applicationsMock = Mockito.mock(Applications.class);
-        Flux<ApplicationSummary> applicationSummaryFlux = Flux.fromIterable(summaries);
-        Flux applicationManifestFlux = Mockito.mock(Flux.class);
-
-        when(cfMock.applications())
-                .thenReturn(applicationsMock);
-        when(applicationsMock.list())
-                .thenReturn(applicationSummaryFlux);
-
-
-        when(applicationManifestFlux.collectList())
-                .thenReturn(Mono.just(apps));
     }
 
     /**
