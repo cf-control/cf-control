@@ -49,12 +49,9 @@ public class ServicesOperationsTest {
         // then
         assertThat(services.size(), is(1));
         assertThat(services.containsKey("serviceName"), is(true));
-        assertThat(services.get("serviceName").getLastOperation(), is("create succeeded"));
-        assertThat(services.get("serviceName").getPlan(), is("standardPlan"));
         assertThat(services.get("serviceName").getService(), is("service"));
         assertThat(services.get("serviceName").getTags().size(), is(1));
         assertThat(services.get("serviceName").getTags(), contains("tag"));
-        assertThat(services.get("serviceName").getType(), is(ServiceInstanceType.MANAGED));
     }
 
     @Test
