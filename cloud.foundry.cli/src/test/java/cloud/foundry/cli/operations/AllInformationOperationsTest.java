@@ -69,9 +69,8 @@ public class AllInformationOperationsTest {
 
     private void mockDetermineApiVersion(ReactorCloudFoundryClient rclMock) {
         Info cfClientInfoMock = mock(Info.class);
-        when(rclMock.info())
-                .thenReturn(cfClientInfoMock);
 
+        when(rclMock.info()).thenReturn(cfClientInfoMock);
         when(cfClientInfoMock.get(any()))
                 .thenReturn(Mono.just(GetInfoResponse
                     .builder()
@@ -81,16 +80,11 @@ public class AllInformationOperationsTest {
 
     private void mockDetermineTarget(DefaultCloudFoundryOperations cfOperationsMock,
                                      ReactorCloudFoundryClient rclMock) {
-        // mock for method determineTarget(
-        when(cfOperationsMock.getCloudFoundryClient())
-                .thenReturn(rclMock);
-
         DefaultConnectionContext ccMock = mock(DefaultConnectionContext.class);
-        when(rclMock.getConnectionContext())
-                .thenReturn(ccMock);
 
-        when(ccMock.getApiHost())
-                .thenReturn("SOME API ENDPOINT");
+        when(cfOperationsMock.getCloudFoundryClient()).thenReturn(rclMock);
+        when(rclMock.getConnectionContext()).thenReturn(ccMock);
+        when(ccMock.getApiHost()).thenReturn("SOME API ENDPOINT");
     }
 
     private void mockDetermineSpec(DefaultCloudFoundryOperations cfOperationsMock) {
@@ -101,9 +95,8 @@ public class AllInformationOperationsTest {
 
     private void mockSpaceDevelopersOperations(DefaultCloudFoundryOperations cfOperationsMock) {
         UserAdmin userAdminMock = mock(UserAdmin.class);
-        when(cfOperationsMock.userAdmin())
-                .thenReturn(userAdminMock);
 
+        when(cfOperationsMock.userAdmin()).thenReturn(userAdminMock);
         when(userAdminMock.listSpaceUsers(any()))
                 .thenReturn(Mono.just(SpaceUsers
                         .builder()
@@ -115,20 +108,15 @@ public class AllInformationOperationsTest {
         Services servicesMock = mock(Services.class);
         Flux<ServiceInstanceSummary> fluxMock = Flux.fromIterable(Collections.emptyList());
 
-        when(cfOperationsMock.services())
-                .thenReturn(servicesMock);
-        when(servicesMock.listInstances())
-                .thenReturn(fluxMock);
+        when(cfOperationsMock.services()).thenReturn(servicesMock);
+        when(servicesMock.listInstances()).thenReturn(fluxMock);
     }
 
     private void mockApplicationOperations(DefaultCloudFoundryOperations cfOperationsMock) {
         Flux<ApplicationSummary> summariesFlux = Flux.fromIterable(Collections.emptyList());
-
         Applications applicationsMock = mock(Applications.class);
 
-        when(cfOperationsMock.applications())
-                .thenReturn(applicationsMock);
-        Mockito.when(applicationsMock.list())
-                .thenReturn(summariesFlux);
+        when(cfOperationsMock.applications()).thenReturn(applicationsMock);
+        Mockito.when(applicationsMock.list()).thenReturn(summariesFlux);
     }
 }

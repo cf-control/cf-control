@@ -209,10 +209,8 @@ public class ServicesOperationsTest {
         Services servicesMock = Mockito.mock(Services.class);
         Flux<ServiceInstanceSummary> fluxMock = Flux.fromIterable(summaries);
 
-        when(cfMock.services())
-                .thenReturn(servicesMock);
-        when(servicesMock.listInstances())
-                .thenReturn(fluxMock);
+        when(cfMock.services()).thenReturn(servicesMock);
+        when(servicesMock.listInstances()).thenReturn(fluxMock);
 
         return cfMock;
     }
