@@ -121,7 +121,7 @@ public class CreateController implements Runnable {
                 String yamlFileContent = FileUtils.readLocalFile(commandOptions.getYamlFilePath());
                 Yaml yamlProcessor = YamlCreator.createDefaultYamlProcessor();
                 Map<String, Object> appMap = yamlProcessor.loadAs(yamlFileContent, Map.class);
-                if(appMap.entrySet().iterator().hasNext()){
+                if (appMap.entrySet().iterator().hasNext()) {
                     Map.Entry<String, Object> appObj = appMap.entrySet().iterator().next();
                     String name = appObj.getKey();
                     ApplicationBean applicationBean = yamlProcessor

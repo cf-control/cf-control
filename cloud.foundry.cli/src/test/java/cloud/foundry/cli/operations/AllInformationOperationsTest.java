@@ -141,15 +141,16 @@ public class AllInformationOperationsTest {
         ServiceInstanceSummary serviceInstanceSummary = ServiceInstanceSummary.builder()
                 .service("appdynamics")
                 .id("some-id")
-                .type(ServiceInstanceType.USER_PROVIDED)
+                .type(ServiceInstanceType.MANAGED)
+                .plan("apm")
                 .name("appdyn")
                 .build();
 
         ServiceInstance serviceInstance = ServiceInstance.builder()
                     .service("appdynamics")
                     .id("some-id")
-                    .type(ServiceInstanceType.USER_PROVIDED)
                     .name("appdyn")
+                    .type(ServiceInstanceType.MANAGED)
                     .plan("apm")
                     .tags("tag1", "tag2")
                     .build();

@@ -72,8 +72,8 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
     public void create(String serviceInstanceName, ServiceBean serviceBean) throws CreationException {
         CreateServiceInstanceRequest createServiceRequest = CreateServiceInstanceRequest.builder()
             .serviceName(serviceBean.getService())
-            .planName(serviceBean.getPlan())
             .serviceInstanceName(serviceInstanceName)
+            .planName(serviceBean.getPlan())
             .tags(serviceBean.getTags())
             .build();
 
@@ -90,7 +90,7 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
 
     /**
      * Rename a service instance
-     * 
+     *
      * @param currentName Current Name of the Service Instance
      * @param newName     New Name of the Service Instance
      * @throws CreationException when the creation or the binding was not successful
@@ -113,7 +113,7 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
 
     /**
      * Update Tags, Plan of a Service Instance
-     * 
+     *
      * @param serviceInstanceName Name of a service instance
      * @param serviceBean         serves as template for the service to update
      * @throws CreationException when the creation or the binding was not successful

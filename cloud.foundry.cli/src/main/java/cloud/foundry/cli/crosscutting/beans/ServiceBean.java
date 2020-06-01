@@ -11,32 +11,18 @@ import java.util.List;
 public class ServiceBean implements Bean {
 
     private String service;
-    private String lastOperation;
     private String plan;
     private List<String> tags;
-    private ServiceInstanceType type;
 
     public ServiceBean(ServiceInstance serviceInstance) {
         this.service = serviceInstance.getService();
-        this.lastOperation = serviceInstance.getLastOperation() == null ? null
-                            : serviceInstance.getLastOperation() + " " + serviceInstance.getStatus();
         this.plan = serviceInstance.getPlan();
         this.tags = serviceInstance.getTags() == null || serviceInstance.getTags().isEmpty()
                 ? null
                 : serviceInstance.getTags();
-        this.type = serviceInstance.getType();
-
     }
 
     public ServiceBean() {
-    }
-
-    public String getLastOperation() {
-        return lastOperation;
-    }
-
-    public void setLastOperation(String lastOperation) {
-        this.lastOperation = lastOperation;
     }
 
     public String getPlan() {
@@ -65,13 +51,5 @@ public class ServiceBean implements Bean {
         }
 
         this.tags = tags;
-    }
-
-    public ServiceInstanceType getType() {
-        return type;
-    }
-
-    public void setType(ServiceInstanceType type) {
-        this.type = type;
     }
 }
