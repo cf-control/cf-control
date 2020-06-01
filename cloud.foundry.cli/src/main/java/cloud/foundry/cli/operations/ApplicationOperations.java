@@ -15,6 +15,10 @@ import org.cloudfoundry.operations.applications.GetApplicationManifestRequest;
 import org.cloudfoundry.operations.applications.GetApplicationRequest;
 import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
 import org.cloudfoundry.operations.applications.Route;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Scheduler;
+import reactor.core.scheduler.Schedulers;
 
 import java.nio.file.Paths;
 import java.util.Collections;
@@ -39,28 +43,29 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
         super(cloudFoundryOperations);
     }
 
-    public Map<String, ApplicationBean> getAll() {
-        List<ApplicationSummary> applications = this.cloudFoundryOperations
+    /**
+     * This method fetches applications data from the cloud foundry instance.
+     * To retrieve data given by the Mono object you can use subscription methods (block, subscribe, etc.)
+     * provided by the reactor library method.
+     * For more details on how to work with Mono's visit:
+     * @return Mono object of ApplicationBeans
+     */
+    public Mono<List<ApplicationBean>> getAll() {
+        return this.cloudFoundryOperations
                 .applications()
                 .list()
-                .collectList()
-                .block();
-
-        // create a list of special bean data objects, as the summaries cannot be serialized directly
-        return applications
-                .stream()
-                .map(this::getApplicationManifest)
-                .collect(Collectors.toMap(ApplicationManifest::getName, ApplicationBean::new));
+                .flatMap(this::getApplicationManifest)
+                .map(ApplicationBean::new)
+                .collectList();
     }
 
-    private ApplicationManifest getApplicationManifest(ApplicationSummary applicationSummary) {
+    private Mono<ApplicationManifest> getApplicationManifest(ApplicationSummary applicationSummary) {
         return this.cloudFoundryOperations
                 .applications()
                 .getApplicationManifest(GetApplicationManifestRequest
                         .builder()
                         .name(applicationSummary.getName())
-                        .build())
-                .block();
+                        .build());
     }
 
     /**
@@ -179,8 +184,8 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
         //TODO: Maybe outsource retrieving env variables to a dedicated class in a future feature.
         String password = System.getenv(DOCKER_PASSWORD_VAR_NAME);
         if (password == null) {
-           throw new NullPointerException("Docker password not set in environment variable: "
-                   + DOCKER_PASSWORD_VAR_NAME);
+            throw new NullPointerException("Docker password not set in environment variable: "
+                    + DOCKER_PASSWORD_VAR_NAME);
         }
         return password;
     }

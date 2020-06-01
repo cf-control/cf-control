@@ -12,6 +12,7 @@ import cloud.foundry.cli.crosscutting.beans.ApplicationManifestBean;
 import cloud.foundry.cli.crosscutting.beans.ConfigBean;
 import org.cloudfoundry.client.v2.info.GetInfoResponse;
 import org.cloudfoundry.client.v2.info.Info;
+import org.cloudfoundry.client.v3.applications.Application;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
 import org.cloudfoundry.operations.applications.ApplicationManifest;
@@ -30,6 +31,7 @@ import org.mockito.Mockito;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.Collections;
 import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
@@ -96,21 +98,28 @@ public class AllInformationOperationsTest {
 
     private void mockDetermineApiVersion(ReactorCloudFoundryClient rclMock) {
         Info cfClientInfoMock = mock(Info.class);
-        when(rclMock.info()).thenReturn(cfClientInfoMock);
-        Mono<GetInfoResponse> monoGetInfoResponseMock = mock(Mono.class);
-        when(cfClientInfoMock.get(any())).thenReturn(monoGetInfoResponseMock);
-        GetInfoResponse getInfoResponseMock = mock(GetInfoResponse.class);
-        when(monoGetInfoResponseMock.block()).thenReturn(getInfoResponseMock);
-        when(getInfoResponseMock.getApiVersion()).thenReturn("API VERSION");
+        when(rclMock.info())
+                .thenReturn(cfClientInfoMock);
+
+        when(cfClientInfoMock.get(any()))
+                .thenReturn(Mono.just(GetInfoResponse
+                    .builder()
+                    .apiVersion("API VERSION")
+                    .build()));
     }
 
     private void mockDetermineTarget(DefaultCloudFoundryOperations cfOperationsMock,
                                      ReactorCloudFoundryClient rclMock) {
         // mock for method determineTarget(
-        when(cfOperationsMock.getCloudFoundryClient()).thenReturn(rclMock);
+        when(cfOperationsMock.getCloudFoundryClient())
+                .thenReturn(rclMock);
+
         DefaultConnectionContext ccMock = mock(DefaultConnectionContext.class);
-        when(rclMock.getConnectionContext()).thenReturn(ccMock);
-        when(ccMock.getApiHost()).thenReturn("SOME API ENDPOINT");
+        when(rclMock.getConnectionContext())
+                .thenReturn(ccMock);
+
+        when(ccMock.getApiHost())
+                .thenReturn("SOME API ENDPOINT");
     }
 
     private void mockDetermineSpec(DefaultCloudFoundryOperations cfOperationsMock) {
@@ -123,79 +132,31 @@ public class AllInformationOperationsTest {
         UserAdmin userAdminMock = mock(UserAdmin.class);
         when(cfOperationsMock.userAdmin()).thenReturn(userAdminMock);
 
-        Mono<SpaceUsers> monoMock = mock(Mono.class);
-        when(userAdminMock.listSpaceUsers(any())).thenReturn(monoMock);
-
-        SpaceUsers spaceUsers = SpaceUsers
-                .builder()
-                .addAllDevelopers(List.of("xyz@mail.de", "abc@provider.com"))
-                .build();
-        when(monoMock.block()).thenReturn(spaceUsers);
+        when(userAdminMock.listSpaceUsers(any()))
+                .thenReturn(Mono.just(SpaceUsers
+                        .builder()
+                        .developers(Collections.emptyList())
+                        .build()));
     }
 
     private void mockServicesOperations(DefaultCloudFoundryOperations cfOperationsMock) {
         Services servicesMock = mock(Services.class);
-        Flux<ServiceInstanceSummary> flux = mock(Flux.class);
-        Mono<List<ServiceInstanceSummary>> monoServiceInstanceSummary = mock(Mono.class);
-        ServiceInstanceSummary serviceInstanceSummary = ServiceInstanceSummary.builder()
-                .service("appdynamics")
-                .id("some-id")
-                .type(ServiceInstanceType.MANAGED)
-                .plan("apm")
-                .name("appdyn")
-                .build();
+        Flux<ServiceInstanceSummary> fluxMock = Flux.fromIterable(Collections.emptyList());
 
-        ServiceInstance serviceInstance = ServiceInstance.builder()
-                    .service("appdynamics")
-                    .id("some-id")
-                    .name("appdyn")
-                    .type(ServiceInstanceType.MANAGED)
-                    .plan("apm")
-                    .tags("tag1", "tag2")
-                    .build();
-
-        when(cfOperationsMock.services()).thenReturn(servicesMock);
-        when(servicesMock.listInstances()).thenReturn(flux);
-        when(flux.collectList()).thenReturn(monoServiceInstanceSummary);
-        when(monoServiceInstanceSummary.block()).thenReturn(List.of(serviceInstanceSummary));
-
-        Mono monoServiceInstance = mock(Mono.class);
-        Mockito.when(servicesMock.getInstance(any())).thenReturn(monoServiceInstance);
-        Mockito.when(monoServiceInstance.block()).thenReturn(serviceInstance);
+        when(cfOperationsMock.services())
+                .thenReturn(servicesMock);
+        when(servicesMock.listInstances())
+                .thenReturn(fluxMock);
     }
 
     private void mockApplicationOperations(DefaultCloudFoundryOperations cfOperationsMock) {
-        ApplicationManifest applicationManifestMock = ApplicationManifest.builder()
-                .name("testApp")
-                .buildpack("buildpack")
-                .disk(1024)
-                .environmentVariable("key", "value")
-                .healthCheckType(ApplicationHealthCheck.HTTP)
-                .instances(3)
-                .memory(1024)
-                .path(Paths.get("some/path"))
-                .randomRoute(true)
-                .services("appdynamics")
-                .build();
-        List<ApplicationManifest> manifest = new LinkedList<>();
-        manifest.add(applicationManifestMock);
-
-        ApplicationSummary applicationSummaryMock = mock(ApplicationSummary.class);
-        when(applicationSummaryMock.getName()).thenReturn("testApp");
-
-        Mono<List<ApplicationSummary>> summaryListMono = mock(Mono.class);
-        Mockito.when(summaryListMono.block()).thenReturn(singletonList(applicationSummaryMock));
-
-        Flux<ApplicationSummary> flux = mock(Flux.class);
-        Mockito.when(flux.collectList()).thenReturn(summaryListMono);
+        Flux<ApplicationSummary> summariesFlux = Flux.fromIterable(Collections.emptyList());
 
         Applications applicationsMock = mock(Applications.class);
-        Mockito.when(applicationsMock.list()).thenReturn(flux);
 
-        Mockito.when(cfOperationsMock.applications()).thenReturn(applicationsMock);
-        Mono<ApplicationManifest> monoMock = mock(Mono.class);
-
-        when(applicationsMock.getApplicationManifest(any())).thenReturn(monoMock);
-        when(monoMock.block()).thenReturn(applicationManifestMock);
+        when(cfOperationsMock.applications())
+                .thenReturn(applicationsMock);
+        Mockito.when(applicationsMock.list())
+                .thenReturn(summariesFlux);
     }
 }

@@ -12,8 +12,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.mock;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.List;
 
+import cloud.foundry.cli.crosscutting.beans.SpaceDevelopersBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import cloud.foundry.cli.crosscutting.exceptions.InvalidOperationException;
 
@@ -23,6 +26,7 @@ import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperByUsernameRespon
 import org.cloudfoundry.client.v2.spaces.RemoveSpaceDeveloperByUsernameResponse;
 import org.cloudfoundry.client.v2.spaces.Spaces;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
+import org.cloudfoundry.operations.useradmin.ListSpaceUsersRequest;
 import org.cloudfoundry.operations.useradmin.SpaceUsers;
 import org.cloudfoundry.operations.useradmin.UserAdmin;
 import org.junit.jupiter.api.BeforeAll;
@@ -43,11 +47,16 @@ class SpaceDevelopersOperationsTest {
     @Test
     public void testGetSpaceDevelopers() {
         // given
-        SpaceUsers spaceUsersMock = mockSpaceUsers(cfOperationsMock);
-        when(spaceUsersMock.getDevelopers()).thenReturn(Arrays.asList("one", "two", "three"));
+        List<String> withDevelopers = List.of("one", "two", "three");
+        mockGetAllMethod(withDevelopers);
+
         // when
+        SpaceDevelopersBean spaceDevelopersBean = spaceDevelopersOperations.getAll().block();
+
         List<String> spaceDevelopers = spaceDevelopersOperations.getAll();
         // then
+        String spaceDevelopers = YamlCreator.createDefaultYamlProcessor().dump(spaceDevelopersBean);
+        assertThat(spaceDevelopers, is("spaceDevelopers:\n- one\n- two\n- three\n"));
         assertThat(spaceDevelopers.size(), is(3));
         assertThat(spaceDevelopers, contains("one", "two", "three"));
     }
@@ -55,11 +64,14 @@ class SpaceDevelopersOperationsTest {
     @Test
     public void testGetSpaceDevelopers_WithEmptyList() {
         // given
-        SpaceUsers spaceUsersMock = mockSpaceUsers(cfOperationsMock);
-        when(spaceUsersMock.getDevelopers()).thenReturn(emptyList());
+        List<String> withoutDevelopers = Collections.emptyList();
+        mockGetAllMethod(withoutDevelopers);
         // when
+        SpaceDevelopersBean spaceDevelopersBean = spaceDevelopersOperations.getAll().block();
         List<String> spaceDevelopers = spaceDevelopersOperations.getAll();
         // then
+        String spaceDevelopers = YamlCreator.createDefaultYamlProcessor().dump(spaceDevelopersBean);
+        assertThat(spaceDevelopers, is("spaceDevelopers: [\n  ]\n"));
         assertThat(spaceDevelopers.size(), is(0));
     }
 
@@ -86,9 +98,9 @@ class SpaceDevelopersOperationsTest {
         when(cfClientMock.spaces()).thenReturn(spacesMock);
         Mono<AssociateSpaceDeveloperByUsernameResponse> monoMock = mock(Mono.class);
         when(spacesMock.associateDeveloperByUsername(any()))
-            .thenReturn(monoMock);
+                .thenReturn(monoMock);
         AssociateSpaceDeveloperByUsernameResponse associateSpaceDeveloperByUsernameReponsetMock = mock(
-            AssociateSpaceDeveloperByUsernameResponse.class);
+                AssociateSpaceDeveloperByUsernameResponse.class);
         when(monoMock.block()).thenReturn(associateSpaceDeveloperByUsernameReponsetMock);
         // call
         spaceDevelopersOperations.assignSpaceDeveloper("six");
@@ -186,7 +198,7 @@ class SpaceDevelopersOperationsTest {
      * @param cfOperationsMock
      * @return SpaceUsers
      */
-    private static SpaceUsers mockSpaceUsers(DefaultCloudFoundryOperations cfOperationsMock) {
+    private SpaceUsers mockSpaceUsers(DefaultCloudFoundryOperations cfOperationsMock) {
         UserAdmin userAdminMock = mock(UserAdmin.class);
         when(cfOperationsMock.userAdmin()).thenReturn(userAdminMock);
         Mono<SpaceUsers> monoMock = mock(Mono.class);
@@ -194,5 +206,19 @@ class SpaceDevelopersOperationsTest {
         SpaceUsers spaceUsersMock = mock(SpaceUsers.class);
         when(monoMock.block()).thenReturn(spaceUsersMock);
         return spaceUsersMock;
+    }
+
+    private UserAdmin mockGetAllMethod(List<String> developers) {
+        UserAdmin userAdminMock = mock(UserAdmin.class);
+
+        when(cfOperationsMock.userAdmin())
+                .thenReturn(userAdminMock);
+        when(userAdminMock.listSpaceUsers(any(ListSpaceUsersRequest.class)))
+                .thenReturn(Mono.just(SpaceUsers
+                        .builder()
+                        .addAllDevelopers(developers)
+                        .build()));
+
+        return userAdminMock;
     }
 }

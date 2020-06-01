@@ -31,11 +31,12 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.nio.file.Paths;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * Test for {@link ApplicationOperations}
@@ -45,7 +46,8 @@ public class ApplicationOperationsTest {
     @Test
     public void testGetApplicationsWithEmptyMockData() {
         // prepare mock CF API client with an empty applications list
-        DefaultCloudFoundryOperations cfMock = createMockCloudFoundryOperations(new ArrayList<>(), new ArrayList<>());
+        DefaultCloudFoundryOperations cfMock = createMockCloudFoundryOperations(Collections.emptyList(),
+                Collections.emptyList());
 
         // forge YAML document
         ApplicationOperations applicationOperations = new ApplicationOperations(cfMock);
@@ -61,17 +63,11 @@ public class ApplicationOperationsTest {
         // first, we need to prepare some ApplicationSummary and ApplicationManifest
         // (we're fine with one of both for now)
         // those are then used to create a CF mock API object, which will be able to return those then the right way
-        ApplicationManifest manifest = createMockApplicationManifest();
-        ApplicationSummary summary = createMockApplicationSummary(manifest);
-
-        List<ApplicationManifest> manifests = new ArrayList<>();
-        manifests.add(manifest);
-
-        List<ApplicationSummary> summaries = new ArrayList<>();
-        summaries.add(summary);
+        ApplicationManifest appManifest = createMockApplicationManifest();
+        ApplicationSummary summary = createMockApplicationSummary(appManifest);
 
         // now, let's create the mock object from that list
-        DefaultCloudFoundryOperations cfMock = createMockCloudFoundryOperations(summaries, manifests);
+        DefaultCloudFoundryOperations cfMock = createMockCloudFoundryOperations(List.of(summary), List.of(appManifest));
 
         // now, we can generate a YAML doc for our ApplicationSummary
         ApplicationOperations applicationOperations = new ApplicationOperations(cfMock);
@@ -279,16 +275,13 @@ public class ApplicationOperationsTest {
         // it's configured after creating all the other mock objects
         DefaultCloudFoundryOperations cfMock = Mockito.mock(DefaultCloudFoundryOperations.class);
 
-        // first, let's have the fun of creating the three objects needed to list the applications
-        Mono<List<ApplicationSummary>> summaryListMono = Mockito.mock(Mono.class);
-        Mockito.when(summaryListMono.block()).thenReturn(appSummaries);
 
-        Flux<ApplicationSummary> flux = Mockito.mock(Flux.class);
-        Mockito.when(flux.collectList()).thenReturn(summaryListMono);
+        Flux<ApplicationSummary> flux = Flux.fromIterable(appSummaries);
 
         Applications applicationsMock = Mockito.mock(Applications.class);
         Mockito.when(applicationsMock.list()).thenReturn(flux);
 
+        Mockito.when(cfMock.applications()).thenReturn(applicationsMock);
         // now, let's have the same fun for the manifests, which are queried in a different way
         // luckily, we already have the applicationsMock, which we also need to hook on here
         // unfortunately, the method matches a string on some map, so we have to rebuild something similar
@@ -299,25 +292,17 @@ public class ApplicationOperationsTest {
         Mockito.when(applicationsMock.getApplicationManifest(any(GetApplicationManifestRequest.class)))
                 .thenAnswer((Answer<Mono<ApplicationManifest>>) invocation -> {
                     GetApplicationManifestRequest request = invocation.getArgument(0);
-                    String name = request.getName();
 
                     // simple linear search; this is not about performance, really
                     for (ApplicationManifest manifest : manifests) {
-                        if (manifest.getName() == name) {
+                        if (manifest.getName().equals(request.getName())) {
                             // we need to return a mock object that supports the .block()
-                            Mono<ApplicationManifest> applicationManifestMono = Mockito.mock(Mono.class);
-
-                            Mockito.when(applicationManifestMono.block()).thenReturn(manifest);
-
-                            return applicationManifestMono;
+                            return Mono.just(manifest);
                         }
                     }
 
                     throw new RuntimeException("fixme");
                 });
-
-
-        Mockito.when(cfMock.applications()).thenReturn(applicationsMock);
 
         return cfMock;
     }
@@ -354,6 +339,27 @@ public class ApplicationOperationsTest {
                 .build();
 
         return manifest;
+    }
+
+    private void mockGetAllMethod(List<ApplicationManifest> apps, DefaultCloudFoundryOperations cfMock) {
+        List<ApplicationSummary> summaries = apps
+                .stream()
+                .map(this::createMockApplicationSummary)
+                .collect(Collectors.toList());
+
+
+        Applications applicationsMock = Mockito.mock(Applications.class);
+        Flux<ApplicationSummary> applicationSummaryFlux = Flux.fromIterable(summaries);
+        Flux applicationManifestFlux = Mockito.mock(Flux.class);
+
+        when(cfMock.applications())
+                .thenReturn(applicationsMock);
+        when(applicationsMock.list())
+                .thenReturn(applicationSummaryFlux);
+
+
+        when(applicationManifestFlux.collectList())
+                .thenReturn(Mono.just(apps));
     }
 
     /**

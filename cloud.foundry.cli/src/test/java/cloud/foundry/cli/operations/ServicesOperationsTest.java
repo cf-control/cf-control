@@ -29,6 +29,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -38,14 +39,23 @@ public class ServicesOperationsTest {
     @Test
     public void testGetServicesWithMockData() {
         // given
-        ServiceInstanceSummary serviceInstanceSummary = mock(ServiceInstanceSummary.class);
-        Mockito.when(serviceInstanceSummary.getName()).thenReturn("serviceName");
+        ServiceInstanceSummary summary = ServiceInstanceSummary.builder()
+                .id("serviceId")
+                .application("test-flask")
+                .name("serviceName")
+                .plan("standardPlan")
+                .service("service")
+                .tags(List.of("tag"))
+                .type(ServiceInstanceType.MANAGED)
+                .build();
+        List<ServiceInstanceSummary> withServices = List.of(summary);
 
-        DefaultCloudFoundryOperations cfMock = createMockDefaultCloudFoundryOperationsWithServiceInstanceSummary(
-            serviceInstanceSummary);
-        // when
+        DefaultCloudFoundryOperations cfMock = mockGetAllMethod(withServices);
         ServicesOperations servicesOperations = new ServicesOperations(cfMock);
-        Map<String, ServiceBean> services = servicesOperations.getAll();
+
+        // when
+        List<ServiceBean> serviceBeans = servicesOperations.getAll().block();
+
         // then
         assertThat(services.size(), is(1));
         assertThat(services.containsKey("serviceName"), is(true));
@@ -57,11 +67,19 @@ public class ServicesOperationsTest {
     @Test
     public void testGetServicesWithEmptyMockData() {
         // given
-        DefaultCloudFoundryOperations cfMock = createMockDefaultCloudFoundryOperationsWithServiceInstanceSummary(null);
+        List<ServiceInstanceSummary> withoutServices = Collections.emptyList();
+        DefaultCloudFoundryOperations cfMock = mockGetAllMethod(withoutServices);
+        ServicesOperations servicesOperations = new ServicesOperations(cfMock);
+
         // when
+        List<ServiceBean> serviceBeans = servicesOperations.getAll().block();
+
         ServicesOperations servicesOperations = new ServicesOperations(cfMock);
         Map<String, ServiceBean> services = servicesOperations.getAll();
         // then
+        // FIXME: it should return just an empty bracket like []
+        String s = YamlCreator.createDefaultYamlProcessor().dump(serviceBeans);
+        assertEquals("[\n  ]\n", s);
         // FIXME: it should return just an empty bracket like {]
         assertTrue(services.isEmpty());
     }
@@ -173,27 +191,16 @@ public class ServicesOperationsTest {
         return serviceBean;
     }
 
-    private DefaultCloudFoundryOperations createMockDefaultCloudFoundryOperationsWithServiceInstanceSummary(
-        ServiceInstanceSummary serviceInstanceSummary) {
-
+    private DefaultCloudFoundryOperations mockGetAllMethod(List<ServiceInstanceSummary> summaries) {
         DefaultCloudFoundryOperations cfMock = Mockito.mock(DefaultCloudFoundryOperations.class);
         Services servicesMock = Mockito.mock(Services.class);
-        Flux<ServiceInstanceSummary> flux = mock(Flux.class);
-        Mono<List<ServiceInstanceSummary>> mono = mock(Mono.class);
-        Mono<ServiceInstance> monoServiceInstanceMock = mock(Mono.class);
+        Flux<ServiceInstanceSummary> fluxMock = Flux.fromIterable(summaries);
 
-        List<ServiceInstanceSummary> list = new LinkedList<ServiceInstanceSummary>();
-        if (serviceInstanceSummary != null) {
-            list.add(serviceInstanceSummary);
-        }
-        when(cfMock.services()).thenReturn(servicesMock);
-        when(servicesMock.listInstances()).thenReturn(flux);
-        when(servicesMock.getInstance(any())).thenReturn(monoServiceInstanceMock);
+        when(cfMock.services())
+                .thenReturn(servicesMock);
+        when(servicesMock.listInstances())
+                .thenReturn(fluxMock);
 
-        ServiceInstance serviceInstanceMock = getServiceInstanceMock();
-        when(monoServiceInstanceMock.block()).thenReturn(serviceInstanceMock);
-        when(flux.collectList()).thenReturn(mono);
-        when(mono.block()).thenReturn(list);
         return cfMock;
     }
 
