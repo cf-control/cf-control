@@ -19,7 +19,6 @@ import org.cloudfoundry.operations.services.BindServiceInstanceRequest;
 import org.cloudfoundry.operations.services.CreateServiceInstanceRequest;
 import org.cloudfoundry.operations.services.UpdateServiceInstanceRequest;
 import org.cloudfoundry.operations.services.RenameServiceInstanceRequest;
-import org.cloudfoundry.operations.services.ServiceInstance;
 import org.cloudfoundry.operations.services.ServiceInstanceSummary;
 import org.cloudfoundry.operations.services.Services;
 import org.cloudfoundry.operations.services.ServiceInstanceType;
@@ -88,7 +87,7 @@ public class ServicesOperationsTest {
     }
 
     @Test
-    public void testCreateExceptionWhenCreatingService() throws CreationException {
+    public void testCreateExceptionWhenCreatingService() {
         // given
         ServiceBean serviceBean = getServiceBeanMock();
         DefaultCloudFoundryOperations cfMock = Mockito.mock(DefaultCloudFoundryOperations.class);
@@ -107,7 +106,7 @@ public class ServicesOperationsTest {
     }
 
     @Test
-    public void testCreateExceptionWhenBindingApps() throws CreationException {
+    public void testCreateExceptionWhenBindingApps() {
         // given
         ServiceBean serviceBean = getServiceBeanMock();
         List<String> apps = new LinkedList<>();
@@ -131,7 +130,7 @@ public class ServicesOperationsTest {
     }
 
     @Test
-    public void testUpdateService_ThrowException() throws CreationException {
+    public void testUpdateService_ThrowException() {
         // given
         ServiceBean serviceBeanMock = getServiceBeanMock();
         List<String> apps = new LinkedList<>();

@@ -162,7 +162,7 @@ public class ApplicationOperationsTest {
     }
 
     @Test
-    public void testCreateApplicationsOnFatalCreationErrorThrowsCreationException() throws CreationException {
+    public void testCreateApplicationsOnFatalCreationErrorThrowsCreationException() {
         //given
         ApplicationManifest appManifest = createMockApplicationManifest();
         DefaultCloudFoundryOperations cfoMock = Mockito.mock(DefaultCloudFoundryOperations.class);

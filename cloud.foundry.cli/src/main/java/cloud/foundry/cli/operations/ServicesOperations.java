@@ -11,7 +11,6 @@ import org.cloudfoundry.operations.services.RenameServiceInstanceRequest;
 import org.cloudfoundry.operations.services.UpdateServiceInstanceRequest;
 import reactor.core.publisher.Mono;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Handles the operations for manipulating services on a cloud foundry instance.

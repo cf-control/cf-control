@@ -15,11 +15,8 @@ import org.cloudfoundry.client.v2.info.Info;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.reactor.DefaultConnectionContext;
 import org.cloudfoundry.reactor.client.ReactorCloudFoundryClient;
-import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
-
 
 /**
  * Handles the operations to receive all configuration-information from a cloud

@@ -1,21 +1,15 @@
 package cloud.foundry.cli.operations;
 
-import static java.util.Collections.singletonList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
-import cloud.foundry.cli.crosscutting.beans.ServiceBean;
-import cloud.foundry.cli.crosscutting.beans.SpaceDevelopersBean;
 import cloud.foundry.cli.crosscutting.util.YamlCreator;
 import org.cloudfoundry.client.v2.info.GetInfoResponse;
 import org.cloudfoundry.client.v2.info.Info;
-import org.cloudfoundry.client.v3.applications.Application;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
-import org.cloudfoundry.operations.applications.ApplicationManifest;
 import org.cloudfoundry.operations.applications.ApplicationSummary;
 import org.cloudfoundry.operations.applications.Applications;
 import org.cloudfoundry.operations.services.ServiceInstanceSummary;
@@ -30,8 +24,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
 
 
 /**
@@ -39,7 +31,7 @@ import java.util.List;
  */
 public class AllInformationOperationsTest {
     @Test
-    public void testGetAll() throws Exception {
+    public void testGetAll() {
         // given
         DefaultCloudFoundryOperations cfOperationsMock = mockDefaultCloudFoundryOperations();
 
