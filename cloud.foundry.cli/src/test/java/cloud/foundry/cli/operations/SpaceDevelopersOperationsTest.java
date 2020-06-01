@@ -145,7 +145,7 @@ class SpaceDevelopersOperationsTest {
     }
 
     @Test
-    public void testRemoveSpaceDeveloperShouldThrowAnInvalidOperationException() {
+    public void testRemoveSpaceDeveloperShouldThrowAnInvalidOperationExceptionWhenSpaceIdIsBlank() {
         // given
         when(cfOperationsMock.getSpaceId()).thenReturn(Mono.just(""));
 
@@ -153,6 +153,15 @@ class SpaceDevelopersOperationsTest {
         assertThrows(InvalidOperationException.class, () -> {
             // when
             spaceDevelopersOperations.removeSpaceDeveloper(Arrays.asList("one", "two"));
+        });
+    }
+
+    @Test
+    public void testRemoveSpaceDeveloperShouldThrowAnInvalidOperationExceptionWhenArgumentIsEmpty() {
+        // then
+        assertThrows(InvalidOperationException.class, () -> {
+            // given - when
+            spaceDevelopersOperations.removeSpaceDeveloper(emptyList());
         });
     }
 

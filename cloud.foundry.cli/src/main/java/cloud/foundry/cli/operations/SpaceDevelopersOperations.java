@@ -15,6 +15,7 @@ import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.useradmin.ListSpaceUsersRequest;
 import org.cloudfoundry.operations.useradmin.SpaceUsers;
 import reactor.core.publisher.Mono;
+
 import java.util.List;
 
 /**
@@ -26,6 +27,8 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
     private static final String REMOVE_USER_AS_SPACE_DEVELOPER = "Remove user as space developer";
 
     private static final String INVALID_VALUE_OF_SPACE_ID = "The value of 'SpaceId' should not be null or empty!";
+    public static final String USERNAME_LIST_MUST_BE_NOT_NULL_OR_EMPTY =
+            "The 'usernameList' must be not null or empty!";
 
     public SpaceDevelopersOperations(DefaultCloudFoundryOperations cfOperations) {
         super(cfOperations);
@@ -91,17 +94,41 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
      * Removes users as space developer.
      *
      * @param usernameList List of users to be removed as a space developer.
+     * @throws InvalidOperationException if usernameList is null/empty or spaceId is invalid.
      */
     public void removeSpaceDeveloper(List<String> usernameList) throws InvalidOperationException {
+        assertValidUsernameList(usernameList);
         String spaceId = cloudFoundryOperations.getSpaceId().block();
-        if (isBlank(spaceId)) {
-            throw new InvalidOperationException(INVALID_VALUE_OF_SPACE_ID);
-        }
+        assertValidSpaceId(spaceId);
 
         usernameList.stream()
                 .map(username -> doRemoveSpaceDeveloper(spaceId, username))
                 .collect(toList())
                 .forEach(Mono::block);
+    }
+
+    /**
+     * Checks if <code>usernameList</code> is not null or empty.
+     *
+     * @param usernameList List of space developer users.
+     * @throws InvalidOperationException if usernameList is invalid.
+     */
+    private void assertValidUsernameList(List<String> usernameList) throws InvalidOperationException {
+        if (usernameList == null || usernameList.isEmpty()) {
+            throw new InvalidOperationException(USERNAME_LIST_MUST_BE_NOT_NULL_OR_EMPTY);
+        }
+    }
+
+    /**
+     * Checks if <code>spaceId</code> is not null or empty.
+     *
+     * @param spaceId The value for spaceId.
+     * @throws InvalidOperationException if spaceId is invalid.
+     */
+    private void assertValidSpaceId(String spaceId) throws InvalidOperationException {
+        if (isBlank(spaceId)) {
+            throw new InvalidOperationException(INVALID_VALUE_OF_SPACE_ID);
+        }
     }
 
     /**
