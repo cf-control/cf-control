@@ -1,6 +1,7 @@
 package cloud.foundry.cli.services;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 import cloud.foundry.cli.crosscutting.logging.Log;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
@@ -41,17 +42,17 @@ public class UpdateController implements Runnable {
 
         @Override
         public void run() {
-            String yamlFileContent;
+            InputStream yamlInputStream;
             try {
-                yamlFileContent = FileUtils.readLocalFile(commandOptions.getYamlFilePath());
+                yamlInputStream = FileUtils.openLocalFile(commandOptions.getYamlFilePath());
             } catch (IOException e) {
                 Log.exception(e, "Failed to read YAML file");
                 return;
             }
             Yaml yamlLoader = YamlCreator.createDefaultYamlProcessor();
-            
+
             try {
-                ServiceBean serviceBean = yamlLoader.loadAs(yamlFileContent, ServiceBean.class);
+                ServiceBean serviceBean = yamlLoader.loadAs(yamlInputStream, ServiceBean.class);
                 DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
 
                 ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
@@ -74,7 +75,7 @@ public class UpdateController implements Runnable {
 
         @Override
         public void run() {
-            
+
         }
     }
 }

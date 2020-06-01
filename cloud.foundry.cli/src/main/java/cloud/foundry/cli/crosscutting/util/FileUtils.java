@@ -4,22 +4,20 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import cloud.foundry.cli.crosscutting.exceptions.InvalidFileTypeException;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.hc.client5.http.HttpResponseException;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
-import org.apache.hc.core5.http.ProtocolException;
-import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.HttpStatus;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -30,24 +28,26 @@ import java.util.regex.Pattern;
  */
 public class FileUtils {
 
-    private static final Set<String> ALLOWED_FILE_EXTENSIONS = new HashSet<>(Arrays.asList(
+    private static final Set<String> ALLOWED_FILE_EXTENSIONS = Set.of(
             "YAML",
             "YML"
-    ));
+    );
 
     /**
-     * TODO documentation
+     * Opens a file with the given path on the local file system or on the remote host.
+     * The user must make sure to close the InputStream after usage.
+     * @param filepath  a relative file path beginning from the working directory
+     * @return          the content of the file as a InputStream
+     * @throws IOException if the file cannot be accessed
      */
-    public static String readLocalOrRemoteFile(String filepath) throws IOException, ProtocolException {
+    public static InputStream openLocalOrRemoteFile(String filepath) throws IOException {
         checkNotNull(filepath);
-        String content;
+
         if (isRemoteFile(filepath)) {
-            content = doReadRemoteFile(filepath);
+            return doOpenRemoteFile(filepath);
         } else {
-            content = doReadLocalFile(filepath);
+            return doOpenLocalFile(filepath);
         }
-        assert content != null;
-        return content;
     }
 
     private static boolean isRemoteFile(String filepath) {
@@ -58,47 +58,46 @@ public class FileUtils {
 
 
     /**
-     *
-     * @param filePath  a relative file path beginning from the working directory
-     * @return          the content of the file as a String
+     * Opens a file with the given path on the local file system.
+     * The user must make sure to close the InputStream after usage.
+     * @param filepath  a relative file path beginning from the working directory
+     * @return          the content of the file as a InputStream
      * @throws IOException if the file cannot be accessed
      */
-    public static String readLocalFile(String filePath) throws IOException {
-        checkNotNull(filePath);
+    public static InputStream openLocalFile(String filepath) throws IOException {
+        checkNotNull(filepath);
 
-        String content = doReadLocalFile(filePath);
-
-        assert content != null;
-        return content;
+        return doOpenLocalFile(filepath);
     }
 
-    private static String doReadLocalFile(String filePath) throws IOException {
-        File file = new File(filePath);
+    private static InputStream doOpenLocalFile(String filepath) throws IOException {
+        File file = new File(filepath);
         if (hasUnallowedFileExtension(file.getName())) {
             throw new InvalidFileTypeException("invalid file extension: "
                     + FilenameUtils.getExtension(file.getName()));
         } else if (hasEmptyFileExtension(file.getName())) {
             throw new InvalidFileTypeException("missing file extension");
         }
-        return readFile(file);
+        return new FileInputStream(file);
     }
 
     /**
+     * Opens a file with the given path on a remote host. The user must make sure to close the InputStream after usage.
+     * @param url   url to the host e.g.
+     *             <br> https://host.com/path/to/file.yml
+     * @return      the content of the file as a InputStream
+     * @throws IOException  in case of a problem or the connection was aborted
+     * <br>or the response code was not valid
+     * <br>or when there was an error retrieving the input stream of the http response content
      *
-     * @param url   url to the host e.g. https://host.com/path/to/file.yml
-     * @return      the content of the file as a String
-     * @throws IOException TODO explain when it is thrown
      */
-    public static String readRemoteFile(String url) throws IOException, ProtocolException {
+    public static InputStream openRemoteFile(String url) throws IOException {
         checkNotNull(url);
 
-        String content = doReadRemoteFile(url);
-
-        assert content != null;
-        return content;
+        return doOpenRemoteFile(url);
     }
 
-    private static String doReadRemoteFile(String url) throws IOException, ProtocolException {
+    private static InputStream doOpenRemoteFile(String url) throws IOException {
         URI uri = URI.create(url);
 
         if (hasUnallowedFileExtension(uri.getPath()) && !hasEmptyFileExtension(uri.getPath())) {
@@ -110,19 +109,17 @@ public class FileUtils {
 
             try (CloseableHttpResponse response = httpClient.execute(new HttpGet(uri))) {
 
-                //TODO: more precise exception handling
-                if (response.getCode() != 200) {
+                if (response.getCode() != HttpStatus.SC_SUCCESS) {
                     throw new HttpResponseException(response.getCode(), response.getReasonPhrase());
                 }
 
-                if (response.getHeader("Content-Type") != null
-                        && !response.getHeader("Content-Type").equals("text/plain")) {
-
-                    throw new HttpResponseException(response.getCode(),
-                            "invalid content type, was: " + response.getHeader("Content-Type"));
+                if (response.getEntity() == null || response.getEntity().getContent() == null) {
+                    throw new IOException("no response content input stream available");
                 }
 
-                return EntityUtils.toString(response.getEntity());
+                // cloning the input stream, since leaving the ClosableHttpResponse block
+                // will automatically close the the underlying content input stream
+                return cloneInputStream(response.getEntity().getContent());
             }
         }
     }
@@ -135,11 +132,10 @@ public class FileUtils {
         return FilenameUtils.getExtension(filename).isEmpty();
     }
 
-    private static String readFile(File file) throws IOException {
-        try (FileInputStream in = new FileInputStream(file)) {
-            //TODO: return InputStream object instead of a string
-            return IOUtils.toString(in, StandardCharsets.UTF_8);
-        }
+    private static InputStream cloneInputStream(InputStream inputStream) throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        inputStream.transferTo(baos);
+        return new ByteArrayInputStream(baos.toByteArray());
     }
 
 }

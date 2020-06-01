@@ -16,6 +16,7 @@ import org.yaml.snakeyaml.Yaml;
 import picocli.CommandLine;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * This class realizes the functionality that is needed for the create commands.
@@ -46,15 +47,15 @@ public class CreateController implements Runnable {
 
         @Override
         public void run() {
-            String yamlFileContent;
-            try {
-                yamlFileContent = FileUtils.readLocalFile(commandOptions.getYamlFilePath());
+            SpaceDevelopersBean spaceDevelopersBean = null;
+            try (InputStream inputStream = FileUtils.openLocalFile(commandOptions.getYamlFilePath())) {
+                Yaml yamlLoader = YamlCreator.createDefaultYamlProcessor();
+                spaceDevelopersBean = yamlLoader.loadAs(inputStream, SpaceDevelopersBean.class);
             } catch (IOException e) {
                 Log.exception(e, "Failed to read YAML file");
                 return;
             }
-            Yaml yamlLoader = YamlCreator.createDefaultYamlProcessor();
-            SpaceDevelopersBean spaceDevelopersBean = yamlLoader.loadAs(yamlFileContent, SpaceDevelopersBean.class);
+
 
             try {
                 DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
@@ -80,17 +81,16 @@ public class CreateController implements Runnable {
 
         @Override
         public void run() {
-            String yamlFileContent;
-            try {
-                yamlFileContent = FileUtils.readLocalFile(commandOptions.getYamlFilePath());
+            ServiceBean serviceBean = null;
+            try (InputStream inputStream = FileUtils.openLocalFile(commandOptions.getYamlFilePath())) {
+                Yaml yamlLoader = YamlCreator.createDefaultYamlProcessor();
+                serviceBean = yamlLoader.loadAs(inputStream, ServiceBean.class);
             } catch (IOException e) {
                 Log.exception(e, "Failed to read YAML file");
                 return;
             }
-            Yaml yamlLoader = YamlCreator.createDefaultYamlProcessor();
 
             try {
-                ServiceBean serviceBean = yamlLoader.loadAs(yamlFileContent, ServiceBean.class);
                 DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
 
                 ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
@@ -113,18 +113,17 @@ public class CreateController implements Runnable {
         @Override
         public void run() {
 
-            String yamlFileContent;
-            try {
-                yamlFileContent = FileUtils.readLocalFile(commandOptions.getYamlFilePath());
+            ApplicationBean applicationBean = null;
+            try (InputStream inputStream = FileUtils.openLocalFile(commandOptions.getYamlFilePath())) {
+                Yaml yamlLoader = YamlCreator.createDefaultYamlProcessor();
+                applicationBean = yamlLoader.loadAs(inputStream, ApplicationBean.class);
             } catch (IOException e) {
                 Log.exception(e, "Failed to read YAML file");
                 return;
             }
-            Yaml yamlLoader = YamlCreator.createDefaultYamlProcessor();
-            try {
-                ApplicationBean applicationBean = yamlLoader.loadAs(yamlFileContent, ApplicationBean.class);
-                DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
 
+            try {
+                DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
                 ApplicationOperations applicationOperations = new ApplicationOperations(cfOperations);
 
                 applicationOperations.create(applicationBean, false);

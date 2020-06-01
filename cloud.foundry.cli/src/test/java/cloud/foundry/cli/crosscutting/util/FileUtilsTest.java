@@ -14,23 +14,24 @@ import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import org.apache.commons.io.IOUtils;
-import org.apache.hc.client5.http.HttpResponseException;
 import org.apache.hc.core5.http.ProtocolException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
 
 /**
  * Test for {@link FileUtils}
@@ -41,159 +42,160 @@ public class FileUtilsTest {
     private static String SIMPLE_LIST_FILE_PATH = "SimpleList.yaml";
 
     @Test
-    public void readLocalOrRemoteFileWithLocalFile(@TempDir Path tempDir) throws IOException, ProtocolException {
-        //Arrange
+    public void testOpenLocalOrRemoteFileWithLocalFile(@TempDir Path tempDir) throws IOException, ProtocolException {
+        // given
         String expectedYaml =   "- first" + System.lineSeparator()  +
                 "- second" + System.lineSeparator()  +
                 "- third" + System.lineSeparator() ;
         File file = createTempFile(tempDir, "files", "SimpleList.yaml", expectedYaml);
 
-        //Act
-        String actualYaml = FileUtils.readLocalOrRemoteFile(file.getPath());
+        // when
+        InputStream yamlInputStream = FileUtils.openLocalOrRemoteFile(file.getPath());
 
-        //Verify
-        assertThat(actualYaml, is(expectedYaml));
+        // then
+        assertThat(readFile(yamlInputStream), is(expectedYaml));
+        yamlInputStream.close();
     }
 
     @Test
-    public void readLocalOrRemoteFileWithRemoteFile(@TempDir Path tempDir) throws IOException, ProtocolException {
-        //Arrange
+    public void testOpenLocalOrRemoteFileWithRemoteFile() throws IOException, ProtocolException {
+        // given
         // http://localhost:8070/SimpleList.yaml
         WireMockServer server = MockServerBuilder.builder()
-                .addRoute("SimpleList.yaml", readFileContent(SIMPLE_LIST_FILE_PATH))
+                .addRoute("SimpleList.yaml", readFile(RESOURCE_PATH + SIMPLE_LIST_FILE_PATH))
                 .build();
         server.start();
 
-        //Act
-        String actualYaml = FileUtils.readLocalOrRemoteFile(server.url("SimpleList.yaml"));
+        // when
+        InputStream yamlInputStream = FileUtils.openLocalOrRemoteFile(server.url("SimpleList.yaml"));
 
-        //Verify
-        assertThat(actualYaml, is(readFileContent(SIMPLE_LIST_FILE_PATH)));
+        // then
+        assertThat(readFile(yamlInputStream), is(readFile(RESOURCE_PATH + SIMPLE_LIST_FILE_PATH)));
 
-        //Cleanup
+        // cleanup
         server.stop();
+        yamlInputStream.close();
     }
 
     @Test
-    public void testReadLocalFileOnEmptyFileReturnsEmptyString(@TempDir Path tempDir)
+    public void testOpenLocalFileOnEmptyFileReturnsEmptyString(@TempDir Path tempDir)
             throws IOException {
-        //Arrange
+        // given
         File file = createTempFile(tempDir, "", "Empty.yaml", "");
 
-        //Act
-        String actualYaml = FileUtils.readLocalFile(file.getPath());
+        // when
+        InputStream yamlInputStream = FileUtils.openLocalFile(file.getPath());
 
-        //Verify
-        assertThat(actualYaml, is(""));
+        // then
+        assertThat(readFile(yamlInputStream), is(""));
+
+        // cleanup
+        yamlInputStream.close();
     }
 
     @Test
-    public void testReadLocalFileReturnsFileContent(@TempDir Path tempDir)
+    public void testOpenLocalFileReturnsFileContent(@TempDir Path tempDir)
             throws IOException {
-        //Arrange
+        // given
         String expectedYaml =   "- first" + System.lineSeparator()  +
                 "- second" + System.lineSeparator()  +
                 "- third" + System.lineSeparator() ;
         File file = createTempFile(tempDir, "files", "SimpleList.yaml", expectedYaml);
 
-        //Act
-        String actualYaml = FileUtils.readLocalFile(file.getPath());
+        // when
+        InputStream yamlInputStream = FileUtils.openLocalFile(file.getPath());
 
-        //Verify
-        assertThat(actualYaml, is(expectedYaml));
+        // then
+        assertThat(readFile(yamlInputStream), is(expectedYaml));
+
+        // cleanup
+        yamlInputStream.close();
     }
 
     @Test
-    public void testReadLocalFileOnDirectoryWithCommaSucceeds(@TempDir Path tempDir)
+    public void testOpenLocalFileOnDirectoryWithCommaSucceeds(@TempDir Path tempDir)
             throws IOException {
-        //Arrange
+        // given
         String expectedYaml =   "- first" + System.lineSeparator() +
                 "- second" + System.lineSeparator() +
                 "- third" + System.lineSeparator();
         File file = createTempFile(tempDir, "comma.path", "Extension.YMl", expectedYaml);
 
-        //Act
-        String actualYaml = FileUtils.readLocalFile(file.getPath());
+        // when
+        InputStream yamlInputStream = FileUtils.openLocalFile(file.getPath());
 
-        //Verify
-        assertThat(actualYaml, is(expectedYaml));
+        // then
+        assertThat(readFile(yamlInputStream), is(expectedYaml));
+
+        // cleanup
+        yamlInputStream.close();
     }
 
     @Test
-    public void testReadLocalFileOnValidFileTypesSucceeds(@TempDir Path tempDir)
+    public void testOpenLocalFileOnValidFileTypesSucceeds(@TempDir Path tempDir)
             throws IOException {
-        //Arrange
+        // given
         String expectedYaml =   "- first" + System.lineSeparator()  +
                 "- second" + System.lineSeparator()  +
                 "- third" + System.lineSeparator() ;
         File fileYaml = createTempFile(tempDir, "","Extension.YMl", expectedYaml);
         File fileYml = createTempFile(tempDir, "","Extension.YAML", expectedYaml);
 
-        //Act
-        String actualYaml = FileUtils.readLocalFile(fileYaml.getPath());
-        String actualYml = FileUtils.readLocalFile(fileYml.getPath());
+        // when
+        InputStream yamlInputStream = FileUtils.openLocalFile(fileYaml.getPath());
+        InputStream ymlInputStream = FileUtils.openLocalFile(fileYml.getPath());
 
-        //Verify
-        assertThat(actualYaml, is(expectedYaml));
-        assertThat(actualYml, is(expectedYaml));
+        // then
+        assertThat(readFile(yamlInputStream), is(expectedYaml));
+        assertThat(readFile(ymlInputStream), is(expectedYaml));
+
+        // cleanup
+        yamlInputStream.close();
+        ymlInputStream.close();
     }
 
     @Test
-    public void testReadLocalFileOnCaseInsensitiveFileExtensionSucceeds(@TempDir Path tempDir)
+    public void testOpenLocalFileOnCaseInsensitiveFileExtensionSucceeds(@TempDir Path tempDir)
             throws IOException {
-        //Arrange
+        // given
         File file = createTempFile(tempDir, "", "Empty.YMl", "");
 
-        //Act
-        String actualYaml = FileUtils.readLocalFile(file.getPath());
+        // when
+        InputStream yamlInputStream = FileUtils.openLocalFile(file.getPath());
 
-        //Verify
-        assertThat(actualYaml, is(""));
+        // then
+        assertThat(readFile(yamlInputStream), is(""));
+
+        // cleanup
+        yamlInputStream.close();
     }
 
-
-    //TODO: disabling this test for now,
-    // since setting readable to false might not work in some environments due to access rights
-
-    /*@Test
-    public void testReadLocalFileOnMissingFilePermissionThrowsException(@TempDir Path tempDir)
-            throws IOException {
-        //Arrange
-        File file = createTempFile(tempDir, "","Empty.yml", "");
-        file.setReadable(false, false);
-
-        //Act and Verify
-        FileNotFoundException thrown = assertThrows(FileNotFoundException.class,
-                () -> FileUtils.readLocalFile(file.getPath()));
-        assertThat(thrown.getMessage(), containsString("Permission denied"));
-    }*/
-
     @Test
-    public void testReadLocalFileOnMissingFileThrowsException() {
-        //Act and Verify
+    public void testOpenLocalFileOnMissingFileThrowsException() {
+        // when and  then
         assertThrows(FileNotFoundException.class,
-                () -> FileUtils.readLocalFile(RESOURCE_PATH + "Missing.yaml"));
+                () -> FileUtils.openLocalFile(RESOURCE_PATH + "Missing.yaml"));
     }
 
     @Test
-    public void testReadLocalFileOnMissingFilePathThrowsException() {
-        //Act and Verify
+    public void testOpenLocalFileOnMissingFilePathThrowsException() {
+        // when and  then
         assertThrows(FileNotFoundException.class,
-                () -> FileUtils.readLocalFile(RESOURCE_PATH + "no/path/Missing.yaml"));
+                () -> FileUtils.openLocalFile(RESOURCE_PATH + "no/path/Missing.yaml"));
     }
 
     @Test
-    public void testReadLocalFileOnInvalidFileExtensionThrowsException() {
-        //Act and Verify
+    public void testOpenLocalFileOnInvalidFileExtensionThrowsException() {
+        // when and  then
         assertThrows(InvalidFileTypeException.class,
-                () -> FileUtils.readLocalFile(RESOURCE_PATH + "InvalidFileExtension.txt"));
+                () -> FileUtils.openLocalFile(RESOURCE_PATH + "InvalidFileExtension.txt"));
     }
 
     @Test
-    public void testReadLocalFileOnFileWithoutExtensionThrowsException() {
-        //Act and Verify
+    public void testOpenLocalFileOnFileWithoutExtensionThrowsException() {
+        // when and  then
         assertThrows(InvalidFileTypeException.class,
-                () -> FileUtils.readLocalFile(RESOURCE_PATH + "NoFileExtension"));
+                () -> FileUtils.openLocalFile(RESOURCE_PATH + "NoFileExtension"));
     }
 
     private File createTempFile(Path tempDir, String directories, String filename, String content)
@@ -212,245 +214,212 @@ public class FileUtilsTest {
     }
 
     @Test
-    public void testReadRemoteFileEmptySucceeds() throws IOException, ProtocolException {
-        //Arrange
-        // http://localhost:8070/Empty.yaml
+    public void testOpenRemoteFileEmptySucceeds() throws IOException, ProtocolException {
+        // given
+        // http://localhost:XXXXX/Empty.yaml
         WireMockServer server = MockServerBuilder.builder()
-                .addRoute("Empty.yaml")
+                .addRoute("Empty.yaml", "")
                 .build();
         server.start();
 
-        //Act
-        String actualYaml = FileUtils.readRemoteFile(server.url("Empty.yaml"));
+        // when
+        InputStream yamlInputStream = FileUtils.openRemoteFile(server.url("Empty.yaml"));
 
-        //Verify
-        assertThat(actualYaml, is(""));
+        // then
+        assertThat(readFile(yamlInputStream), is(""));
 
         //Cleanup
         server.stop();
+        yamlInputStream.close();
     }
 
     @Test
-    public void testReadRemoteFileWithContentSucceeds() throws IOException, ProtocolException {
-        //Arrange
-        // http://localhost:8070/SimpleList.yaml
+    public void testOpenRemoteFileWithContentSucceeds() throws IOException, ProtocolException {
+        // given
+        // http://localhost:XXXXX/SimpleList.yaml
         WireMockServer server = MockServerBuilder.builder()
-                .addRoute("SimpleList.yaml", readFileContent(SIMPLE_LIST_FILE_PATH))
+                .addRoute("SimpleList.yaml", readFile(RESOURCE_PATH + SIMPLE_LIST_FILE_PATH))
                 .build();
         server.start();
 
-        //Act
-        String actualYaml = FileUtils.readRemoteFile(server.url("SimpleList.yaml"));
+        // when
+        InputStream yamlInputStream = FileUtils.openRemoteFile(server.url("SimpleList.yaml"));
 
-        //Verify
-        assertThat(actualYaml, is(readFileContent(SIMPLE_LIST_FILE_PATH)));
+        // then
+        assertThat(readFile(yamlInputStream), is(readFile(RESOURCE_PATH + SIMPLE_LIST_FILE_PATH)));
 
         //Cleanup
         server.stop();
+        yamlInputStream.close();
     }
 
     @Test
-    public void testReadRemoteFileWithPathSucceeds() throws IOException, ProtocolException {
-        //Arrange
+    public void testOpenRemoteFileWithPathSucceeds() throws IOException, ProtocolException {
+        // given
         // http://localhost:XXXX/resources/SimpleList.yaml
         WireMockServer server = MockServerBuilder.builder()
-                .addRoute("resources/SimpleList.yaml", readFileContent(SIMPLE_LIST_FILE_PATH))
+                .addRoute("resources/SimpleList.yaml", readFile(RESOURCE_PATH + SIMPLE_LIST_FILE_PATH))
                 .build();
         server.start();
 
-        //Act
-        System.out.println(server.getStubMappings());
-        System.out.println(server.url("resources/SimpleList.yaml"));
-        String actualYaml = FileUtils.readRemoteFile(server.url("resources/SimpleList.yaml"));
+        // when
+        InputStream yamlInputStream = FileUtils.openRemoteFile(server.url("resources/SimpleList.yaml"));
 
-        //Verify
-        assertThat(actualYaml, is(readFileContent(SIMPLE_LIST_FILE_PATH)));
+        // then
+        assertThat(readFile(yamlInputStream), is(readFile(RESOURCE_PATH + SIMPLE_LIST_FILE_PATH)));
 
         //Cleanup
         server.stop();
+        yamlInputStream.close();
     }
 
     @Test
-    public void testReadRemoteFileOnCaseInsensitiveFileExtensionSucceeds() throws IOException, ProtocolException {
-        //Arrange
+    public void testOpenRemoteFileOnCaseInsensitiveFileExtensionSucceeds() throws IOException, ProtocolException {
+        // given
         // http://localhost:XXXX/resources/SimpleList.yAMl
         // http://localhost:XXXX/resources/SimpleList.ymL
         WireMockServer server = MockServerBuilder.builder()
-                .addRoute("resources/SimpleList.yAMl", readFileContent(SIMPLE_LIST_FILE_PATH))
-                .addRoute("resources/SimpleList.ymL", readFileContent(SIMPLE_LIST_FILE_PATH))
+                .addRoute("resources/SimpleList.yAMl", readFile(RESOURCE_PATH + SIMPLE_LIST_FILE_PATH))
+                .addRoute("resources/SimpleList.ymL", readFile(RESOURCE_PATH + SIMPLE_LIST_FILE_PATH))
                 .build();
         server.start();
 
-        //Act
-        String actualYaml = FileUtils.readRemoteFile(server.url("resources/SimpleList.yAMl"));
-        String actualYml = FileUtils.readRemoteFile(server.url("resources/SimpleList.ymL"));
+        // when
+        InputStream yamlInputStream = FileUtils.openRemoteFile(server.url("resources/SimpleList.yAMl"));
+        InputStream ymlInputStream = FileUtils.openRemoteFile(server.url("resources/SimpleList.ymL"));
 
-        //Verify
-        assertThat(actualYaml, is(readFileContent( SIMPLE_LIST_FILE_PATH)));
-        assertThat(actualYml, is(readFileContent( SIMPLE_LIST_FILE_PATH)));
+        // then
+        assertThat(readFile(yamlInputStream), is(readFile(RESOURCE_PATH + SIMPLE_LIST_FILE_PATH)));
+        assertThat(readFile(ymlInputStream), is(readFile(RESOURCE_PATH + SIMPLE_LIST_FILE_PATH)));
 
         //Cleanup
         server.stop();
+        yamlInputStream.close();
+        ymlInputStream.close();
     }
 
     @Test
-    public void testReadRemoteFileOnValidFileTypesSucceeds() throws IOException, ProtocolException {
-        //Arrange
+    public void testOpenRemoteFileOnValidFileTypesSucceeds() throws IOException, ProtocolException {
+        // given
         // http://localhost:XXXX/SimpleList.yml
         WireMockServer server = MockServerBuilder.builder()
-                .addRoute("SimpleList.yml", readFileContent(SIMPLE_LIST_FILE_PATH))
+                .addRoute("SimpleList.yml", readFile(RESOURCE_PATH + SIMPLE_LIST_FILE_PATH))
                 .build();
         server.start();
 
-        //Act
-        String actualYaml = FileUtils.readRemoteFile(server.url("SimpleList.yml"));
+        // when
+        InputStream yamlInputStream = FileUtils.openRemoteFile(server.url("SimpleList.yml"));
 
-        //Verify
-        assertThat(actualYaml, is(readFileContent(SIMPLE_LIST_FILE_PATH)));
+        // then
+        assertThat(readFile(yamlInputStream), is(readFile(RESOURCE_PATH + SIMPLE_LIST_FILE_PATH)));
 
         //Cleanup
         server.stop();
+        yamlInputStream.close();
     }
 
     @Test
-    public void testReadRemoteFileOnPathWithoutFileExtensionSucceeds() throws IOException, ProtocolException {
-        //Arrange
+    public void testOpenRemoteFileOnPathWithoutFileExtensionSucceeds() throws IOException, ProtocolException {
+        // given
         // http://localhost:XXXX/resources/SimpleList
         WireMockServer server = MockServerBuilder.builder()
-                .addRoute("SimpleList", readFileContent(SIMPLE_LIST_FILE_PATH))
+                .addRoute("SimpleList", readFile(RESOURCE_PATH + SIMPLE_LIST_FILE_PATH))
                 .build();
         server.start();
 
-        //Act
-        String actualYaml = FileUtils.readRemoteFile(server.url("SimpleList"));
+        // when
+        InputStream yamlInputStream = FileUtils.openRemoteFile(server.url("SimpleList"));
 
-        //Verify
-        assertThat(actualYaml, is(readFileContent(SIMPLE_LIST_FILE_PATH)));
+        // then
+        assertThat(readFile(yamlInputStream), is(readFile(RESOURCE_PATH + SIMPLE_LIST_FILE_PATH)));
 
         //Cleanup
         server.stop();
+        yamlInputStream.close();
     }
 
     @Test
-    public void testReadRemoteFileOnPathIncludingPointSucceeds() throws IOException, ProtocolException {
-        //Arrange
+    public void testOpenRemoteFileOnPathIncludingPointSucceeds() throws IOException, ProtocolException {
+        // given
         // http://localhost:XXXX/resources.path/SimpleList.yaml
         WireMockServer server = MockServerBuilder.builder()
-                .addRoute("resources.path/SimpleList.yaml", readFileContent(SIMPLE_LIST_FILE_PATH))
+                .addRoute("resources.path/SimpleList.yaml", readFile(RESOURCE_PATH + SIMPLE_LIST_FILE_PATH))
                 .build();
         server.start();
 
-        //Act
-        String yaml = FileUtils.readRemoteFile(server.url("resources.path/SimpleList.yaml"));
+        // when
+        InputStream yamlInputStream = FileUtils.openRemoteFile(server.url("resources.path/SimpleList.yaml"));
 
-        //Verify
-        assertThat(yaml, is(readFileContent(SIMPLE_LIST_FILE_PATH)));
+        // then
+        assertThat(readFile(yamlInputStream), is(readFile(RESOURCE_PATH + SIMPLE_LIST_FILE_PATH)));
 
         //Cleanup
         server.stop();
+        yamlInputStream.close();
     }
 
-
     @Test
-    public void testReadRemoteFileOnFalseContentTypeThrowsException() {
-        //Arrange
+    public void testOpenRemoteFileOnNonExistingHostThrowsException() {
+        // given
         // http://localhost:XXXX/SimpleList.yaml
         WireMockServer server = MockServerBuilder.builder()
                 .build();
         server.start();
 
-        //Act
+        // when
         Exception exception = assertThrows(Exception.class,
-                () -> FileUtils.readRemoteFile(server.url("").replace("8070", "9999")));
-
-        //Cleanup
-        server.stop();
-    }
-
-
-    @Test
-    public void testReadRemoteFileOnNonExistingHostThrowsException() {
-        //Arrange
-        // http://localhost:XXXX/SimpleList.yaml
-        WireMockServer server = MockServerBuilder.builder()
-                .build();
-        server.start();
-
-        //Act
-        Exception exception = assertThrows(Exception.class,
-                () -> FileUtils.readRemoteFile(server.url("").replace("8070", "9999")));
+                () -> FileUtils.openRemoteFile(server.url("").replace("8070", "9999")));
 
         //Cleanup
         server.stop();
     }
 
     @Test
-    public void testReadRemoteFileOnMissingFileThrowsException() {
-        //Arrange
+    public void testOpenRemoteFileOnMissingFileThrowsException() {
+        // given
         // http://localhost:XXXX
         WireMockServer server = MockServerBuilder.builder()
                 .build();
         server.start();
 
-        //Act
+        // when
         Exception exception = assertThrows(Exception.class,
-                () -> FileUtils.readRemoteFile(server.url("Missing.yml")));
+                () -> FileUtils.openRemoteFile(server.url("Missing.yml")));
 
         //Cleanup
         server.stop();
     }
 
     @Test
-    public void testReadRemoteFileOnMissingFilePathThrowsException() throws FileNotFoundException {
-        //Arrange
+    public void testOpenRemoteFileOnMissingFilePathThrowsException() throws IOException {
+        // given
         // http://localhost:XXXX/resources/SimpleList.yaml
         WireMockServer server = MockServerBuilder.builder()
-                .addRoute("resources/SimpleList.yaml", readFileContent(SIMPLE_LIST_FILE_PATH))
+                .addRoute("resources/SimpleList.yaml", readFile(RESOURCE_PATH + SIMPLE_LIST_FILE_PATH))
                 .build();
         server.start();
 
-        //Act
+        // when
         Exception exception = assertThrows(Exception.class,
-                () -> FileUtils.readRemoteFile(server.url("resrcs/SimpleList.yml")));
+                () -> FileUtils.openRemoteFile(server.url("resrcs/SimpleList.yml")));
 
         //Cleanup
         server.stop();
     }
 
     @Test
-    public void testReadRemoteFileOnInvalidFileExtensionThrowsException() {
-        //Arrange
+    public void testOpenRemoteFileOnInvalidFileExtensionThrowsException() {
+        // given
         // http://localhost:XXXX/SimpleList.txt
         WireMockServer server = MockServerBuilder.builder()
                 .addRoute("SimpleList.txt")
                 .build();
         server.start();
 
-        //Act
+        // when
         InvalidFileTypeException exception = assertThrows(InvalidFileTypeException.class,
-                () -> FileUtils.readRemoteFile(server.url("SimpleList.txt")));
+                () -> FileUtils.openRemoteFile(server.url("SimpleList.txt")));
         assertThat(exception.getMessage(), containsString("invalid file extension"));
-
-        //Cleanup
-        server.stop();
-    }
-
-    @Test
-    public void testReadRemoteFileOnInvalidContentTypeThrowsException() {
-        //Arrange
-        // http://localhost:XXXX/jsondata
-        WireMockServer server = MockServerBuilder.builder()
-                .addRoute(MockRoute
-                        .builder()
-                        .setPath("jsondata")
-                        .addHeader("Content-Type", "application/json"))
-                .build();
-        server.start();
-
-        //Act
-        HttpResponseException exception = assertThrows(HttpResponseException.class,
-                () -> FileUtils.readRemoteFile(server.url("jsondata")));
-        assertThat(exception.getReasonPhrase(), containsString("invalid content type"));
 
         //Cleanup
         server.stop();
@@ -563,9 +532,11 @@ public class FileUtilsTest {
         }
     }
 
-    private String readFileContent(String filename) throws FileNotFoundException {
-        File file = new File(RESOURCE_PATH + filename);
-        Scanner scanner = new Scanner(file);
-        return scanner.useDelimiter("\\Z").next();
+    private String readFile(String filename) throws IOException {
+        return IOUtils.toString(new FileInputStream(new File(filename)), Charset.defaultCharset());
+    }
+
+    private String readFile(InputStream inputStream) throws IOException {
+        return IOUtils.toString(inputStream, StandardCharsets.UTF_8);
     }
 }

@@ -6,10 +6,10 @@ import cloud.foundry.cli.crosscutting.exceptions.RefResolvingException;
 import cloud.foundry.cli.crosscutting.exceptions.YamlTreeNodeNotFoundException;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.util.FileUtils;
-import org.apache.hc.core5.http.ProtocolException;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
@@ -98,17 +98,14 @@ public class RefResolver implements YamlTreeVisitor {
             yamlPointerString = refValue.substring(beginningOfPointerIndex);
         }
         Log.debug("Reading content of", filePath);
-        String fileContent;
-        try {
-            fileContent = FileUtils.readLocalOrRemoteFile(filePath);
-        } catch (IOException | ProtocolException exception) {
+        Object referredYamlTree;
+        try (InputStream inputStream = FileUtils.openLocalOrRemoteFile(filePath)) {
+            referredYamlTree = yamlParser.load(inputStream);
+        } catch (IOException exception) {
             throw new RefResolvingException(exception);
         }
-        if (fileContent.isEmpty()) {
-            throw new RefResolvingException("The file content of '" + filePath + "' is empty");
-        }
-        Object referredYamlTree = yamlParser.load(fileContent);
-        if (yamlPointerString != null) {
+
+        if (referredYamlTree != null) {
             Log.debug("Getting contents at", yamlPointerString);
             YamlPointer yamlPointer;
             try {
