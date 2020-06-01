@@ -1,4 +1,0 @@
--
-  $ref: './src/test/resources/basic/Empty.yaml'
-- in this case the
-- referenced file is empty

@@ -6,7 +6,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import cloud.foundry.cli.crosscutting.exceptions.RefResolvingException;
@@ -117,15 +116,6 @@ public class RefResolverTest {
         assertThrows(RefResolvingException.class,
                 () -> RefResolver.resolveRefs(treeRoot, DEFAULT_PROCESSOR));
         // TODO check specific type of cause
-    }
-
-    @Test
-    public void testEmptyFileRef() throws IOException {
-        Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + REFRESOLVER_FOLDER + "EmptyFileRef.yaml");
-
-        RefResolvingException refResolvingException = assertThrows(RefResolvingException.class,
-                () -> RefResolver.resolveRefs(treeRoot, DEFAULT_PROCESSOR));
-        assertThat(refResolvingException.getCause(), is(nullValue()));
     }
 
     @Test

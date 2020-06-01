@@ -105,7 +105,7 @@ public class RefResolver implements YamlTreeVisitor {
             throw new RefResolvingException(exception);
         }
 
-        if (referredYamlTree != null) {
+        if (yamlPointerString != null) {
             Log.debug("Getting contents at", yamlPointerString);
             YamlPointer yamlPointer;
             try {

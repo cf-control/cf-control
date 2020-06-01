@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import cloud.foundry.cli.crosscutting.exceptions.InvalidFileTypeException;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.hc.client5.http.HttpResponseException;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -12,12 +13,13 @@ import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.HttpStatus;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -28,10 +30,10 @@ import java.util.regex.Pattern;
  */
 public class FileUtils {
 
-    private static final Set<String> ALLOWED_FILE_EXTENSIONS = Set.of(
+    private static final Set<String> ALLOWED_FILE_EXTENSIONS = new HashSet<>(Arrays.asList(
             "YAML",
             "YML"
-    );
+    ));
 
     /**
      * Opens a file with the given path on the local file system or on the remote host.
@@ -133,9 +135,8 @@ public class FileUtils {
     }
 
     private static InputStream cloneInputStream(InputStream inputStream) throws IOException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        inputStream.transferTo(baos);
-        return new ByteArrayInputStream(baos.toByteArray());
+        byte[] data = IOUtils.toByteArray(inputStream);
+        return new ByteArrayInputStream(data);
     }
 
 }
