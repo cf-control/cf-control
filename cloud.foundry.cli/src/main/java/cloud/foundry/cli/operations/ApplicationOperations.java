@@ -15,9 +15,12 @@ import org.cloudfoundry.operations.applications.GetApplicationManifestRequest;
 import org.cloudfoundry.operations.applications.GetApplicationRequest;
 import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
 import org.cloudfoundry.operations.applications.Route;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Scheduler;
+import reactor.core.scheduler.Schedulers;
 
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -39,32 +42,29 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
         super(cloudFoundryOperations);
     }
 
-    public List<ApplicationBean> getAll() {
-        List<ApplicationSummary> applications = this.cloudFoundryOperations
+    /**
+     * This method fetches applications data from the cloud foundry instance.
+     * To retrieve data given by the Mono object you can use subscription methods (block, subscribe, etc.)
+     * provided by the reactor library method.
+     * For more details on how to work with Mono's visit:
+     * @return Mono object of ApplicationBeans
+     */
+    public Mono<List<ApplicationBean>> getAll() {
+        return this.cloudFoundryOperations
                 .applications()
                 .list()
-                .collectList()
-                .block();
-
-        // create a list of special bean data objects, as the summaries cannot be serialized directly
-        List<ApplicationBean> beans = new ArrayList<>();
-        for (ApplicationSummary summary : applications) {
-            ApplicationManifest manifest = getApplicationManifest(summary);
-
-            beans.add(new ApplicationBean(manifest));
-        }
-
-        return beans;
+                .flatMap(this::getApplicationManifest)
+                .map(ApplicationBean::new)
+                .collectList();
     }
 
-    private ApplicationManifest getApplicationManifest(ApplicationSummary applicationSummary) {
+    private Mono<ApplicationManifest> getApplicationManifest(ApplicationSummary applicationSummary) {
         return this.cloudFoundryOperations
                 .applications()
                 .getApplicationManifest(GetApplicationManifestRequest
                         .builder()
                         .name(applicationSummary.getName())
-                        .build())
-                .block();
+                        .build());
     }
 
     /**
@@ -156,31 +156,31 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
         ApplicationManifest.Builder builder = ApplicationManifest.builder();
 
         builder
-            .name(bean.getName())
-            .path(bean.getPath() == null ? null : Paths.get(bean.getPath()));
+                .name(bean.getName())
+                .path(bean.getPath() == null ? null : Paths.get(bean.getPath()));
 
         if (bean.getManifest() != null) {
             builder.buildpack(bean.getManifest().getBuildpack())
-                .command(bean.getManifest().getCommand())
-                .disk(bean.getManifest().getDisk())
-                .docker(Docker.builder()
-                        .image(bean.getManifest().getDockerImage())
-                        .username(bean.getManifest().getDockerUsername())
-                        .password(getDockerPassword(bean))
-                        .build())
-                .healthCheckHttpEndpoint(bean.getManifest().getHealthCheckHttpEndpoint())
-                .healthCheckType(bean.getManifest().getHealthCheckType())
-                .instances(bean.getManifest().getInstances())
-                .memory(bean.getManifest().getMemory())
-                .noRoute(bean.getManifest().getNoRoute())
-                .routePath(bean.getManifest().getRoutePath())
-                .randomRoute(bean.getManifest().getRandomRoute())
-                .routes(getAppRoutes(bean.getManifest().getRoutes()))
-                .stack(bean.getManifest().getStack())
-                .timeout(bean.getManifest().getTimeout())
-                .putAllEnvironmentVariables(Optional.ofNullable(bean.getManifest().getEnvironmentVariables())
-                        .orElse(Collections.emptyMap()))
-                .services(bean.getManifest().getServices());
+                    .command(bean.getManifest().getCommand())
+                    .disk(bean.getManifest().getDisk())
+                    .docker(Docker.builder()
+                            .image(bean.getManifest().getDockerImage())
+                            .username(bean.getManifest().getDockerUsername())
+                            .password(getDockerPassword(bean))
+                            .build())
+                    .healthCheckHttpEndpoint(bean.getManifest().getHealthCheckHttpEndpoint())
+                    .healthCheckType(bean.getManifest().getHealthCheckType())
+                    .instances(bean.getManifest().getInstances())
+                    .memory(bean.getManifest().getMemory())
+                    .noRoute(bean.getManifest().getNoRoute())
+                    .routePath(bean.getManifest().getRoutePath())
+                    .randomRoute(bean.getManifest().getRandomRoute())
+                    .routes(getAppRoutes(bean.getManifest().getRoutes()))
+                    .stack(bean.getManifest().getStack())
+                    .timeout(bean.getManifest().getTimeout())
+                    .putAllEnvironmentVariables(Optional.ofNullable(bean.getManifest().getEnvironmentVariables())
+                            .orElse(Collections.emptyMap()))
+                    .services(bean.getManifest().getServices());
         }
 
         return builder.build();
@@ -194,8 +194,8 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
         //TODO: Maybe outsource retrieving env variables to a dedicated class in a future feature.
         String password = System.getenv(DOCKER_PASSWORD_VAR_NAME);
         if (password == null) {
-           throw new NullPointerException("Docker password not set in environment variable: "
-                   + DOCKER_PASSWORD_VAR_NAME);
+            throw new NullPointerException("Docker password not set in environment variable: "
+                    + DOCKER_PASSWORD_VAR_NAME);
         }
         return password;
     }
@@ -240,5 +240,4 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
             throw new IllegalArgumentException(message);
         }
     }
-
 }

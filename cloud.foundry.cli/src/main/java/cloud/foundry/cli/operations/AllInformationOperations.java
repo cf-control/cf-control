@@ -1,20 +1,24 @@
 package cloud.foundry.cli.operations;
 
-import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
-import cloud.foundry.cli.crosscutting.beans.GetAllBean;
-import cloud.foundry.cli.crosscutting.beans.ServiceBean;
-import cloud.foundry.cli.crosscutting.beans.SpaceDevelopersBean;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
+import cloud.foundry.cli.crosscutting.beans.GetAllBean;
+import cloud.foundry.cli.crosscutting.beans.ServiceBean;
+import cloud.foundry.cli.crosscutting.beans.SpaceDevelopersBean;
 import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.client.v2.info.GetInfoRequest;
+import org.cloudfoundry.client.v2.info.GetInfoResponse;
 import org.cloudfoundry.client.v2.info.Info;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.reactor.DefaultConnectionContext;
 import org.cloudfoundry.reactor.client.ReactorCloudFoundryClient;
+import reactor.core.Disposable;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 
 /**
@@ -40,10 +44,29 @@ public class AllInformationOperations extends AbstractOperations<DefaultCloudFou
      * @return GetAllBean
      */
     public GetAllBean getAll() {
+        SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cloudFoundryOperations);
+        ServicesOperations servicesOperations = new ServicesOperations(cloudFoundryOperations);
+        ApplicationOperations applicationOperations = new ApplicationOperations(cloudFoundryOperations);
+
+
+        Mono<String> apiVersion = determineApiVersion();
+        Mono<SpaceDevelopersBean> spaceDevelopers = spaceDevelopersOperations.getAll();
+        Mono<List<ServiceBean>> services = servicesOperations.getAll();
+        Mono<List<ApplicationBean>> apps = applicationOperations.getAll();
+
         GetAllBean allInformation = new GetAllBean();
-        allInformation.setApiVersion(determineApiVersion());
+
+        Map<String, Object> spec = new HashMap<>();
+
+        // start async querying of config data from the cloud foundry instance
+        Flux.merge(apiVersion.doOnSuccess(allInformation::setApiVersion),
+                spaceDevelopers.doOnSuccess(s -> spec.put(SPACE_DEVELOPERS, s.getSpaceDevelopers())),
+                services.doOnSuccess(s -> spec.put(SERVICES, s)),
+                apps.doOnSuccess(a ->  spec.put(APPLICATIONS, a)))
+            .blockLast();
+
+        allInformation.setSpec(spec);
         allInformation.setTarget(determineTarget());
-        allInformation.setSpec(determineSpec());
 
         return allInformation;
     }
@@ -53,37 +76,13 @@ public class AllInformationOperations extends AbstractOperations<DefaultCloudFou
      *
      * @return API-Version
      */
-    private String determineApiVersion() {
+    private Mono<String> determineApiVersion() {
         CloudFoundryClient cfClient = cloudFoundryOperations.getCloudFoundryClient();
         GetInfoRequest infoRequest = GetInfoRequest.builder().build();
         Info cfClientInfo = cfClient.info();
 
-        return cfClientInfo.get(infoRequest).block().getApiVersion();
+        return cfClientInfo.get(infoRequest).map(GetInfoResponse::getApiVersion);
     }
-
-    /**
-     * Determines the Spec-Node configuration-information from a a cloud foundry instance.
-     *
-     * @return Spec-Data
-     */
-    private Map<String, Object> determineSpec() {
-        SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cloudFoundryOperations);
-        SpaceDevelopersBean spaceDevelopers = spaceDevelopersOperations.getAll();
-
-        ServicesOperations servicesOperations = new ServicesOperations(cloudFoundryOperations);
-        List<ServiceBean> services = servicesOperations.getAll();
-
-        ApplicationOperations applicationOperations = new ApplicationOperations(cloudFoundryOperations);
-        List<ApplicationBean> applications = applicationOperations.getAll();
-
-        Map<String, Object> spec = new HashMap<>();
-        spec.put(SPACE_DEVELOPERS, spaceDevelopers.getSpaceDevelopers());
-        spec.put(SERVICES, services);
-        spec.put(APPLICATIONS, applications);
-
-        return spec;
-    }
-
 
     /**
      * Determines the Target-Node configuration-information from a a cloud foundry instance.

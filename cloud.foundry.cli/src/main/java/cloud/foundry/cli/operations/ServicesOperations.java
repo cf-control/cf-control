@@ -4,10 +4,12 @@ import cloud.foundry.cli.crosscutting.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
-import org.cloudfoundry.operations.services.*;
 
+import org.cloudfoundry.operations.services.BindServiceInstanceRequest;
+import org.cloudfoundry.operations.services.CreateServiceInstanceRequest;
+import org.cloudfoundry.operations.services.RenameServiceInstanceRequest;
+import org.cloudfoundry.operations.services.UpdateServiceInstanceRequest;
 import reactor.core.publisher.Mono;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,21 +23,19 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
     }
 
     /**
+     * This method fetches services data from the cloud foundry instance.
+     * To retrieve data given by the Mono object you can use subscription methods (block, subscribe, etc.)
+     * provided by the reactor library method.
+     * For more details on how to work with Mono's visit:
+     * https://projectreactor.io/docs/core/release/reference/index.html#core-features
      * @return all service instances in the space
      */
-    public List<ServiceBean> getAll() {
-        List<ServiceInstanceSummary> services = this.cloudFoundryOperations
-            .services()
-            .listInstances()
-            .collectList()
-            .block();
-
-        // create a list of special bean data objects, as the summaries cannot be
-        // serialized directly
-        return services == null ? Collections.emptyList() : services
-                .stream()
+    public Mono<List<ServiceBean>> getAll() {
+        return this.cloudFoundryOperations
+                .services()
+                .listInstances()
                 .map(ServiceBean::new)
-                .collect(Collectors.toList());
+                .collectList();
     }
 
     /**
@@ -47,11 +47,11 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      */
     public void create(ServiceBean serviceBean) throws CreationException {
         CreateServiceInstanceRequest createServiceRequest = CreateServiceInstanceRequest.builder()
-            .serviceName(serviceBean.getService())
-            .planName(serviceBean.getPlan())
-            .serviceInstanceName(serviceBean.getName())
-            .tags(serviceBean.getTags())
-            .build();
+                .serviceName(serviceBean.getService())
+                .planName(serviceBean.getPlan())
+                .serviceInstanceName(serviceBean.getName())
+                .tags(serviceBean.getTags())
+                .build();
 
         Mono<Void> created = this.cloudFoundryOperations.services().createInstance(createServiceRequest);
 
@@ -95,14 +95,14 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      */
     private void renameService(String newName, String currentName) throws CreationException {
         RenameServiceInstanceRequest renameServiceInstanceRequest = RenameServiceInstanceRequest.builder()
-            .name(currentName)
-            .newName(newName)
-            .build();
+                .name(currentName)
+                .newName(newName)
+                .build();
 
         try {
             this.cloudFoundryOperations.services()
-                .renameInstance(renameServiceInstanceRequest)
-                .block();
+                    .renameInstance(renameServiceInstanceRequest)
+                    .block();
             Log.info("Name of Service Instance has been changed");
         } catch (RuntimeException e) {
             throw new CreationException(e.getMessage());
@@ -115,15 +115,15 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      */
     private void updateServiceInstance(ServiceBean serviceBean) throws CreationException {
         UpdateServiceInstanceRequest updateServiceInstanceRequest = UpdateServiceInstanceRequest.builder()
-            .serviceInstanceName(serviceBean.getName())
-            .tags(serviceBean.getTags())
-            .planName(serviceBean.getPlan())
-            .build();
+                .serviceInstanceName(serviceBean.getName())
+                .tags(serviceBean.getTags())
+                .planName(serviceBean.getPlan())
+                .build();
 
         try {
             this.cloudFoundryOperations.services()
-                .updateInstance(updateServiceInstanceRequest)
-                .block();
+                    .updateInstance(updateServiceInstanceRequest)
+                    .block();
             Log.info("Service Plan and Tags haven been updated");
         } catch (RuntimeException e) {
             throw new CreationException(e.getMessage());
@@ -139,14 +139,14 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
 
         for (String app : serviceBean.getApplications()) {
             BindServiceInstanceRequest bindServiceRequest = BindServiceInstanceRequest.builder()
-                .applicationName(app)
-                .serviceInstanceName(service)
-                .build();
+                    .applicationName(app)
+                    .serviceInstanceName(service)
+                    .build();
 
             try {
                 this.cloudFoundryOperations.services()
-                    .bind(bindServiceRequest)
-                    .block();
+                        .bind(bindServiceRequest)
+                        .block();
                 Log.info("Service \"" + service + "\" has been bound to the application \"" + app + "\".");
             } catch (RuntimeException e) {
                 throw new CreationException(e);

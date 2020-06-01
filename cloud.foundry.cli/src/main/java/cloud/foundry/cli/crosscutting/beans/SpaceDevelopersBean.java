@@ -12,6 +12,10 @@ public class SpaceDevelopersBean implements Bean {
     public SpaceDevelopersBean() {
     }
 
+    public SpaceDevelopersBean(List<String> spaceDevelopers) {
+        this.spaceDevelopers = spaceDevelopers;
+    }
+
     public List<String> getSpaceDevelopers() {
         return spaceDevelopers;
     }
