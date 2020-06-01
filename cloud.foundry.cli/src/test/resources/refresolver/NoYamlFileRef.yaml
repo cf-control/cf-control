@@ -1,4 +1,0 @@
-- the referenced file
-- is actually an xml file
--
-  $ref: './src/test/resources/basic/NotYaml.yaml'

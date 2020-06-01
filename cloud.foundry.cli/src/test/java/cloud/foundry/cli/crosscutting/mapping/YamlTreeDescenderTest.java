@@ -8,16 +8,17 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import cloud.foundry.cli.crosscutting.exceptions.YamlTreeNodeNotFoundException;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Timeout;
 
 import java.util.Map;
 import java.util.List;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Collections;
-import java.util.concurrent.TimeUnit;
 
-public class DescendingYamlTreeVisitorTest {
+/**
+ * Test for {@link YamlTreeDescender}
+ */
+public class YamlTreeDescenderTest {
 
     /*
       values:
@@ -58,162 +59,97 @@ public class DescendingYamlTreeVisitorTest {
     }
 
     @Test
-    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testDescendToMappingScalar() {
         YamlPointer yamlPointer = new YamlPointer("#/" + valuesKey + "/0/" + luckyNumberKey);
-        DescendingYamlTreeVisitor visitor = new DescendingYamlTreeVisitor(root);
 
-        visitor.descend(yamlPointer);
-        Object resultingYamlTreeNode = visitor.getResultingYamlTreeNode();
+        Object resultingYamlTreeNode = YamlTreeDescender.descend(root, yamlPointer);
 
         assertThat(resultingYamlTreeNode, is(luckyNumberValue));
     }
 
     @Test
-    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testDescendToListScalar() {
         YamlPointer yamlPointer = new YamlPointer("#/" + valuesKey + "/1");
-        DescendingYamlTreeVisitor visitor = new DescendingYamlTreeVisitor(root);
 
-        visitor.descend(yamlPointer);
-        Object resultingYamlTreeNode = visitor.getResultingYamlTreeNode();
+        Object resultingYamlTreeNode = YamlTreeDescender.descend(root, yamlPointer);
 
         assertThat(resultingYamlTreeNode, is(secondListElement));
     }
 
     @Test
-    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testDescendToNullScalar() {
         YamlPointer yamlPointer = new YamlPointer("#/" + valuesKey + "/0/" + nameKey);
-        DescendingYamlTreeVisitor visitor = new DescendingYamlTreeVisitor(root);
 
-        visitor.descend(yamlPointer);
-        Object resultingYamlTreeNode = visitor.getResultingYamlTreeNode();
+        Object resultingYamlTreeNode = YamlTreeDescender.descend(root, yamlPointer);
 
         assertThat(resultingYamlTreeNode, is(nullValue()));
     }
 
     @Test
-    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testDescendToList() {
         YamlPointer yamlPointer = new YamlPointer("#/" + valuesKey);
-        DescendingYamlTreeVisitor visitor = new DescendingYamlTreeVisitor(root);
 
-        visitor.descend(yamlPointer);
-        Object resultingYamlTreeNode = visitor.getResultingYamlTreeNode();
+        Object resultingYamlTreeNode = YamlTreeDescender.descend(root, yamlPointer);
 
         assertThat(resultingYamlTreeNode, is(list));
     }
 
     @Test
-    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testDescendToMap() {
         YamlPointer yamlPointer = new YamlPointer("#/" + valuesKey + "/0");
-        DescendingYamlTreeVisitor visitor = new DescendingYamlTreeVisitor(root);
 
-        visitor.descend(yamlPointer);
-        Object resultingYamlTreeNode = visitor.getResultingYamlTreeNode();
+        Object resultingYamlTreeNode = YamlTreeDescender.descend(root, yamlPointer);
 
         assertThat(resultingYamlTreeNode, is(firstListElement));
     }
 
     @Test
-    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testDescendToRoot() {
         YamlPointer yamlPointer = new YamlPointer("#/");
-        DescendingYamlTreeVisitor visitor = new DescendingYamlTreeVisitor(root);
 
-        visitor.descend(yamlPointer);
-        Object resultingYamlTreeNode = visitor.getResultingYamlTreeNode();
+        Object resultingYamlTreeNode = YamlTreeDescender.descend(root, yamlPointer);
 
         assertThat(resultingYamlTreeNode, is(root));
     }
 
     @Test
-    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testDescendToAnchorAlias() {
         YamlPointer yamlPointerAnchor = new YamlPointer("#/" + valuesKey + "/0");
         YamlPointer yamlPointerAlias = new YamlPointer("#/" + sameKey);
-        DescendingYamlTreeVisitor visitor = new DescendingYamlTreeVisitor(root);
 
-        visitor.descend(yamlPointerAnchor);
-        Object resultingAnchorYamlTreeNode = visitor.getResultingYamlTreeNode();
-
-        visitor.descend(yamlPointerAlias);
-        Object resultingAliasYamlTreeNode = visitor.getResultingYamlTreeNode();
+        Object resultingAnchorYamlTreeNode = YamlTreeDescender.descend(root, yamlPointerAnchor);
+        Object resultingAliasYamlTreeNode = YamlTreeDescender.descend(root, yamlPointerAlias);
 
         assertThat(resultingAnchorYamlTreeNode, is(resultingAliasYamlTreeNode));
     }
 
     @Test
-    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testKeyNotInMap() {
         YamlPointer yamlPointer = new YamlPointer("#/nonExistentKey");
-        DescendingYamlTreeVisitor visitor = new DescendingYamlTreeVisitor(root);
 
-        assertThrows(
-                YamlTreeNodeNotFoundException.class,
-                () -> visitor.descend(yamlPointer)
-        );
+        assertThrows(YamlTreeNodeNotFoundException.class, () -> YamlTreeDescender.descend(root, yamlPointer));
     }
 
     @Test
-    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testUnparsableListIndex() {
         YamlPointer yamlPointer = new YamlPointer("#/" + valuesKey + "/index");
-        DescendingYamlTreeVisitor visitor = new DescendingYamlTreeVisitor(root);
 
-        assertThrows(
-                YamlTreeNodeNotFoundException.class,
-                () -> visitor.descend(yamlPointer)
-        );
+        assertThrows( YamlTreeNodeNotFoundException.class, () -> YamlTreeDescender.descend(root, yamlPointer));
     }
 
     @Test
-    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testListIndexOutOfRange() {
         YamlPointer yamlPointerLower = new YamlPointer("#/" + valuesKey + "/-1");
         YamlPointer yamlPointerUpper = new YamlPointer("#/" + valuesKey + "/2");
-        DescendingYamlTreeVisitor visitor = new DescendingYamlTreeVisitor(root);
 
-        assertThrows(
-                YamlTreeNodeNotFoundException.class,
-                () -> visitor.descend(yamlPointerLower)
-        );
-        assertThrows(
-                YamlTreeNodeNotFoundException.class,
-                () -> visitor.descend(yamlPointerUpper)
-        );
+        assertThrows(YamlTreeNodeNotFoundException.class, () -> YamlTreeDescender.descend(root, yamlPointerLower));
+        assertThrows(YamlTreeNodeNotFoundException.class, () -> YamlTreeDescender.descend(root, yamlPointerUpper));
     }
 
     @Test
-    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testDescendBeyondScalar() {
         YamlPointer yamlPointer = new YamlPointer("#/" + valuesKey + "/0/" + luckyNumberKey + "/nonExistent");
-        DescendingYamlTreeVisitor visitor = new DescendingYamlTreeVisitor(root);
 
-        assertThrows(
-                YamlTreeNodeNotFoundException.class,
-                () -> visitor.descend(yamlPointer)
-        );
-    }
-
-    @Test
-    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
-    public void testIllegalVisitCall() {
-        DescendingYamlTreeVisitor visitor = new DescendingYamlTreeVisitor(root);
-
-        assertThrows(
-                IllegalStateException.class,
-                () -> YamlTreeVisitor.visit(visitor, root)
-        );
-
-        YamlPointer someYamlPointer = new YamlPointer("#/" + sameKey);
-        visitor.descend(someYamlPointer);
-
-        assertThrows(
-                IllegalStateException.class,
-                () -> YamlTreeVisitor.visit(visitor, root)
-        );
+        assertThrows(YamlTreeNodeNotFoundException.class, () -> YamlTreeDescender.descend(root, yamlPointer));
     }
 }

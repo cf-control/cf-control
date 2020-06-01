@@ -35,9 +35,12 @@ public class FileUtils {
             "YML"
     ));
 
+    /**
+     * TODO documentation
+     */
     public static String readLocalOrRemoteFile(String filepath) throws IOException, ProtocolException {
         checkNotNull(filepath);
-        String content = null;
+        String content;
         if (isRemoteFile(filepath)) {
             content = doReadRemoteFile(filepath);
         } else {
@@ -48,7 +51,7 @@ public class FileUtils {
     }
 
     private static boolean isRemoteFile(String filepath) {
-        Pattern p = Pattern.compile("\\w+?:\\/\\/");
+        Pattern p = Pattern.compile("\\w+?://");
         Matcher m = p.matcher(filepath);
         return m.find();
     }
@@ -74,7 +77,7 @@ public class FileUtils {
         if (hasUnallowedFileExtension(file.getName())) {
             throw new InvalidFileTypeException("invalid file extension: "
                     + FilenameUtils.getExtension(file.getName()));
-        } else if (emptyFileExtension(file.getName())) {
+        } else if (hasEmptyFileExtension(file.getName())) {
             throw new InvalidFileTypeException("missing file extension");
         }
         return readFile(file);
@@ -84,7 +87,7 @@ public class FileUtils {
      *
      * @param url   url to the host e.g. https://host.com/path/to/file.yml
      * @return      the content of the file as a String
-     * @throws IOException
+     * @throws IOException TODO explain when it is thrown
      */
     public static String readRemoteFile(String url) throws IOException, ProtocolException {
         checkNotNull(url);
@@ -98,7 +101,7 @@ public class FileUtils {
     private static String doReadRemoteFile(String url) throws IOException, ProtocolException {
         URI uri = URI.create(url);
 
-        if (hasUnallowedFileExtension(uri.getPath()) && !emptyFileExtension(uri.getPath())) {
+        if (hasUnallowedFileExtension(uri.getPath()) && !hasEmptyFileExtension(uri.getPath())) {
             throw new InvalidFileTypeException("invalid file extension: "
                     + FilenameUtils.getExtension(uri.getPath()));
         }
@@ -128,7 +131,7 @@ public class FileUtils {
         return !ALLOWED_FILE_EXTENSIONS.contains(FilenameUtils.getExtension(filename).toUpperCase());
     }
 
-    public static boolean emptyFileExtension(String filename) {
+    private static boolean hasEmptyFileExtension(String filename) {
         return FilenameUtils.getExtension(filename).isEmpty();
     }
 

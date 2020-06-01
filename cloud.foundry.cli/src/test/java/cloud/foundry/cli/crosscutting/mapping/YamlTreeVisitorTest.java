@@ -4,19 +4,19 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Timeout;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.concurrent.TimeUnit;
 
+/**
+ * Test for {@link YamlTreeVisitor}
+ */
 public class YamlTreeVisitorTest {
 
     @Test
-    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testVisitEmptySequence() {
         YamlTreeVisitor mockedVisitor = mock(YamlTreeVisitor.class);
         List<Object> sequence = Collections.emptyList();
@@ -27,7 +27,6 @@ public class YamlTreeVisitorTest {
     }
 
     @Test
-    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testVisitNonemptySequence() {
         YamlTreeVisitor mockedVisitor = mock(YamlTreeVisitor.class);
         List<Object> sequence = Arrays.asList("element", 42, true, 3.14);
@@ -38,7 +37,6 @@ public class YamlTreeVisitorTest {
     }
 
     @Test
-    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testVisitEmptyMapping() {
         YamlTreeVisitor mockedVisitor = mock(YamlTreeVisitor.class);
         Map<Object, Object> mapping = Collections.emptyMap();
@@ -49,7 +47,6 @@ public class YamlTreeVisitorTest {
     }
 
     @Test
-    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testVisitNonemptyMapping() {
         YamlTreeVisitor mockedVisitor = mock(YamlTreeVisitor.class);
         Map<Object, Object> mapping = new HashMap<>();
@@ -62,7 +59,6 @@ public class YamlTreeVisitorTest {
     }
 
     @Test
-    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testVisitStringScalar() {
         YamlTreeVisitor mockedVisitor = mock(YamlTreeVisitor.class);
         String string = "scalar";
@@ -73,7 +69,6 @@ public class YamlTreeVisitorTest {
     }
 
     @Test
-    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testVisitIntegerScalar() {
         YamlTreeVisitor mockedVisitor = mock(YamlTreeVisitor.class);
         Integer integer = 42;
@@ -84,7 +79,6 @@ public class YamlTreeVisitorTest {
     }
 
     @Test
-    @Timeout(value = 1000, unit = TimeUnit.MILLISECONDS)
     public void testVisitNullScalar() {
         YamlTreeVisitor mockedVisitor = mock(YamlTreeVisitor.class);
 

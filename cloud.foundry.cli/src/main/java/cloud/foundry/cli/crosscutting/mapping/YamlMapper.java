@@ -1,44 +1,40 @@
 package cloud.foundry.cli.crosscutting.mapping;
 
 import cloud.foundry.cli.crosscutting.beans.Bean;
-import cloud.foundry.cli.crosscutting.util.FileUtils;
-import org.yaml.snakeyaml.Yaml;
 
-import java.io.IOException;
-
+/**
+ * This class takes care about loading {@link Bean beans} from configuration files and dumping {@link Bean beans} as
+ * {@link String strings}. It guarantees consistent loading and dumping.
+ */
 public class YamlMapper {
 
+    /**
+     * Loads a configuration file as a bean. During this process, the ref-occurrences in the specified configuration
+     * file are resolved.
+     * @param configFilePath the path to the config file
+     * @param beanType the desired type of the bean to load
+     * @throws Exception TODO
+     */
     public static <B extends Bean> B loadBean(String configFilePath, Class<B> beanType) {
         //TODO
         /*
-        Open Config file.
-        Parse file content as YML Tree.
-        Resolve Ref occurences in YML Tree.
-        Dump YML Tree as String.
-        Load String as bean.
+        open config file
+        parse file content as yaml tree
+        resolve ref occurrences in yaml tree
+        dump yaml tree as String
+        load the String as corresponding bean
          */
-        try {
-            String configFile = FileUtils.readLocalFile(configFilePath);
-            Yaml yaml = new Yaml();
-            Object tree = yaml.load(configFile);
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
         return null;
     }
 
+    /**
+     * Dumps the contents of a bean as a string in the yaml format.
+     * @param bean the bean instance to dump
+     * @return the contents of the bean parameter as a string
+     * @throws Exception TODO
+     */
     public static <B extends Bean> String dumpBean(B bean) {
         //TODO
         return null;
-    }
-
-    public static Object resolve(Object yamlTreeRoot, Yaml yamlParser) {
-        // TODO custom exceptions in case of error:
-        // e.g. unknown node type
-        RefResolvingYamlTreeVisitor refResolvingYamlTreeVisitor =
-                new RefResolvingYamlTreeVisitor(yamlTreeRoot, yamlParser);
-        return refResolvingYamlTreeVisitor.resolveRefs();
-
     }
 }
