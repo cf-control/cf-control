@@ -36,7 +36,7 @@ public class RefResolverTest {
     public void testRemoteRef() throws FileNotFoundException {
         Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + REFRESOLVER_FOLDER + "RemoteRef.yaml");
 
-        Object rootOfResolvedTree = RefResolver.resolveRefs(treeRoot, DEFAULT_PROCESSOR);
+        Object rootOfResolvedTree = RefResolver.resolveRefs(treeRoot);
 
         String resolvedYamlResult = convertTreeToString(rootOfResolvedTree);
         Object preresolvedTreeRoot = parseYamlFileAsTree(
@@ -49,7 +49,7 @@ public class RefResolverTest {
     public void testTopLevelRef() throws FileNotFoundException {
         Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + REFRESOLVER_FOLDER + "TopLevelRef.yaml");
 
-        Object rootOfResolvedTree = RefResolver.resolveRefs(treeRoot, DEFAULT_PROCESSOR);
+        Object rootOfResolvedTree = RefResolver.resolveRefs(treeRoot);
 
         String resolvedYamlResult = convertTreeToString(rootOfResolvedTree);
         Object preresolvedTreeRoot = parseYamlFileAsTree(RESOURCES_PATH + BASIC_FOLDER + "VariousContents.yaml");
@@ -61,7 +61,7 @@ public class RefResolverTest {
     public void testEscapeCharactersRef() throws FileNotFoundException {
         Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + REFRESOLVER_FOLDER + "EscapeCharactersRef.yaml");
 
-        Object rootOfResolvedTree = RefResolver.resolveRefs(treeRoot, DEFAULT_PROCESSOR);
+        Object rootOfResolvedTree = RefResolver.resolveRefs(treeRoot);
 
         String resolvedYamlResult = convertTreeToString(rootOfResolvedTree);
         Object preresolvedTreeRoot = parseYamlFileAsTree(
@@ -80,7 +80,7 @@ public class RefResolverTest {
 
         Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + REFRESOLVER_FOLDER + "UrlRef.yaml");
 
-        Object rootOfResolvedTree = RefResolver.resolveRefs(treeRoot, DEFAULT_PROCESSOR);
+        Object rootOfResolvedTree = RefResolver.resolveRefs(treeRoot);
 
         String resolvedYamlResult = convertTreeToString(rootOfResolvedTree);
         Object preresolvedTreeRoot = parseYamlFileAsTree(RESOURCES_PATH + REFRESOLVER_FOLDER + "ExpectedUrlRef.yaml");
@@ -96,7 +96,7 @@ public class RefResolverTest {
         Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + REFRESOLVER_FOLDER + "NonExistentFileRemoteRef.yaml");
 
         RefResolvingException refResolvingException = assertThrows(RefResolvingException.class,
-                () -> RefResolver.resolveRefs(treeRoot, DEFAULT_PROCESSOR));
+                () -> RefResolver.resolveRefs(treeRoot));
         assertThat(refResolvingException.getCause(), is(instanceOf(IOException.class)));
     }
 
@@ -105,7 +105,7 @@ public class RefResolverTest {
         Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + REFRESOLVER_FOLDER + "WronglyFormattedUrlRef.yaml");
 
         RefResolvingException refResolvingException = assertThrows(RefResolvingException.class,
-                () -> RefResolver.resolveRefs(treeRoot, DEFAULT_PROCESSOR));
+                () -> RefResolver.resolveRefs(treeRoot));
         assertThat(refResolvingException.getCause(), is(instanceOf(IOException.class)));
     }
 
@@ -114,7 +114,7 @@ public class RefResolverTest {
         Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + REFRESOLVER_FOLDER + "UnreachableUrlRef.yaml");
 
         assertThrows(RefResolvingException.class,
-                () -> RefResolver.resolveRefs(treeRoot, DEFAULT_PROCESSOR));
+                () -> RefResolver.resolveRefs(treeRoot));
         // TODO check specific type of cause
     }
 
@@ -123,7 +123,7 @@ public class RefResolverTest {
         Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + REFRESOLVER_FOLDER + "InvalidPointerInRef.yaml");
 
         RefResolvingException refResolvingException = assertThrows(RefResolvingException.class,
-                () -> RefResolver.resolveRefs(treeRoot, DEFAULT_PROCESSOR));
+                () -> RefResolver.resolveRefs(treeRoot));
         assertThat(refResolvingException.getCause(), is(instanceOf(YamlTreeNodeNotFoundException.class)));
     }
 

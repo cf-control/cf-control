@@ -5,11 +5,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import cloud.foundry.cli.crosscutting.exceptions.RefResolvingException;
 import cloud.foundry.cli.crosscutting.exceptions.YamlTreeNodeNotFoundException;
 import cloud.foundry.cli.crosscutting.logging.Log;
-import cloud.foundry.cli.crosscutting.util.FileUtils;
-import org.yaml.snakeyaml.Yaml;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
@@ -25,38 +22,105 @@ public class RefResolver implements YamlTreeVisitor {
     private static final String REF_KEY = "$ref";
 
     private final Object yamlTreeRoot;
-    private final Yaml yamlParser;
 
     private Object overridingNode;
 
-    private RefResolver(Object yamlTreeRoot, Yaml yamlParser) {
+    private RefResolver(Object yamlTreeRoot) {
         this.yamlTreeRoot = yamlTreeRoot;
-        this.yamlParser = yamlParser;
         overridingNode = yamlTreeRoot;
     }
 
     /**
      * Resolves ref-occurrences in the specified yaml tree. Whenever a ref occurs the linked file is read and processed
-     * into an additional yaml tree using the specified yaml parser. If a yaml pointer is specified, the additional yaml
+     * into an additional yaml tree. If a yaml pointer is specified, the additional yaml
      * tree is descended to the node that is specified in the pointer. The additional yaml tree then overrides the node
      * where the ref occurred.
      * @param yamlTreeRoot the root of the yaml tree in which to resolve ref-occurrences
-     * @param yamlParser the yaml parser that processes the contents of linked files to yaml trees
      * @return the new root of the specified yaml tree after the ref-resolving process
      * @throws RefResolvingException if an error during the ref-resolution process occurs
-     * @throws NullPointerException if the yaml parser parameter is null
      */
-    public static Object resolveRefs(Object yamlTreeRoot, Yaml yamlParser) {
-        checkNotNull(yamlParser);
+    public static Object resolveRefs(Object yamlTreeRoot) {
 
         Log.debug("Resolve", RefResolver.REF_KEY + "-occurrences");
 
-        RefResolver refResolvingYamlTreeVisitor =
-                new RefResolver(yamlTreeRoot, yamlParser);
+        RefResolver refResolvingYamlTreeVisitor = new RefResolver(yamlTreeRoot);
         Object resolvedYamlTreeRoot = refResolvingYamlTreeVisitor.doResolveRefs();
 
         Log.debug("Resolving completed");
         return resolvedYamlTreeRoot;
+    }
+
+    private Object doResolveRefs() {
+        YamlTreeVisitor.visit(this, yamlTreeRoot);
+        return overridingNode;
+    }
+
+    private void visitRegularMapping(Map<Object, Object> regularMappingNode) {
+        for (Map.Entry<Object, Object> entry : regularMappingNode.entrySet()) {
+            YamlTreeVisitor.visit(this, entry.getValue());
+
+            // after visiting the value node of the mapping, the node itself might have changed due to a ref
+            // resolution
+            entry.setValue(overridingNode);
+        }
+
+        // this mapping node remains unchanged
+        overridingNode = regularMappingNode;
+    }
+
+    private void visitRefMapping(Map<Object, Object> refMappingNode) {
+        Object refValueNode = refMappingNode.get(REF_KEY);
+        Log.debug("Encountered", RefResolver.REF_KEY + "-occurrence with value", String.valueOf(refValueNode));
+        if (!(refValueNode instanceof String)) {
+            throw new RefResolvingException("Encountered a '" + REF_KEY + "'-occurrence where its value is not of" +
+                    " type string");
+        }
+        String refValue = (String) refValueNode;
+        String filePath = getFilePath(refValue);
+        YamlPointer yamlPointer = getYamlPointer(refValue);
+
+        Log.debug("Reading content of", filePath);
+        Object referredYamlTree;
+        try {
+            referredYamlTree = YamlMapper.loadYamlTree(filePath);
+        } catch (IOException exception) {
+            throw new RefResolvingException(exception);
+        }
+
+        if (yamlPointer != null) {
+            try {
+                referredYamlTree = YamlTreeDescender.descend(referredYamlTree, yamlPointer);
+            } catch (YamlTreeNodeNotFoundException nodeNotFoundException) {
+                throw new RefResolvingException(nodeNotFoundException);
+            }
+        }
+        // this current mapping should be overridden by the referred yaml tree
+        overridingNode = referredYamlTree;
+    }
+
+    private String getFilePath(String refValue) {
+        int beginningOfPointerIndex = refValue.lastIndexOf(YamlPointer.POINTER_START);
+        if (beginningOfPointerIndex == -1) {
+            return refValue;
+        } else {
+            return refValue.substring(0, beginningOfPointerIndex);
+        }
+    }
+
+    private YamlPointer getYamlPointer(String refValue) {
+        int beginningOfPointerIndex = refValue.lastIndexOf(YamlPointer.POINTER_START);
+        if (beginningOfPointerIndex == -1) {
+            return null;
+        }
+        String yamlPointerString = refValue.substring(beginningOfPointerIndex);
+
+        YamlPointer yamlPointer;
+        try {
+            yamlPointer = new YamlPointer(yamlPointerString);
+        } catch (IllegalArgumentException illegalArgumentException) {
+            throw new RefResolvingException(illegalArgumentException);
+        }
+        return yamlPointer;
     }
 
     /**
@@ -68,59 +132,10 @@ public class RefResolver implements YamlTreeVisitor {
     @Override
     public void visitMapping(Map<Object, Object> mappingNode) {
         if (!mappingNode.containsKey(REF_KEY)) {
-            for (Map.Entry<Object, Object> entry : mappingNode.entrySet()) {
-                YamlTreeVisitor.visit(this, entry.getValue());
-
-                // after visiting the value node of the mapping, the node itself might have changed due to a ref
-                // resolution
-                entry.setValue(overridingNode);
-            }
-
-            // this mapping node remains unchanged
-            overridingNode = mappingNode;
+            visitRegularMapping(mappingNode);
             return;
         }
-
-        Object refValueNode = mappingNode.get(REF_KEY);
-        Log.debug("Encountered", RefResolver.REF_KEY + "-occurrence with value", String.valueOf(refValueNode));
-        if (!(refValueNode instanceof String)) {
-            throw new RefResolvingException("Encountered a '" + REF_KEY + "'-occurrence where its value is not of" +
-                    " type string");
-        }
-        String refValue = (String) refValueNode;
-        int beginningOfPointerIndex = refValue.lastIndexOf(YamlPointer.POINTER_START);
-        String filePath;
-        String yamlPointerString = null;
-        if (beginningOfPointerIndex == -1) {
-            filePath = refValue;
-        } else {
-            filePath = refValue.substring(0, beginningOfPointerIndex);
-            yamlPointerString = refValue.substring(beginningOfPointerIndex);
-        }
-        Log.debug("Reading content of", filePath);
-        Object referredYamlTree;
-        try (InputStream inputStream = FileUtils.openLocalOrRemoteFile(filePath)) {
-            referredYamlTree = yamlParser.load(inputStream);
-        } catch (IOException exception) {
-            throw new RefResolvingException(exception);
-        }
-
-        if (yamlPointerString != null) {
-            Log.debug("Getting contents at", yamlPointerString);
-            YamlPointer yamlPointer;
-            try {
-                yamlPointer = new YamlPointer(yamlPointerString);
-            } catch (IllegalArgumentException illegalArgumentException) {
-                throw new RefResolvingException(illegalArgumentException);
-            }
-            try {
-                referredYamlTree = YamlTreeDescender.descend(referredYamlTree, yamlPointer);
-            } catch (YamlTreeNodeNotFoundException nodeNotFoundException) {
-                throw new RefResolvingException(nodeNotFoundException);
-            }
-        }
-        // this current mapping should be overridden by the referred yaml tree
-        overridingNode = referredYamlTree;
+        visitRefMapping(mappingNode);
     }
 
     /**
@@ -148,10 +163,5 @@ public class RefResolver implements YamlTreeVisitor {
     public void visitScalar(Object scalarNode) {
         // this scalar node remains unchanged
         overridingNode = scalarNode;
-    }
-
-    private Object doResolveRefs() {
-        YamlTreeVisitor.visit(this, yamlTreeRoot);
-        return overridingNode;
     }
 }

@@ -8,9 +8,8 @@ import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.yaml.snakeyaml.Yaml;
 
 import cloud.foundry.cli.crosscutting.beans.ServiceBean;
-import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
-import cloud.foundry.cli.crosscutting.util.FileUtils;
+import cloud.foundry.cli.crosscutting.mapping.FileUtils;
 import cloud.foundry.cli.crosscutting.util.YamlCreator;
 import cloud.foundry.cli.operations.ServicesOperations;
 import picocli.CommandLine;

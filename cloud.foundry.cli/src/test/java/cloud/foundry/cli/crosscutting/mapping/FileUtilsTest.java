@@ -1,4 +1,4 @@
-package cloud.foundry.cli.crosscutting.util;
+package cloud.foundry.cli.crosscutting.mapping;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -9,6 +9,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import cloud.foundry.cli.crosscutting.exceptions.InvalidFileTypeException;
+import cloud.foundry.cli.crosscutting.mapping.FileUtils;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
@@ -42,7 +43,7 @@ public class FileUtilsTest {
     private static String SIMPLE_LIST_FILE_PATH = "SimpleList.yaml";
 
     @Test
-    public void testOpenLocalOrRemoteFileWithLocalFile(@TempDir Path tempDir) throws IOException, ProtocolException {
+    public void testOpenLocalOrRemoteFileWithLocalFile(@TempDir Path tempDir) throws IOException {
         // given
         String expectedYaml =   "- first" + System.lineSeparator()  +
                 "- second" + System.lineSeparator()  +
@@ -58,7 +59,7 @@ public class FileUtilsTest {
     }
 
     @Test
-    public void testOpenLocalOrRemoteFileWithRemoteFile() throws IOException, ProtocolException {
+    public void testOpenLocalOrRemoteFileWithRemoteFile() throws IOException {
         // given
         // http://localhost:8070/SimpleList.yaml
         WireMockServer server = MockServerBuilder.builder()
@@ -214,7 +215,7 @@ public class FileUtilsTest {
     }
 
     @Test
-    public void testOpenRemoteFileEmptySucceeds() throws IOException, ProtocolException {
+    public void testOpenRemoteFileEmptySucceeds() throws IOException {
         // given
         // http://localhost:XXXXX/Empty.yaml
         WireMockServer server = MockServerBuilder.builder()
@@ -234,7 +235,7 @@ public class FileUtilsTest {
     }
 
     @Test
-    public void testOpenRemoteFileWithContentSucceeds() throws IOException, ProtocolException {
+    public void testOpenRemoteFileWithContentSucceeds() throws IOException {
         // given
         // http://localhost:XXXXX/SimpleList.yaml
         WireMockServer server = MockServerBuilder.builder()
@@ -254,7 +255,7 @@ public class FileUtilsTest {
     }
 
     @Test
-    public void testOpenRemoteFileWithPathSucceeds() throws IOException, ProtocolException {
+    public void testOpenRemoteFileWithPathSucceeds() throws IOException {
         // given
         // http://localhost:XXXX/resources/SimpleList.yaml
         WireMockServer server = MockServerBuilder.builder()
@@ -274,7 +275,7 @@ public class FileUtilsTest {
     }
 
     @Test
-    public void testOpenRemoteFileOnCaseInsensitiveFileExtensionSucceeds() throws IOException, ProtocolException {
+    public void testOpenRemoteFileOnCaseInsensitiveFileExtensionSucceeds() throws IOException {
         // given
         // http://localhost:XXXX/resources/SimpleList.yAMl
         // http://localhost:XXXX/resources/SimpleList.ymL
@@ -299,7 +300,7 @@ public class FileUtilsTest {
     }
 
     @Test
-    public void testOpenRemoteFileOnValidFileTypesSucceeds() throws IOException, ProtocolException {
+    public void testOpenRemoteFileOnValidFileTypesSucceeds() throws IOException {
         // given
         // http://localhost:XXXX/SimpleList.yml
         WireMockServer server = MockServerBuilder.builder()
@@ -319,7 +320,7 @@ public class FileUtilsTest {
     }
 
     @Test
-    public void testOpenRemoteFileOnPathWithoutFileExtensionSucceeds() throws IOException, ProtocolException {
+    public void testOpenRemoteFileOnPathWithoutFileExtensionSucceeds() throws IOException {
         // given
         // http://localhost:XXXX/resources/SimpleList
         WireMockServer server = MockServerBuilder.builder()
@@ -339,7 +340,7 @@ public class FileUtilsTest {
     }
 
     @Test
-    public void testOpenRemoteFileOnPathIncludingPointSucceeds() throws IOException, ProtocolException {
+    public void testOpenRemoteFileOnPathIncludingPointSucceeds() throws IOException {
         // given
         // http://localhost:XXXX/resources.path/SimpleList.yaml
         WireMockServer server = MockServerBuilder.builder()

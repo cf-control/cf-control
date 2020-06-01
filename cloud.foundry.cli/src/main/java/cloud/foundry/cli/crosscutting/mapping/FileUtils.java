@@ -1,4 +1,4 @@
-package cloud.foundry.cli.crosscutting.util;
+package cloud.foundry.cli.crosscutting.mapping;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -38,9 +38,12 @@ public class FileUtils {
     /**
      * Opens a file with the given path on the local file system or on the remote host.
      * The user must make sure to close the InputStream after usage.
-     * @param filepath  a relative file path beginning from the working directory
+     * @param filepath  a relative file path beginning from the working directory or a url
      * @return          the content of the file as a InputStream
      * @throws IOException if the file cannot be accessed
+     * <br>or the connection was aborted
+     * <br>or the response code was not valid
+     * <br>or when there was an error retrieving the input stream of the http response content
      */
     public static InputStream openLocalOrRemoteFile(String filepath) throws IOException {
         checkNotNull(filepath);

@@ -45,6 +45,11 @@ public class YamlTreeDescender implements YamlTreeVisitor {
         return descendingVisitor.doDescend();
     }
 
+    private Object doDescend() {
+        YamlTreeVisitor.visit(this, yamlTreeRoot);
+        return resultingYamlTreeNode;
+    }
+
     /**
      * Descends into a value node of the specified mapping or stops, if the target node of the pointer was reached.
      * @param mappingNode the mapping node to be descended
@@ -111,10 +116,5 @@ public class YamlTreeDescender implements YamlTreeVisitor {
         }
 
         resultingYamlTreeNode = scalarNode;
-    }
-
-    private Object doDescend() {
-        YamlTreeVisitor.visit(this, yamlTreeRoot);
-        return resultingYamlTreeNode;
     }
 }

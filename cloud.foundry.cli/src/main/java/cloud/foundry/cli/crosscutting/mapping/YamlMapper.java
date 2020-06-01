@@ -1,6 +1,11 @@
 package cloud.foundry.cli.crosscutting.mapping;
 
 import cloud.foundry.cli.crosscutting.beans.Bean;
+import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * This class takes care about loading {@link Bean beans} from configuration files and dumping {@link Bean beans} as
@@ -25,6 +30,21 @@ public class YamlMapper {
         load the String as corresponding bean
          */
         return null;
+    }
+
+    /**
+     * Reads the file (possibly on a server) and interprets its content as a yaml tree.
+     * @param filePath the path or url to a file
+     * @return the resulting yaml tree
+     * @throws IOException if the file cannot be accessed
+     */
+    static Object loadYamlTree(String filePath) throws IOException {
+        InputStream inputStream = FileUtils.openLocalOrRemoteFile(filePath);
+        return createTreeLoader().load(inputStream);
+    }
+
+    private static Yaml createTreeLoader() {
+        return new Yaml(new SafeConstructor());
     }
 
     /**
