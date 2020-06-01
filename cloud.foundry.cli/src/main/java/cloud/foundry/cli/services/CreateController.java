@@ -1,5 +1,9 @@
 package cloud.foundry.cli.services;
 
+import static picocli.CommandLine.Command;
+import static picocli.CommandLine.Mixin;
+import static picocli.CommandLine.usage;
+
 import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.beans.SpaceDevelopersBean;
@@ -13,14 +17,13 @@ import cloud.foundry.cli.operations.ServicesOperations;
 import cloud.foundry.cli.operations.SpaceDevelopersOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.yaml.snakeyaml.Yaml;
-import picocli.CommandLine;
 
 import java.io.IOException;
 
 /**
  * This class realizes the functionality that is needed for the create commands.
  */
-@CommandLine.Command(name = "create", header = "%n@|green Create a new app, service or add a new " +
+@Command(name = "create", header = "%n@|green Create a new app, service or add a new " +
         "space developer.|@",
         mixinStandardHelpOptions = true,
         subcommands = {
@@ -31,17 +34,16 @@ public class CreateController implements Runnable {
 
     @Override
     public void run() {
-        CommandLine.usage(this, System.out);
-        return;
+        usage(this, System.out);
     }
 
-    @CommandLine.Command(name = "space-developer", description = "Assign users as space developers.")
+    @Command(name = "space-developer", description = "Assign users as space developers.")
     static class AssignSpaceDeveloperCommand implements Runnable {
 
-        @CommandLine.Mixin
+        @Mixin
         LoginCommandOptions loginOptions;
 
-        @CommandLine.Mixin
+        @Mixin
         CreateControllerCommandOptions commandOptions;
 
         @Override
@@ -69,13 +71,13 @@ public class CreateController implements Runnable {
         }
     }
 
-    @CommandLine.Command(name = "service", description = "Create a service in the target space.")
+    @Command(name = "service", description = "Create a service in the target space.")
     static class CreateServiceCommand implements Runnable {
 
-        @CommandLine.Mixin
+        @Mixin
         LoginCommandOptions loginOptions;
 
-        @CommandLine.Mixin
+        @Mixin
         CreateControllerCommandOptions commandOptions;
 
         @Override
@@ -101,13 +103,13 @@ public class CreateController implements Runnable {
         }
     }
 
-    @CommandLine.Command(name = "application", description = "Create a application in the target space.")
+    @Command(name = "application", description = "Create a application in the target space.")
     static class CreateApplicationCommand implements Runnable {
 
-        @CommandLine.Mixin
+        @Mixin
         LoginCommandOptions loginOptions;
 
-        @CommandLine.Mixin
+        @Mixin
         CreateControllerCommandOptions commandOptions;
 
         @Override
