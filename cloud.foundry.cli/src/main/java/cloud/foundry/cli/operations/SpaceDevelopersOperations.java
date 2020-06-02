@@ -39,11 +39,11 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
 
     /**
      * This method fetches space developers from the cloud foundry instance.
-     * To retrieve data given by the Mono object you can use subscription methods (block, subscribe, etc.)
-     * provided by the reactor library method.
+     * To retrieve data given by the Mono object you can use the subscription methods (block, subscribe, etc.) provided
+     * by the reactor library.
      * For more details on how to work with Mono's visit:
      * https://projectreactor.io/docs/core/release/reference/index.html#core-features
-     * @return Mono object of SpaceDeveloperBean
+     * @return Mono object of SpaceDeveloperBean which contains the space developers
      */
     public Mono<SpaceDevelopersBean> getAll() {
         ListSpaceUsersRequest request = ListSpaceUsersRequest.builder()

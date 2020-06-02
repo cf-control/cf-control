@@ -33,11 +33,11 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
 
     /**
      * This method fetches services data from the cloud foundry instance.
-     * To retrieve data given by the Mono object you can use subscription methods (block, subscribe, etc.)
-     * provided by the reactor library method.
+     * To retrieve data given by the Mono object you can use the subscription methods (block, subscribe, etc.) provided
+     * by the reactor library.
      * For more details on how to work with Mono's visit:
      * https://projectreactor.io/docs/core/release/reference/index.html#core-features
-     * @return all service instances in the space
+     * @return Mono object of all services as list of ServiceBeans
      */
     public Mono<List<ServiceBean>> getAll() {
         return this.cloudFoundryOperations

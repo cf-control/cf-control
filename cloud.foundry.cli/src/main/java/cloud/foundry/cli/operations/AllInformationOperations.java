@@ -43,14 +43,12 @@ public class AllInformationOperations extends AbstractOperations<DefaultCloudFou
         ServicesOperations servicesOperations = new ServicesOperations(cloudFoundryOperations);
         ApplicationOperations applicationOperations = new ApplicationOperations(cloudFoundryOperations);
 
-
         Mono<String> apiVersion = determineApiVersion();
         Mono<SpaceDevelopersBean> spaceDevelopers = spaceDevelopersOperations.getAll();
         Mono<List<ServiceBean>> services = servicesOperations.getAll();
         Mono<List<ApplicationBean>> apps = applicationOperations.getAll();
 
         GetAllBean allInformation = new GetAllBean();
-
         Map<String, Object> spec = new HashMap<>();
 
         // start async querying of config data from the cloud foundry instance
