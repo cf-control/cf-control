@@ -47,14 +47,14 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
      */
     public Mono<SpaceDevelopersBean> getAll() {
         ListSpaceUsersRequest request = ListSpaceUsersRequest.builder()
-                .spaceName(cloudFoundryOperations.getSpace())
-                .organizationName(cloudFoundryOperations.getOrganization())
-                .build();
+            .spaceName(cloudFoundryOperations.getSpace())
+            .organizationName(cloudFoundryOperations.getOrganization())
+            .build();
 
         return cloudFoundryOperations
-                .userAdmin()
-                .listSpaceUsers(request)
-                .map(spaceUsers -> new SpaceDevelopersBean(spaceUsers.getDevelopers()));
+            .userAdmin()
+            .listSpaceUsers(request)
+            .map(spaceUsers -> new SpaceDevelopersBean(spaceUsers.getDevelopers()));
     }
 
     /**

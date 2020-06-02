@@ -106,6 +106,10 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
     public void updateServiceInstance(String serviceInstanceName, ServiceBean serviceBean) throws CreationException {
 
         UpdateServiceInstanceRequest updateServiceInstanceRequest = UpdateServiceInstanceRequest.builder()
+            .serviceInstanceName(serviceBean.getName())
+            .tags(serviceBean.getTags())
+            .planName(serviceBean.getPlan())
+            .build();
             .serviceInstanceName(serviceInstanceName)
             .tags(serviceBean.getTags())
             .planName(serviceBean.getPlan())
