@@ -1,9 +1,9 @@
 package cloud.foundry.cli.operations;
 
-import static java.util.Collections.singletonList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -15,9 +15,7 @@ import org.cloudfoundry.client.v2.info.Info;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
 import org.cloudfoundry.operations.applications.ApplicationManifest;
-import org.cloudfoundry.operations.applications.ApplicationSummary;
 import org.cloudfoundry.operations.applications.Applications;
-import org.cloudfoundry.operations.services.ServiceInstance;
 import org.cloudfoundry.operations.services.ServiceInstanceSummary;
 import org.cloudfoundry.operations.services.ServiceInstanceType;
 import org.cloudfoundry.operations.services.Services;
@@ -26,12 +24,12 @@ import org.cloudfoundry.operations.useradmin.UserAdmin;
 import org.cloudfoundry.reactor.DefaultConnectionContext;
 import org.cloudfoundry.reactor.client.ReactorCloudFoundryClient;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.Arrays;
 import java.nio.file.Paths;
-import java.util.LinkedList;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -39,10 +37,70 @@ import java.util.List;
  * Test for {@link AllInformationOperations}
  */
 public class AllInformationOperationsTest {
+
     @Test
-    public void testGetAll() {
+    public void testGetAllWithoutConfigurationData() {
         // given
-        DefaultCloudFoundryOperations cfOperationsMock = mockDefaultCloudFoundryOperations();
+        DefaultCloudFoundryOperations cfOperationsMock = mockDefaultCloudFoundryOperations("API VERSION",
+                "SOME API ENDPOINT",
+                "development",
+                "cloud.foundry.cli");
+
+
+        mockServicesOperations(Collections.emptyList(), cfOperationsMock);
+        mockApplicationOperations(Collections.emptyList(), cfOperationsMock);
+        mockSpaceDevelopersOperations(Collections.emptyList(), cfOperationsMock);
+
+        AllInformationOperations allInformationOperations = new AllInformationOperations(cfOperationsMock);
+
+        // when
+        ConfigBean configBean = allInformationOperations.getAll();
+
+        // then
+        assertThat(configBean.getApiVersion(), is("API VERSION") );
+
+        assertThat(configBean.getTarget().getEndpoint(), is("SOME API ENDPOINT"));
+        assertThat(configBean.getTarget().getOrg(), is("cloud.foundry.cli"));
+        assertThat(configBean.getTarget().getSpace(), is("development"));
+
+        assertTrue(configBean.getSpec().getApps().isEmpty());
+        assertTrue(configBean.getSpec().getServices().isEmpty());
+        assertTrue(configBean.getSpec().getSpaceDevelopers().isEmpty());
+    }
+
+    @Test
+    public void testGetAllWithConfigurationData() {
+        // given
+        DefaultCloudFoundryOperations cfOperationsMock = mockDefaultCloudFoundryOperations("API VERSION",
+                "SOME API ENDPOINT",
+                "development",
+                "cloud.foundry.cli");
+
+        ApplicationManifest applicationManifestMock = ApplicationManifest.builder()
+                .name("testApp")
+                .buildpack("buildpack")
+                .disk(1024)
+                .environmentVariable("key", "value")
+                .healthCheckType(ApplicationHealthCheck.HTTP)
+                .instances(3)
+                .memory(1024)
+                .path(Paths.get("some/path"))
+                .randomRoute(true)
+                .services("appdynamics")
+                .build();
+
+        ServiceInstanceSummary serviceInstanceSummary = ServiceInstanceSummary.builder()
+                .service("appdynamics")
+                .id("some-id")
+                .type(ServiceInstanceType.MANAGED)
+                .plan("apm")
+                .name("appdyn")
+                .build();
+
+        mockServicesOperations(Arrays.asList(serviceInstanceSummary), cfOperationsMock);
+        mockApplicationOperations(Arrays.asList(applicationManifestMock), cfOperationsMock);
+        mockSpaceDevelopersOperations(Arrays.asList("spaceDeveloper1", "spaceDeveloper2"), cfOperationsMock);
+
         AllInformationOperations allInformationOperations = new AllInformationOperations(cfOperationsMock);
 
         // when
@@ -56,14 +114,12 @@ public class AllInformationOperationsTest {
         assertThat(configBean.getTarget().getSpace(), is("development"));
 
         assertThat(configBean.getSpec().getSpaceDevelopers().size(), is(2));
-        assertThat(configBean.getSpec().getSpaceDevelopers(), contains("xyz@mail.de", "abc@provider.com"));
+        assertThat(configBean.getSpec().getSpaceDevelopers(), contains("spaceDeveloper1", "spaceDeveloper2"));
 
         assertThat(configBean.getSpec().getServices().size(), is(1));
         assertThat(configBean.getSpec().getServices().containsKey("appdyn"), is(true));
         assertThat(configBean.getSpec().getServices().get("appdyn").getService(), is("appdynamics"));
         assertThat(configBean.getSpec().getServices().get("appdyn").getPlan(), is("apm"));
-        assertThat(configBean.getSpec().getServices().get("appdyn").getTags().size(), is(2));
-        assertThat(configBean.getSpec().getServices().get("appdyn").getTags(), contains("tag1", "tag2"));
 
         assertThat(configBean.getSpec().getApps().size(), is(1));
         assertThat(configBean.getSpec().getApps().containsKey("testApp"), is(true));
@@ -81,121 +137,72 @@ public class AllInformationOperationsTest {
         assertThat(appManifest.getServices().get(0), is("appdynamics"));
     }
 
-    private DefaultCloudFoundryOperations mockDefaultCloudFoundryOperations() {
+    private DefaultCloudFoundryOperations mockDefaultCloudFoundryOperations(String apiVersion,
+                                                                            String apiHost,
+                                                                            String space,
+                                                                            String org) {
         DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
-        when(cfOperationsMock.getSpace()).thenReturn("development");
-        when(cfOperationsMock.getOrganization()).thenReturn("cloud.foundry.cli");
+        when(cfOperationsMock.getSpace()).thenReturn(space);
+        when(cfOperationsMock.getOrganization()).thenReturn(org);
         ReactorCloudFoundryClient rclMock = mock(ReactorCloudFoundryClient.class);
 
-        mockDetermineTarget(cfOperationsMock, rclMock);
-        mockDetermineApiVersion(rclMock);
-        mockDetermineSpec(cfOperationsMock);
+        mockDetermineTarget(apiHost, cfOperationsMock, rclMock);
+        mockDetermineApiVersion(apiVersion, rclMock);
 
         return cfOperationsMock;
     }
 
-    private void mockDetermineApiVersion(ReactorCloudFoundryClient rclMock) {
+    private void mockDetermineApiVersion(String apiVersion, ReactorCloudFoundryClient rclMock) {
         Info cfClientInfoMock = mock(Info.class);
+
         when(rclMock.info()).thenReturn(cfClientInfoMock);
-        Mono<GetInfoResponse> monoGetInfoResponseMock = mock(Mono.class);
-        when(cfClientInfoMock.get(any())).thenReturn(monoGetInfoResponseMock);
-        GetInfoResponse getInfoResponseMock = mock(GetInfoResponse.class);
-        when(monoGetInfoResponseMock.block()).thenReturn(getInfoResponseMock);
-        when(getInfoResponseMock.getApiVersion()).thenReturn("API VERSION");
+        when(cfClientInfoMock.get(any()))
+                .thenReturn(Mono.just(GetInfoResponse
+                    .builder()
+                    .apiVersion(apiVersion)
+                    .build()));
     }
 
-    private void mockDetermineTarget(DefaultCloudFoundryOperations cfOperationsMock,
+    private void mockDetermineTarget(String apiHost, DefaultCloudFoundryOperations cfOperationsMock,
                                      ReactorCloudFoundryClient rclMock) {
-        // mock for method determineTarget(
-        when(cfOperationsMock.getCloudFoundryClient()).thenReturn(rclMock);
         DefaultConnectionContext ccMock = mock(DefaultConnectionContext.class);
+
+        when(cfOperationsMock.getCloudFoundryClient()).thenReturn(rclMock);
         when(rclMock.getConnectionContext()).thenReturn(ccMock);
-        when(ccMock.getApiHost()).thenReturn("SOME API ENDPOINT");
+        when(ccMock.getApiHost()).thenReturn(apiHost);
     }
 
-    private void mockDetermineSpec(DefaultCloudFoundryOperations cfOperationsMock) {
-        mockSpaceDevelopersOperations(cfOperationsMock);
-        mockServicesOperations(cfOperationsMock);
-        mockApplicationOperations(cfOperationsMock);
-    }
-
-    private void mockSpaceDevelopersOperations(DefaultCloudFoundryOperations cfOperationsMock) {
+    private void mockSpaceDevelopersOperations(List<String> spaceDevelopers,
+                                               DefaultCloudFoundryOperations cfOperationsMock) {
         UserAdmin userAdminMock = mock(UserAdmin.class);
         when(cfOperationsMock.userAdmin()).thenReturn(userAdminMock);
 
-        Mono<SpaceUsers> monoMock = mock(Mono.class);
-        when(userAdminMock.listSpaceUsers(any())).thenReturn(monoMock);
-
-        SpaceUsers spaceUsers = SpaceUsers
-                .builder()
-                .addAllDevelopers(List.of("xyz@mail.de", "abc@provider.com"))
-                .build();
-        when(monoMock.block()).thenReturn(spaceUsers);
+        when(cfOperationsMock.userAdmin()).thenReturn(userAdminMock);
+        when(userAdminMock.listSpaceUsers(any()))
+                .thenReturn(Mono.just(SpaceUsers
+                        .builder()
+                        .developers(spaceDevelopers)
+                        .build()));
     }
 
-    private void mockServicesOperations(DefaultCloudFoundryOperations cfOperationsMock) {
+    private void mockServicesOperations(List<ServiceInstanceSummary> services,
+                                        DefaultCloudFoundryOperations cfOperationsMock) {
         Services servicesMock = mock(Services.class);
-        Flux<ServiceInstanceSummary> flux = mock(Flux.class);
-        Mono<List<ServiceInstanceSummary>> monoServiceInstanceSummary = mock(Mono.class);
-        ServiceInstanceSummary serviceInstanceSummary = ServiceInstanceSummary.builder()
-                .service("appdynamics")
-                .id("some-id")
-                .type(ServiceInstanceType.MANAGED)
-                .plan("apm")
-                .name("appdyn")
-                .build();
-
-        ServiceInstance serviceInstance = ServiceInstance.builder()
-                    .service("appdynamics")
-                    .id("some-id")
-                    .name("appdyn")
-                    .type(ServiceInstanceType.MANAGED)
-                    .plan("apm")
-                    .tags("tag1", "tag2")
-                    .build();
+        Flux<ServiceInstanceSummary> flux = Flux.fromIterable(services);
 
         when(cfOperationsMock.services()).thenReturn(servicesMock);
         when(servicesMock.listInstances()).thenReturn(flux);
-        when(flux.collectList()).thenReturn(monoServiceInstanceSummary);
-        when(monoServiceInstanceSummary.block()).thenReturn(List.of(serviceInstanceSummary));
-
-        Mono monoServiceInstance = mock(Mono.class);
-        Mockito.when(servicesMock.getInstance(any())).thenReturn(monoServiceInstance);
-        Mockito.when(monoServiceInstance.block()).thenReturn(serviceInstance);
     }
 
-    private void mockApplicationOperations(DefaultCloudFoundryOperations cfOperationsMock) {
-        ApplicationManifest applicationManifestMock = ApplicationManifest.builder()
-                .name("testApp")
-                .buildpack("buildpack")
-                .disk(1024)
-                .environmentVariable("key", "value")
-                .healthCheckType(ApplicationHealthCheck.HTTP)
-                .instances(3)
-                .memory(1024)
-                .path(Paths.get("some/path"))
-                .randomRoute(true)
-                .services("appdynamics")
-                .build();
-        List<ApplicationManifest> manifest = new LinkedList<>();
-        manifest.add(applicationManifestMock);
-
-        ApplicationSummary applicationSummaryMock = mock(ApplicationSummary.class);
-        when(applicationSummaryMock.getName()).thenReturn("testApp");
-
-        Mono<List<ApplicationSummary>> summaryListMono = mock(Mono.class);
-        Mockito.when(summaryListMono.block()).thenReturn(singletonList(applicationSummaryMock));
-
-        Flux<ApplicationSummary> flux = mock(Flux.class);
-        Mockito.when(flux.collectList()).thenReturn(summaryListMono);
-
+    private void mockApplicationOperations(List<ApplicationManifest> applicationManifests,
+                                           DefaultCloudFoundryOperations cfOperationsMock) {
         Applications applicationsMock = mock(Applications.class);
-        Mockito.when(applicationsMock.list()).thenReturn(flux);
 
-        Mockito.when(cfOperationsMock.applications()).thenReturn(applicationsMock);
-        Mono<ApplicationManifest> monoMock = mock(Mono.class);
+        Flux<ApplicationManifest> applicationManifestFlux = Flux.fromIterable(applicationManifests);
+        Flux applicationSummaryFlux = mock(Flux.class);
 
-        when(applicationsMock.getApplicationManifest(any())).thenReturn(monoMock);
-        when(monoMock.block()).thenReturn(applicationManifestMock);
+        when(cfOperationsMock.applications()).thenReturn(applicationsMock);
+        when(applicationsMock.list()).thenReturn(applicationSummaryFlux);
+        when(applicationSummaryFlux.flatMap(any())).thenReturn(applicationManifestFlux);
     }
 }

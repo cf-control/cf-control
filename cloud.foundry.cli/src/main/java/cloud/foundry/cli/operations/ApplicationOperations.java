@@ -15,6 +15,7 @@ import org.cloudfoundry.operations.applications.GetApplicationManifestRequest;
 import org.cloudfoundry.operations.applications.GetApplicationRequest;
 import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
 import org.cloudfoundry.operations.applications.Route;
+import reactor.core.publisher.Mono;
 
 import java.nio.file.Paths;
 import java.util.Collections;
@@ -39,28 +40,29 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
         super(cloudFoundryOperations);
     }
 
-    public Map<String, ApplicationBean> getAll() {
-        List<ApplicationSummary> applications = this.cloudFoundryOperations
-                .applications()
-                .list()
-                .collectList()
-                .block();
-
-        // create a list of special bean data objects, as the summaries cannot be serialized directly
-        return applications
-                .stream()
-                .map(this::getApplicationManifest)
-                .collect(Collectors.toMap(ApplicationManifest::getName, ApplicationBean::new));
+    /**
+     * This method fetches applications data from the cloud foundry instance.
+     * To retrieve data given by the Mono object you can use the subscription methods (block, subscribe, etc.) provided
+     * by the reactor library.
+     * For more details on how to work with Mono's visit:
+     * https://projectreactor.io/docs/core/release/reference/index.html#core-features
+     * @return Mono object of all applications as list of ApplicationBeans
+     */
+    public Mono<Map<String, ApplicationBean>> getAll() {
+        return this.cloudFoundryOperations
+            .applications()
+            .list()
+            .flatMap(this::getApplicationManifest)
+            .collectMap(ApplicationManifest::getName, ApplicationBean::new);
     }
 
-    private ApplicationManifest getApplicationManifest(ApplicationSummary applicationSummary) {
+    private Mono<ApplicationManifest> getApplicationManifest(ApplicationSummary applicationSummary) {
         return this.cloudFoundryOperations
-                .applications()
-                .getApplicationManifest(GetApplicationManifestRequest
-                        .builder()
-                        .name(applicationSummary.getName())
-                        .build())
-                .block();
+            .applications()
+            .getApplicationManifest(GetApplicationManifestRequest
+                .builder()
+                .name(applicationSummary.getName())
+                .build());
     }
 
     /**
@@ -104,34 +106,35 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
 
     private void doCreate(String appName, ApplicationBean bean, boolean shouldStart) {
         this.cloudFoundryOperations
-                .applications()
-                .pushManifest(PushApplicationManifestRequest
-                        .builder()
-                        .manifest(buildApplicationManifest(appName, bean))
-                        .noStart(!shouldStart)
-                        .build())
-                // Cloud Foundry Operations Library Throws either IllegalArgumentException or IllegalStateException.
-                .onErrorContinue(throwable -> throwable instanceof IllegalArgumentException
-                                //Fatal errors, exclude them.
-                                && !throwable.getMessage().contains("Application")
-                                && !throwable.getMessage().contains("Stack"),
-                        (throwable, o) -> Log.warn(throwable.getMessage()))
-                //Error when staging or starting. So don't throw error, only log error.
-                .onErrorContinue(throwable -> throwable instanceof IllegalStateException,
-                        (throwable, o) -> Log.warn(throwable.getMessage()))
-                .block();
+            .applications()
+            .pushManifest(PushApplicationManifestRequest
+                .builder()
+                .manifest(buildApplicationManifest(appName, bean))
+                .noStart(!shouldStart)
+                .build())
+            //TODO: replace this error handling with a more precise one in a future release, works for now
+            // Cloud Foundry Operations Library Throws either IllegalArgumentException or IllegalStateException.
+            .onErrorContinue(throwable -> throwable instanceof IllegalArgumentException
+                        //Fatal errors, exclude them.
+                        && !throwable.getMessage().contains("Application")
+                        && !throwable.getMessage().contains("Stack"),
+                (throwable, o) -> Log.warn(throwable.getMessage()))
+            //Error when staging or starting. So don't throw error, only log error.
+            .onErrorContinue(throwable -> throwable instanceof IllegalStateException,
+                    (throwable, o) -> Log.warn(throwable.getMessage()))
+            .block();
     }
 
     private void cleanUp(String appName) {
         // Could fail when app wasn't created, but that's ok, because we just wanted to delete it anyway.
         try {
             this.cloudFoundryOperations
-                    .applications()
-                    .delete(DeleteApplicationRequest
-                            .builder()
-                            .name(appName)
-                            .build())
-                    .block();
+                .applications()
+                .delete(DeleteApplicationRequest
+                    .builder()
+                    .name(appName)
+                    .build())
+                .block();
         } catch (RuntimeException e) {
             Log.exception(e, "Error on cleaning up.");
         }
@@ -149,10 +152,10 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
                 .command(bean.getManifest().getCommand())
                 .disk(bean.getManifest().getDisk())
                 .docker(Docker.builder()
-                        .image(bean.getManifest().getDockerImage())
-                        .username(bean.getManifest().getDockerUsername())
-                        .password(getDockerPassword(bean))
-                        .build())
+                    .image(bean.getManifest().getDockerImage())
+                    .username(bean.getManifest().getDockerUsername())
+                    .password(getDockerPassword(bean))
+                    .build())
                 .healthCheckHttpEndpoint(bean.getManifest().getHealthCheckHttpEndpoint())
                 .healthCheckType(bean.getManifest().getHealthCheckType())
                 .instances(bean.getManifest().getInstances())
@@ -164,7 +167,7 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
                 .stack(bean.getManifest().getStack())
                 .timeout(bean.getManifest().getTimeout())
                 .putAllEnvironmentVariables(Optional.ofNullable(bean.getManifest().getEnvironmentVariables())
-                        .orElse(Collections.emptyMap()))
+                    .orElse(Collections.emptyMap()))
                 .services(bean.getManifest().getServices());
         }
 
@@ -179,33 +182,33 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
         //TODO: Maybe outsource retrieving env variables to a dedicated class in a future feature.
         String password = System.getenv(DOCKER_PASSWORD_VAR_NAME);
         if (password == null) {
-           throw new NullPointerException("Docker password not set in environment variable: "
-                   + DOCKER_PASSWORD_VAR_NAME);
+            throw new NullPointerException("Docker password is not set in environment variable: "
+                    + DOCKER_PASSWORD_VAR_NAME);
         }
         return password;
     }
 
     private List<Route> getAppRoutes(List<String> routes) {
         return routes == null ? null : routes
-                .stream()
-                .filter(Objects::nonNull)
-                .map(route -> Route.builder().route(route).build())
-                .collect(Collectors.toList());
+            .stream()
+            .filter(Objects::nonNull)
+            .map(route -> Route.builder().route(route).build())
+            .collect(Collectors.toList());
     }
 
     /**
      * assertion method
      */
     private boolean appExists(String name) {
-        // If app does not exists an IllegalArgumentException will be thrown.
+        // If app does not exist an IllegalArgumentException will be thrown.
         try {
             this.cloudFoundryOperations
-                    .applications()
-                    .get(GetApplicationRequest
-                            .builder()
-                            .name(name)
-                            .build())
-                    .block();
+                .applications()
+                .get(GetApplicationRequest
+                    .builder()
+                    .name(name)
+                    .build())
+                .block();
         } catch (IllegalArgumentException e) {
             return false;
         }

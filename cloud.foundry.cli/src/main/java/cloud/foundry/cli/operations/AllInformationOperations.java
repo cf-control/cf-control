@@ -11,11 +11,13 @@ import java.util.Map;
 
 import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.client.v2.info.GetInfoRequest;
+import org.cloudfoundry.client.v2.info.GetInfoResponse;
 import org.cloudfoundry.client.v2.info.Info;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.reactor.DefaultConnectionContext;
 import org.cloudfoundry.reactor.client.ReactorCloudFoundryClient;
-
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 /**
  * Handles the operations to receive all configuration-information from a cloud
@@ -33,12 +35,29 @@ public class AllInformationOperations extends AbstractOperations<DefaultCloudFou
      * @return ConfigBean
      */
     public ConfigBean getAll() {
-        ConfigBean allInformation = new ConfigBean();
-        allInformation.setApiVersion(determineApiVersion());
-        allInformation.setTarget(determineTarget());
-        allInformation.setSpec(determineSpec());
+        SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cloudFoundryOperations);
+        ServicesOperations servicesOperations = new ServicesOperations(cloudFoundryOperations);
+        ApplicationOperations applicationOperations = new ApplicationOperations(cloudFoundryOperations);
 
-        return allInformation;
+        Mono<String> apiVersion = determineApiVersion();
+        Mono<List<String>> spaceDevelopers = spaceDevelopersOperations.getAll();
+        Mono<Map<String, ServiceBean>> services = servicesOperations.getAll();
+        Mono<Map<String, ApplicationBean>> apps = applicationOperations.getAll();
+
+        ConfigBean configBean = new ConfigBean();
+        SpecBean specBean = new SpecBean();
+
+        // start async querying of config data from the cloud foundry instance
+        Flux.merge(apiVersion.doOnSuccess(configBean::setApiVersion),
+                spaceDevelopers.doOnSuccess(s -> specBean.setSpaceDevelopers(s)),
+                services.doOnSuccess(specBean::setServices),
+                apps.doOnSuccess(specBean::setApps))
+            .blockLast();
+
+        configBean.setSpec(specBean);
+        configBean.setTarget(determineTarget());
+
+        return configBean;
     }
 
     /**
@@ -46,37 +65,13 @@ public class AllInformationOperations extends AbstractOperations<DefaultCloudFou
      *
      * @return API-Version
      */
-    private String determineApiVersion() {
+    private Mono<String> determineApiVersion() {
         CloudFoundryClient cfClient = cloudFoundryOperations.getCloudFoundryClient();
         GetInfoRequest infoRequest = GetInfoRequest.builder().build();
         Info cfClientInfo = cfClient.info();
 
-        return cfClientInfo.get(infoRequest).block().getApiVersion();
+        return cfClientInfo.get(infoRequest).map(GetInfoResponse::getApiVersion);
     }
-
-    /**
-     * Determines the Spec-Node configuration-information from a cloud foundry instance.
-     *
-     * @return SpecBean
-     */
-    private SpecBean determineSpec() {
-        SpecBean spec = new SpecBean();
-
-        SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cloudFoundryOperations);
-        List<String> spaceDevelopers = spaceDevelopersOperations.getAll();
-        spec.setSpaceDevelopers(spaceDevelopers);
-
-        ServicesOperations servicesOperations = new ServicesOperations(cloudFoundryOperations);
-        Map<String, ServiceBean> services = servicesOperations.getAll();
-        spec.setServices(services);
-
-        ApplicationOperations applicationOperations = new ApplicationOperations(cloudFoundryOperations);
-        Map<String, ApplicationBean> applications = applicationOperations.getAll();
-        spec.setApps(applications);
-
-        return spec;
-    }
-
 
     /**
      * Determines the Target-Node configuration-information from a cloud foundry instance.
