@@ -1,4 +1,4 @@
-package cloud.foundry.cli.operations;
+package cloud.foundry.cli.logic;
 
 import static java.util.Collections.singletonList;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 
 import cloud.foundry.cli.crosscutting.beans.ApplicationManifestBean;
 import cloud.foundry.cli.crosscutting.beans.ConfigBean;
+import cloud.foundry.cli.logic.GetLogic;
 import org.cloudfoundry.client.v2.info.GetInfoResponse;
 import org.cloudfoundry.client.v2.info.Info;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
@@ -36,17 +37,17 @@ import java.util.List;
 
 
 /**
- * Test for {@link AllInformationOperations}
+ * Test for {@link GetLogic}
  */
-public class AllInformationOperationsTest {
+public class GetLogicTest {
     @Test
     public void testGetAll() {
         // given
         DefaultCloudFoundryOperations cfOperationsMock = mockDefaultCloudFoundryOperations();
-        AllInformationOperations allInformationOperations = new AllInformationOperations(cfOperationsMock);
+        GetLogic getLogic = new GetLogic(cfOperationsMock);
 
         // when
-        ConfigBean configBean = allInformationOperations.getAll();
+        ConfigBean configBean = getLogic.getAll();
 
         // then
         assertThat(configBean.getApiVersion(), is("API VERSION") );

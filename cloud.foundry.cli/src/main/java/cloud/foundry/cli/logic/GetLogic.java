@@ -1,4 +1,4 @@
-package cloud.foundry.cli.operations;
+package cloud.foundry.cli.logic;
 
 import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.beans.ConfigBean;
@@ -9,6 +9,10 @@ import cloud.foundry.cli.crosscutting.beans.SpecBean;
 import java.util.List;
 import java.util.Map;
 
+import cloud.foundry.cli.operations.AbstractOperations;
+import cloud.foundry.cli.operations.ApplicationOperations;
+import cloud.foundry.cli.operations.ServicesOperations;
+import cloud.foundry.cli.operations.SpaceDevelopersOperations;
 import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.client.v2.info.GetInfoRequest;
 import org.cloudfoundry.client.v2.info.Info;
@@ -21,9 +25,9 @@ import org.cloudfoundry.reactor.client.ReactorCloudFoundryClient;
  * Handles the operations to receive all configuration-information from a cloud
  * foundry instance.
  */
-public class AllInformationOperations extends AbstractOperations<DefaultCloudFoundryOperations> {
+public class GetLogic extends AbstractOperations<DefaultCloudFoundryOperations> {
 
-    public AllInformationOperations(DefaultCloudFoundryOperations cloudFoundryOperations) {
+    public GetLogic(DefaultCloudFoundryOperations cloudFoundryOperations) {
         super(cloudFoundryOperations);
     }
 
