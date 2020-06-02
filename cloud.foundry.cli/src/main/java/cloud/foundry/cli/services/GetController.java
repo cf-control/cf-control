@@ -7,7 +7,7 @@ import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
 import cloud.foundry.cli.crosscutting.util.YamlCreator;
 import cloud.foundry.cli.logic.GetLogic;
-import cloud.foundry.cli.operations.ApplicationOperations;
+import cloud.foundry.cli.operations.ApplicationsOperations;
 import cloud.foundry.cli.operations.ServicesOperations;
 import cloud.foundry.cli.operations.SpaceDevelopersOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
@@ -86,8 +86,8 @@ public class GetController implements Runnable {
         public void run() {
             try {
                 DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
-                ApplicationOperations applicationOperations = new ApplicationOperations(cfOperations);
-                Map<String, ApplicationBean> applications = applicationOperations.getAll();
+                ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
+                Map<String, ApplicationBean> applications = applicationsOperations.getAll();
 
                 System.out.println(YamlCreator.createDefaultYamlProcessor().dump(applications));
             } catch (Exception e) {

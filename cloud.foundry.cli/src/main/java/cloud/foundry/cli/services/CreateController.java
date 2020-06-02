@@ -12,7 +12,7 @@ import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
 import cloud.foundry.cli.crosscutting.util.FileUtils;
 import cloud.foundry.cli.crosscutting.util.YamlCreator;
-import cloud.foundry.cli.operations.ApplicationOperations;
+import cloud.foundry.cli.operations.ApplicationsOperations;
 import cloud.foundry.cli.operations.ServicesOperations;
 import cloud.foundry.cli.operations.SpaceDevelopersOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
@@ -132,9 +132,9 @@ public class CreateController implements Runnable {
                             .loadAs(yamlProcessor.dump(appObj.getValue()), ApplicationBean.class);
 
                     DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
-                    ApplicationOperations applicationOperations = new ApplicationOperations(cfOperations);
+                    ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
 
-                    applicationOperations.create(name, applicationBean, false);
+                    applicationsOperations.create(name, applicationBean, false);
                     Log.info("App created:", name);
                 }
                 Log.error("App entry in the yaml input file has not a valid format or was missing");

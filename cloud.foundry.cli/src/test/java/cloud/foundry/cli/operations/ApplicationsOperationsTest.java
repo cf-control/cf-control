@@ -38,9 +38,9 @@ import java.util.Map;
 import java.util.function.Predicate;
 
 /**
- * Test for {@link ApplicationOperations}
+ * Test for {@link ApplicationsOperations}
  */
-public class ApplicationOperationsTest {
+public class ApplicationsOperationsTest {
 
     @Test
     public void testGetApplicationsWithEmptyMockData() {
@@ -48,8 +48,8 @@ public class ApplicationOperationsTest {
         DefaultCloudFoundryOperations cfMock = createMockCloudFoundryOperations(new ArrayList<>(), new ArrayList<>());
 
         // forge YAML document
-        ApplicationOperations applicationOperations = new ApplicationOperations(cfMock);
-        Map<String, ApplicationBean> apps = applicationOperations.getAll();
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfMock);
+        Map<String, ApplicationBean> apps = applicationsOperations.getAll();
 
         // check if it's really empty
         assertTrue(apps.isEmpty());
@@ -74,8 +74,8 @@ public class ApplicationOperationsTest {
         DefaultCloudFoundryOperations cfMock = createMockCloudFoundryOperations(summaries, manifests);
 
         // now, we can generate a YAML doc for our ApplicationSummary
-        ApplicationOperations applicationOperations = new ApplicationOperations(cfMock);
-        Map<String, ApplicationBean> apps = applicationOperations.getAll();
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfMock);
+        Map<String, ApplicationBean> apps = applicationsOperations.getAll();
 
         // ... and make sure it contains exactly what we'd expect
         assertThat(apps.size(), is(1));
@@ -109,7 +109,7 @@ public class ApplicationOperationsTest {
         Applications applicationsMock = Mockito.mock(Applications.class);
         Mono<Void> monoMock = Mockito.mock(Mono.class);
 
-        ApplicationOperations applicationOperations = new ApplicationOperations(cfoMock);
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfoMock);
 
         when(cfoMock.applications()).thenReturn(applicationsMock);
         when(cfoMock.applications().get(any(GetApplicationRequest.class)))
@@ -122,7 +122,7 @@ public class ApplicationOperationsTest {
         ApplicationBean applicationsBean = new ApplicationBean(appManifest);
 
         //when
-        applicationOperations.create("appName", applicationsBean, false);
+        applicationsOperations.create("appName", applicationsBean, false);
 
         //then
         verify(applicationsMock, times(1)).pushManifest(any(PushApplicationManifestRequest.class));
@@ -136,7 +136,7 @@ public class ApplicationOperationsTest {
         DefaultCloudFoundryOperations cfoMock = Mockito.mock(DefaultCloudFoundryOperations.class);
         Applications applicationsMock = Mockito.mock(Applications.class);
 
-        ApplicationOperations applicationOperations = new ApplicationOperations(cfoMock);
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfoMock);
 
         when(cfoMock.applications()).thenReturn(applicationsMock);
         when(cfoMock.applications().get(any(GetApplicationRequest.class)))
@@ -152,7 +152,7 @@ public class ApplicationOperationsTest {
 
         //when
         CreationException exception = assertThrows(CreationException.class,
-                () -> applicationOperations.create("appName", applicationsBean, false));
+                () -> applicationsOperations.create("appName", applicationsBean, false));
         assertThat(exception.getMessage(), containsString("Docker password not set"));
     }
 
@@ -163,7 +163,7 @@ public class ApplicationOperationsTest {
         DefaultCloudFoundryOperations cfoMock = Mockito.mock(DefaultCloudFoundryOperations.class);
         Applications applicationsMock = Mockito.mock(Applications.class);
 
-        ApplicationOperations applicationOperations = new ApplicationOperations(cfoMock);
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfoMock);
 
         when(cfoMock.applications()).thenReturn(applicationsMock);
         when(cfoMock.applications().get(any(GetApplicationRequest.class)))
@@ -174,7 +174,7 @@ public class ApplicationOperationsTest {
         ApplicationBean applicationsBean = new ApplicationBean(appManifest);
 
         //when
-        assertThrows(CreationException.class, () -> applicationOperations.create("appName", applicationsBean, false));
+        assertThrows(CreationException.class, () -> applicationsOperations.create("appName", applicationsBean, false));
         verify(applicationsMock, times(1)).pushManifest(any());
         verify(applicationsMock, times(1)).delete(any());
     }
@@ -185,7 +185,7 @@ public class ApplicationOperationsTest {
         ApplicationManifest mockAppManifest = createMockApplicationManifest();
         DefaultCloudFoundryOperations cfoMock = Mockito.mock(DefaultCloudFoundryOperations.class);
 
-        ApplicationOperations applicationOperations = new ApplicationOperations(cfoMock);
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfoMock);
         Applications applicationsMock = Mockito.mock(Applications.class);
 
         when(cfoMock.applications()).thenReturn(applicationsMock);
@@ -196,24 +196,24 @@ public class ApplicationOperationsTest {
 
         //then
         assertThrows(CreationException.class,
-                () -> applicationOperations.create("appName", applicationsBean, false));
+                () -> applicationsOperations.create("appName", applicationsBean, false));
     }
 
     @Test
     public void testCreateOnNullNameThrowsNullPointerException() throws CreationException {
         //given
-        ApplicationOperations applicationOperations = new ApplicationOperations(
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(
                 Mockito.mock(DefaultCloudFoundryOperations.class));
 
         //then
         assertThrows(NullPointerException.class,
-                () -> applicationOperations.create(null, new ApplicationBean(), false));
+                () -> applicationsOperations.create(null, new ApplicationBean(), false));
     }
 
     @Test
     public void testCreateOnNullPathAndNullDockerImageThrowsIllegalArgumentException() throws CreationException {
         //given
-        ApplicationOperations applicationOperations = new ApplicationOperations(
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(
                 Mockito.mock(DefaultCloudFoundryOperations.class));
 
         ApplicationBean applicationBean = new ApplicationBean();
@@ -223,25 +223,25 @@ public class ApplicationOperationsTest {
 
         //when
         assertThrows(IllegalArgumentException.class,
-                () -> applicationOperations.create("appName", applicationBean, false));
+                () -> applicationsOperations.create("appName", applicationBean, false));
     }
 
     @Test
     public void testCreateOnNullPathAndNullManifestThrowsIllegalArgumentException() throws CreationException {
         //given
-        ApplicationOperations applicationOperations = new ApplicationOperations(
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(
                 Mockito.mock(DefaultCloudFoundryOperations.class));
         ApplicationBean applicationBean = new ApplicationBean();
 
         //when
         assertThrows(IllegalArgumentException.class,
-                () -> applicationOperations.create("appName", applicationBean, false));
+                () -> applicationsOperations.create("appName", applicationBean, false));
     }
 
     @Test
     public void testCreateOnEmptyNameThrowsIllegalArgumentException() {
         //given
-        ApplicationOperations applicationOperations = new ApplicationOperations(
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(
                 Mockito.mock(DefaultCloudFoundryOperations.class));
 
         ApplicationBean applicationBean = new ApplicationBean();
@@ -249,17 +249,17 @@ public class ApplicationOperationsTest {
 
         //then
         assertThrows(IllegalArgumentException.class,
-                () -> applicationOperations.create("", applicationBean, false));
+                () -> applicationsOperations.create("", applicationBean, false));
     }
 
     @Test
     public void testCreateOnNullBeanThrowsNullPointerException() {
         //given
-        ApplicationOperations applicationOperations = new ApplicationOperations(
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(
                 Mockito.mock(DefaultCloudFoundryOperations.class));
 
         //when
-        assertThrows(NullPointerException.class, () -> applicationOperations.create("appName", null, false));
+        assertThrows(NullPointerException.class, () -> applicationsOperations.create("appName", null, false));
     }
 
 

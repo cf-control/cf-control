@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import cloud.foundry.cli.operations.AbstractOperations;
-import cloud.foundry.cli.operations.ApplicationOperations;
+import cloud.foundry.cli.operations.ApplicationsOperations;
 import cloud.foundry.cli.operations.ServicesOperations;
 import cloud.foundry.cli.operations.SpaceDevelopersOperations;
 import org.cloudfoundry.client.CloudFoundryClient;
@@ -74,8 +74,8 @@ public class GetLogic extends AbstractOperations<DefaultCloudFoundryOperations> 
         Map<String, ServiceBean> services = servicesOperations.getAll();
         spec.setServices(services);
 
-        ApplicationOperations applicationOperations = new ApplicationOperations(cloudFoundryOperations);
-        Map<String, ApplicationBean> applications = applicationOperations.getAll();
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cloudFoundryOperations);
+        Map<String, ApplicationBean> applications = applicationsOperations.getAll();
         spec.setApps(applications);
 
         return spec;
