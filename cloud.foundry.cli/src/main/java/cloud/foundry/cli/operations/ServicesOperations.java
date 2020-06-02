@@ -5,7 +5,6 @@ import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import org.cloudfoundry.operations.services.ServiceInstance;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
-import org.cloudfoundry.operations.services.BindServiceInstanceRequest;
 import org.cloudfoundry.operations.services.CreateServiceInstanceRequest;
 import org.cloudfoundry.operations.services.GetServiceInstanceRequest;
 import org.cloudfoundry.operations.services.RenameServiceInstanceRequest;

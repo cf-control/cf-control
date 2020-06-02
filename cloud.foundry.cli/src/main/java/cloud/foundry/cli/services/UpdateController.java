@@ -17,7 +17,6 @@ import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
 import cloud.foundry.cli.crosscutting.util.FileUtils;
 import cloud.foundry.cli.crosscutting.util.YamlCreator;
 import cloud.foundry.cli.operations.ServicesOperations;
-import picocli.CommandLine;
 
 /**
  * This class realizes the functionality that is needed for the update commands.

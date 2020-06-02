@@ -6,7 +6,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static java.util.stream.Collectors.toList;
 
-import cloud.foundry.cli.crosscutting.beans.SpaceDevelopersBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 
 import cloud.foundry.cli.crosscutting.exceptions.InvalidOperationException;

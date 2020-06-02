@@ -3,11 +3,9 @@ package cloud.foundry.cli.operations;
 import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.beans.ConfigBean;
 import cloud.foundry.cli.crosscutting.beans.ServiceBean;
-import cloud.foundry.cli.crosscutting.beans.SpaceDevelopersBean;
 import cloud.foundry.cli.crosscutting.beans.TargetBean;
 import cloud.foundry.cli.crosscutting.beans.SpecBean;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 

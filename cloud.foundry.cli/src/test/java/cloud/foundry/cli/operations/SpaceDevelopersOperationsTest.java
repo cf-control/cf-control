@@ -16,7 +16,6 @@ import java.util.List;
 
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import cloud.foundry.cli.crosscutting.exceptions.InvalidOperationException;
-import cloud.foundry.cli.crosscutting.util.YamlCreator;
 
 import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperByUsernameRequest;
