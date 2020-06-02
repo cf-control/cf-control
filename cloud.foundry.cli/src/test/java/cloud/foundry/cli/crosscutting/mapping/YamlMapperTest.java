@@ -1,12 +1,13 @@
 package cloud.foundry.cli.crosscutting.mapping;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+
 import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
 
 public class YamlMapperTest {
 

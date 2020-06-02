@@ -1,6 +1,12 @@
 package cloud.foundry.cli.crosscutting.mapping;
 
-import cloud.foundry.cli.crosscutting.beans.*;
+import cloud.foundry.cli.crosscutting.beans.Bean;
+import cloud.foundry.cli.crosscutting.beans.ServiceBean;
+import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
+import cloud.foundry.cli.crosscutting.beans.GetAllBean;
+import cloud.foundry.cli.crosscutting.beans.ApplicationManifestBean;
+import cloud.foundry.cli.crosscutting.beans.SpaceDevelopersBean;
+
 import cloud.foundry.cli.crosscutting.exceptions.RefResolvingException;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
@@ -21,6 +27,7 @@ public class YamlMapper {
     /**
      * Loads a configuration file as a bean. During this process, the ref-occurrences in the specified configuration
      * file are resolved.
+     *
      * @param configFilePath the path to the config file
      * @param beanType the desired type of the bean to load
      * @throws IOException if the config file cannot be accessed
@@ -38,6 +45,7 @@ public class YamlMapper {
 
     /**
      * Reads the file (possibly on a server) and interprets its content as a yaml tree.
+     *
      * @param filePath the path or url to a file
      * @return the resulting yaml tree
      * @throws IOException if the file cannot be accessed
@@ -53,6 +61,7 @@ public class YamlMapper {
 
     /**
      * Dumps the contents of an object as a string in the yaml format.
+     *
      * @param object the instance to dump
      * @return the contents of the parameter as a string
      * @throws Exception TODO
@@ -62,7 +71,7 @@ public class YamlMapper {
         return defaultYamlDumper.dump(object);
     }
 
-     /**
+    /**
      * Factory function creating a yaml dumper with common options
      * (ensures a consistent output format).
      *
@@ -97,7 +106,7 @@ public class YamlMapper {
         return new Yaml(options);
     }
 
-    private static Yaml createBeanLoader(){
+    private static Yaml createBeanLoader() {
         return new Yaml();
     }
 }
