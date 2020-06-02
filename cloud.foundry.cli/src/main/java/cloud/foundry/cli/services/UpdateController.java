@@ -4,6 +4,7 @@ import static picocli.CommandLine.Command;
 import static picocli.CommandLine.Mixin;
 
 import java.io.IOException;
+import java.util.Map;
 
 import cloud.foundry.cli.crosscutting.beans.SpaceDevelopersBean;
 import cloud.foundry.cli.crosscutting.logging.Log;
@@ -16,7 +17,6 @@ import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
 import cloud.foundry.cli.crosscutting.util.FileUtils;
 import cloud.foundry.cli.crosscutting.util.YamlCreator;
 import cloud.foundry.cli.operations.ServicesOperations;
-import picocli.CommandLine;
 
 /**
  * This class realizes the functionality that is needed for the update commands.
@@ -89,11 +89,20 @@ public class UpdateController implements Runnable {
             Yaml yamlLoader = YamlCreator.createDefaultYamlProcessor();
 
             try {
-                ServiceBean serviceBean = yamlLoader.loadAs(yamlFileContent, ServiceBean.class);
+
+                Map<String, Object> mapServiceBean = yamlLoader.loadAs(yamlFileContent, Map.class);
                 DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
 
                 ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
-                servicesOperations.update(serviceBean);
+                for (String serviceInstanceName : mapServiceBean.keySet()) {
+
+                    String serviceBeanYaml = yamlLoader.dump(mapServiceBean.get(serviceInstanceName));
+                    ServiceBean serviceBean = yamlLoader.loadAs(serviceBeanYaml, ServiceBean.class);
+                    // "currentName" is currently a placeholder until diff is implemented
+                    servicesOperations.renameServiceInstance(serviceInstanceName, "currentName");
+                    servicesOperations.updateServiceInstance(serviceInstanceName, serviceBean);
+
+                }
             } catch (Exception e) {
                 Log.exception(e, UNEXPECTED_ERROR_OCCURRED);
             }
