@@ -1,16 +1,14 @@
 package cloud.foundry.cli.services;
 
 import java.io.IOException;
-import java.io.InputStream;
 
+import cloud.foundry.cli.crosscutting.exceptions.RefResolvingException;
 import cloud.foundry.cli.crosscutting.logging.Log;
+import cloud.foundry.cli.crosscutting.mapping.YamlMapper;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
-import org.yaml.snakeyaml.Yaml;
 
 import cloud.foundry.cli.crosscutting.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
-import cloud.foundry.cli.crosscutting.mapping.FileUtils;
-import cloud.foundry.cli.crosscutting.util.YamlCreator;
 import cloud.foundry.cli.operations.ServicesOperations;
 import picocli.CommandLine;
 
@@ -41,19 +39,16 @@ public class UpdateController implements Runnable {
 
         @Override
         public void run() {
-            InputStream yamlInputStream;
+            ServiceBean serviceBean;
             try {
-                yamlInputStream = FileUtils.openLocalFile(commandOptions.getYamlFilePath());
-            } catch (IOException e) {
+                serviceBean = YamlMapper.loadBean(commandOptions.getYamlFilePath(), ServiceBean.class);
+                //TODO:More Exceptions
+            } catch (IOException | RefResolvingException e) {
                 Log.exception(e, "Failed to read YAML file");
                 return;
             }
-            Yaml yamlLoader = YamlCreator.createDefaultYamlProcessor();
-
             try {
-                ServiceBean serviceBean = yamlLoader.loadAs(yamlInputStream, ServiceBean.class);
                 DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
-
                 ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
                 servicesOperations.update(serviceBean);
             } catch (Exception e) {

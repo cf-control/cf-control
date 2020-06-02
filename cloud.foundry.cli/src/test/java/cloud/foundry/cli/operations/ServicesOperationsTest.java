@@ -12,7 +12,7 @@ import static org.mockito.Mockito.verify;
 
 import cloud.foundry.cli.crosscutting.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
-import cloud.foundry.cli.crosscutting.util.YamlCreator;
+import cloud.foundry.cli.crosscutting.mapping.YamlMapper;
 import org.cloudfoundry.client.v2.ClientV2Exception;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.services.BindServiceInstanceRequest;
@@ -43,7 +43,7 @@ public class ServicesOperationsTest {
             serviceInstanceSummary);
         // when
         ServicesOperations servicesOperations = new ServicesOperations(cfMock);
-        String s = YamlCreator.createDefaultYamlProcessor().dump(servicesOperations.getAll());
+        String s = YamlMapper.dump(servicesOperations.getAll());
         // then
         assertThat(s, is(
             "- applications:\n" +
@@ -64,7 +64,7 @@ public class ServicesOperationsTest {
         DefaultCloudFoundryOperations cfMock = createMockDefaultCloudFoundryOperationsWithServiceInstanceSummary(null);
         // when
         ServicesOperations servicesOperations = new ServicesOperations(cfMock);
-        String s = YamlCreator.createDefaultYamlProcessor().dump(servicesOperations.getAll());
+        String s = YamlMapper.dump(servicesOperations.getAll());
         // then
         // FIXME: it should return just an empty bracket like []
         assertEquals("[\n  ]\n", s);

@@ -10,7 +10,7 @@ import static org.mockito.Mockito.when;
 import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.beans.SpaceDevelopersBean;
-import cloud.foundry.cli.crosscutting.util.YamlCreator;
+import cloud.foundry.cli.crosscutting.mapping.YamlMapper;
 import org.cloudfoundry.client.v2.info.GetInfoResponse;
 import org.cloudfoundry.client.v2.info.Info;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
@@ -43,7 +43,7 @@ public class AllInformationOperationsTest {
 
         // when
         AllInformationOperations allInformationOperations = new AllInformationOperations(cfOperationsMock);
-        String allInformation = YamlCreator.createDefaultYamlProcessor().dump(allInformationOperations.getAll());
+        String allInformation = YamlMapper.dump(allInformationOperations.getAll());
 
         // then
         assertThat(allInformation, is("apiVersion: API VERSION\n" +

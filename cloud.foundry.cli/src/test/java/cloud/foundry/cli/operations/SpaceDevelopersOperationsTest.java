@@ -13,7 +13,7 @@ import static org.mockito.Mockito.mock;
 import java.util.Arrays;
 
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
-import cloud.foundry.cli.crosscutting.util.YamlCreator;
+import cloud.foundry.cli.crosscutting.mapping.YamlMapper;
 
 import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperByUsernameRequest;
@@ -43,7 +43,7 @@ class SpaceDevelopersOperationsTest {
         SpaceUsers spaceUsersMock = mockSpaceUsers(cfOperationsMock);
         when(spaceUsersMock.getDevelopers()).thenReturn(Arrays.asList("one", "two", "three"));
         // when
-        String spaceDevelopers = YamlCreator.createDefaultYamlProcessor().dump(spaceDevelopersOperations.getAll());
+        String spaceDevelopers = YamlMapper.dump(spaceDevelopersOperations.getAll());
         // then
         assertThat(spaceDevelopers, is("spaceDevelopers:\n- one\n- two\n- three\n"));
     }
@@ -54,7 +54,7 @@ class SpaceDevelopersOperationsTest {
         SpaceUsers spaceUsersMock = mockSpaceUsers(cfOperationsMock);
         when(spaceUsersMock.getDevelopers()).thenReturn(emptyList());
         // when
-        String spaceDevelopers = YamlCreator.createDefaultYamlProcessor().dump(spaceDevelopersOperations.getAll());
+        String spaceDevelopers = YamlMapper.dump(spaceDevelopersOperations.getAll());
         // then
         assertThat(spaceDevelopers, is("spaceDevelopers: [\n  ]\n"));
     }
