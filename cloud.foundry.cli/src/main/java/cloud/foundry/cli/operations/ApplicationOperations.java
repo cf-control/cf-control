@@ -134,16 +134,16 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
         this.cloudFoundryOperations
                 .applications()
                 .pushManifest(PushApplicationManifestRequest
-                        .builder()
-                        .manifest(buildApplicationManifest(bean))
-                        .noStart(!shouldStart)
-                        .build())
+                    .builder()
+                    .manifest(buildApplicationManifest(bean))
+                    .noStart(!shouldStart)
+                    .build())
                 // Cloud Foundry Operations Library Throws either IllegalArgumentException or IllegalStateException.
                 .onErrorContinue(throwable -> throwable instanceof IllegalArgumentException
-                                //Fatal errors, exclude them.
-                                && !throwable.getMessage().contains("Application")
-                                && !throwable.getMessage().contains("Stack"),
-                        (throwable, o) -> Log.warn(throwable.getMessage()))
+                            //Fatal errors, exclude them.
+                            && !throwable.getMessage().contains("Application")
+                            && !throwable.getMessage().contains("Stack"),
+                    (throwable, o) -> Log.warn(throwable.getMessage()))
                 //Error when staging or starting. So don't throw error, only log error.
                 .onErrorContinue(throwable -> throwable instanceof IllegalStateException,
                         (throwable, o) -> Log.warn(throwable.getMessage()))
@@ -154,31 +154,31 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
         ApplicationManifest.Builder builder = ApplicationManifest.builder();
 
         builder
-                .name(bean.getName())
-                .path(bean.getPath() == null ? null : Paths.get(bean.getPath()));
+            .name(bean.getName())
+            .path(bean.getPath() == null ? null : Paths.get(bean.getPath()));
 
         if (bean.getManifest() != null) {
             builder.buildpack(bean.getManifest().getBuildpack())
-                    .command(bean.getManifest().getCommand())
-                    .disk(bean.getManifest().getDisk())
-                    .docker(Docker.builder()
-                            .image(bean.getManifest().getDockerImage())
-                            .username(bean.getManifest().getDockerUsername())
-                            .password(getDockerPassword(bean))
-                            .build())
-                    .healthCheckHttpEndpoint(bean.getManifest().getHealthCheckHttpEndpoint())
-                    .healthCheckType(bean.getManifest().getHealthCheckType())
-                    .instances(bean.getManifest().getInstances())
-                    .memory(bean.getManifest().getMemory())
-                    .noRoute(bean.getManifest().getNoRoute())
-                    .routePath(bean.getManifest().getRoutePath())
-                    .randomRoute(bean.getManifest().getRandomRoute())
-                    .routes(getAppRoutes(bean.getManifest().getRoutes()))
-                    .stack(bean.getManifest().getStack())
-                    .timeout(bean.getManifest().getTimeout())
-                    .putAllEnvironmentVariables(Optional.ofNullable(bean.getManifest().getEnvironmentVariables())
-                            .orElse(Collections.emptyMap()))
-                    .services(bean.getManifest().getServices());
+                .command(bean.getManifest().getCommand())
+                .disk(bean.getManifest().getDisk())
+                .docker(Docker.builder()
+                        .image(bean.getManifest().getDockerImage())
+                        .username(bean.getManifest().getDockerUsername())
+                        .password(getDockerPassword(bean))
+                        .build())
+                .healthCheckHttpEndpoint(bean.getManifest().getHealthCheckHttpEndpoint())
+                .healthCheckType(bean.getManifest().getHealthCheckType())
+                .instances(bean.getManifest().getInstances())
+                .memory(bean.getManifest().getMemory())
+                .noRoute(bean.getManifest().getNoRoute())
+                .routePath(bean.getManifest().getRoutePath())
+                .randomRoute(bean.getManifest().getRandomRoute())
+                .routes(getAppRoutes(bean.getManifest().getRoutes()))
+                .stack(bean.getManifest().getStack())
+                .timeout(bean.getManifest().getTimeout())
+                .putAllEnvironmentVariables(Optional.ofNullable(bean.getManifest().getEnvironmentVariables())
+                        .orElse(Collections.emptyMap()))
+                .services(bean.getManifest().getServices());
         }
 
         return builder.build();
@@ -200,10 +200,10 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
 
     private List<Route> getAppRoutes(List<String> routes) {
         return routes == null ? null : routes
-                .stream()
-                .filter(Objects::nonNull)
-                .map(route -> Route.builder().route(route).build())
-                .collect(Collectors.toList());
+            .stream()
+            .filter(Objects::nonNull)
+            .map(route -> Route.builder().route(route).build())
+            .collect(Collectors.toList());
     }
 
     /**
@@ -213,12 +213,12 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
         // If app does not exists an IllegalArgumentException will be thrown.
         try {
             this.cloudFoundryOperations
-                    .applications()
-                    .get(GetApplicationRequest
-                            .builder()
-                            .name(name)
-                            .build())
-                    .block();
+                .applications()
+                .get(GetApplicationRequest
+                        .builder()
+                        .name(name)
+                        .build())
+                .block();
         } catch (IllegalArgumentException e) {
             return false;
         }

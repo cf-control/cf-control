@@ -46,11 +46,11 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      */
     public void create(ServiceBean serviceBean) throws CreationException {
         CreateServiceInstanceRequest createServiceRequest = CreateServiceInstanceRequest.builder()
-                .serviceName(serviceBean.getService())
-                .planName(serviceBean.getPlan())
-                .serviceInstanceName(serviceBean.getName())
-                .tags(serviceBean.getTags())
-                .build();
+            .serviceName(serviceBean.getService())
+            .planName(serviceBean.getPlan())
+            .serviceInstanceName(serviceBean.getName())
+            .tags(serviceBean.getTags())
+            .build();
 
         Mono<Void> created = this.cloudFoundryOperations.services().createInstance(createServiceRequest);
 
@@ -94,9 +94,9 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      */
     private void renameService(String newName, String currentName) throws CreationException {
         RenameServiceInstanceRequest renameServiceInstanceRequest = RenameServiceInstanceRequest.builder()
-                .name(currentName)
-                .newName(newName)
-                .build();
+            .name(currentName)
+            .newName(newName)
+            .build();
 
         try {
             this.cloudFoundryOperations.services()
@@ -114,10 +114,10 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      */
     private void updateServiceInstance(ServiceBean serviceBean) throws CreationException {
         UpdateServiceInstanceRequest updateServiceInstanceRequest = UpdateServiceInstanceRequest.builder()
-                .serviceInstanceName(serviceBean.getName())
-                .tags(serviceBean.getTags())
-                .planName(serviceBean.getPlan())
-                .build();
+            .serviceInstanceName(serviceBean.getName())
+            .tags(serviceBean.getTags())
+            .planName(serviceBean.getPlan())
+            .build();
 
         try {
             this.cloudFoundryOperations.services()
@@ -138,9 +138,9 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
 
         for (String app : serviceBean.getApplications()) {
             BindServiceInstanceRequest bindServiceRequest = BindServiceInstanceRequest.builder()
-                    .applicationName(app)
-                    .serviceInstanceName(service)
-                    .build();
+                .applicationName(app)
+                .serviceInstanceName(service)
+                .build();
 
             try {
                 this.cloudFoundryOperations.services()

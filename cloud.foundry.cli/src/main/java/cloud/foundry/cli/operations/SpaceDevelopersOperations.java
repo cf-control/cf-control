@@ -30,14 +30,14 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
      */
     public Mono<SpaceDevelopersBean> getAll() {
         ListSpaceUsersRequest request = ListSpaceUsersRequest.builder()
-                .spaceName(cloudFoundryOperations.getSpace())
-                .organizationName(cloudFoundryOperations.getOrganization())
-                .build();
+            .spaceName(cloudFoundryOperations.getSpace())
+            .organizationName(cloudFoundryOperations.getOrganization())
+            .build();
 
         return cloudFoundryOperations
-                .userAdmin()
-                .listSpaceUsers(request)
-                .map(spaceUsers -> new SpaceDevelopersBean(spaceUsers.getDevelopers()));
+            .userAdmin()
+            .listSpaceUsers(request)
+            .map(spaceUsers -> new SpaceDevelopersBean(spaceUsers.getDevelopers()));
     }
 
     /**
@@ -52,19 +52,19 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
         String organization = cloudFoundryOperations.getOrganization();
         String space = cloudFoundryOperations.getSpace();
         ListSpaceUsersRequest spaceUsersRequest = ListSpaceUsersRequest.builder()
-                .spaceName(space)
-                .organizationName(organization)
-                .build();
+            .spaceName(space)
+            .organizationName(organization)
+            .build();
         SpaceUsers spaceUsers = cloudFoundryOperations
-                .userAdmin()
-                .listSpaceUsers(spaceUsersRequest)
-                .block();
+            .userAdmin()
+            .listSpaceUsers(spaceUsersRequest)
+            .block();
         if (!spaceUsers.getDevelopers().contains(username)) {
             Log.info("Assigning role SpaceDeveloper to user", username, "in org", organization, "/ space", space);
             AssociateSpaceDeveloperByUsernameRequest request = AssociateSpaceDeveloperByUsernameRequest.builder()
-                    .username(username)
-                    .spaceId(spaceId)
-                    .build();
+                .username(username)
+                .spaceId(spaceId)
+                .build();
             try {
                 cloudFoundryOperations.getCloudFoundryClient()
                         .spaces()
