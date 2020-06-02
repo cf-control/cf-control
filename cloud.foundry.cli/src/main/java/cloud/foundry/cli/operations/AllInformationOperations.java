@@ -25,10 +25,6 @@ import org.cloudfoundry.reactor.client.ReactorCloudFoundryClient;
  */
 public class AllInformationOperations extends AbstractOperations<DefaultCloudFoundryOperations> {
 
-    private static final String API_ENDPOINT = "api endpoint";
-    private static final String ORG = "org";
-    private static final String SPACE = "space";
-
     public AllInformationOperations(DefaultCloudFoundryOperations cloudFoundryOperations) {
         super(cloudFoundryOperations);
     }

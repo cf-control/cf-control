@@ -1,5 +1,8 @@
 package cloud.foundry.cli.operations;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static java.util.stream.Collectors.toList;
 
@@ -58,9 +61,13 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
      *
      * @param username email of user to assign as space developer
      * @throws CreationException when assignation was not successful
+     * @throws NullPointerException when username is null
+     * @throws IllegalArgumentException when username is empty
      */
     public void assignSpaceDeveloper(String username) throws CreationException {
-        assert (username != null && !username.isEmpty());
+        checkNotNull(username);
+        checkArgument(!username.isEmpty(), "Username must not be empty.");
+
         String spaceId = cloudFoundryOperations.getSpaceId().block();
         String organization = cloudFoundryOperations.getOrganization();
         String space = cloudFoundryOperations.getSpace();

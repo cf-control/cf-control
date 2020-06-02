@@ -1,10 +1,13 @@
 package cloud.foundry.cli.crosscutting.beans;
 
+/**
+ * Bean holding all data that is related to the target space.
+ */
 public class TargetBean {
 
-    String endpoint;
-    String org;
-    String space;
+    private String endpoint;
+    private String org;
+    private String space;
 
     public TargetBean() {
 

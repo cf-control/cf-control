@@ -3,11 +3,14 @@ package cloud.foundry.cli.crosscutting.beans;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Bean holding all data that is related to cloud foundry specification.
+ */
 public class SpecBean {
 
-    List<String> spaceDevelopers;
-    Map<String, ServiceBean> services;
-    Map<String, ApplicationBean> apps;
+    private List<String> spaceDevelopers;
+    private Map<String, ServiceBean> services;
+    private Map<String, ApplicationBean> apps;
 
     public SpecBean() {
 

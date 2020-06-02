@@ -96,7 +96,7 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
 
         try {
             doCreate(appName, bean, shouldStart);
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             cleanUp(appName);
             throw new CreationException(e);
         }
@@ -132,8 +132,8 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
                             .name(appName)
                             .build())
                     .block();
-        } catch (Exception e ) {
-            //TODO: log warn or log debug
+        } catch (RuntimeException e) {
+            Log.exception(e, "Error on cleaning up.");
         }
     }
 

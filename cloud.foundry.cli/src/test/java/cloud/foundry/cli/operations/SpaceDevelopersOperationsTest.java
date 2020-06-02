@@ -87,9 +87,9 @@ class SpaceDevelopersOperationsTest {
         when(cfClientMock.spaces()).thenReturn(spacesMock);
         Mono<AssociateSpaceDeveloperByUsernameResponse> monoMock = mock(Mono.class);
         when(spacesMock.associateDeveloperByUsername(any()))
-                .thenReturn(monoMock);
+            .thenReturn(monoMock);
         AssociateSpaceDeveloperByUsernameResponse associateSpaceDeveloperByUsernameReponsetMock = mock(
-                AssociateSpaceDeveloperByUsernameResponse.class);
+            AssociateSpaceDeveloperByUsernameResponse.class);
         when(monoMock.block()).thenReturn(associateSpaceDeveloperByUsernameReponsetMock);
         // call
         spaceDevelopersOperations.assignSpaceDeveloper("six");
@@ -109,12 +109,12 @@ class SpaceDevelopersOperationsTest {
         Spaces spacesMock = mock(Spaces.class);
         when(cfClientMock.spaces()).thenReturn(spacesMock);
         AssociateSpaceDeveloperByUsernameRequest associateSpaceDeveloperByUsernameRequest = mock(
-                AssociateSpaceDeveloperByUsernameRequest.class);
+            AssociateSpaceDeveloperByUsernameRequest.class);
         Mono<AssociateSpaceDeveloperByUsernameResponse> monoMock = mock(Mono.class);
         when(spacesMock.associateDeveloperByUsername(associateSpaceDeveloperByUsernameRequest))
-                .thenReturn(monoMock);
+            .thenReturn(monoMock);
         AssociateSpaceDeveloperByUsernameResponse associateSpaceDeveloperByUsernameReponsetMock = mock(
-                AssociateSpaceDeveloperByUsernameResponse.class);
+            AssociateSpaceDeveloperByUsernameResponse.class);
         when(monoMock.block()).thenReturn(associateSpaceDeveloperByUsernameReponsetMock);
         // then
         assertThrows(CreationException.class, () -> {
