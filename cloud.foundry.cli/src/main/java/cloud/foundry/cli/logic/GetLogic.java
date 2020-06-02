@@ -1,10 +1,10 @@
 package cloud.foundry.cli.logic;
 
-import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
-import cloud.foundry.cli.crosscutting.beans.ConfigBean;
-import cloud.foundry.cli.crosscutting.beans.ServiceBean;
-import cloud.foundry.cli.crosscutting.beans.TargetBean;
-import cloud.foundry.cli.crosscutting.beans.SpecBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.TargetBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
 
 import java.util.List;
 import java.util.Map;
