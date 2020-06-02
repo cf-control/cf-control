@@ -1,9 +1,5 @@
 package cloud.foundry.cli.operations;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.beans.ConfigBean;
 import cloud.foundry.cli.crosscutting.beans.ServiceBean;
