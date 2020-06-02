@@ -1,6 +1,7 @@
 package cloud.foundry.cli.operations;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -11,10 +12,10 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.mock;
 
 import java.util.Arrays;
+import java.util.List;
 
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import cloud.foundry.cli.crosscutting.exceptions.InvalidOperationException;
-import cloud.foundry.cli.crosscutting.util.YamlCreator;
 
 import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperByUsernameRequest;
@@ -45,9 +46,10 @@ class SpaceDevelopersOperationsTest {
         SpaceUsers spaceUsersMock = mockSpaceUsers(cfOperationsMock);
         when(spaceUsersMock.getDevelopers()).thenReturn(Arrays.asList("one", "two", "three"));
         // when
-        String spaceDevelopers = YamlCreator.createDefaultYamlProcessor().dump(spaceDevelopersOperations.getAll());
+        List<String> spaceDevelopers = spaceDevelopersOperations.getAll();
         // then
-        assertThat(spaceDevelopers, is("spaceDevelopers:\n- one\n- two\n- three\n"));
+        assertThat(spaceDevelopers.size(), is(3));
+        assertThat(spaceDevelopers, contains("one", "two", "three"));
     }
 
     @Test
@@ -56,9 +58,9 @@ class SpaceDevelopersOperationsTest {
         SpaceUsers spaceUsersMock = mockSpaceUsers(cfOperationsMock);
         when(spaceUsersMock.getDevelopers()).thenReturn(emptyList());
         // when
-        String spaceDevelopers = YamlCreator.createDefaultYamlProcessor().dump(spaceDevelopersOperations.getAll());
+        List<String> spaceDevelopers = spaceDevelopersOperations.getAll();
         // then
-        assertThat(spaceDevelopers, is("spaceDevelopers: [\n  ]\n"));
+        assertThat(spaceDevelopers.size(), is(0));
     }
 
     @Test
@@ -84,9 +86,9 @@ class SpaceDevelopersOperationsTest {
         when(cfClientMock.spaces()).thenReturn(spacesMock);
         Mono<AssociateSpaceDeveloperByUsernameResponse> monoMock = mock(Mono.class);
         when(spacesMock.associateDeveloperByUsername(any()))
-                .thenReturn(monoMock);
+            .thenReturn(monoMock);
         AssociateSpaceDeveloperByUsernameResponse associateSpaceDeveloperByUsernameReponsetMock = mock(
-                AssociateSpaceDeveloperByUsernameResponse.class);
+            AssociateSpaceDeveloperByUsernameResponse.class);
         when(monoMock.block()).thenReturn(associateSpaceDeveloperByUsernameReponsetMock);
         // call
         spaceDevelopersOperations.assignSpaceDeveloper("six");
@@ -106,12 +108,12 @@ class SpaceDevelopersOperationsTest {
         Spaces spacesMock = mock(Spaces.class);
         when(cfClientMock.spaces()).thenReturn(spacesMock);
         AssociateSpaceDeveloperByUsernameRequest associateSpaceDeveloperByUsernameRequest = mock(
-                AssociateSpaceDeveloperByUsernameRequest.class);
+            AssociateSpaceDeveloperByUsernameRequest.class);
         Mono<AssociateSpaceDeveloperByUsernameResponse> monoMock = mock(Mono.class);
         when(spacesMock.associateDeveloperByUsername(associateSpaceDeveloperByUsernameRequest))
-                .thenReturn(monoMock);
+            .thenReturn(monoMock);
         AssociateSpaceDeveloperByUsernameResponse associateSpaceDeveloperByUsernameReponsetMock = mock(
-                AssociateSpaceDeveloperByUsernameResponse.class);
+            AssociateSpaceDeveloperByUsernameResponse.class);
         when(monoMock.block()).thenReturn(associateSpaceDeveloperByUsernameReponsetMock);
         // then
         assertThrows(CreationException.class, () -> {

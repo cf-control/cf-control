@@ -1,10 +1,11 @@
 package cloud.foundry.cli.operations;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -13,7 +14,6 @@ import static org.mockito.Mockito.when;
 import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.beans.ApplicationManifestBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
-import cloud.foundry.cli.crosscutting.util.YamlCreator;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
 import org.cloudfoundry.operations.applications.ApplicationManifest;
@@ -49,10 +49,10 @@ public class ApplicationOperationsTest {
 
         // forge YAML document
         ApplicationOperations applicationOperations = new ApplicationOperations(cfMock);
-        String yamlDoc = YamlCreator.createDefaultYamlProcessor().dump(applicationOperations.getAll());
+        Map<String, ApplicationBean> apps = applicationOperations.getAll();
 
         // check if it's really empty
-        assertEquals(yamlDoc, "[\n  ]\n");
+        assertTrue(apps.isEmpty());
     }
 
     @Test
@@ -75,38 +75,30 @@ public class ApplicationOperationsTest {
 
         // now, we can generate a YAML doc for our ApplicationSummary
         ApplicationOperations applicationOperations = new ApplicationOperations(cfMock);
-        String yamlDoc = YamlCreator.createDefaultYamlProcessor().dump(applicationOperations.getAll());
+        Map<String, ApplicationBean> apps = applicationOperations.getAll();
 
         // ... and make sure it contains exactly what we'd expect
-        assertThat(yamlDoc, is(
-                "- manifest:\n" +
-                "    buildpack: test_buildpack\n" +
-                "    command: test command\n" +
-                "    disk: 1234\n" +
-                "    dockerImage: null\n" +
-                "    dockerUsername: null\n" +
-                "    domains: null\n" +
-                "    environmentVariables:\n" +
-                "      key: value\n" +
-                "    healthCheckHttpEndpoint: http://healthcheck.local\n" +
-                "    healthCheckType: HTTP\n" +
-                "    hosts: null\n" +
-                "    instances: 42\n" +
-                "    memory: 2147483647\n" +
-                "    noHostname: null\n" +
-                "    noRoute: false\n" +
-                "    randomRoute: true\n" +
-                "    routePath: null\n" +
-                "    routes:\n" +
-                "    - route1\n" +
-                "    - route2\n" +
-                "    services:\n" +
-                "    - serviceomega\n" +
-                "    stack: nope\n" +
-                "    timeout: 987654321\n" +
-                "  name: notyetrandomname\n" +
-                "  path: " + Paths.get("/test/uri").toString() + "\n"
-        ));
+        assertThat(apps.size(), is(1));
+        assertTrue(apps.containsKey("notyetrandomname"));
+        ApplicationBean appBean = apps.get("notyetrandomname");
+        assertThat(appBean.getPath(), is("/test/uri"));
+        assertThat(appBean.getManifest().getBuildpack(), is("test_buildpack"));
+        assertThat(appBean.getManifest().getCommand(), is("test command"));
+        assertThat(appBean.getManifest().getDisk(), is(1234));
+        assertThat(appBean.getManifest().getEnvironmentVariables().size(), is(1));
+        assertThat(appBean.getManifest().getEnvironmentVariables().get("key"), is("value"));
+        assertThat(appBean.getManifest().getHealthCheckHttpEndpoint(), is("http://healthcheck.local"));
+        assertThat(appBean.getManifest().getHealthCheckType(), is(ApplicationHealthCheck.HTTP));
+        assertThat(appBean.getManifest().getInstances(), is(42));
+        assertThat(appBean.getManifest().getMemory(), is(Integer.MAX_VALUE));
+        assertThat(appBean.getManifest().getNoRoute(), is(false));
+        assertThat(appBean.getManifest().getRandomRoute(), is(true));
+        assertThat(appBean.getManifest().getRoutes().size(), is(2));
+        assertThat(appBean.getManifest().getRoutes(), contains("route1", "route2"));
+        assertThat(appBean.getManifest().getServices().size(), is(1));
+        assertThat(appBean.getManifest().getServices(), contains("serviceomega"));
+        assertThat(appBean.getManifest().getStack(), is("nope"));
+        assertThat(appBean.getManifest().getTimeout(), is(987654321));
     }
 
     @Test
@@ -130,7 +122,7 @@ public class ApplicationOperationsTest {
         ApplicationBean applicationsBean = new ApplicationBean(appManifest);
 
         //when
-        applicationOperations.create(applicationsBean, false);
+        applicationOperations.create("appName", applicationsBean, false);
 
         //then
         verify(applicationsMock, times(1)).pushManifest(any(PushApplicationManifestRequest.class));
@@ -156,12 +148,11 @@ public class ApplicationOperationsTest {
         applicationManifestBean.setDockerImage("some/image");
         applicationManifestBean.setDockerUsername("username");
 
-        applicationsBean.setName("someapp");
         applicationsBean.setManifest(applicationManifestBean);
 
         //when
-        NullPointerException exception = assertThrows(NullPointerException.class,
-                () -> applicationOperations.create(applicationsBean, false));
+        CreationException exception = assertThrows(CreationException.class,
+                () -> applicationOperations.create("appName", applicationsBean, false));
         assertThat(exception.getMessage(), containsString("Docker password not set"));
     }
 
@@ -183,7 +174,7 @@ public class ApplicationOperationsTest {
         ApplicationBean applicationsBean = new ApplicationBean(appManifest);
 
         //when
-        assertThrows(CreationException.class, () -> applicationOperations.create(applicationsBean, false));
+        assertThrows(CreationException.class, () -> applicationOperations.create("appName", applicationsBean, false));
         verify(applicationsMock, times(1)).pushManifest(any());
         verify(applicationsMock, times(1)).delete(any());
     }
@@ -204,8 +195,8 @@ public class ApplicationOperationsTest {
         ApplicationBean applicationsBean = new ApplicationBean(mockAppManifest);
 
         //then
-        assertThrows( CreationException.class,
-                () -> applicationOperations.create(applicationsBean, false));
+        assertThrows(CreationException.class,
+                () -> applicationOperations.create("appName", applicationsBean, false));
     }
 
     @Test
@@ -215,7 +206,8 @@ public class ApplicationOperationsTest {
                 Mockito.mock(DefaultCloudFoundryOperations.class));
 
         //then
-        assertThrows(NullPointerException.class, () -> applicationOperations.create(new ApplicationBean(), false));
+        assertThrows(NullPointerException.class,
+                () -> applicationOperations.create(null, new ApplicationBean(), false));
     }
 
     @Test
@@ -223,14 +215,15 @@ public class ApplicationOperationsTest {
         //given
         ApplicationOperations applicationOperations = new ApplicationOperations(
                 Mockito.mock(DefaultCloudFoundryOperations.class));
+
         ApplicationBean applicationBean = new ApplicationBean();
-        applicationBean.setName("app");
         ApplicationManifestBean manifestBean = new ApplicationManifestBean();
         manifestBean.setDockerImage(null);
         applicationBean.setManifest(manifestBean);
 
         //when
-        assertThrows(IllegalArgumentException.class, () -> applicationOperations.create(applicationBean, false));
+        assertThrows(IllegalArgumentException.class,
+                () -> applicationOperations.create("appName", applicationBean, false));
     }
 
     @Test
@@ -239,10 +232,10 @@ public class ApplicationOperationsTest {
         ApplicationOperations applicationOperations = new ApplicationOperations(
                 Mockito.mock(DefaultCloudFoundryOperations.class));
         ApplicationBean applicationBean = new ApplicationBean();
-        applicationBean.setName("app");
 
         //when
-        assertThrows(IllegalArgumentException.class, () -> applicationOperations.create(applicationBean, false));
+        assertThrows(IllegalArgumentException.class,
+                () -> applicationOperations.create("appName", applicationBean, false));
     }
 
     @Test
@@ -252,12 +245,11 @@ public class ApplicationOperationsTest {
                 Mockito.mock(DefaultCloudFoundryOperations.class));
 
         ApplicationBean applicationBean = new ApplicationBean();
-        applicationBean.setName("");
         applicationBean.setPath("some/path");
 
         //then
         assertThrows(IllegalArgumentException.class,
-                () -> applicationOperations.create(applicationBean, false));
+                () -> applicationOperations.create("", applicationBean, false));
     }
 
     @Test
@@ -267,7 +259,7 @@ public class ApplicationOperationsTest {
                 Mockito.mock(DefaultCloudFoundryOperations.class));
 
         //when
-        assertThrows(NullPointerException.class, () -> applicationOperations.create(null, false));
+        assertThrows(NullPointerException.class, () -> applicationOperations.create("appName", null, false));
     }
 
 

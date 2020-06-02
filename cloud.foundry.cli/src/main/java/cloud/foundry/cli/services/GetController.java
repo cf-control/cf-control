@@ -1,9 +1,8 @@
 package cloud.foundry.cli.services;
 
 import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
-import cloud.foundry.cli.crosscutting.beans.GetAllBean;
+import cloud.foundry.cli.crosscutting.beans.ConfigBean;
 import cloud.foundry.cli.crosscutting.beans.ServiceBean;
-import cloud.foundry.cli.crosscutting.beans.SpaceDevelopersBean;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
 import cloud.foundry.cli.crosscutting.util.YamlCreator;
@@ -16,6 +15,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * This class realizes the functionality that is needed for the get commands. They provide various information about a
@@ -49,7 +49,7 @@ public class GetController implements Runnable {
             try {
                 DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
                 SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
-                SpaceDevelopersBean spaceDevelopers = spaceDevelopersOperations.getAll();
+                List<String> spaceDevelopers = spaceDevelopersOperations.getAll();
 
                 System.out.println(YamlCreator.createDefaultYamlProcessor().dump(spaceDevelopers));
             } catch (Exception e) {
@@ -68,7 +68,7 @@ public class GetController implements Runnable {
             try {
                 DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
                 ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
-                List<ServiceBean> services = servicesOperations.getAll();
+                Map<String,ServiceBean> services = servicesOperations.getAll();
 
                 System.out.println(YamlCreator.createDefaultYamlProcessor().dump(services));
             } catch (Exception e) {
@@ -87,7 +87,7 @@ public class GetController implements Runnable {
             try {
                 DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
                 ApplicationOperations applicationOperations = new ApplicationOperations(cfOperations);
-                List<ApplicationBean> applications = applicationOperations.getAll();
+                Map<String, ApplicationBean> applications = applicationOperations.getAll();
 
                 System.out.println(YamlCreator.createDefaultYamlProcessor().dump(applications));
             } catch (Exception e) {
@@ -106,7 +106,7 @@ public class GetController implements Runnable {
             try {
                 DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
                 AllInformationOperations allInformationOperations = new AllInformationOperations(cfOperations);
-                GetAllBean allInformation = allInformationOperations.getAll();
+                ConfigBean allInformation = allInformationOperations.getAll();
 
                 System.out.println(YamlCreator.createDefaultYamlProcessor().dump(allInformation));
             } catch (Exception e) {

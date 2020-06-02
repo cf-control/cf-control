@@ -1,11 +1,11 @@
 package cloud.foundry.cli.operations;
 
 import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
-import cloud.foundry.cli.crosscutting.beans.GetAllBean;
+import cloud.foundry.cli.crosscutting.beans.ConfigBean;
 import cloud.foundry.cli.crosscutting.beans.ServiceBean;
-import cloud.foundry.cli.crosscutting.beans.SpaceDevelopersBean;
+import cloud.foundry.cli.crosscutting.beans.TargetBean;
+import cloud.foundry.cli.crosscutting.beans.SpecBean;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -22,13 +22,6 @@ import org.cloudfoundry.reactor.client.ReactorCloudFoundryClient;
  * foundry instance.
  */
 public class AllInformationOperations extends AbstractOperations<DefaultCloudFoundryOperations> {
-    private static final String SPACE_DEVELOPERS = "spaceDevelopers";
-    private static final String SERVICES = "services";
-    private static final String APPLICATIONS = "applications";
-
-    private static final String API_ENDPOINT = "api endpoint";
-    private static final String ORG = "org";
-    private static final String SPACE = "space";
 
     public AllInformationOperations(DefaultCloudFoundryOperations cloudFoundryOperations) {
         super(cloudFoundryOperations);
@@ -37,10 +30,10 @@ public class AllInformationOperations extends AbstractOperations<DefaultCloudFou
     /**
      * Gets all the necessary configuration-information from a cloud foundry instance.
      *
-     * @return GetAllBean
+     * @return ConfigBean
      */
-    public GetAllBean getAll() {
-        GetAllBean allInformation = new GetAllBean();
+    public ConfigBean getAll() {
+        ConfigBean allInformation = new ConfigBean();
         allInformation.setApiVersion(determineApiVersion());
         allInformation.setTarget(determineTarget());
         allInformation.setSpec(determineSpec());
@@ -49,7 +42,7 @@ public class AllInformationOperations extends AbstractOperations<DefaultCloudFou
     }
 
     /**
-     * Determines the API-Version from a a cloud foundry instance.
+     * Determines the API-Version from a cloud foundry instance.
      *
      * @return API-Version
      */
@@ -62,42 +55,42 @@ public class AllInformationOperations extends AbstractOperations<DefaultCloudFou
     }
 
     /**
-     * Determines the Spec-Node configuration-information from a a cloud foundry instance.
+     * Determines the Spec-Node configuration-information from a cloud foundry instance.
      *
-     * @return Spec-Data
+     * @return SpecBean
      */
-    private Map<String, Object> determineSpec() {
+    private SpecBean determineSpec() {
+        SpecBean spec = new SpecBean();
+
         SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cloudFoundryOperations);
-        SpaceDevelopersBean spaceDevelopers = spaceDevelopersOperations.getAll();
+        List<String> spaceDevelopers = spaceDevelopersOperations.getAll();
+        spec.setSpaceDevelopers(spaceDevelopers);
 
         ServicesOperations servicesOperations = new ServicesOperations(cloudFoundryOperations);
-        List<ServiceBean> services = servicesOperations.getAll();
+        Map<String, ServiceBean> services = servicesOperations.getAll();
+        spec.setServices(services);
 
         ApplicationOperations applicationOperations = new ApplicationOperations(cloudFoundryOperations);
-        List<ApplicationBean> applications = applicationOperations.getAll();
-
-        Map<String, Object> spec = new HashMap<>();
-        spec.put(SPACE_DEVELOPERS, spaceDevelopers.getSpaceDevelopers());
-        spec.put(SERVICES, services);
-        spec.put(APPLICATIONS, applications);
+        Map<String, ApplicationBean> applications = applicationOperations.getAll();
+        spec.setApps(applications);
 
         return spec;
     }
 
 
     /**
-     * Determines the Target-Node configuration-information from a a cloud foundry instance.
+     * Determines the Target-Node configuration-information from a cloud foundry instance.
      *
-     * @return Target-Data
+     * @return TargetBean
      */
-    private Map<String, String> determineTarget() {
+    private TargetBean determineTarget() {
         ReactorCloudFoundryClient rcl = (ReactorCloudFoundryClient) cloudFoundryOperations.getCloudFoundryClient();
         DefaultConnectionContext cc = (DefaultConnectionContext) rcl.getConnectionContext();
 
-        Map<String, String> target = new HashMap<>();
-        target.put(API_ENDPOINT, cc.getApiHost());
-        target.put(ORG, cloudFoundryOperations.getOrganization());
-        target.put(SPACE, cloudFoundryOperations.getSpace());
+        TargetBean target = new TargetBean();
+        target.setEndpoint(cc.getApiHost());
+        target.setOrg(cloudFoundryOperations.getOrganization());
+        target.setSpace(cloudFoundryOperations.getSpace());
 
         return target;
     }

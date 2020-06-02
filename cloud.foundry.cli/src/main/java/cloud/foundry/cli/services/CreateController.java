@@ -19,6 +19,7 @@ import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * This class realizes the functionality that is needed for the create commands.
@@ -92,11 +93,16 @@ public class CreateController implements Runnable {
             Yaml yamlLoader = YamlCreator.createDefaultYamlProcessor();
 
             try {
-                ServiceBean serviceBean = yamlLoader.loadAs(yamlFileContent, ServiceBean.class);
+
+                Map<String, Object> mapServiceBean = yamlLoader.loadAs(yamlFileContent, Map.class);
                 DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
 
                 ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
-                servicesOperations.create(serviceBean);
+                for (String serviceInstanceName : mapServiceBean.keySet()) {
+                    String serviceBeanYaml = yamlLoader.dump(mapServiceBean.get(serviceInstanceName));
+                    ServiceBean serviceBean = yamlLoader.loadAs(serviceBeanYaml, ServiceBean.class);
+                    servicesOperations.create(serviceInstanceName, serviceBean);
+                }
             } catch (Exception e) {
                 Log.exception(e, "Unexpected error occurred");
             }
@@ -115,22 +121,26 @@ public class CreateController implements Runnable {
         @Override
         public void run() {
 
-            String yamlFileContent;
             try {
-                yamlFileContent = FileUtils.readLocalFile(commandOptions.getYamlFilePath());
+                String yamlFileContent = FileUtils.readLocalFile(commandOptions.getYamlFilePath());
+                Yaml yamlProcessor = YamlCreator.createDefaultYamlProcessor();
+                Map<String, Object> appMap = yamlProcessor.loadAs(yamlFileContent, Map.class);
+                if (appMap.entrySet().iterator().hasNext()) {
+                    Map.Entry<String, Object> appObj = appMap.entrySet().iterator().next();
+                    String name = appObj.getKey();
+                    ApplicationBean applicationBean = yamlProcessor
+                            .loadAs(yamlProcessor.dump(appObj.getValue()), ApplicationBean.class);
+
+                    DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+                    ApplicationOperations applicationOperations = new ApplicationOperations(cfOperations);
+
+                    applicationOperations.create(name, applicationBean, false);
+                    Log.info("App created:", name);
+                }
+                Log.error("App entry in the yaml input file has not a valid format or was missing");
             } catch (IOException e) {
                 Log.exception(e, "Failed to read YAML file");
                 return;
-            }
-            Yaml yamlLoader = YamlCreator.createDefaultYamlProcessor();
-            try {
-                ApplicationBean applicationBean = yamlLoader.loadAs(yamlFileContent, ApplicationBean.class);
-                DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
-
-                ApplicationOperations applicationOperations = new ApplicationOperations(cfOperations);
-
-                applicationOperations.create(applicationBean, false);
-                Log.info("App created:", applicationBean.getName());
             } catch (CreationException e) {
                 Log.error("Failed to create message:" + e.getMessage());
             } catch (Exception e) {
