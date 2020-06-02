@@ -10,6 +10,7 @@ import cloud.foundry.cli.crosscutting.beans.SpaceDevelopersBean;
 import cloud.foundry.cli.crosscutting.exceptions.RefResolvingException;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.ConstructorException;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
 import org.yaml.snakeyaml.nodes.Tag;
 import org.yaml.snakeyaml.representer.Representer;
@@ -32,6 +33,7 @@ public class YamlMapper {
      * @param beanType the desired type of the bean to load
      * @throws IOException if the config file cannot be accessed
      * @throws RefResolvingException if an error during the ref-resolution process occurs
+     * @throws ConstructorException if the resolved Object can not be dumped as the given Bean type
      * TODO More Exceptions?
      */
     public static <B extends Bean> B loadBean(String configFilePath, Class<B> beanType) throws IOException {

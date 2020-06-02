@@ -10,6 +10,7 @@ import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import cloud.foundry.cli.crosscutting.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
 import cloud.foundry.cli.operations.ServicesOperations;
+import org.yaml.snakeyaml.constructor.ConstructorException;
 import picocli.CommandLine;
 
 /**
@@ -43,7 +44,7 @@ public class UpdateController implements Runnable {
             try {
                 serviceBean = YamlMapper.loadBean(commandOptions.getYamlFilePath(), ServiceBean.class);
                 //TODO:More Exceptions
-            } catch (IOException | RefResolvingException e) {
+            } catch (IOException | RefResolvingException | ConstructorException e) {
                 Log.exception(e, "Failed to read YAML file");
                 return;
             }

@@ -12,6 +12,7 @@ import cloud.foundry.cli.operations.ApplicationOperations;
 import cloud.foundry.cli.operations.ServicesOperations;
 import cloud.foundry.cli.operations.SpaceDevelopersOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
+import org.yaml.snakeyaml.constructor.ConstructorException;
 import picocli.CommandLine;
 
 import java.io.IOException;
@@ -49,7 +50,7 @@ public class CreateController implements Runnable {
             try {
                 spaceDevelopersBean = YamlMapper.loadBean(commandOptions.getYamlFilePath(), SpaceDevelopersBean.class);
                 //TODO:More Exceptions
-            } catch (IOException | RefResolvingException e) {
+            } catch (IOException | RefResolvingException | ConstructorException e) {
                 Log.exception(e, "Failed to read YAML file");
                 return;
             }
@@ -82,7 +83,7 @@ public class CreateController implements Runnable {
             try {
                 serviceBean = YamlMapper.loadBean(commandOptions.getYamlFilePath(), ServiceBean.class);
                 //TODO:More Exceptions
-            } catch (IOException | RefResolvingException e) {
+            } catch (IOException | RefResolvingException | ConstructorException e) {
                 Log.exception(e, "Failed to read YAML file");
                 return;
             }
@@ -114,7 +115,7 @@ public class CreateController implements Runnable {
             try {
                 applicationBean = YamlMapper.loadBean(commandOptions.getYamlFilePath(), ApplicationBean.class);
                 //TODO:More Exceptions
-            } catch (IOException | RefResolvingException e) {
+            } catch (IOException | RefResolvingException | ConstructorException e) {
                 Log.exception(e, "Failed to read YAML file");
                 return;
             }
