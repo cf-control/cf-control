@@ -31,12 +31,12 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 /**
  * Test for {@link ApplicationOperations}
@@ -67,7 +67,8 @@ public class ApplicationOperationsTest {
         ApplicationSummary summary = createMockApplicationSummary(appManifest);
 
         // now, let's create the mock object from that list
-        DefaultCloudFoundryOperations cfMock = createMockCloudFoundryOperations(List.of(summary), List.of(appManifest));
+        DefaultCloudFoundryOperations cfMock = createMockCloudFoundryOperations(Arrays.asList(summary),
+                Arrays.asList(appManifest));
 
         // now, we can generate a YAML doc for our ApplicationSummary
         ApplicationOperations applicationOperations = new ApplicationOperations(cfMock);
@@ -149,7 +150,7 @@ public class ApplicationOperationsTest {
         //when
         CreationException exception = assertThrows(CreationException.class,
                 () -> applicationOperations.create("appName", applicationsBean, false));
-        assertThat(exception.getMessage(), containsString("Docker password not set"));
+        assertThat(exception.getMessage(), containsString("Docker password is not set"));
     }
 
     @Test
@@ -287,7 +288,6 @@ public class ApplicationOperationsTest {
                     // simple linear search; this is not about performance, really
                     for (ApplicationManifest manifest : manifests) {
                         if (manifest.getName().equals(request.getName())) {
-                            // we need to return a mono mock object so that
                             return Mono.just(manifest);
                         }
                     }
@@ -311,7 +311,8 @@ public class ApplicationOperationsTest {
         // note: here we have to insert a path, too!
         // another note: routes and hosts cannot both be set, so we settle with hosts
         // yet another note: docker image and buildpack cannot both be set, so we settle with buildpack
-        ApplicationManifest manifest = ApplicationManifest.builder()
+
+        return ApplicationManifest.builder()
                 .buildpack("test_buildpack")
                 .command("test command")
                 .disk(1234)
@@ -324,13 +325,12 @@ public class ApplicationOperationsTest {
                 .noRoute(false)
                 .path(Paths.get("/test/uri"))
                 .randomRoute(true)
-                .routes(Route.builder().route("route1").build(), Route.builder().route("route2").build())
+                .routes(Route.builder().route("route1").build(),
+                        Route.builder().route("route2").build())
                 .services("serviceomega")
                 .stack("nope")
                 .timeout(987654321)
                 .build();
-
-        return manifest;
     }
 
     /**
@@ -342,7 +342,7 @@ public class ApplicationOperationsTest {
         // we basically only need the manifest as we need to keep the names the same
         // however, the summary builder complains if a few more attributes aren't set either, so we have to set more
         // than just the name
-        ApplicationSummary summary = ApplicationSummary.builder()
+        return ApplicationSummary.builder()
                 .name(manifest.getName())
                 .diskQuota(100)
                 .id("summary_id")
@@ -351,7 +351,6 @@ public class ApplicationOperationsTest {
                 .requestedState("SOMESTATE")
                 .runningInstances(1)
                 .build();
-        return summary;
     }
 
 }

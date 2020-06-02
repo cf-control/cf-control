@@ -5,21 +5,11 @@ import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.services.CreateServiceInstanceRequest;
-import org.cloudfoundry.operations.services.GetServiceInstanceRequest;
 import org.cloudfoundry.operations.services.RenameServiceInstanceRequest;
 import org.cloudfoundry.operations.services.ServiceInstanceSummary;
 import org.cloudfoundry.operations.services.UpdateServiceInstanceRequest;
 
-import org.cloudfoundry.operations.services.BindServiceInstanceRequest;
-import org.cloudfoundry.operations.services.CreateServiceInstanceRequest;
-import org.cloudfoundry.operations.services.RenameServiceInstanceRequest;
-import org.cloudfoundry.operations.services.UpdateServiceInstanceRequest;
 import reactor.core.publisher.Mono;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.stream.Collectors;
 import java.util.Map;
 
 /**

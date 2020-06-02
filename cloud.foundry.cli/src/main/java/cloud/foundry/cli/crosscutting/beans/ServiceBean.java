@@ -1,8 +1,6 @@
 package cloud.foundry.cli.crosscutting.beans;
 
-import org.cloudfoundry.operations.services.ServiceInstance;
 import org.cloudfoundry.operations.services.ServiceInstanceSummary;
-import org.cloudfoundry.operations.services.ServiceInstanceType;
 
 import java.util.List;
 

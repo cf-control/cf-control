@@ -112,6 +112,7 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
                 .manifest(buildApplicationManifest(appName, bean))
                 .noStart(!shouldStart)
                 .build())
+            //TODO: replace this error handling with a more precise one in a future release, works for now
             // Cloud Foundry Operations Library Throws either IllegalArgumentException or IllegalStateException.
             .onErrorContinue(throwable -> throwable instanceof IllegalArgumentException
                         //Fatal errors, exclude them.
@@ -181,7 +182,7 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
         //TODO: Maybe outsource retrieving env variables to a dedicated class in a future feature.
         String password = System.getenv(DOCKER_PASSWORD_VAR_NAME);
         if (password == null) {
-            throw new NullPointerException("Docker password not set in environment variable: "
+            throw new NullPointerException("Docker password is not set in environment variable: "
                     + DOCKER_PASSWORD_VAR_NAME);
         }
         return password;
@@ -199,7 +200,7 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
      * assertion method
      */
     private boolean appExists(String name) {
-        // If app does not exists an IllegalArgumentException will be thrown.
+        // If app does not exist an IllegalArgumentException will be thrown.
         try {
             this.cloudFoundryOperations
                 .applications()

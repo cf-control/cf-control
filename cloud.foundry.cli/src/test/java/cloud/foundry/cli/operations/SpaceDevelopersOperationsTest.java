@@ -13,9 +13,7 @@ import static org.mockito.Mockito.mock;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.List;
 
-import cloud.foundry.cli.crosscutting.beans.SpaceDevelopersBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import cloud.foundry.cli.crosscutting.exceptions.InvalidOperationException;
 
