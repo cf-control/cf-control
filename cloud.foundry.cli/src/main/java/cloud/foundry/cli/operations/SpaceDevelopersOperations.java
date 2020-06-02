@@ -1,16 +1,16 @@
 package cloud.foundry.cli.operations;
 
-import cloud.foundry.cli.crosscutting.beans.SpaceDevelopersBean;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 
 import cloud.foundry.cli.crosscutting.logging.Log;
 import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperByUsernameRequest;
-import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperByUsernameResponse;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.useradmin.ListSpaceUsersRequest;
 import org.cloudfoundry.operations.useradmin.SpaceUsers;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -46,9 +46,13 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
      *
      * @throws CreationException when assignation was not successful
      * @param username email of user to assign as space developer
+     * @throws NullPointerException when username is null
+     * @throws IllegalArgumentException when username is empty
      */
     public void assignSpaceDeveloper(String username) throws CreationException {
-        assert (username != null && !username.isEmpty());
+        checkNotNull(username);
+        checkArgument(!username.isEmpty(), "Username must not be empty.");
+
         String spaceId = cloudFoundryOperations.getSpaceId().block();
         String organization = cloudFoundryOperations.getOrganization();
         String space = cloudFoundryOperations.getSpace();

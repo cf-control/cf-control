@@ -60,9 +60,10 @@ public class UpdateController implements Runnable {
 
                     String serviceBeanYaml = yamlLoader.dump(mapServiceBean.get(serviceInstanceName));
                     ServiceBean serviceBean = yamlLoader.loadAs(serviceBeanYaml, ServiceBean.class);
+                    // "currentName" is currently a placeholder until diff is implemented
                     servicesOperations.renameServiceInstance(serviceInstanceName, "currentName");
                     servicesOperations.updateServiceInstance(serviceInstanceName, serviceBean);
-                    
+
                 }
             } catch (Exception e) {
                 Log.exception(e, "Unexpected error occurred");

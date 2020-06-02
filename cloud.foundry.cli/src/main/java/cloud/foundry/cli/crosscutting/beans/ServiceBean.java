@@ -17,9 +17,7 @@ public class ServiceBean implements Bean {
     public ServiceBean(ServiceInstance serviceInstance) {
         this.service = serviceInstance.getService();
         this.plan = serviceInstance.getPlan();
-        this.tags = serviceInstance.getTags() == null || serviceInstance.getTags().isEmpty()
-                ? null
-                : serviceInstance.getTags();
+        this.tags = serviceInstance.getTags();
     }
 
     public ServiceBean() {
@@ -46,10 +44,6 @@ public class ServiceBean implements Bean {
     }
 
     public void setTags(List<String> tags) {
-        if (tags == null || tags.isEmpty()) {
-            this.tags = null;
-        }
-
         this.tags = tags;
     }
 }

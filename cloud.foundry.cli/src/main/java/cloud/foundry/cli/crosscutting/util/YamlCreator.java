@@ -13,13 +13,15 @@ import org.yaml.snakeyaml.nodes.NodeTuple;
 import org.yaml.snakeyaml.nodes.Tag;
 import org.yaml.snakeyaml.representer.Representer;
 
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Map;
 
 public class YamlCreator {
     /**
      * Factory function creating a yaml processor with common options for dumping
      * (ensures a consistent output format).
-     * 
+     *
      * @return yaml processor preconfigured with proper dumping options
      */
     public static Yaml createDefaultYamlProcessor() {
@@ -36,10 +38,17 @@ public class YamlCreator {
             @Override
             protected NodeTuple representJavaBeanProperty(Object javaBean, Property property,
                                                           Object propertyValue,Tag customTag) {
-                // if value of property is null, ignore it.
                 if (propertyValue == null) {
+                    // if value of property is null, ignore it.
                     return null;
-                } else {
+                } else if (propertyValue instanceof Collection && ((Collection) propertyValue).isEmpty()) {
+                    // if the content of the property is empty, ignore it.
+                    return null;
+                } else if (propertyValue instanceof Map && ((Map) propertyValue).isEmpty()) {
+                    // if the content of the property is empty, ignore it.
+                    return null;
+                }
+                else {
                     return super.representJavaBeanProperty(javaBean, property, propertyValue, customTag);
                 }
             }
