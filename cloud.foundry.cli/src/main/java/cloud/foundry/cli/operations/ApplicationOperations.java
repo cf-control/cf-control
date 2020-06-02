@@ -48,22 +48,21 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
      * https://projectreactor.io/docs/core/release/reference/index.html#core-features
      * @return Mono object of all applications as list of ApplicationBeans
      */
-    public Mono<List<ApplicationBean>> getAll() {
+    public Mono<Map<String, ApplicationBean>> getAll() {
         return this.cloudFoundryOperations
-                .applications()
-                .list()
-                .flatMap(this::getApplicationManifest)
-                .map(ApplicationBean::new)
-                .collectList();
+            .applications()
+            .list()
+            .flatMap(this::getApplicationManifest)
+            .collectMap(ApplicationManifest::getName, ApplicationBean::new);
     }
 
     private Mono<ApplicationManifest> getApplicationManifest(ApplicationSummary applicationSummary) {
         return this.cloudFoundryOperations
-                .applications()
-                .getApplicationManifest(GetApplicationManifestRequest
-                        .builder()
-                        .name(applicationSummary.getName())
-                        .build());
+            .applications()
+            .getApplicationManifest(GetApplicationManifestRequest
+                .builder()
+                .name(applicationSummary.getName())
+                .build());
     }
 
     /**
@@ -107,34 +106,34 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
 
     private void doCreate(String appName, ApplicationBean bean, boolean shouldStart) {
         this.cloudFoundryOperations
-                .applications()
-                .pushManifest(PushApplicationManifestRequest
-                    .builder()
-                    .manifest(buildApplicationManifest(bean))
-                    .noStart(!shouldStart)
-                    .build())
-                // Cloud Foundry Operations Library Throws either IllegalArgumentException or IllegalStateException.
-                .onErrorContinue(throwable -> throwable instanceof IllegalArgumentException
-                            //Fatal errors, exclude them.
-                            && !throwable.getMessage().contains("Application")
-                            && !throwable.getMessage().contains("Stack"),
+            .applications()
+            .pushManifest(PushApplicationManifestRequest
+                .builder()
+                .manifest(buildApplicationManifest(appName, bean))
+                .noStart(!shouldStart)
+                .build())
+            // Cloud Foundry Operations Library Throws either IllegalArgumentException or IllegalStateException.
+            .onErrorContinue(throwable -> throwable instanceof IllegalArgumentException
+                        //Fatal errors, exclude them.
+                        && !throwable.getMessage().contains("Application")
+                        && !throwable.getMessage().contains("Stack"),
+                (throwable, o) -> Log.warn(throwable.getMessage()))
+            //Error when staging or starting. So don't throw error, only log error.
+            .onErrorContinue(throwable -> throwable instanceof IllegalStateException,
                     (throwable, o) -> Log.warn(throwable.getMessage()))
-                //Error when staging or starting. So don't throw error, only log error.
-                .onErrorContinue(throwable -> throwable instanceof IllegalStateException,
-                        (throwable, o) -> Log.warn(throwable.getMessage()))
-                .block();
+            .block();
     }
 
     private void cleanUp(String appName) {
         // Could fail when app wasn't created, but that's ok, because we just wanted to delete it anyway.
         try {
             this.cloudFoundryOperations
-                    .applications()
-                    .delete(DeleteApplicationRequest
-                            .builder()
-                            .name(appName)
-                            .build())
-                    .block();
+                .applications()
+                .delete(DeleteApplicationRequest
+                    .builder()
+                    .name(appName)
+                    .build())
+                .block();
         } catch (RuntimeException e) {
             Log.exception(e, "Error on cleaning up.");
         }
@@ -144,7 +143,7 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
         ApplicationManifest.Builder builder = ApplicationManifest.builder();
 
         builder
-            .name(bean.getName())
+            .name(appName)
             .path(bean.getPath() == null ? null : Paths.get(bean.getPath()));
 
         if (bean.getManifest() != null) {
@@ -152,10 +151,10 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
                 .command(bean.getManifest().getCommand())
                 .disk(bean.getManifest().getDisk())
                 .docker(Docker.builder()
-                        .image(bean.getManifest().getDockerImage())
-                        .username(bean.getManifest().getDockerUsername())
-                        .password(getDockerPassword(bean))
-                        .build())
+                    .image(bean.getManifest().getDockerImage())
+                    .username(bean.getManifest().getDockerUsername())
+                    .password(getDockerPassword(bean))
+                    .build())
                 .healthCheckHttpEndpoint(bean.getManifest().getHealthCheckHttpEndpoint())
                 .healthCheckType(bean.getManifest().getHealthCheckType())
                 .instances(bean.getManifest().getInstances())
@@ -167,7 +166,7 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
                 .stack(bean.getManifest().getStack())
                 .timeout(bean.getManifest().getTimeout())
                 .putAllEnvironmentVariables(Optional.ofNullable(bean.getManifest().getEnvironmentVariables())
-                        .orElse(Collections.emptyMap()))
+                    .orElse(Collections.emptyMap()))
                 .services(bean.getManifest().getServices());
         }
 
@@ -205,9 +204,9 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
             this.cloudFoundryOperations
                 .applications()
                 .get(GetApplicationRequest
-                        .builder()
-                        .name(name)
-                        .build())
+                    .builder()
+                    .name(name)
+                    .build())
                 .block();
         } catch (IllegalArgumentException e) {
             return false;

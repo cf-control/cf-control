@@ -51,7 +51,7 @@ public class ApplicationOperationsTest {
 
         // forge YAML document
         ApplicationOperations applicationOperations = new ApplicationOperations(cfMock);
-        Map<String, ApplicationBean> apps = applicationOperations.getAll();
+        Map<String, ApplicationBean> apps = applicationOperations.getAll().block();
 
         // check if it's really empty
         assertTrue(apps.isEmpty());
@@ -71,7 +71,7 @@ public class ApplicationOperationsTest {
 
         // now, we can generate a YAML doc for our ApplicationSummary
         ApplicationOperations applicationOperations = new ApplicationOperations(cfMock);
-        Map<String, ApplicationBean> apps = applicationOperations.getAll();
+        Map<String, ApplicationBean> apps = applicationOperations.getAll().block();
 
         // ... and make sure it contains exactly what we'd expect
         assertThat(apps.size(), is(1));

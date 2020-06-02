@@ -50,12 +50,9 @@ class SpaceDevelopersOperationsTest {
         mockGetAllMethod(withDevelopers);
 
         // when
-        SpaceDevelopersBean spaceDevelopersBean = spaceDevelopersOperations.getAll().block();
+        List<String> spaceDevelopers = spaceDevelopersOperations.getAll().block();
 
-        List<String> spaceDevelopers = spaceDevelopersOperations.getAll();
         // then
-        String spaceDevelopers = YamlCreator.createDefaultYamlProcessor().dump(spaceDevelopersBean);
-        assertThat(spaceDevelopers, is("spaceDevelopers:\n- one\n- two\n- three\n"));
         assertThat(spaceDevelopers.size(), is(3));
         assertThat(spaceDevelopers, contains("one", "two", "three"));
     }
@@ -65,12 +62,11 @@ class SpaceDevelopersOperationsTest {
         // given
         List<String> withoutDevelopers = Collections.emptyList();
         mockGetAllMethod(withoutDevelopers);
+
         // when
-        SpaceDevelopersBean spaceDevelopersBean = spaceDevelopersOperations.getAll().block();
-        List<String> spaceDevelopers = spaceDevelopersOperations.getAll();
+        List<String> spaceDevelopers = spaceDevelopersOperations.getAll().block();
+
         // then
-        String spaceDevelopers = YamlCreator.createDefaultYamlProcessor().dump(spaceDevelopersBean);
-        assertThat(spaceDevelopers, is("spaceDevelopers: [\n  ]\n"));
         assertThat(spaceDevelopers.size(), is(0));
     }
 
@@ -174,7 +170,7 @@ class SpaceDevelopersOperationsTest {
         // then
         assertThrows(InvalidOperationException.class, () -> {
             // given - when
-            spaceDevelopersOperations.removeSpaceDeveloper(emptyList());
+            spaceDevelopersOperations.removeSpaceDeveloper(Collections.emptyList());
         });
     }
 

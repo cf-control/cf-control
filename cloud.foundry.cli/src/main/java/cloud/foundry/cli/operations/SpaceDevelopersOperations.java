@@ -20,6 +20,8 @@ import org.cloudfoundry.operations.useradmin.ListSpaceUsersRequest;
 import org.cloudfoundry.operations.useradmin.SpaceUsers;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 
 /**
  * Handles the operations for manipulating space developers on a cloud foundry
@@ -45,7 +47,7 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
      * https://projectreactor.io/docs/core/release/reference/index.html#core-features
      * @return Mono object of SpaceDeveloperBean which contains the space developers
      */
-    public Mono<SpaceDevelopersBean> getAll() {
+    public Mono<List<String>> getAll() {
         ListSpaceUsersRequest request = ListSpaceUsersRequest.builder()
             .spaceName(cloudFoundryOperations.getSpace())
             .organizationName(cloudFoundryOperations.getOrganization())
@@ -54,7 +56,7 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
         return cloudFoundryOperations
             .userAdmin()
             .listSpaceUsers(request)
-            .map(spaceUsers -> new SpaceDevelopersBean(spaceUsers.getDevelopers()));
+            .map(SpaceUsers::getDevelopers);
     }
 
     /**

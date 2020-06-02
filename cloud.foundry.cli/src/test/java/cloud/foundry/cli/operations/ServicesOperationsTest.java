@@ -53,7 +53,7 @@ public class ServicesOperationsTest {
         ServicesOperations servicesOperations = new ServicesOperations(cfMock);
 
         // when
-        List<ServiceBean> serviceBeans = servicesOperations.getAll().block();
+        Map<String, ServiceBean> services = servicesOperations.getAll().block();
 
         // then
         assertThat(services.size(), is(1));
@@ -71,15 +71,9 @@ public class ServicesOperationsTest {
         ServicesOperations servicesOperations = new ServicesOperations(cfMock);
 
         // when
-        List<ServiceBean> serviceBeans = servicesOperations.getAll().block();
+        Map<String, ServiceBean> services = servicesOperations.getAll().block();
 
-        ServicesOperations servicesOperations = new ServicesOperations(cfMock);
-        Map<String, ServiceBean> services = servicesOperations.getAll();
         // then
-        // FIXME: it should return just an empty bracket like []
-        String s = YamlCreator.createDefaultYamlProcessor().dump(serviceBeans);
-        assertEquals("[\n  ]\n", s);
-        // FIXME: it should return just an empty bracket like {]
         assertTrue(services.isEmpty());
     }
 
@@ -165,21 +159,6 @@ public class ServicesOperationsTest {
         // then
         verify(servicesMock, times(1)).renameInstance(any(RenameServiceInstanceRequest.class));
         verify(monoRenamed, times(1)).block();
-    }
-
-    private ServiceInstance getServiceInstanceMock() {
-        ServiceInstance serviceInstanceMock = mock(ServiceInstance.class);
-
-        when(serviceInstanceMock.getLastOperation()).thenReturn("create");
-        when(serviceInstanceMock.getStatus()).thenReturn("succeeded");
-        Mockito.when(serviceInstanceMock.getName()).thenReturn("serviceName");
-        Mockito.when(serviceInstanceMock.getPlan()).thenReturn("standardPlan");
-        Mockito.when(serviceInstanceMock.getService()).thenReturn("service");
-        LinkedList<String> tags = new LinkedList<>();
-        tags.add("tag");
-        Mockito.when(serviceInstanceMock.getTags()).thenReturn(tags);
-        Mockito.when(serviceInstanceMock.getType()).thenReturn(ServiceInstanceType.MANAGED);
-        return serviceInstanceMock;
     }
 
     private ServiceBean getServiceBeanMock() {

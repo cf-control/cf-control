@@ -38,30 +38,30 @@ public class AllInformationOperations extends AbstractOperations<DefaultCloudFou
      *
      * @return ConfigBean
      */
-    public GetAllBean getAll() {
+    public ConfigBean getAll() {
         SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cloudFoundryOperations);
         ServicesOperations servicesOperations = new ServicesOperations(cloudFoundryOperations);
         ApplicationOperations applicationOperations = new ApplicationOperations(cloudFoundryOperations);
 
         Mono<String> apiVersion = determineApiVersion();
-        Mono<SpaceDevelopersBean> spaceDevelopers = spaceDevelopersOperations.getAll();
-        Mono<List<ServiceBean>> services = servicesOperations.getAll();
-        Mono<List<ApplicationBean>> apps = applicationOperations.getAll();
+        Mono<List<String>> spaceDevelopers = spaceDevelopersOperations.getAll();
+        Mono<Map<String, ServiceBean>> services = servicesOperations.getAll();
+        Mono<Map<String, ApplicationBean>> apps = applicationOperations.getAll();
 
-        GetAllBean allInformation = new GetAllBean();
-        Map<String, Object> spec = new HashMap<>();
+        ConfigBean configBean = new ConfigBean();
+        SpecBean specBean = new SpecBean();
 
         // start async querying of config data from the cloud foundry instance
-        Flux.merge(apiVersion.doOnSuccess(allInformation::setApiVersion),
-                spaceDevelopers.doOnSuccess(s -> spec.put(SPACE_DEVELOPERS, s.getSpaceDevelopers())),
-                services.doOnSuccess(s -> spec.put(SERVICES, s)),
-                apps.doOnSuccess(a ->  spec.put(APPLICATIONS, a)))
+        Flux.merge(apiVersion.doOnSuccess(configBean::setApiVersion),
+                spaceDevelopers.doOnSuccess(s -> specBean.setSpaceDevelopers(s)),
+                services.doOnSuccess(specBean::setServices),
+                apps.doOnSuccess(specBean::setApps))
             .blockLast();
 
-        allInformation.setSpec(spec);
-        allInformation.setTarget(determineTarget());
+        configBean.setSpec(specBean);
+        configBean.setTarget(determineTarget());
 
-        return allInformation;
+        return configBean;
     }
 
     /**

@@ -39,12 +39,11 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      * https://projectreactor.io/docs/core/release/reference/index.html#core-features
      * @return Mono object of all services as list of ServiceBeans
      */
-    public Mono<List<ServiceBean>> getAll() {
+    public Mono<Map<String, ServiceBean>> getAll() {
         return this.cloudFoundryOperations
                 .services()
                 .listInstances()
-                .map(ServiceBean::new)
-                .collectList();
+                .collectMap(ServiceInstanceSummary::getName, ServiceBean::new);
     }
 
     /**
@@ -106,10 +105,6 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
     public void updateServiceInstance(String serviceInstanceName, ServiceBean serviceBean) throws CreationException {
 
         UpdateServiceInstanceRequest updateServiceInstanceRequest = UpdateServiceInstanceRequest.builder()
-            .serviceInstanceName(serviceBean.getName())
-            .tags(serviceBean.getTags())
-            .planName(serviceBean.getPlan())
-            .build();
             .serviceInstanceName(serviceInstanceName)
             .tags(serviceBean.getTags())
             .planName(serviceBean.getPlan())

@@ -50,8 +50,7 @@ public class GetController implements Runnable {
             try {
                 DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
                 SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
-                List<String> spaceDevelopers = spaceDevelopersOperations.getAll();
-                Mono<SpaceDevelopersBean> spaceDevelopers = spaceDevelopersOperations.getAll();
+                Mono<List<String>> spaceDevelopers = spaceDevelopersOperations.getAll();
 
                 System.out.println(YamlCreator.createDefaultYamlProcessor().dump(spaceDevelopers.block()));
             } catch (Exception e) {
@@ -70,8 +69,7 @@ public class GetController implements Runnable {
             try {
                 DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
                 ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
-                Mono<List<ServiceBean>> services = servicesOperations.getAll();
-                Map<String,ServiceBean> services = servicesOperations.getAll();
+                Mono<Map<String,ServiceBean>> services = servicesOperations.getAll();
 
                 System.out.println(YamlCreator.createDefaultYamlProcessor().dump(services.block()));
             } catch (Exception e) {
@@ -90,8 +88,7 @@ public class GetController implements Runnable {
             try {
                 DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
                 ApplicationOperations applicationOperations = new ApplicationOperations(cfOperations);
-                Mono<List<ApplicationBean>> applications = applicationOperations.getAll();
-                Map<String, ApplicationBean> applications = applicationOperations.getAll();
+                Mono<Map<String, ApplicationBean>> applications = applicationOperations.getAll();
 
                 System.out.println(YamlCreator.createDefaultYamlProcessor().dump(applications.block()));
             } catch (Exception e) {
