@@ -34,7 +34,6 @@ public class YamlMapper {
      * @throws IOException if the config file cannot be accessed
      * @throws RefResolvingException if an error during the ref-resolution process occurs
      * @throws ConstructorException if the resolved Object can not be dumped as the given Bean type
-     * TODO More Exceptions?
      */
     public static <B extends Bean> B loadBean(String configFilePath, Class<B> beanType) throws IOException {
         Object yamlTreeRoot = loadYamlTree(configFilePath);
@@ -66,7 +65,6 @@ public class YamlMapper {
      *
      * @param object the instance to dump
      * @return the contents of the parameter as a string
-     * @throws Exception TODO
      */
     public static String dump(Object object) {
         Yaml defaultYamlDumper = createDefaultDumper();
@@ -103,7 +101,7 @@ public class YamlMapper {
         DumperOptions options = new DumperOptions();
         // do not dump tags into the document
         options.setTags(new HashMap<>());
-        // indentation aids readability
+        // minimal indentation needed as this does not serve as output to the user
         options.setIndent(1);
         return new Yaml(options);
     }

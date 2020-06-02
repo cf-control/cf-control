@@ -113,9 +113,9 @@ public class RefResolverTest {
     public void testUnreachableUrlRef() throws IOException {
         Object treeRoot = parseYamlFileAsTree(RESOURCES_PATH + REFRESOLVER_FOLDER + "UnreachableUrlRef.yaml");
 
-        assertThrows(RefResolvingException.class,
+        RefResolvingException refResolvingException = assertThrows(RefResolvingException.class,
                 () -> RefResolver.resolveRefs(treeRoot));
-        // TODO check specific type of cause
+        assertThat(refResolvingException.getCause(), is(instanceOf(IOException.class)));
     }
 
     @Test
