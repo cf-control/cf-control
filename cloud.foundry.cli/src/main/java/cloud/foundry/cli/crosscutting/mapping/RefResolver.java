@@ -1,7 +1,5 @@
 package cloud.foundry.cli.crosscutting.mapping;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import cloud.foundry.cli.crosscutting.exceptions.RefResolvingException;
 import cloud.foundry.cli.crosscutting.exceptions.YamlTreeNodeNotFoundException;
 import cloud.foundry.cli.crosscutting.logging.Log;
@@ -76,8 +74,8 @@ public class RefResolver implements YamlTreeVisitor {
                     " type string");
         }
         String refValue = (String) refValueNode;
-        String filePath = getFilePath(refValue);
-        YamlPointer yamlPointer = getYamlPointer(refValue);
+        String filePath = extractFilePath(refValue);
+        YamlPointer yamlPointer = extractYamlPointer(refValue);
 
         Log.debug("Reading content of", filePath);
         Object referredYamlTree;
@@ -98,7 +96,7 @@ public class RefResolver implements YamlTreeVisitor {
         overridingNode = referredYamlTree;
     }
 
-    private String getFilePath(String refValue) {
+    private String extractFilePath(String refValue) {
         int beginningOfPointerIndex = refValue.lastIndexOf(YamlPointer.POINTER_START);
         if (beginningOfPointerIndex == -1) {
             return refValue;
@@ -107,7 +105,7 @@ public class RefResolver implements YamlTreeVisitor {
         }
     }
 
-    private YamlPointer getYamlPointer(String refValue) {
+    private YamlPointer extractYamlPointer(String refValue) {
         int beginningOfPointerIndex = refValue.lastIndexOf(YamlPointer.POINTER_START);
         if (beginningOfPointerIndex == -1) {
             return null;
