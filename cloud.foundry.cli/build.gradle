@@ -58,6 +58,8 @@ dependencies {
 
     compile 'org.cloudfoundry:cloudfoundry-client-reactor:4.6.0.RELEASE'
     compile 'org.cloudfoundry:cloudfoundry-operations:4.6.0.RELEASE'
+
+    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.0'
 }
 
 test {

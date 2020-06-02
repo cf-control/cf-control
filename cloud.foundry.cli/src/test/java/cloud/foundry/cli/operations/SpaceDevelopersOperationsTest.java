@@ -13,11 +13,13 @@ import static org.mockito.Mockito.mock;
 import java.util.Arrays;
 
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
+import cloud.foundry.cli.crosscutting.exceptions.InvalidOperationException;
 import cloud.foundry.cli.crosscutting.util.YamlCreator;
 
 import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperByUsernameRequest;
 import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperByUsernameResponse;
+import org.cloudfoundry.client.v2.spaces.RemoveSpaceDeveloperByUsernameResponse;
 import org.cloudfoundry.client.v2.spaces.Spaces;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.useradmin.SpaceUsers;
@@ -82,9 +84,9 @@ class SpaceDevelopersOperationsTest {
         when(cfClientMock.spaces()).thenReturn(spacesMock);
         Mono<AssociateSpaceDeveloperByUsernameResponse> monoMock = mock(Mono.class);
         when(spacesMock.associateDeveloperByUsername(any()))
-            .thenReturn(monoMock);
+                .thenReturn(monoMock);
         AssociateSpaceDeveloperByUsernameResponse associateSpaceDeveloperByUsernameReponsetMock = mock(
-            AssociateSpaceDeveloperByUsernameResponse.class);
+                AssociateSpaceDeveloperByUsernameResponse.class);
         when(monoMock.block()).thenReturn(associateSpaceDeveloperByUsernameReponsetMock);
         // call
         spaceDevelopersOperations.assignSpaceDeveloper("six");
@@ -104,12 +106,12 @@ class SpaceDevelopersOperationsTest {
         Spaces spacesMock = mock(Spaces.class);
         when(cfClientMock.spaces()).thenReturn(spacesMock);
         AssociateSpaceDeveloperByUsernameRequest associateSpaceDeveloperByUsernameRequest = mock(
-            AssociateSpaceDeveloperByUsernameRequest.class);
+                AssociateSpaceDeveloperByUsernameRequest.class);
         Mono<AssociateSpaceDeveloperByUsernameResponse> monoMock = mock(Mono.class);
         when(spacesMock.associateDeveloperByUsername(associateSpaceDeveloperByUsernameRequest))
-            .thenReturn(monoMock);
+                .thenReturn(monoMock);
         AssociateSpaceDeveloperByUsernameResponse associateSpaceDeveloperByUsernameReponsetMock = mock(
-            AssociateSpaceDeveloperByUsernameResponse.class);
+                AssociateSpaceDeveloperByUsernameResponse.class);
         when(monoMock.block()).thenReturn(associateSpaceDeveloperByUsernameReponsetMock);
         // then
         assertThrows(CreationException.class, () -> {
@@ -117,9 +119,55 @@ class SpaceDevelopersOperationsTest {
         });
     }
 
+    @Test
+    public void testRemoveSpaceDeveloper() throws InvalidOperationException {
+        // given
+        CloudFoundryClient cfClientMock = mock(CloudFoundryClient.class);
+        when(cfOperationsMock.getCloudFoundryClient()).thenReturn(cfClientMock);
+
+        Spaces spacesMock = mock(Spaces.class);
+        when(cfClientMock.spaces()).thenReturn(spacesMock);
+
+        Mono<RemoveSpaceDeveloperByUsernameResponse> monoMock = mock(Mono.class);
+        when(spacesMock.removeDeveloperByUsername(any())).thenReturn(monoMock);
+        when(cfOperationsMock.getCloudFoundryClient().spaces().removeDeveloperByUsername(any())).thenReturn(monoMock);
+
+        RemoveSpaceDeveloperByUsernameResponse removeSpaceDeveloperByUsernameResponseMock =
+                mock(RemoveSpaceDeveloperByUsernameResponse.class);
+        when(monoMock.block()).thenReturn(removeSpaceDeveloperByUsernameResponseMock);
+
+        // when
+        spaceDevelopersOperations.removeSpaceDeveloper(Arrays.asList("one", "two"));
+
+        // then
+        verify(spacesMock, times(2)).removeDeveloperByUsername(any());
+        verify(monoMock, times(2)).block();
+    }
+
+    @Test
+    public void testRemoveSpaceDeveloperShouldThrowAnInvalidOperationExceptionWhenSpaceIdIsBlank() {
+        // given
+        when(cfOperationsMock.getSpaceId()).thenReturn(Mono.just(""));
+
+        // then
+        assertThrows(InvalidOperationException.class, () -> {
+            // when
+            spaceDevelopersOperations.removeSpaceDeveloper(Arrays.asList("one", "two"));
+        });
+    }
+
+    @Test
+    public void testRemoveSpaceDeveloperShouldThrowAnInvalidOperationExceptionWhenArgumentIsEmpty() {
+        // then
+        assertThrows(InvalidOperationException.class, () -> {
+            // given - when
+            spaceDevelopersOperations.removeSpaceDeveloper(emptyList());
+        });
+    }
+
     /**
      * Mock the DefaultCloudFoundryOperations
-     * 
+     *
      * @return DefaultCloudFoundryOperations
      */
     private static DefaultCloudFoundryOperations mockDefaultCloudFoundryOperations() {
@@ -132,7 +180,7 @@ class SpaceDevelopersOperationsTest {
 
     /**
      * Mock the SpaceUsers
-     * 
+     *
      * @param cfOperationsMock
      * @return SpaceUsers
      */

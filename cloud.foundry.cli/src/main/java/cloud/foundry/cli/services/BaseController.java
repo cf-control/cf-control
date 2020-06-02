@@ -20,7 +20,6 @@ public class BaseController implements Runnable {
     public void run() {
         // this code is executed if the user just runs the app
         CommandLine.usage(this, System.out);
-        return;
     }
 
     public static void main(String[] args) {
