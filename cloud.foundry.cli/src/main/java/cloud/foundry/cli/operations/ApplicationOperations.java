@@ -41,10 +41,11 @@ public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundr
 
     /**
      * This method fetches applications data from the cloud foundry instance.
-     * To retrieve data given by the Mono object you can use subscription methods (block, subscribe, etc.)
-     * provided by the reactor library method.
+     * To retrieve data given by the Mono object you can use the subscription methods (block, subscribe, etc.) provided
+     * by the reactor library.
      * For more details on how to work with Mono's visit:
-     * @return Mono object of ApplicationBeans
+     * https://projectreactor.io/docs/core/release/reference/index.html#core-features
+     * @return Mono object of all applications as list of ApplicationBeans
      */
     public Mono<List<ApplicationBean>> getAll() {
         return this.cloudFoundryOperations
