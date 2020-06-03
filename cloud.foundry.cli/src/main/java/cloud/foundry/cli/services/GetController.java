@@ -3,7 +3,6 @@ package cloud.foundry.cli.services;
 import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.beans.ConfigBean;
 import cloud.foundry.cli.crosscutting.beans.ServiceBean;
-import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
 import cloud.foundry.cli.crosscutting.util.YamlCreator;
 import cloud.foundry.cli.operations.AllInformationOperations;
@@ -17,6 +16,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 /**
  * This class realizes the functionality that is needed for the get commands. They provide various information about a
@@ -30,89 +30,79 @@ import java.util.Map;
                 GetController.GetSpaceDevelopersCommand.class,
                 GetController.GetApplicationsCommand.class,
                 GetController.GetAllInformation.class})
-public class GetController implements Runnable {
+public class GetController implements Callable<Integer> {
 
     @Override
-    public void run() {
-        // this code is executed if the user runs the get command without specifying any sub-command
+    public Integer call() throws Exception {
+        // by default, return all information
+        // this is a convenient shortcut
+        return (new GetController.GetAllInformation()).call();
     }
 
     @Command(name = "space-developers",
             description = "List all space developers in the target space.",
             mixinStandardHelpOptions = true
     )
-    static class GetSpaceDevelopersCommand implements Runnable {
+    static class GetSpaceDevelopersCommand implements Callable<Integer> {
         @Mixin
         LoginCommandOptions loginOptions;
 
         @Override
-        public void run() {
-            try {
-                DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
-                SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
-                Mono<List<String>> spaceDevelopers = spaceDevelopersOperations.getAll();
+        public Integer call() throws Exception {
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+            SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
+            Mono<List<String>> spaceDevelopers = spaceDevelopersOperations.getAll();
 
-                System.out.println(YamlCreator.createDefaultYamlProcessor().dump(spaceDevelopers.block()));
-            } catch (Exception e) {
-                Log.exception(e, "Unexpected error occurred");
-            }
+            System.out.println(YamlCreator.createDefaultYamlProcessor().dump(spaceDevelopers.block()));
+            return 0;
         }
     }
 
     @Command(name = "services", description = "List all services in the target space.")
-    static class GetServicesCommand implements Runnable {
+    static class GetServicesCommand implements Callable<Integer> {
         @Mixin
         LoginCommandOptions loginOptions;
 
         @Override
-        public void run() {
-            try {
-                DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
-                ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
-                Mono<Map<String,ServiceBean>> services = servicesOperations.getAll();
+        public Integer call() throws Exception {
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+            ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
+            Mono<Map<String,ServiceBean>> services = servicesOperations.getAll();
 
-                System.out.println(YamlCreator.createDefaultYamlProcessor().dump(services.block()));
-            } catch (Exception e) {
-                Log.exception(e, "Unexpected error occurred");
-            }
+            System.out.println(YamlCreator.createDefaultYamlProcessor().dump(services.block()));
+            return 0;
         }
     }
 
     @Command(name = "applications", description = "List all applications in the target space.")
-    static class GetApplicationsCommand implements Runnable {
+    static class GetApplicationsCommand implements Callable<Integer> {
         @Mixin
         LoginCommandOptions loginOptions;
 
         @Override
-        public void run() {
-            try {
-                DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
-                ApplicationOperations applicationOperations = new ApplicationOperations(cfOperations);
-                Mono<Map<String, ApplicationBean>> applications = applicationOperations.getAll();
+        public Integer call() throws Exception {
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+            ApplicationOperations applicationOperations = new ApplicationOperations(cfOperations);
+            Mono<Map<String, ApplicationBean>> applications = applicationOperations.getAll();
 
-                System.out.println(YamlCreator.createDefaultYamlProcessor().dump(applications.block()));
-            } catch (Exception e) {
-                Log.exception(e, "Unexpected error occurred");
-            }
+            System.out.println(YamlCreator.createDefaultYamlProcessor().dump(applications.block()));
+            return 0;
         }
     }
 
     @Command(name = "all", description = "show all information in the target space")
-    static class GetAllInformation implements Runnable {
+    static class GetAllInformation implements Callable<Integer> {
         @Mixin
         LoginCommandOptions loginOptions;
 
         @Override
-        public void run() {
-            try {
-                DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
-                AllInformationOperations allInformationOperations = new AllInformationOperations(cfOperations);
-                ConfigBean allInformation = allInformationOperations.getAll();
+        public Integer call() throws Exception {
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+            AllInformationOperations allInformationOperations = new AllInformationOperations(cfOperations);
+            ConfigBean allInformation = allInformationOperations.getAll();
 
-                System.out.println(YamlCreator.createDefaultYamlProcessor().dump(allInformation));
-            } catch (Exception e) {
-                Log.exception(e, "Unexpected error occurred");
-            }
+            System.out.println(YamlCreator.createDefaultYamlProcessor().dump(allInformation));
+            return 0;
         }
     }
 }
