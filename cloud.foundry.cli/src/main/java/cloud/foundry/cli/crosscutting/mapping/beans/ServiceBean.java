@@ -1,6 +1,6 @@
 package cloud.foundry.cli.crosscutting.mapping.beans;
 
-import org.cloudfoundry.operations.services.ServiceInstance;
+import org.cloudfoundry.operations.services.ServiceInstanceSummary;
 
 import java.util.List;
 
@@ -13,10 +13,10 @@ public class ServiceBean implements Bean {
     private String plan;
     private List<String> tags;
 
-    public ServiceBean(ServiceInstance serviceInstance) {
-        this.service = serviceInstance.getService();
-        this.plan = serviceInstance.getPlan();
-        this.tags = serviceInstance.getTags();
+    public ServiceBean(ServiceInstanceSummary serviceInstanceSummary) {
+        this.service = serviceInstanceSummary.getService();
+        this.plan = serviceInstanceSummary.getPlan();
+        this.tags = serviceInstanceSummary.getTags();
     }
 
     public ServiceBean() {

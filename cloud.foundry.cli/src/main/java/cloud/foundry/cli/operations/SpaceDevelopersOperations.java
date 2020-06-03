@@ -20,6 +20,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.List;
 
+
 /**
  * Handles the operations for manipulating space developers on a cloud foundry
  * instance.
@@ -37,22 +38,23 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
     }
 
     /**
-     * List all space developers
-     *
-     * @return list of space developers
+     * This method fetches space developers from the cloud foundry instance.
+     * To retrieve data given by the Mono object you can use the subscription methods (block, subscribe, etc.) provided
+     * by the reactor library.
+     * For more details on how to work with Mono's visit:
+     * https://projectreactor.io/docs/core/release/reference/index.html#core-features
+     * @return Mono object of SpaceDeveloperBean which contains the space developers
      */
-    public List<String> getAll() {
+    public Mono<List<String>> getAll() {
         ListSpaceUsersRequest request = ListSpaceUsersRequest.builder()
             .spaceName(cloudFoundryOperations.getSpace())
             .organizationName(cloudFoundryOperations.getOrganization())
             .build();
-        List<String> spaceDevelopers = cloudFoundryOperations
+
+        return cloudFoundryOperations
             .userAdmin()
             .listSpaceUsers(request)
-            .block()
-            .getDevelopers();
-
-        return spaceDevelopers;
+            .map(SpaceUsers::getDevelopers);
     }
 
     /**

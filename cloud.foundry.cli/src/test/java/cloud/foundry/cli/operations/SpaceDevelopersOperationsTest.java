@@ -5,13 +5,13 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static java.util.Collections.emptyList;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.mock;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
@@ -23,6 +23,7 @@ import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperByUsernameRespon
 import org.cloudfoundry.client.v2.spaces.RemoveSpaceDeveloperByUsernameResponse;
 import org.cloudfoundry.client.v2.spaces.Spaces;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
+import org.cloudfoundry.operations.useradmin.ListSpaceUsersRequest;
 import org.cloudfoundry.operations.useradmin.SpaceUsers;
 import org.cloudfoundry.operations.useradmin.UserAdmin;
 import org.junit.jupiter.api.BeforeAll;
@@ -43,10 +44,12 @@ class SpaceDevelopersOperationsTest {
     @Test
     public void testGetSpaceDevelopers() {
         // given
-        SpaceUsers spaceUsersMock = mockSpaceUsers(cfOperationsMock);
-        when(spaceUsersMock.getDevelopers()).thenReturn(Arrays.asList("one", "two", "three"));
+        List<String> withDevelopers = List.of("one", "two", "three");
+        mockGetAllMethod(withDevelopers);
+
         // when
-        List<String> spaceDevelopers = spaceDevelopersOperations.getAll();
+        List<String> spaceDevelopers = spaceDevelopersOperations.getAll().block();
+
         // then
         assertThat(spaceDevelopers.size(), is(3));
         assertThat(spaceDevelopers, contains("one", "two", "three"));
@@ -55,10 +58,12 @@ class SpaceDevelopersOperationsTest {
     @Test
     public void testGetSpaceDevelopers_WithEmptyList() {
         // given
-        SpaceUsers spaceUsersMock = mockSpaceUsers(cfOperationsMock);
-        when(spaceUsersMock.getDevelopers()).thenReturn(emptyList());
+        List<String> withoutDevelopers = Collections.emptyList();
+        mockGetAllMethod(withoutDevelopers);
+
         // when
-        List<String> spaceDevelopers = spaceDevelopersOperations.getAll();
+        List<String> spaceDevelopers = spaceDevelopersOperations.getAll().block();
+
         // then
         assertThat(spaceDevelopers.size(), is(0));
     }
@@ -86,9 +91,9 @@ class SpaceDevelopersOperationsTest {
         when(cfClientMock.spaces()).thenReturn(spacesMock);
         Mono<AssociateSpaceDeveloperByUsernameResponse> monoMock = mock(Mono.class);
         when(spacesMock.associateDeveloperByUsername(any()))
-            .thenReturn(monoMock);
+                .thenReturn(monoMock);
         AssociateSpaceDeveloperByUsernameResponse associateSpaceDeveloperByUsernameReponsetMock = mock(
-            AssociateSpaceDeveloperByUsernameResponse.class);
+                AssociateSpaceDeveloperByUsernameResponse.class);
         when(monoMock.block()).thenReturn(associateSpaceDeveloperByUsernameReponsetMock);
         // call
         spaceDevelopersOperations.assignSpaceDeveloper("six");
@@ -100,7 +105,7 @@ class SpaceDevelopersOperationsTest {
     }
 
     @Test
-    public void testAssignSpaceDeveloper_ThrowException() throws CreationException {
+    public void testAssignSpaceDeveloper_ThrowException() {
         SpaceUsers spaceUsersMock = mockSpaceUsers(cfOperationsMock);
         when(spaceUsersMock.getDevelopers()).thenReturn(Arrays.asList("one", "two", "three"));
         CloudFoundryClient cfClientMock = mock(CloudFoundryClient.class);
@@ -163,7 +168,7 @@ class SpaceDevelopersOperationsTest {
         // then
         assertThrows(InvalidOperationException.class, () -> {
             // given - when
-            spaceDevelopersOperations.removeSpaceDeveloper(emptyList());
+            spaceDevelopersOperations.removeSpaceDeveloper(Collections.emptyList());
         });
     }
 
@@ -174,9 +179,11 @@ class SpaceDevelopersOperationsTest {
      */
     private static DefaultCloudFoundryOperations mockDefaultCloudFoundryOperations() {
         DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
+
         when(cfOperationsMock.getSpace()).thenReturn("development");
         when(cfOperationsMock.getOrganization()).thenReturn("cloud.foundry.cli");
         when(cfOperationsMock.getSpaceId()).thenReturn(Mono.just("1"));
+
         return cfOperationsMock;
     }
 
@@ -186,13 +193,28 @@ class SpaceDevelopersOperationsTest {
      * @param cfOperationsMock
      * @return SpaceUsers
      */
-    private static SpaceUsers mockSpaceUsers(DefaultCloudFoundryOperations cfOperationsMock) {
+    private SpaceUsers mockSpaceUsers(DefaultCloudFoundryOperations cfOperationsMock) {
         UserAdmin userAdminMock = mock(UserAdmin.class);
-        when(cfOperationsMock.userAdmin()).thenReturn(userAdminMock);
         Mono<SpaceUsers> monoMock = mock(Mono.class);
-        when(userAdminMock.listSpaceUsers(any())).thenReturn(monoMock);
         SpaceUsers spaceUsersMock = mock(SpaceUsers.class);
+
+        when(cfOperationsMock.userAdmin()).thenReturn(userAdminMock);
+        when(userAdminMock.listSpaceUsers(any())).thenReturn(monoMock);
         when(monoMock.block()).thenReturn(spaceUsersMock);
+
         return spaceUsersMock;
+    }
+
+    private UserAdmin mockGetAllMethod(List<String> developers) {
+        UserAdmin userAdminMock = mock(UserAdmin.class);
+
+        when(cfOperationsMock.userAdmin()).thenReturn(userAdminMock);
+        when(userAdminMock.listSpaceUsers(any(ListSpaceUsersRequest.class)))
+                .thenReturn(Mono.just(SpaceUsers
+                        .builder()
+                        .addAllDevelopers(developers)
+                        .build()));
+
+        return userAdminMock;
     }
 }

@@ -15,3 +15,8 @@ script:
   # our source code is currently in a subdirectory
   - cd cloud.foundry.cli
   - ./gradlew build
+  
+# send testreport to coveralls
+after_success:
+- ./gradlew jacocoTestReport coveralls
+

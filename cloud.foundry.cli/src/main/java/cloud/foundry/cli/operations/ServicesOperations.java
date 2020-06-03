@@ -2,19 +2,14 @@ package cloud.foundry.cli.operations;
 
 import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
-import org.cloudfoundry.operations.services.ServiceInstance;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.services.CreateServiceInstanceRequest;
-import org.cloudfoundry.operations.services.GetServiceInstanceRequest;
 import org.cloudfoundry.operations.services.RenameServiceInstanceRequest;
 import org.cloudfoundry.operations.services.ServiceInstanceSummary;
 import org.cloudfoundry.operations.services.UpdateServiceInstanceRequest;
 
 import reactor.core.publisher.Mono;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -27,38 +22,18 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
     }
 
     /**
-     * @return all service instances in the space
+     * This method fetches services data from the cloud foundry instance.
+     * To retrieve data given by the Mono object you can use the subscription methods (block, subscribe, etc.) provided
+     * by the reactor library.
+     * For more details on how to work with Mono's visit:
+     * https://projectreactor.io/docs/core/release/reference/index.html#core-features
+     * @return Mono object of all services as list of ServiceBeans
      */
-    public Map<String, ServiceBean> getAll() {
-        List<ServiceInstanceSummary> services = this.cloudFoundryOperations
-            .services()
-            .listInstances()
-            .collectList()
-            .block();
-
-        if (services == null) {
-            services = new LinkedList<>();
-        }
-
-        // create a map of special bean data objects, as the summaries cannot be serialized directly
-        Map<String, ServiceBean> mapBeans = new HashMap<>();
-
-        for (ServiceInstanceSummary serviceInstanceSummary : services) {
-
-            GetServiceInstanceRequest getServiceInstanceRequest = GetServiceInstanceRequest.builder()
-                .name(serviceInstanceSummary.getName())
-                .build();
-            ServiceInstance serviceInstance = this.cloudFoundryOperations
+    public Mono<Map<String, ServiceBean>> getAll() {
+        return this.cloudFoundryOperations
                 .services()
-                .getInstance(getServiceInstanceRequest)
-                .block();
-
-            ServiceBean serviceBean = new ServiceBean(serviceInstance);
-            mapBeans.put(serviceInstance.getName(), serviceBean);
-        }
-
-        return mapBeans;
-
+                .listInstances()
+                .collectMap(ServiceInstanceSummary::getName, ServiceBean::new);
     }
 
     /**
@@ -127,8 +102,8 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
 
         try {
             this.cloudFoundryOperations.services()
-                .updateInstance(updateServiceInstanceRequest)
-                .block();
+                    .updateInstance(updateServiceInstanceRequest)
+                    .block();
             Log.info("Service Plan and Tags haven been updated");
         } catch (RuntimeException e) {
             throw new CreationException(e.getMessage());

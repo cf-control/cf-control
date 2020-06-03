@@ -15,11 +15,13 @@ import cloud.foundry.cli.operations.ServicesOperations;
 import cloud.foundry.cli.operations.SpaceDevelopersOperations;
 import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.client.v2.info.GetInfoRequest;
+import org.cloudfoundry.client.v2.info.GetInfoResponse;
 import org.cloudfoundry.client.v2.info.Info;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.reactor.DefaultConnectionContext;
 import org.cloudfoundry.reactor.client.ReactorCloudFoundryClient;
-
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 /**
  * Handles the operations to receive all configuration-information from a cloud
@@ -37,12 +39,29 @@ public class GetLogic extends AbstractOperations<DefaultCloudFoundryOperations> 
      * @return ConfigBean
      */
     public ConfigBean getAll() {
-        ConfigBean allInformation = new ConfigBean();
-        allInformation.setApiVersion(determineApiVersion());
-        allInformation.setTarget(determineTarget());
-        allInformation.setSpec(determineSpec());
+        SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cloudFoundryOperations);
+        ServicesOperations servicesOperations = new ServicesOperations(cloudFoundryOperations);
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cloudFoundryOperations);
 
-        return allInformation;
+        Mono<String> apiVersion = determineApiVersion();
+        Mono<List<String>> spaceDevelopers = spaceDevelopersOperations.getAll();
+        Mono<Map<String, ServiceBean>> services = servicesOperations.getAll();
+        Mono<Map<String, ApplicationBean>> apps = applicationsOperations.getAll();
+
+        ConfigBean configBean = new ConfigBean();
+        SpecBean specBean = new SpecBean();
+
+        // start async querying of config data from the cloud foundry instance
+        Flux.merge(apiVersion.doOnSuccess(configBean::setApiVersion),
+                spaceDevelopers.doOnSuccess(s -> specBean.setSpaceDevelopers(s)),
+                services.doOnSuccess(specBean::setServices),
+                apps.doOnSuccess(specBean::setApps))
+            .blockLast();
+
+        configBean.setSpec(specBean);
+        configBean.setTarget(determineTarget());
+
+        return configBean;
     }
 
     /**
@@ -50,12 +69,12 @@ public class GetLogic extends AbstractOperations<DefaultCloudFoundryOperations> 
      *
      * @return API-Version
      */
-    private String determineApiVersion() {
+    private Mono<String> determineApiVersion() {
         CloudFoundryClient cfClient = cloudFoundryOperations.getCloudFoundryClient();
         GetInfoRequest infoRequest = GetInfoRequest.builder().build();
         Info cfClientInfo = cfClient.info();
 
-        return cfClientInfo.get(infoRequest).block().getApiVersion();
+        return cfClientInfo.get(infoRequest).map(GetInfoResponse::getApiVersion);
     }
 
     /**
@@ -67,16 +86,16 @@ public class GetLogic extends AbstractOperations<DefaultCloudFoundryOperations> 
         SpecBean spec = new SpecBean();
 
         SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cloudFoundryOperations);
-        List<String> spaceDevelopers = spaceDevelopersOperations.getAll();
-        spec.setSpaceDevelopers(spaceDevelopers);
+        Mono<List<String>> spaceDevelopers = spaceDevelopersOperations.getAll();
+        spec.setSpaceDevelopers(spaceDevelopers.block());
 
         ServicesOperations servicesOperations = new ServicesOperations(cloudFoundryOperations);
-        Map<String, ServiceBean> services = servicesOperations.getAll();
-        spec.setServices(services);
+        Mono<Map<String, ServiceBean>> services = servicesOperations.getAll();
+        spec.setServices(services.block());
 
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(cloudFoundryOperations);
-        Map<String, ApplicationBean> applications = applicationsOperations.getAll();
-        spec.setApps(applications);
+        Mono<Map<String, ApplicationBean>> applications = applicationsOperations.getAll();
+        spec.setApps(applications.block());
 
         return spec;
     }
