@@ -1,4 +1,4 @@
-package cloud.foundry.cli.crosscutting.beans;
+package cloud.foundry.cli.crosscutting.mapping.beans;
 
 /**
  * Bean holding all data of the state of a live system.

@@ -3,7 +3,7 @@ package cloud.foundry.cli.operations;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
@@ -29,14 +29,14 @@ import java.util.stream.Collectors;
 /**
  * Handles the operations for manipulating applications on a cloud foundry instance.
  */
-public class ApplicationOperations extends AbstractOperations<DefaultCloudFoundryOperations> {
+public class ApplicationsOperations extends AbstractOperations<DefaultCloudFoundryOperations> {
 
     /**
      * Name of the environment variable that hold the docker password.
      */
     private static final String DOCKER_PASSWORD_VAR_NAME = "CF_DOCKER_PASSWORD";
 
-    public ApplicationOperations(DefaultCloudFoundryOperations cloudFoundryOperations) {
+    public ApplicationsOperations(DefaultCloudFoundryOperations cloudFoundryOperations) {
         super(cloudFoundryOperations);
     }
 

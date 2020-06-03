@@ -1,10 +1,10 @@
 package cloud.foundry.cli.crosscutting.util;
 
-import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
-import cloud.foundry.cli.crosscutting.beans.ApplicationManifestBean;
-import cloud.foundry.cli.crosscutting.beans.ServiceBean;
-import cloud.foundry.cli.crosscutting.beans.SpaceDevelopersBean;
-import cloud.foundry.cli.crosscutting.beans.ConfigBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationManifestBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.SpaceDevelopersBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
 
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;

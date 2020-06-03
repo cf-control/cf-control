@@ -1,4 +1,4 @@
-package cloud.foundry.cli.operations;
+package cloud.foundry.cli.logic;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
@@ -8,8 +8,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import cloud.foundry.cli.crosscutting.beans.ApplicationManifestBean;
-import cloud.foundry.cli.crosscutting.beans.ConfigBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationManifestBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
 import org.cloudfoundry.client.v2.info.GetInfoResponse;
 import org.cloudfoundry.client.v2.info.Info;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
@@ -34,9 +34,9 @@ import java.util.List;
 
 
 /**
- * Test for {@link AllInformationOperations}
+ * Test for {@link GetLogic}
  */
-public class AllInformationOperationsTest {
+public class GetLogicTest {
 
     @Test
     public void testGetAllWithoutConfigurationData() {
@@ -51,10 +51,10 @@ public class AllInformationOperationsTest {
         mockApplicationOperations(Collections.emptyList(), cfOperationsMock);
         mockSpaceDevelopersOperations(Collections.emptyList(), cfOperationsMock);
 
-        AllInformationOperations allInformationOperations = new AllInformationOperations(cfOperationsMock);
+        GetLogic getLogic = new GetLogic(cfOperationsMock);
 
         // when
-        ConfigBean configBean = allInformationOperations.getAll();
+        ConfigBean configBean = getLogic.getAll();
 
         // then
         assertThat(configBean.getApiVersion(), is("API VERSION") );
@@ -101,10 +101,10 @@ public class AllInformationOperationsTest {
         mockApplicationOperations(Arrays.asList(applicationManifestMock), cfOperationsMock);
         mockSpaceDevelopersOperations(Arrays.asList("spaceDeveloper1", "spaceDeveloper2"), cfOperationsMock);
 
-        AllInformationOperations allInformationOperations = new AllInformationOperations(cfOperationsMock);
+        GetLogic getLogic = new GetLogic(cfOperationsMock);
 
         // when
-        ConfigBean configBean = allInformationOperations.getAll();
+        ConfigBean configBean = getLogic.getAll();
 
         // then
         assertThat(configBean.getApiVersion(), is("API VERSION") );

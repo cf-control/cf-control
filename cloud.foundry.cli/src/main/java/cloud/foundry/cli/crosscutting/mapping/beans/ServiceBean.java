@@ -1,4 +1,4 @@
-package cloud.foundry.cli.crosscutting.beans;
+package cloud.foundry.cli.crosscutting.mapping.beans;
 
 import org.cloudfoundry.operations.services.ServiceInstanceSummary;
 

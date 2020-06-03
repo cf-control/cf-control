@@ -1,14 +1,18 @@
-package cloud.foundry.cli.operations;
+package cloud.foundry.cli.logic;
 
-import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
-import cloud.foundry.cli.crosscutting.beans.ConfigBean;
-import cloud.foundry.cli.crosscutting.beans.ServiceBean;
-import cloud.foundry.cli.crosscutting.beans.TargetBean;
-import cloud.foundry.cli.crosscutting.beans.SpecBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.TargetBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
 
 import java.util.List;
 import java.util.Map;
 
+import cloud.foundry.cli.operations.AbstractOperations;
+import cloud.foundry.cli.operations.ApplicationsOperations;
+import cloud.foundry.cli.operations.ServicesOperations;
+import cloud.foundry.cli.operations.SpaceDevelopersOperations;
 import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.client.v2.info.GetInfoRequest;
 import org.cloudfoundry.client.v2.info.GetInfoResponse;
@@ -23,9 +27,9 @@ import reactor.core.publisher.Mono;
  * Handles the operations to receive all configuration-information from a cloud
  * foundry instance.
  */
-public class AllInformationOperations extends AbstractOperations<DefaultCloudFoundryOperations> {
+public class GetLogic extends AbstractOperations<DefaultCloudFoundryOperations> {
 
-    public AllInformationOperations(DefaultCloudFoundryOperations cloudFoundryOperations) {
+    public GetLogic(DefaultCloudFoundryOperations cloudFoundryOperations) {
         super(cloudFoundryOperations);
     }
 
@@ -37,12 +41,12 @@ public class AllInformationOperations extends AbstractOperations<DefaultCloudFou
     public ConfigBean getAll() {
         SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cloudFoundryOperations);
         ServicesOperations servicesOperations = new ServicesOperations(cloudFoundryOperations);
-        ApplicationOperations applicationOperations = new ApplicationOperations(cloudFoundryOperations);
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cloudFoundryOperations);
 
         Mono<String> apiVersion = determineApiVersion();
         Mono<List<String>> spaceDevelopers = spaceDevelopersOperations.getAll();
         Mono<Map<String, ServiceBean>> services = servicesOperations.getAll();
-        Mono<Map<String, ApplicationBean>> apps = applicationOperations.getAll();
+        Mono<Map<String, ApplicationBean>> apps = applicationsOperations.getAll();
 
         ConfigBean configBean = new ConfigBean();
         SpecBean specBean = new SpecBean();
@@ -72,6 +76,30 @@ public class AllInformationOperations extends AbstractOperations<DefaultCloudFou
 
         return cfClientInfo.get(infoRequest).map(GetInfoResponse::getApiVersion);
     }
+
+    /**
+     * Determines the Spec-Node configuration-information from a cloud foundry instance.
+     *
+     * @return SpecBean
+     */
+    private SpecBean determineSpec() {
+        SpecBean spec = new SpecBean();
+
+        SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cloudFoundryOperations);
+        Mono<List<String>> spaceDevelopers = spaceDevelopersOperations.getAll();
+        spec.setSpaceDevelopers(spaceDevelopers.block());
+
+        ServicesOperations servicesOperations = new ServicesOperations(cloudFoundryOperations);
+        Mono<Map<String, ServiceBean>> services = servicesOperations.getAll();
+        spec.setServices(services.block());
+
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cloudFoundryOperations);
+        Mono<Map<String, ApplicationBean>> applications = applicationsOperations.getAll();
+        spec.setApps(applications.block());
+
+        return spec;
+    }
+
 
     /**
      * Determines the Target-Node configuration-information from a cloud foundry instance.
