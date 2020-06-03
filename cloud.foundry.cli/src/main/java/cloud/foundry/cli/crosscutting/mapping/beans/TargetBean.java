@@ -1,4 +1,4 @@
-package cloud.foundry.cli.crosscutting.beans;
+package cloud.foundry.cli.crosscutting.mapping.beans;
 
 /**
  * Bean holding all data that is related to the target space.

@@ -1,12 +1,13 @@
 package cloud.foundry.cli.services;
 
-import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
-import cloud.foundry.cli.crosscutting.beans.ConfigBean;
-import cloud.foundry.cli.crosscutting.beans.ServiceBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
+import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
 import cloud.foundry.cli.crosscutting.util.YamlCreator;
-import cloud.foundry.cli.operations.AllInformationOperations;
-import cloud.foundry.cli.operations.ApplicationOperations;
+import cloud.foundry.cli.logic.GetLogic;
+import cloud.foundry.cli.operations.ApplicationsOperations;
 import cloud.foundry.cli.operations.ServicesOperations;
 import cloud.foundry.cli.operations.SpaceDevelopersOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
@@ -82,8 +83,8 @@ public class GetController implements Callable<Integer> {
         @Override
         public Integer call() throws Exception {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
-            ApplicationOperations applicationOperations = new ApplicationOperations(cfOperations);
-            Mono<Map<String, ApplicationBean>> applications = applicationOperations.getAll();
+            ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
+            Mono<Map<String, ApplicationBean>> applications = applicationsOperations.getAll();
 
             System.out.println(YamlCreator.createDefaultYamlProcessor().dump(applications.block()));
             return 0;
@@ -98,8 +99,8 @@ public class GetController implements Callable<Integer> {
         @Override
         public Integer call() throws Exception {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
-            AllInformationOperations allInformationOperations = new AllInformationOperations(cfOperations);
-            ConfigBean allInformation = allInformationOperations.getAll();
+            GetLogic getLogic = new GetLogic(cfOperations);
+            ConfigBean allInformation = getLogic.getAll();
 
             System.out.println(YamlCreator.createDefaultYamlProcessor().dump(allInformation));
             return 0;

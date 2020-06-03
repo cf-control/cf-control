@@ -4,15 +4,15 @@ import static picocli.CommandLine.Command;
 import static picocli.CommandLine.Mixin;
 import static picocli.CommandLine.usage;
 
-import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
-import cloud.foundry.cli.crosscutting.beans.ServiceBean;
-import cloud.foundry.cli.crosscutting.beans.SpaceDevelopersBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.SpaceDevelopersBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
 import cloud.foundry.cli.crosscutting.util.FileUtils;
 import cloud.foundry.cli.crosscutting.util.YamlCreator;
-import cloud.foundry.cli.operations.ApplicationOperations;
+import cloud.foundry.cli.operations.ApplicationsOperations;
 import cloud.foundry.cli.operations.ServicesOperations;
 import cloud.foundry.cli.operations.SpaceDevelopersOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
@@ -119,9 +119,9 @@ public class CreateController implements Callable<Integer> {
                             .loadAs(yamlProcessor.dump(appObj.getValue()), ApplicationBean.class);
 
                     DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
-                    ApplicationOperations applicationOperations = new ApplicationOperations(cfOperations);
+                    ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
 
-                    applicationOperations.create(name, applicationBean, false);
+                    applicationsOperations.create(name, applicationBean, false);
                     Log.info("App created:", name);
                     return 0;
                 }

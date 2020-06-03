@@ -1,4 +1,4 @@
-package cloud.foundry.cli.crosscutting.beans;
+package cloud.foundry.cli.crosscutting.mapping.beans;
 
 /**
  * The interface for all 'Bean'-classes. Beans serve as object-representations of yaml-file contents. Beans can easily
