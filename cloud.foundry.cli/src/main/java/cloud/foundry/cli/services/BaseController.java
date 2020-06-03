@@ -1,5 +1,6 @@
 package cloud.foundry.cli.services;
 
+import cloud.foundry.cli.crosscutting.logging.Log;
 import picocli.CommandLine.Command;
 import picocli.CommandLine;
 
@@ -26,7 +27,23 @@ public class BaseController implements Callable<Integer> {
     }
 
     public static void main(String[] args) {
-        int exitCode = new CommandLine(new BaseController()).execute(args);
+        CommandLine cli = new CommandLine(new BaseController());
+
+        // picocli has a nice hidden feature: one can register a special exception handler and thus deal with
+        // exceptions occurring during the execution of a Callable, Runnable etc.
+        // when using Callables instead of Runnables, one can just forward _all_ exceptions to this exception handler
+        // this then allows for handling all exceptions centrally, which helps eliminate duplicate code and provide a
+        // consistent behavior, improving the overall UX on the commandline
+        // see https://picocli.info/apidocs/picocli/CommandLine.html#getExecutionExceptionHandler--
+        // and https://picocli.info/apidocs/picocli/CommandLine.html#execute-java.lang.String...-
+        CommandLine.IExecutionExceptionHandler errorHandler = (ex, commandLine, parseResult) -> {
+            // TODO: different handling for different exceptions
+            Log.exception(ex, "Unexpected error");
+            return 1;
+        };
+        cli.setExecutionExceptionHandler(errorHandler);
+
+        int exitCode = cli.execute(args);
         System.exit(exitCode);
     }
 
