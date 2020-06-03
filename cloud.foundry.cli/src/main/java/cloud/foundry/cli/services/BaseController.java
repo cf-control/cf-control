@@ -3,6 +3,8 @@ package cloud.foundry.cli.services;
 import picocli.CommandLine.Command;
 import picocli.CommandLine;
 
+import java.util.concurrent.Callable;
+
 /**
  * This class works as the entry point for the command line application.
  * Based on this entrypoint you can call subcommands depending on your use case.
@@ -14,12 +16,13 @@ import picocli.CommandLine;
         subcommands = {
         CreateController.class,
         GetController.class})
-public class BaseController implements Runnable {
+public class BaseController implements Callable<Integer> {
 
     @Override
-    public void run() {
+    public Integer call() {
         // this code is executed if the user just runs the app
         CommandLine.usage(this, System.out);
+        return 0;
     }
 
     public static void main(String[] args) {
