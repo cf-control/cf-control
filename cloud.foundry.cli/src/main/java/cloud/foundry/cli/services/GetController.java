@@ -13,6 +13,7 @@ import cloud.foundry.cli.operations.SpaceDevelopersOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Map;
@@ -49,9 +50,9 @@ public class GetController implements Runnable {
             try {
                 DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
                 SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
-                List<String> spaceDevelopers = spaceDevelopersOperations.getAll();
+                Mono<List<String>> spaceDevelopers = spaceDevelopersOperations.getAll();
 
-                System.out.println(YamlCreator.createDefaultYamlProcessor().dump(spaceDevelopers));
+                System.out.println(YamlCreator.createDefaultYamlProcessor().dump(spaceDevelopers.block()));
             } catch (Exception e) {
                 Log.exception(e, "Unexpected error occurred");
             }
@@ -68,9 +69,9 @@ public class GetController implements Runnable {
             try {
                 DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
                 ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
-                Map<String,ServiceBean> services = servicesOperations.getAll();
+                Mono<Map<String,ServiceBean>> services = servicesOperations.getAll();
 
-                System.out.println(YamlCreator.createDefaultYamlProcessor().dump(services));
+                System.out.println(YamlCreator.createDefaultYamlProcessor().dump(services.block()));
             } catch (Exception e) {
                 Log.exception(e, "Unexpected error occurred");
             }
@@ -87,9 +88,9 @@ public class GetController implements Runnable {
             try {
                 DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
                 ApplicationOperations applicationOperations = new ApplicationOperations(cfOperations);
-                Map<String, ApplicationBean> applications = applicationOperations.getAll();
+                Mono<Map<String, ApplicationBean>> applications = applicationOperations.getAll();
 
-                System.out.println(YamlCreator.createDefaultYamlProcessor().dump(applications));
+                System.out.println(YamlCreator.createDefaultYamlProcessor().dump(applications.block()));
             } catch (Exception e) {
                 Log.exception(e, "Unexpected error occurred");
             }
