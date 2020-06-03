@@ -43,10 +43,10 @@ public class ServicesOperationsTest {
                 .name("serviceName")
                 .plan("standardPlan")
                 .service("service")
-                .tags(List.of("tag"))
+                .tags(Arrays.asList("tag"))
                 .type(ServiceInstanceType.MANAGED)
                 .build();
-        List<ServiceInstanceSummary> withServices = List.of(summary);
+        List<ServiceInstanceSummary> withServices = Arrays.asList(summary);
 
         DefaultCloudFoundryOperations cfMock = mockGetAllMethod(withServices);
         ServicesOperations servicesOperations = new ServicesOperations(cfMock);
