@@ -44,7 +44,7 @@ class SpaceDevelopersOperationsTest {
     @Test
     public void testGetSpaceDevelopers() {
         // given
-        List<String> withDevelopers = List.of("one", "two", "three");
+        List<String> withDevelopers = Arrays.asList("one", "two", "three");
         mockGetAllMethod(withDevelopers);
 
         // when

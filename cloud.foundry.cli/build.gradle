@@ -60,6 +60,10 @@ dependencies {
     compile 'org.cloudfoundry:cloudfoundry-operations:4.6.0.RELEASE'
 
     compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.0'
+
+    // fix annoying error by including missing dependency
+    // see http://www.slf4j.org/codes.html#StaticLoggerBinder
+    compile 'org.slf4j:slf4j-simple:1.7.+'
 }
 
 test {

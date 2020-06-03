@@ -3,11 +3,10 @@ package cloud.foundry.cli.services;
 import static picocli.CommandLine.Command;
 import static picocli.CommandLine.Mixin;
 
-import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 import cloud.foundry.cli.crosscutting.mapping.beans.SpaceDevelopersBean;
-import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.operations.SpaceDevelopersOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.yaml.snakeyaml.Yaml;
@@ -27,19 +26,20 @@ import cloud.foundry.cli.operations.ServicesOperations;
         UpdateController.RemoveSpaceDeveloperCommand.class,
         UpdateController.UpdateServiceCommand.class,
         UpdateController.UpdateApplicationCommand.class})
-public class UpdateController implements Runnable {
+public class UpdateController implements Callable<Integer> {
 
     private static final String FAILED_TO_READ_YAML_FILE = "Failed to read YAML file";
     private static final String UNEXPECTED_ERROR_OCCURRED = "Unexpected error occurred";
 
     @Override
-    public void run() {
+    public Integer call() throws Exception {
         // this code is executed if the user runs the create command without specifying
         // any sub-command
+        throw new UnsupportedOperationException("no default operation implemented in UpdateController");
     }
 
     @Command(name = "remove-space-developer", description = "Removes a space developer.")
-    static class RemoveSpaceDeveloperCommand implements Runnable {
+    static class RemoveSpaceDeveloperCommand implements Callable<Integer> {
         @Mixin
         LoginCommandOptions loginOptions;
 
@@ -47,29 +47,23 @@ public class UpdateController implements Runnable {
         CreateControllerCommandOptions commandOptions;
 
         @Override
-        public void run() {
-            String yamlFileContent;
-            try {
-                yamlFileContent = FileUtils.readLocalFile(commandOptions.getYamlFilePath());
-            } catch (IOException e) {
-                Log.exception(e, FAILED_TO_READ_YAML_FILE);
-                return;
-            }
+        public Integer call() throws Exception {
+            String yamlFileContent = FileUtils.readLocalFile(commandOptions.getYamlFilePath());
 
             Yaml yamlLoader = YamlCreator.createDefaultYamlProcessor();
+
             SpaceDevelopersBean spaceDevelopersBean = yamlLoader.loadAs(yamlFileContent, SpaceDevelopersBean.class);
-            try {
-                DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
-                SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
-                spaceDevelopersOperations.removeSpaceDeveloper(spaceDevelopersBean.getSpaceDevelopers());
-            } catch (Exception e) {
-                Log.exception(e, UNEXPECTED_ERROR_OCCURRED);
-            }
+
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+            SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
+            spaceDevelopersOperations.removeSpaceDeveloper(spaceDevelopersBean.getSpaceDevelopers());
+
+            return 0;
         }
     }
 
     @Command(name = "update-service", description = "Update a service instance")
-    static class UpdateServiceCommand implements Runnable {
+    static class UpdateServiceCommand implements Callable<Integer> {
 
         @Mixin
         LoginCommandOptions loginOptions;
@@ -78,40 +72,32 @@ public class UpdateController implements Runnable {
         CreateControllerCommandOptions commandOptions;
 
         @Override
-        public void run() {
-            String yamlFileContent;
-            try {
-                yamlFileContent = FileUtils.readLocalFile(commandOptions.getYamlFilePath());
-            } catch (IOException e) {
-                Log.exception(e, FAILED_TO_READ_YAML_FILE);
-                return;
-            }
+        public Integer call() throws Exception {
+            String yamlFileContent = FileUtils.readLocalFile(commandOptions.getYamlFilePath());
+
             Yaml yamlLoader = YamlCreator.createDefaultYamlProcessor();
 
-            try {
+            Map<String, Object> mapServiceBean = yamlLoader.loadAs(yamlFileContent, Map.class);
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
 
-                Map<String, Object> mapServiceBean = yamlLoader.loadAs(yamlFileContent, Map.class);
-                DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+            ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
+            for (String serviceInstanceName : mapServiceBean.keySet()) {
 
-                ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
-                for (String serviceInstanceName : mapServiceBean.keySet()) {
+                String serviceBeanYaml = yamlLoader.dump(mapServiceBean.get(serviceInstanceName));
+                ServiceBean serviceBean = yamlLoader.loadAs(serviceBeanYaml, ServiceBean.class);
+                // "currentName" is currently a placeholder until diff is implemented
+                servicesOperations.renameServiceInstance(serviceInstanceName, "currentName");
+                servicesOperations.updateServiceInstance(serviceInstanceName, serviceBean);
 
-                    String serviceBeanYaml = yamlLoader.dump(mapServiceBean.get(serviceInstanceName));
-                    ServiceBean serviceBean = yamlLoader.loadAs(serviceBeanYaml, ServiceBean.class);
-                    // "currentName" is currently a placeholder until diff is implemented
-                    servicesOperations.renameServiceInstance(serviceInstanceName, "currentName");
-                    servicesOperations.updateServiceInstance(serviceInstanceName, serviceBean);
-
-                }
-            } catch (Exception e) {
-                Log.exception(e, UNEXPECTED_ERROR_OCCURRED);
             }
+
+            return 0;
         }
     }
 
 
     @Command(name = "update-application", description = "Update ")
-    static class UpdateApplicationCommand implements Runnable {
+    static class UpdateApplicationCommand implements Callable<Integer> {
 
         @Mixin
         LoginCommandOptions loginOptions;
@@ -120,8 +106,8 @@ public class UpdateController implements Runnable {
         CreateControllerCommandOptions commandOptions;
 
         @Override
-        public void run() {
-
+        public Integer call() throws Exception {
+            throw new UnsupportedOperationException("update-application has not been implemented yet");
         }
     }
 }

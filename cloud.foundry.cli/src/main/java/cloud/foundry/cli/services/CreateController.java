@@ -18,8 +18,8 @@ import cloud.foundry.cli.operations.SpaceDevelopersOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.yaml.snakeyaml.Yaml;
 
-import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 /**
  * This class realizes the functionality that is needed for the create commands.
@@ -31,15 +31,16 @@ import java.util.Map;
                 CreateController.CreateServiceCommand.class,
                 CreateController.AssignSpaceDeveloperCommand.class,
                 CreateController.CreateApplicationCommand.class})
-public class CreateController implements Runnable {
+public class CreateController implements Callable<Integer> {
 
     @Override
-    public void run() {
+    public Integer call() {
         usage(this, System.out);
+        return 0;
     }
 
     @Command(name = "space-developer", description = "Assign users as space developers.")
-    static class AssignSpaceDeveloperCommand implements Runnable {
+    static class AssignSpaceDeveloperCommand implements Callable<Integer> {
 
         @Mixin
         LoginCommandOptions loginOptions;
@@ -48,32 +49,25 @@ public class CreateController implements Runnable {
         CreateControllerCommandOptions commandOptions;
 
         @Override
-        public void run() {
-            String yamlFileContent;
-            try {
-                yamlFileContent = FileUtils.readLocalFile(commandOptions.getYamlFilePath());
-            } catch (IOException e) {
-                Log.exception(e, "Failed to read YAML file");
-                return;
-            }
+        public Integer call() throws Exception {
+            String yamlFileContent = FileUtils.readLocalFile(commandOptions.getYamlFilePath());
+
             Yaml yamlLoader = YamlCreator.createDefaultYamlProcessor();
             SpaceDevelopersBean spaceDevelopersBean = yamlLoader.loadAs(yamlFileContent, SpaceDevelopersBean.class);
 
-            try {
-                DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
-                SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+            SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
 
-                for (String username : spaceDevelopersBean.getSpaceDevelopers()) {
-                    spaceDevelopersOperations.assignSpaceDeveloper(username);
-                }
-            } catch (Exception e) {
-                Log.exception(e, "Unexpected error occurred");
+            for (String username : spaceDevelopersBean.getSpaceDevelopers()) {
+                spaceDevelopersOperations.assignSpaceDeveloper(username);
             }
+
+            return 0;
         }
     }
 
     @Command(name = "service", description = "Create a service in the target space.")
-    static class CreateServiceCommand implements Runnable {
+    static class CreateServiceCommand implements Callable<Integer> {
 
         @Mixin
         LoginCommandOptions loginOptions;
@@ -82,35 +76,27 @@ public class CreateController implements Runnable {
         CreateControllerCommandOptions commandOptions;
 
         @Override
-        public void run() {
-            String yamlFileContent;
-            try {
-                yamlFileContent = FileUtils.readLocalFile(commandOptions.getYamlFilePath());
-            } catch (IOException e) {
-                Log.exception(e, "Failed to read YAML file");
-                return;
-            }
+        public Integer call() throws Exception {
+            String yamlFileContent = FileUtils.readLocalFile(commandOptions.getYamlFilePath());
+
             Yaml yamlLoader = YamlCreator.createDefaultYamlProcessor();
 
-            try {
+            Map<String, Object> mapServiceBean = yamlLoader.loadAs(yamlFileContent, Map.class);
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
 
-                Map<String, Object> mapServiceBean = yamlLoader.loadAs(yamlFileContent, Map.class);
-                DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
-
-                ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
-                for (String serviceInstanceName : mapServiceBean.keySet()) {
-                    String serviceBeanYaml = yamlLoader.dump(mapServiceBean.get(serviceInstanceName));
-                    ServiceBean serviceBean = yamlLoader.loadAs(serviceBeanYaml, ServiceBean.class);
-                    servicesOperations.create(serviceInstanceName, serviceBean);
-                }
-            } catch (Exception e) {
-                Log.exception(e, "Unexpected error occurred");
+            ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
+            for (String serviceInstanceName : mapServiceBean.keySet()) {
+                String serviceBeanYaml = yamlLoader.dump(mapServiceBean.get(serviceInstanceName));
+                ServiceBean serviceBean = yamlLoader.loadAs(serviceBeanYaml, ServiceBean.class);
+                servicesOperations.create(serviceInstanceName, serviceBean);
             }
+
+            return 0;
         }
     }
 
     @Command(name = "application", description = "Create a application in the target space.")
-    static class CreateApplicationCommand implements Runnable {
+    static class CreateApplicationCommand implements Callable<Integer> {
 
         @Mixin
         LoginCommandOptions loginOptions;
@@ -119,12 +105,13 @@ public class CreateController implements Runnable {
         CreateControllerCommandOptions commandOptions;
 
         @Override
-        public void run() {
-
-            try {
+        public Integer call() throws Exception {
                 String yamlFileContent = FileUtils.readLocalFile(commandOptions.getYamlFilePath());
+
                 Yaml yamlProcessor = YamlCreator.createDefaultYamlProcessor();
+
                 Map<String, Object> appMap = yamlProcessor.loadAs(yamlFileContent, Map.class);
+
                 if (appMap.entrySet().iterator().hasNext()) {
                     Map.Entry<String, Object> appObj = appMap.entrySet().iterator().next();
                     String name = appObj.getKey();
@@ -136,17 +123,11 @@ public class CreateController implements Runnable {
 
                     applicationsOperations.create(name, applicationBean, false);
                     Log.info("App created:", name);
+                    return 0;
                 }
-                Log.error("App entry in the yaml input file has not a valid format or was missing");
-            } catch (IOException e) {
-                Log.exception(e, "Failed to read YAML file");
-                return;
-            } catch (CreationException e) {
-                Log.error("Failed to create message:" + e.getMessage());
-            } catch (Exception e) {
-                Log.exception(e, "Unexpected error occurred");
-            }
 
+                Log.error("App entry in the yaml input file has not a valid format or was missing");
+                return 1;
         }
     }
 
