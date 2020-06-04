@@ -4,7 +4,8 @@ import org.javers.core.diff.Change;
 import org.javers.core.diff.changetype.NewObject;
 import org.javers.core.diff.changetype.ObjectRemoved;
 
-import java.util.ArrayList;
+import javax.annotation.Nonnull;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -21,7 +22,11 @@ public class DiffNode {
     protected List<Change> changes;
     protected String propertyName;
 
-    private DiffNode() {
+    //TODO parent node
+    //TODO helper method isRoot()
+
+    public DiffNode(@Nonnull String propertyName) {
+        this.propertyName = propertyName;
         this.childNodes = new HashMap<>();
         this.changes = new LinkedList<>();
     }
@@ -54,13 +59,8 @@ public class DiffNode {
         this.changes.add(change);
     }
 
-    public static DiffNode create(String propertyName) {
-        DiffNode diffNode = new DiffNode();
-        diffNode.setPropertyName(propertyName);
-        return diffNode;
-    }
-
-    public boolean hasNodeWith(String propertyName) {
+    //TODO move into wrapper class
+    public boolean hasNodeWith(@Nonnull String propertyName) {
         if (this.propertyName.equals(propertyName)) {
             return true;
         }
