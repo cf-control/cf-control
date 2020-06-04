@@ -1,9 +1,9 @@
 package cloud.foundry.cli;
 
-import cloud.foundry.cli.crosscutting.beans.ConfigBean;
+import cloud.foundry.cli.crosscutting.exceptions.NotSupportedChangeType;
+import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
 import cloud.foundry.cli.crosscutting.util.YamlProcessorCreator;
-import cloud.foundry.cli.logic.DiffNode;
-import cloud.foundry.cli.logic.Differ;
+import cloud.foundry.cli.logic.DiffLogic;
 import org.junit.jupiter.api.Test;
 import org.yaml.snakeyaml.Yaml;
 
@@ -14,16 +14,15 @@ import java.io.FileNotFoundException;
 public class JaversTest {
 
     @Test
-    public void testJaversSimple() throws FileNotFoundException {
+    public void testJaversSimple() throws FileNotFoundException, NotSupportedChangeType {
         Yaml yamlProc = YamlProcessorCreator.createNullValueIgnoring();
+        DiffLogic diffLogic = new DiffLogic();
 
         ConfigBean configLive = yamlProc.loadAs(new FileInputStream(
             new File("src/test/resources/basic/configLive.yml")), ConfigBean.class);
         ConfigBean configDesired = yamlProc.loadAs(new FileInputStream(
             new File("src/test/resources/basic/configDesired.yml")), ConfigBean.class);
 
-        DiffNode diffTree = Differ.createDiffTree(configLive, configDesired);
-
-        System.out.println(diffTree.toDiffString());
+        System.out.println(diffLogic.createDiffOutput(configLive, configDesired));
     }
 }
