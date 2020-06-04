@@ -1,5 +1,6 @@
 package cloud.foundry.cli.logic.diff.output;
 
+import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,22 +40,22 @@ public class DiffStringBuilder {
         return this;
     }
 
-    public DiffStringBuilder setPropertyName(String propertyName) {
+    public DiffStringBuilder setPropertyName(@Nonnull String propertyName) {
         this.propertyName = propertyName;
         return this;
     }
 
-    public DiffStringBuilder setFlagSymbol(FlagSymbol flagSymbol) {
+    public DiffStringBuilder setFlagSymbol(@Nonnull FlagSymbol flagSymbol) {
         this.flagSymbol = flagSymbol;
         return this;
     }
 
-    public DiffStringBuilder setValue(String value) {
+    public DiffStringBuilder setValue(@Nonnull String value) {
         this.value = value;
         return this;
     }
 
-    public DiffStringBuilder setWrapperColor(WrapperColor wrapperColor) {
+    public DiffStringBuilder setWrapperColor(@Nonnull WrapperColor wrapperColor) {
         this.wrapperColor = wrapperColor;
         return this;
     }

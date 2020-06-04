@@ -15,6 +15,7 @@ import org.javers.core.diff.changetype.map.EntryValueChange;
 import org.javers.core.diff.changetype.map.MapChange;
 import org.yaml.snakeyaml.Yaml;
 
+import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -46,7 +47,7 @@ public class DiffOutput {
      * @return string of the difference output
      * @throws NotSupportedChangeType when a change type was used that is not supported within our bean hierarchy
      */
-    public String from(DiffNode node) throws NotSupportedChangeType {
+    public String from(@Nonnull DiffNode node) throws NotSupportedChangeType {
         return this.toDiffString(node, this.indentation);
     }
 
