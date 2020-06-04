@@ -19,6 +19,7 @@ import java.util.Map;
 public class DiffNode {
 
     protected Map<String, DiffNode> childNodes;
+    //TODO use custom wrapper for the change object
     protected List<Change> changes;
     protected String propertyName;
 
@@ -31,12 +32,20 @@ public class DiffNode {
         this.changes = new LinkedList<>();
     }
 
+    /**
+     * TODO immutable
+     * @return
+     */
     public List<Change> getChanges() {
-        return new ArrayList<>(changes);
+        return Collections.unmodifiableList(changes);
     }
 
+    /**
+     * TODO immutable
+     * @return
+     */
     public Map<String, DiffNode> getChildNodes() {
-        return new HashMap<>(childNodes);
+        return Collections.unmodifiableMap(childNodes);
     }
 
     public String getPropertyName() {

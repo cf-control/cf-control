@@ -51,6 +51,7 @@ public class DiffOutput {
         return this.toDiffString(node, this.indentation);
     }
 
+    //TODO pass StringBuilder with parameters to be more efficient
     private String toDiffString(DiffNode node, int indentation) throws NotSupportedChangeType {
         List<Change> changes = node.getChanges();
 
@@ -70,6 +71,8 @@ public class DiffOutput {
         } else {
 
             StringBuilder sb = new StringBuilder();
+            //TODO remove magic value
+            // calculate current indentation in relation to current node depth
             sb.append(fromProperty(FlagSymbol.NONE, indentation - 2,  node.getPropertyName()));
 
             for (Change change : changes) {
@@ -78,6 +81,7 @@ public class DiffOutput {
                 sb.append(fromChange(indentation, change));
             }
 
+            // recursion
             for (DiffNode childNode : node.getChildNodes().values()) {
                 sb.append(toDiffString(childNode, 2 + indentation));
             }
@@ -120,7 +124,7 @@ public class DiffOutput {
         } else if (change instanceof MapChange) {
             return handleMapChange(indentation, (MapChange) change) ;
         }
-
+        // can be a reference change, but that's not relevant to use, so just skip
         return "";
     }
 
@@ -141,9 +145,12 @@ public class DiffOutput {
                         indentation,
                         element.toString()));
             }
+            //TODO check edge cases
+            //TODO research if getChanges() only captures ordering changes or other type of changes also
             for (ContainerElementChange element : collectionChange.getChanges()) {
 
             }
+
             return sb.toString();
         }
 
@@ -184,6 +191,8 @@ public class DiffOutput {
                     "",
                     element.toString()));
         }
+        //TODO check edge cases
+        //TODO research if getChanges() only captures ordering changes or other type of changes also
         for (EntryValueChange element :  change.getEntryValueChanges()) {
 
         }
@@ -223,7 +232,7 @@ public class DiffOutput {
      * example : asKeyValueEntry('+', 4, 'diskQuota', '1024') :== '+    diskQuota: 1024'
      */
     private String asKeyValueEntry(FlagSymbol flagSymbol, int indentation, String property, String value) {
-        return cloud.foundry.cli.logic.diff.output.DiffStringBuilder.builder()
+        return DiffStringBuilder.builder()
                 .setFlagSymbol(flagSymbol)
                 .setIndentation(indentation)
                 .setPropertyName(property)
