@@ -43,19 +43,15 @@ public class DiffNode {
         return propertyName;
     }
 
-    public void setPropertyName(String propertyName) {
-        this.propertyName = propertyName;
-    }
-
-    public void addChild(String propertyName, DiffNode child) {
+    public void addChild(@Nonnull String propertyName,@Nonnull DiffNode child) {
         this.childNodes.put(propertyName, child);
     }
 
-    public DiffNode getChild(String propertyName) {
+    public DiffNode getChild(@Nonnull String propertyName) {
         return this.childNodes.get(propertyName);
     }
 
-    public void addChange(Change change) {
+    public void addChange(@Nonnull Change change) {
         this.changes.add(change);
     }
 
@@ -72,7 +68,8 @@ public class DiffNode {
         return false;
     }
 
-    private DiffNode getChildWith(String propertyName) {
+    //TODO move into wrapper class
+    private DiffNode getChildWith(@Nonnull String propertyName) {
         for (DiffNode childNode : this.childNodes.values()) {
             if (childNode.getPropertyName().equals(propertyName)) return childNode;
         }
