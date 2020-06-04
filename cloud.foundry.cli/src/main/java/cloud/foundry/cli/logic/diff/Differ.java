@@ -1,72 +1,74 @@
 package cloud.foundry.cli.logic.diff;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import cloud.foundry.cli.crosscutting.mapping.beans.Bean;
-import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
-import cloud.foundry.cli.logic.diff.change.CfChange;
-import cloud.foundry.cli.logic.diff.change.ChangeParser;
-import cloud.foundry.cli.logic.diff.change.map.CfMapChange;
-import cloud.foundry.cli.logic.diff.change.object.CfRemovedObject;
+import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
 import org.javers.core.Javers;
 import org.javers.core.JaversBuilder;
+import org.javers.core.diff.Change;
 import org.javers.core.diff.Diff;
-import org.javers.core.diff.ListCompareAlgorithm;
+import org.javers.core.diff.changetype.ObjectRemoved;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
+import java.util.Arrays;
+import java.util.LinkedList;
+
 
 /**
- * This class compares two given beans of the same type and builds a DiffNode tree data structure
- * with differences found between the bean objects.
- * Javers stores changes in a Change class, which holds information about the absolute path
- * from the Root Object (ConfigBean here) to the actual level where a change has taken place.
- * The idea is to build a tree data structure where each node holds the changes of their level.
+ * the classes serves as the main module for creating the difference between two configurations
  */
 public class Differ {
 
-    private static final Javers JAVERS = JaversBuilder.javers()
-            .withListCompareAlgorithm(ListCompareAlgorithm.AS_SET)
-            .build();
+    private static final Javers JAVERS = JaversBuilder.javers().build();
+    private static final String ROOT_SYMBOL = "#";
+    private static final String PATH_SEPARATOR_SYMBOL = "/";
+    private static final String ROOT_NAME = "root";
 
     /**
      * compares the two given configurations and creates a tree composed of @DiffNode objects
      * @param liveConfig the configuration that is currently on the live system
      * @param desiredConfig the configuration state that the live system should change to
      * @return @DiffNode objects which is the root of the tree
-     * @throws NullPointerException when liveConfig is null
-     *  when desiredConfig is null
-     * @throws IllegalArgumentException when the two beans don't have the same type
      */
-    public DiffNode createDiffTree(Bean liveConfig, Bean desiredConfig) {
-        checkNotNull(liveConfig);
-        checkNotNull(desiredConfig);
-        checkArgument(liveConfig.getClass() == desiredConfig.getClass(), "Bean types don't match.");
+    public static DiffNode createDiffTree(ConfigBean liveConfig, ConfigBean desiredConfig) {
 
-        return doCreateDiffTree(liveConfig, desiredConfig);
+        /**
+         * Javers stores changes in a Change class, which holds information about the absolute path
+         * from the Root Object (ConfigBean here) to the actual level where a change has taken place.
+         * The idea is to build a tree data structure where each node holds the changes of their level.
+         */
+        Diff diff = JAVERS.compare(liveConfig, desiredConfig);
+        DiffTreeCreator diffTreeCreator = new DiffTreeCreator();
+
+        DiffNode diffNode = DiffNode.create(ROOT_NAME);
+        for (Change change: diff.getChanges()) {
+           if (change instanceof ObjectRemoved) continue;
+
+            LinkedList<String> path = extractPath(change);
+            replaceRoot(ROOT_NAME, path);
+            diffTreeCreator.insert(diffNode, path, change);
+        }
+
+        return diffNode;
     }
 
-    private DiffNode doCreateDiffTree(Bean liveConfig, Bean desiredConfig) {
-        Diff diff = JAVERS.compare(liveConfig, desiredConfig);
+    /**
+     * for example:
+     * change.getAffectedGlobalId() = cloud.foundry.cli.crosscutting.bean.ConfigBean/#spec/apps/someApp/manifest
+     *                           -> [cloud.foundry.cli.crosscutting.bean.ConfigBean, spec, apps, someApp, manifest]
+     */
+    private static LinkedList<String> extractPath(Change change) {
+        return new LinkedList<>(Arrays.asList(change
+                .getAffectedGlobalId()
+                .toString()
+                .replace(ROOT_SYMBOL, "")
+                .split(PATH_SEPARATOR_SYMBOL)));
+    }
 
-        // parse the change objects created by the JaVers diff to custom change objects
-        List<CfChange> cfChanges = diff.getChanges()
-                .stream()
-                .map(ChangeParser::parse)
-                // Change types that are not relevant to us will get parsed to null, so ignore them
-                .filter(Objects::nonNull)
-                // As of the specification, removed object nodes shouldn't be displayed.
-                // TODO make it configurable
-                .filter(change -> !(change instanceof CfRemovedObject))
-                // Always remove inner maps for now, since they clash with the output algorithm of DiffOutput.
-                // SpecBean contains the only inner maps
-                //TODO make it configurable
-                .filter(change -> !(change instanceof CfMapChange && change.getAffectedObject() instanceof SpecBean))
-                .collect(Collectors.toList());
-
-        return DiffTreeCreator.createFrom(cfChanges);
+    /**
+     * example: from [cloud.foundry.cli.crosscutting.bean.ConfigBean, spec, apps, someApp, manifest]
+     *          to [{propertyName}, spec, apps, someApp, manifest]
+     */
+    private static void replaceRoot(String propertyName, LinkedList<String> path) {
+        path.removeFirst();
+        path.addFirst(propertyName);
     }
 
 }

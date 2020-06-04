@@ -1,21 +1,21 @@
 package cloud.foundry.cli.logic.diff.output;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
+import cloud.foundry.cli.crosscutting.exceptions.NotSupportedChangeType;
 import cloud.foundry.cli.crosscutting.mapping.beans.Bean;
-import cloud.foundry.cli.crosscutting.util.YamlCreator;
+import cloud.foundry.cli.crosscutting.util.YamlProcessorCreator;
 import cloud.foundry.cli.logic.diff.DiffNode;
-import cloud.foundry.cli.logic.diff.change.CfChange;
-import cloud.foundry.cli.logic.diff.change.ChangeType;
-import cloud.foundry.cli.logic.diff.change.container.CfContainerChange;
-import cloud.foundry.cli.logic.diff.change.container.CfContainerValueChanged;
-import cloud.foundry.cli.logic.diff.change.map.CfMapChange;
-import cloud.foundry.cli.logic.diff.change.map.CfMapValueChanged;
-import cloud.foundry.cli.logic.diff.change.object.CfObjectValueChanged;
+import org.javers.core.diff.Change;
+import org.javers.core.diff.changetype.ValueChange;
+import org.javers.core.diff.changetype.container.CollectionChange;
+import org.javers.core.diff.changetype.container.ContainerChange;
+import org.javers.core.diff.changetype.container.ContainerElementChange;
+import org.javers.core.diff.changetype.map.EntryAdded;
+import org.javers.core.diff.changetype.map.EntryRemoved;
+import org.javers.core.diff.changetype.map.EntryValueChange;
+import org.javers.core.diff.changetype.map.MapChange;
 import org.yaml.snakeyaml.Yaml;
 
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -24,86 +24,72 @@ import java.util.stream.Collectors;
  */
 public class DiffOutput {
 
-    private static final int DEFAULT_INDENTATION_INCREMENT = 2;
+    private static final int DEFAULT_INDENTATION = 2;
 
-    private final int indentationIncrement;
+    private int indentation;
 
     /**
-     * Default constructor
+     * sets the indentation of the output to the given value
+     * @param indentation value for number of spaces to the left of the output
      */
-    public DiffOutput() {
-        this.indentationIncrement = DEFAULT_INDENTATION_INCREMENT;
+    public void setIndentation(int indentation) {
+        this.indentation = indentation;
     }
 
-    /**
-     * Construct with a custom indentation interval
-     *
-     * @param indentationIncrement indentation interval (>= 1)
-     * @throws IllegalArgumentException in case an invalid indentation interval is passed
-     */
-    public DiffOutput(int indentationIncrement) {
-        checkArgument(indentationIncrement >= 1, "YAML file output must be indented, values < 1 are not allowed");
-
-        this.indentationIncrement = indentationIncrement;
+    public DiffOutput() {
+        this.indentation = DEFAULT_INDENTATION;
     }
 
     /**
      * transforms a difference tree into a visual representation of configuration differences
      * @param node root of the difference tree that should be parse to the difference output
      * @return string of the difference output
+     * @throws NotSupportedChangeType when a change type was used that is not supported within our bean hierarchy
      */
-    public String from(DiffNode node) {
-        List<String> lines = new LinkedList<>();
-        diffLines(lines, node);
-        return String.join("\n", lines);
+    public String from(DiffNode node) throws NotSupportedChangeType {
+        return this.toDiffString(node, this.indentation);
     }
 
-    private int calculateIndentationFromDepth(int depth) {
-        return depth * indentationIncrement;
-    }
+    private String toDiffString(DiffNode node, int indentation) throws NotSupportedChangeType {
+        List<Change> changes = node.getChanges();
 
-    private void diffLines(List<String> lines, DiffNode node) {
-        List<CfChange> changes = node.getChanges();
-
-        final int depth = node.getDepth();
-        final int thisNodeIndentation = calculateIndentationFromDepth(depth);
-        final int propertyIndentation = calculateIndentationFromDepth(depth - 1);
+        //no changes at this level which means, there are no changes at the sub-levels also
+        if (changes.size() == 0 && node.isLeaf()) return "";
 
         if (node.isNewObject()) {
-            lines.addAll(fromBean(FlagSymbol.ADDED,
-                    thisNodeIndentation,
-                    (Bean) changes.get(0).getAffectedObject(),
-                    node.getPropertyName())
-            );
+            return fromBean(FlagSymbol.ADDED,
+                    indentation,
+                    (Bean) changes.get(0).getAffectedObject().get(),
+                    node.getPropertyName());
         } else if (node.isRemovedObject()) {
-            lines.addAll(fromBean(FlagSymbol.REMOVED,
-                    thisNodeIndentation,
-                    (Bean) changes.get(0).getAffectedObject(),
-                    node.getPropertyName())
-            );
+            return fromBean(cloud.foundry.cli.logic.diff.output.FlagSymbol.REMOVED,
+                    indentation,
+                    (Bean) changes.get(0).getAffectedObject().get(),
+                    node.getPropertyName());
         } else {
-            // we dont want to print the root property since it's not part our yaml config specification
-            if (!node.isRoot()) {
-                lines.add(fromProperty(FlagSymbol.NONE, propertyIndentation, node.getPropertyName()));
+
+            StringBuilder sb = new StringBuilder();
+            sb.append(fromProperty(cloud.foundry.cli.logic.diff.output.FlagSymbol.NONE, indentation - 2,  node.getPropertyName()));
+
+            for (Change change : changes) {
+                if (change instanceof MapChange && ! node.isLeaf()) continue;
+
+                sb.append(fromChange(indentation, change));
             }
 
-            for (CfChange change : changes) {
-                lines.addAll(fromChange(thisNodeIndentation, change));
+            for (DiffNode childNode : node.getChildNodes().values()) {
+                sb.append(toDiffString(childNode, 2 + indentation));
             }
-
-            // recursion
-            for (DiffNode childNode : node.getChildNodes()) {
-                diffLines(lines, childNode);
-            }
+            return sb.toString();
         }
     }
 
-    private String fromProperty(FlagSymbol flagSymbol, int indentation, String propertyName) {
+    private String fromProperty(cloud.foundry.cli.logic.diff.output.FlagSymbol flagSymbol, int indentation, String propertyName) {
         return asPropertyEntry(flagSymbol, indentation, propertyName);
     }
 
-    private List<String> fromBean(FlagSymbol flagSymbol, int indentation, Bean bean) {
-        Yaml yamlProcessor = YamlCreator.createDefaultYamlProcessor();
+    private String fromBean(cloud.foundry.cli.logic.diff.output.FlagSymbol flagSymbol, int indentation, Bean bean) {
+        Yaml yamlProcessor = YamlProcessorCreator.createNullValueIgnoring();
         String yamlDump = yamlProcessor.dump(bean);
 
         List<String> yamlLines = Arrays.asList(yamlDump.split("\n"));
@@ -112,90 +98,95 @@ public class DiffOutput {
         return yamlLines
                 .stream()
                 // apply flag and indentation
-                .map(line -> DiffLineBuilder.builder()
+                .map(line -> DiffStringBuilder.builder()
                         .setFlagSymbol(flagSymbol)
                         .setIndentation(indentation)
                         .setValue(line)
                         .build())
-                .collect(Collectors.toList());
+                .collect(Collectors.joining("\n"))
+                + "\n";
     }
 
-    private List<String> fromBean(FlagSymbol flagSymbol, int indentation, Bean bean, String property) {
-        List<String> lines = new LinkedList<>();
-        lines.add(asPropertyEntry(flagSymbol, indentation - indentationIncrement, property));
-        lines.addAll(fromBean(flagSymbol, indentation, bean));
-        return lines;
+    private String fromBean(cloud.foundry.cli.logic.diff.output.FlagSymbol flagSymbol, int indentation, Bean bean, String property) {
+        return asPropertyEntry(flagSymbol, indentation - 2, property) + fromBean(flagSymbol, indentation, bean);
     }
 
-    private List<String> fromChange(int indentation, CfChange change) {
-        if (change instanceof CfContainerChange) {
-            return handleContainerChange(indentation, (CfContainerChange) change);
-        } else if (change instanceof CfObjectValueChanged) {
-            return handleValueChange(indentation, (CfObjectValueChanged) change);
-        } else {
-            return handleMapChange(indentation, (CfMapChange) change) ;
+    private String fromChange(int indentation, Change change) throws NotSupportedChangeType {
+        if (change instanceof ContainerChange) {
+            return handleContainerChange(indentation, (ContainerChange) change);
+        } else if (change instanceof ValueChange) {
+            return handleValueChange(indentation, (ValueChange) change);
+        } else if (change instanceof MapChange) {
+            return handleMapChange(indentation, (MapChange) change) ;
         }
+
+        return "";
     }
 
-    private List<String> handleContainerChange(int indentation, CfContainerChange change) {
-        List<String> lines = new LinkedList<>();
-        lines.add(asPropertyEntry(FlagSymbol.NONE, indentation, change.getPropertyName()));
+    private String handleContainerChange(int indentation, ContainerChange change) throws NotSupportedChangeType {
+        if (change instanceof CollectionChange) {
+            CollectionChange collectionChange = (CollectionChange) change;
 
-        for (CfContainerValueChanged element : change.getChangedValues()) {
-            if (element.getChangeType() == ChangeType.ADDED) {
-                lines.add(asListEntry(FlagSymbol.ADDED,
+            StringBuilder sb = new StringBuilder();
+            sb.append(asPropertyEntry(cloud.foundry.cli.logic.diff.output.FlagSymbol.NONE, indentation, change.getPropertyName()));
+
+            for (Object element : collectionChange.getAddedValues()) {
+                sb.append(asListEntry(cloud.foundry.cli.logic.diff.output.FlagSymbol.ADDED,
                         indentation,
-                        element.getValue()));
-            } else if (element.getChangeType() == ChangeType.REMOVED) {
-                lines.add(asListEntry(FlagSymbol.REMOVED,
-                        indentation,
-                        element.getValue()));
+                        element.toString()));
             }
+            for (Object element : collectionChange.getRemovedValues()) {
+                sb.append(asListEntry(cloud.foundry.cli.logic.diff.output.FlagSymbol.REMOVED,
+                        indentation,
+                        element.toString()));
+            }
+            for (ContainerElementChange element : collectionChange.getChanges()) {
+
+            }
+            return sb.toString();
         }
-        return lines;
+
+        throw new NotSupportedChangeType("Change of type " + change.getClass() + " not supported");
     }
 
-    private List<String> handleValueChange(int indentation, CfObjectValueChanged valueChange) {
-        List<String> lines = new LinkedList<>();
+    private String handleValueChange(int indentation, ValueChange valueChange) {
+        StringBuilder sb = new StringBuilder();
 
-        if (!valueChange.getValueAfter().isEmpty()) {
-            lines.add(asAddedKeyValueEntry(indentation,
+        if (valueChange.getRight() != null) {
+            sb.append(asAddedKeyValueEntry(indentation,
                     valueChange.getPropertyName(),
-                    valueChange.getValueAfter()));
+                    valueChange.getRight().toString()));
         }
-         if (!valueChange.getValueBefore().isEmpty()) {
-             lines.add(asRemovedKeyValueEntry(indentation,
+         if (valueChange.getLeft() != null) {
+            sb.append(asRemovedKeyValueEntry(indentation,
                   valueChange.getPropertyName(),
-                  valueChange.getValueBefore()));
+                  valueChange.getLeft().toString()));
         }
 
-        return lines;
+        return sb.toString();
     }
 
 
-    private List<String> handleMapChange(int indentation, CfMapChange change) {
-        List<String> lines = new LinkedList<>();
-        lines.add(asPropertyEntry(FlagSymbol.NONE, indentation, change.getPropertyName()));
+    private String handleMapChange(int indentation, MapChange change) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(asPropertyEntry(cloud.foundry.cli.logic.diff.output.FlagSymbol.NONE, indentation, change.getPropertyName()));
 
-        int valueIndentation = indentation + indentationIncrement;
-
-        for (CfMapValueChanged element : change.getChangedValues()) {
-            if (element.getChangeType() == ChangeType.ADDED) {
-                lines.add(asKeyValueEntry(FlagSymbol.ADDED,
-                        valueIndentation,
-                        element.getKey(),
-                        element.getValueAfter()));
-            } else if ( element.getChangeType() == ChangeType.REMOVED) {
-                lines.add(asKeyValueEntry(FlagSymbol.REMOVED,
-                        valueIndentation,
-                        element.getKey(),
-                        element.getValueBefore()));
-            } else {
-                lines.add(asAddedKeyValueEntry(valueIndentation, element.getKey(), element.getValueAfter()));
-                lines.add(asRemovedKeyValueEntry(valueIndentation, element.getKey(), element.getValueBefore()));
-            }
+        for (EntryAdded element : change.getEntryAddedChanges()) {
+            sb.append(asKeyValueEntry(cloud.foundry.cli.logic.diff.output.FlagSymbol.ADDED,
+                    indentation,
+                    "",
+                    element.toString()));
         }
-        return lines;
+        for (EntryRemoved element :  change.getEntryRemovedChanges()) {
+            sb.append(asKeyValueEntry(cloud.foundry.cli.logic.diff.output.FlagSymbol.REMOVED,
+                    indentation,
+                    "",
+                    element.toString()));
+        }
+        for (EntryValueChange element :  change.getEntryValueChanges()) {
+
+        }
+        return sb.toString();
     }
 
 
@@ -203,39 +194,40 @@ public class DiffOutput {
      * example : asAddedKeyValueEntry(4, 'name', 'elephantsql') :== '+    name: elephantsql'
      */
     private String asAddedKeyValueEntry(int indentation, String propertyName, String value) {
-        return asKeyValueEntry(FlagSymbol.ADDED, indentation, propertyName, value);
+        return asKeyValueEntry(cloud.foundry.cli.logic.diff.output.FlagSymbol.ADDED, indentation, propertyName, value);
     }
 
     /**
      * example : asRemovedKeyValueEntry(4, 'name', 'elephantsql') :== '-    name: elephantsql'
      */
     private String asRemovedKeyValueEntry(int indentation, String propertyName, String value) {
-        return asKeyValueEntry(FlagSymbol.REMOVED, indentation, propertyName, value);
+        return asKeyValueEntry(cloud.foundry.cli.logic.diff.output.FlagSymbol.REMOVED, indentation, propertyName, value);
     }
 
     /**
      * example : asListEntry('+', 4, 'elephantsql') :== '+    - elephantsql'
      */
-    private String asListEntry(FlagSymbol flagSymbol, int indentation, String value) {
+    private String asListEntry(cloud.foundry.cli.logic.diff.output.FlagSymbol flagSymbol, int indentation, String value) {
         return asKeyValueEntry(flagSymbol, indentation, "", "- " + value);
     }
 
     /**
      * example : asPropertyEntry('+', 4, 'manifest') :== '+    manifest:'
      */
-    private String asPropertyEntry(FlagSymbol flagSymbol, int indentation, String property) {
+    private String asPropertyEntry(cloud.foundry.cli.logic.diff.output.FlagSymbol flagSymbol, int indentation, String property) {
         return asKeyValueEntry(flagSymbol, indentation, property, "");
     }
 
     /**
      * example : asKeyValueEntry('+', 4, 'diskQuota', '1024') :== '+    diskQuota: 1024'
      */
-    private String asKeyValueEntry(FlagSymbol flagSymbol, int indentation, String property, String value) {
-        return DiffLineBuilder.builder()
+    private String asKeyValueEntry(cloud.foundry.cli.logic.diff.output.FlagSymbol flagSymbol, int indentation, String property, String value) {
+        return cloud.foundry.cli.logic.diff.output.DiffStringBuilder.builder()
                 .setFlagSymbol(flagSymbol)
                 .setIndentation(indentation)
                 .setPropertyName(property)
                 .setValue(value)
+                .setNewLine(true)
                 .build();
     }
 
