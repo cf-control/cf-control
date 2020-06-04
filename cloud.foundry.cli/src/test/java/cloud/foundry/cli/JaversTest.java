@@ -2,7 +2,7 @@ package cloud.foundry.cli;
 
 import cloud.foundry.cli.crosscutting.exceptions.NotSupportedChangeType;
 import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
-import cloud.foundry.cli.crosscutting.util.YamlProcessorCreator;
+import cloud.foundry.cli.crosscutting.util.YamlCreator;
 import cloud.foundry.cli.logic.DiffLogic;
 import org.junit.jupiter.api.Test;
 import org.yaml.snakeyaml.Yaml;
@@ -15,7 +15,7 @@ public class JaversTest {
 
     @Test
     public void testJaversSimple() throws FileNotFoundException, NotSupportedChangeType {
-        Yaml yamlProc = YamlProcessorCreator.createNullValueIgnoring();
+        Yaml yamlProc = YamlCreator.createDefaultYamlProcessor();
         DiffLogic diffLogic = new DiffLogic();
 
         ConfigBean configLive = yamlProc.loadAs(new FileInputStream(

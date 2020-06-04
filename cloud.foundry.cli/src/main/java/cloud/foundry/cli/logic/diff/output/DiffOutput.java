@@ -2,7 +2,7 @@ package cloud.foundry.cli.logic.diff.output;
 
 import cloud.foundry.cli.crosscutting.exceptions.NotSupportedChangeType;
 import cloud.foundry.cli.crosscutting.mapping.beans.Bean;
-import cloud.foundry.cli.crosscutting.util.YamlProcessorCreator;
+import cloud.foundry.cli.crosscutting.util.YamlCreator;
 import cloud.foundry.cli.logic.diff.DiffNode;
 import org.javers.core.diff.Change;
 import org.javers.core.diff.changetype.ValueChange;
@@ -89,7 +89,7 @@ public class DiffOutput {
     }
 
     private String fromBean(cloud.foundry.cli.logic.diff.output.FlagSymbol flagSymbol, int indentation, Bean bean) {
-        Yaml yamlProcessor = YamlProcessorCreator.createNullValueIgnoring();
+        Yaml yamlProcessor = YamlCreator.createDefaultYamlProcessor();
         String yamlDump = yamlProcessor.dump(bean);
 
         List<String> yamlLines = Arrays.asList(yamlDump.split("\n"));
