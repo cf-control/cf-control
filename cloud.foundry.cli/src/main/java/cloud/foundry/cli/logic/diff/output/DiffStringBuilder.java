@@ -9,21 +9,21 @@ public class DiffStringBuilder {
 
     static {
         colorMapping = new HashMap<>();
-        colorMapping.put(cloud.foundry.cli.logic.diff.output.FlagSymbol.ADDED, cloud.foundry.cli.logic.diff.output.WrapperColor.GREEN);
-        colorMapping.put(cloud.foundry.cli.logic.diff.output.FlagSymbol.REMOVED, cloud.foundry.cli.logic.diff.output.WrapperColor.RED);
-        colorMapping.put(cloud.foundry.cli.logic.diff.output.FlagSymbol.NONE, cloud.foundry.cli.logic.diff.output.WrapperColor.DEFAULT);
+        colorMapping.put(FlagSymbol.ADDED, WrapperColor.GREEN);
+        colorMapping.put(FlagSymbol.REMOVED, WrapperColor.RED);
+        colorMapping.put(FlagSymbol.NONE, WrapperColor.DEFAULT);
     }
 
     private int indentation;
     private String propertyName;
-    private cloud.foundry.cli.logic.diff.output.FlagSymbol flagSymbol;
-    private cloud.foundry.cli.logic.diff.output.WrapperColor wrapperColor;
+    private FlagSymbol flagSymbol;
+    private WrapperColor wrapperColor;
     private String value;
     private boolean withNewLine;
 
     private DiffStringBuilder() {
         wrapperColor = null;
-        flagSymbol = cloud.foundry.cli.logic.diff.output.FlagSymbol.NONE;
+        flagSymbol = FlagSymbol.NONE;
         indentation = 0;
         propertyName = "";
         value = "";
@@ -44,7 +44,7 @@ public class DiffStringBuilder {
         return this;
     }
 
-    public DiffStringBuilder setFlagSymbol(cloud.foundry.cli.logic.diff.output.FlagSymbol flagSymbol) {
+    public DiffStringBuilder setFlagSymbol(FlagSymbol flagSymbol) {
         this.flagSymbol = flagSymbol;
         return this;
     }
@@ -54,7 +54,7 @@ public class DiffStringBuilder {
         return this;
     }
 
-    public DiffStringBuilder setWrapperColor(cloud.foundry.cli.logic.diff.output.WrapperColor wrapperColor) {
+    public DiffStringBuilder setWrapperColor(WrapperColor wrapperColor) {
         this.wrapperColor = wrapperColor;
         return this;
     }
@@ -94,7 +94,7 @@ public class DiffStringBuilder {
         if (!value.isEmpty()) {
             sb.append(value);
         }
-        sb.append(cloud.foundry.cli.logic.diff.output.WrapperColor.DEFAULT);
+        sb.append(WrapperColor.DEFAULT);
 
         if (withNewLine) {
             sb.append("\n");
