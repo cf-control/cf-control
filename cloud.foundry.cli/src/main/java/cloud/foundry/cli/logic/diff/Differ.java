@@ -7,6 +7,7 @@ import org.javers.core.diff.Change;
 import org.javers.core.diff.Diff;
 import org.javers.core.diff.changetype.ObjectRemoved;
 
+import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.LinkedList;
 
@@ -27,7 +28,7 @@ public class Differ {
      * @param desiredConfig the configuration state that the live system should change to
      * @return @DiffNode objects which is the root of the tree
      */
-    public static DiffNode createDiffTree(ConfigBean liveConfig, ConfigBean desiredConfig) {
+    public static DiffNode createDiffTree(@Nonnull ConfigBean liveConfig,@Nonnull ConfigBean desiredConfig) {
 
         /**
          * Javers stores changes in a Change class, which holds information about the absolute path

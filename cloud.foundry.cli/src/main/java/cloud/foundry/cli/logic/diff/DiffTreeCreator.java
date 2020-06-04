@@ -2,6 +2,7 @@ package cloud.foundry.cli.logic.diff;
 
 import org.javers.core.diff.Change;
 
+import javax.annotation.Nonnull;
 import java.util.LinkedList;
 
 public class DiffTreeCreator {
@@ -11,7 +12,7 @@ public class DiffTreeCreator {
      * API method
      * @return
      */
-    public DiffNode insert(DiffNode node, LinkedList<String> path, Change change) {
+    public DiffNode insert(@Nonnull DiffNode node,@Nonnull LinkedList<String> path, Change change) {
         if (path.size() == 0) {
             node.addChange(change);
             return node;
