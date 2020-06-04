@@ -11,6 +11,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
+
+// TODO: remove this temporary test class, when no longer needed
+
 public class JaversTest {
 
     @Test

@@ -4,6 +4,7 @@ import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.Map;
 
+//TODO rename to DiffLineBuilder
 public class DiffStringBuilder {
 
     private static Map<FlagSymbol, WrapperColor> colorMapping;
@@ -66,15 +67,17 @@ public class DiffStringBuilder {
     }
 
     /**
+     * TODO: needs better formatting here
      * {color}{flagSymbol} ' 'x{indentation} + [propertyName: ] + [value] + {colorReset} + {withNewLine ? true => \n}
      * for example:
-     *                 flagSymbol = FlagSymbol.Added,
-     *                 indentation = 6,
-     *                 propertyName = 'size',
-     *                 value = '1024',
-     *                 withNewLine = true
+     *             flagSymbol = FlagSymbol.Added,
+     *             indentation = 6,
+     *             propertyName = 'size',
+     *             value = '1024',
+     *             withNewLine = true
      *
      *     Result: "+       size: 1024\n"
+     * @return a string as shown above
      */
     public String build() {
         StringBuilder sb = new StringBuilder();
