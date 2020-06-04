@@ -2,15 +2,23 @@ apiVersion: 1.2.0
 spec:
   spaceDevelopers: ['t01234@datev.de', "other.mail@mailserbce.de", "another.mail@mailservice.de"]
   services:
-    datev-http-routing:
-      name: mitarbeiter-web-route
+    mitarbeiter-web-route:
+      service: datev-http-routing
       plan: unsecure
       tags:
         - tag1
         - tag2
   apps:
     firstApp:
-      name: app
       path: src/app-1.0.1.jar
       manifest:
         buildpack: someBuildpack3
+    thirdApp:
+      path: src/app-3.0.1.jar
+      manifest:
+        buildpack: someBuildpack
+        memory: 1024
+        instances: 10
+        disk: 1024
+        randomRoute: true
+        healthCheckHttpEndpoint : HTTP
