@@ -37,7 +37,7 @@ public class Differ {
         Diff diff = JAVERS.compare(liveConfig, desiredConfig);
         DiffTreeCreator diffTreeCreator = new DiffTreeCreator();
 
-        DiffNode diffNode = DiffNode.create(ROOT_NAME);
+        DiffNode diffNode = new DiffNode(ROOT_NAME);
         for (Change change: diff.getChanges()) {
            if (change instanceof ObjectRemoved) continue;
 
