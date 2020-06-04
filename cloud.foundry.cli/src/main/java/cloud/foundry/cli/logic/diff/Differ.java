@@ -1,13 +1,10 @@
-package cloud.foundry.cli.logic;
+package cloud.foundry.cli.logic.diff;
 
-import cloud.foundry.cli.crosscutting.beans.ConfigBean;
-import cloud.foundry.cli.crosscutting.beans.SpecBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
 import org.javers.core.Javers;
 import org.javers.core.JaversBuilder;
 import org.javers.core.diff.Change;
 import org.javers.core.diff.Diff;
-import org.javers.core.diff.ListCompareAlgorithm;
-import org.javers.core.diff.changetype.NewObject;
 import org.javers.core.diff.changetype.ObjectRemoved;
 
 import java.util.Arrays;
@@ -15,7 +12,7 @@ import java.util.LinkedList;
 
 
 /**
- * TODO doc
+ * the classes serves as the main module for creating the difference between two configurations
  */
 public class Differ {
 
@@ -25,16 +22,20 @@ public class Differ {
     private static final String ROOT_NAME = "root";
 
     /**
-     * TODO doc
+     * compares the two given configurations and creates a tree composed of @DiffNode objects
+     * @param liveConfig the configuration that is currently on the live system
+     * @param desiredConfig the configuration state that the live system should change to
+     * @return @DiffNode objects which is the root of the tree
      */
     public static DiffNode createDiffTree(ConfigBean liveConfig, ConfigBean desiredConfig) {
+
         /**
          * Javers stores changes in a Change class, which holds information about the absolute path
          * from the Root Object (ConfigBean here) to the actual level where a change has taken place.
          * The idea is to build a tree data structure where each node holds the changes of their level.
          */
-
         Diff diff = JAVERS.compare(liveConfig, desiredConfig);
+        DiffTreeCreator diffTreeCreator = new DiffTreeCreator();
 
         DiffNode diffNode = DiffNode.create(ROOT_NAME);
         for (Change change: diff.getChanges()) {
@@ -42,8 +43,7 @@ public class Differ {
 
             LinkedList<String> path = extractPath(change);
             replaceRoot(ROOT_NAME, path);
-            diffNode.insert(path, change);
-
+            diffTreeCreator.insert(diffNode, path, change);
         }
 
         return diffNode;
