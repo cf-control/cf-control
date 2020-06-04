@@ -18,14 +18,6 @@ public class ApplicationBean implements Bean {
         this.manifest = manifestBean;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public String getPath() {
         return path;
     }
@@ -42,8 +34,4 @@ public class ApplicationBean implements Bean {
     public ApplicationBean() {
     }
 
-    @Override
-    public void visit(BeanVisitor visitor) {
-        visitor.visit(this);
-    }
 }
