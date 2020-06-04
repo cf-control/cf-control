@@ -1,13 +1,12 @@
 package cloud.foundry.cli.crosscutting.util;
 
-import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
-import cloud.foundry.cli.crosscutting.beans.ApplicationManifestBean;
-import cloud.foundry.cli.crosscutting.beans.ConfigBean;
-import cloud.foundry.cli.crosscutting.beans.GetAllBean;
-import cloud.foundry.cli.crosscutting.beans.ServiceBean;
-import cloud.foundry.cli.crosscutting.beans.SpaceDevelopersBean;
-import cloud.foundry.cli.crosscutting.beans.SpecBean;
-import cloud.foundry.cli.crosscutting.beans.TargetBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationManifestBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.SpaceDevelopersBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.TargetBean;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.introspector.Property;
@@ -91,7 +90,6 @@ public class YamlProcessorCreator {
         representer.addClassTag(ApplicationManifestBean.class, Tag.MAP);
         representer.addClassTag(ServiceBean.class, Tag.MAP);
         representer.addClassTag(SpaceDevelopersBean.class, Tag.MAP);
-        representer.addClassTag(GetAllBean.class, Tag.MAP);
         representer.addClassTag(ConfigBean.class, Tag.MAP);
         representer.addClassTag(SpecBean.class, Tag.MAP);
         representer.addClassTag(TargetBean.class, Tag.MAP);
