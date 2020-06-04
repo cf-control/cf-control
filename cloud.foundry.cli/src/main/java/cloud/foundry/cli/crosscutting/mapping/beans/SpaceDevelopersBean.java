@@ -24,11 +24,4 @@ public class SpaceDevelopersBean implements Bean {
         this.spaceDevelopers = spaceDevelopers;
     }
 
-    /**
-     * TODO doc
-     */
-    @Override
-    public void visit(BeanVisitor visitor) {
-        visitor.visit(this);
-    }
 }
