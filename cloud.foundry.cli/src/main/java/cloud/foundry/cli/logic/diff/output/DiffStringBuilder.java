@@ -1,4 +1,4 @@
-package cloud.foundry.cli.logic.output;
+package cloud.foundry.cli.logic.diff.output;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -9,21 +9,21 @@ public class DiffStringBuilder {
 
     static {
         colorMapping = new HashMap<>();
-        colorMapping.put(FlagSymbol.ADDED, WrapperColor.GREEN);
-        colorMapping.put(FlagSymbol.REMOVED, WrapperColor.RED);
-        colorMapping.put(FlagSymbol.NONE, WrapperColor.DEFAULT);
+        colorMapping.put(cloud.foundry.cli.logic.diff.output.FlagSymbol.ADDED, cloud.foundry.cli.logic.diff.output.WrapperColor.GREEN);
+        colorMapping.put(cloud.foundry.cli.logic.diff.output.FlagSymbol.REMOVED, cloud.foundry.cli.logic.diff.output.WrapperColor.RED);
+        colorMapping.put(cloud.foundry.cli.logic.diff.output.FlagSymbol.NONE, cloud.foundry.cli.logic.diff.output.WrapperColor.DEFAULT);
     }
 
     private int indentation;
     private String propertyName;
-    private FlagSymbol flagSymbol;
-    private WrapperColor wrapperColor;
+    private cloud.foundry.cli.logic.diff.output.FlagSymbol flagSymbol;
+    private cloud.foundry.cli.logic.diff.output.WrapperColor wrapperColor;
     private String value;
     private boolean withNewLine;
 
     private DiffStringBuilder() {
         wrapperColor = null;
-        flagSymbol = FlagSymbol.NONE;
+        flagSymbol = cloud.foundry.cli.logic.diff.output.FlagSymbol.NONE;
         indentation = 0;
         propertyName = "";
         value = "";
@@ -44,7 +44,7 @@ public class DiffStringBuilder {
         return this;
     }
 
-    public DiffStringBuilder setFlagSymbol(FlagSymbol flagSymbol) {
+    public DiffStringBuilder setFlagSymbol(cloud.foundry.cli.logic.diff.output.FlagSymbol flagSymbol) {
         this.flagSymbol = flagSymbol;
         return this;
     }
@@ -54,7 +54,7 @@ public class DiffStringBuilder {
         return this;
     }
 
-    public DiffStringBuilder setWrapperColor(WrapperColor wrapperColor) {
+    public DiffStringBuilder setWrapperColor(cloud.foundry.cli.logic.diff.output.WrapperColor wrapperColor) {
         this.wrapperColor = wrapperColor;
         return this;
     }
@@ -94,7 +94,7 @@ public class DiffStringBuilder {
         if (!value.isEmpty()) {
             sb.append(value);
         }
-        sb.append(WrapperColor.DEFAULT);
+        sb.append(cloud.foundry.cli.logic.diff.output.WrapperColor.DEFAULT);
 
         if (withNewLine) {
             sb.append("\n");

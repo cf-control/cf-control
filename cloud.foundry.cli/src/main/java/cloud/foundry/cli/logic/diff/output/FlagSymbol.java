@@ -1,4 +1,4 @@
-package cloud.foundry.cli.logic.output;
+package cloud.foundry.cli.logic.diff.output;
 
 public enum FlagSymbol {
     ADDED("+"),
