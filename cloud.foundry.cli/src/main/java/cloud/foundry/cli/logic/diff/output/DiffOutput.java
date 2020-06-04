@@ -62,14 +62,14 @@ public class DiffOutput {
                     (Bean) changes.get(0).getAffectedObject().get(),
                     node.getPropertyName());
         } else if (node.isRemovedObject()) {
-            return fromBean(cloud.foundry.cli.logic.diff.output.FlagSymbol.REMOVED,
+            return fromBean(FlagSymbol.REMOVED,
                     indentation,
                     (Bean) changes.get(0).getAffectedObject().get(),
                     node.getPropertyName());
         } else {
 
             StringBuilder sb = new StringBuilder();
-            sb.append(fromProperty(cloud.foundry.cli.logic.diff.output.FlagSymbol.NONE, indentation - 2,  node.getPropertyName()));
+            sb.append(fromProperty(FlagSymbol.NONE, indentation - 2,  node.getPropertyName()));
 
             for (Change change : changes) {
                 if (change instanceof MapChange && ! node.isLeaf()) continue;
@@ -84,11 +84,11 @@ public class DiffOutput {
         }
     }
 
-    private String fromProperty(cloud.foundry.cli.logic.diff.output.FlagSymbol flagSymbol, int indentation, String propertyName) {
+    private String fromProperty(FlagSymbol flagSymbol, int indentation, String propertyName) {
         return asPropertyEntry(flagSymbol, indentation, propertyName);
     }
 
-    private String fromBean(cloud.foundry.cli.logic.diff.output.FlagSymbol flagSymbol, int indentation, Bean bean) {
+    private String fromBean(FlagSymbol flagSymbol, int indentation, Bean bean) {
         Yaml yamlProcessor = YamlCreator.createDefaultYamlProcessor();
         String yamlDump = yamlProcessor.dump(bean);
 
@@ -107,7 +107,7 @@ public class DiffOutput {
                 + "\n";
     }
 
-    private String fromBean(cloud.foundry.cli.logic.diff.output.FlagSymbol flagSymbol, int indentation, Bean bean, String property) {
+    private String fromBean(FlagSymbol flagSymbol, int indentation, Bean bean, String property) {
         return asPropertyEntry(flagSymbol, indentation - 2, property) + fromBean(flagSymbol, indentation, bean);
     }
 
@@ -128,15 +128,15 @@ public class DiffOutput {
             CollectionChange collectionChange = (CollectionChange) change;
 
             StringBuilder sb = new StringBuilder();
-            sb.append(asPropertyEntry(cloud.foundry.cli.logic.diff.output.FlagSymbol.NONE, indentation, change.getPropertyName()));
+            sb.append(asPropertyEntry(FlagSymbol.NONE, indentation, change.getPropertyName()));
 
             for (Object element : collectionChange.getAddedValues()) {
-                sb.append(asListEntry(cloud.foundry.cli.logic.diff.output.FlagSymbol.ADDED,
+                sb.append(asListEntry(FlagSymbol.ADDED,
                         indentation,
                         element.toString()));
             }
             for (Object element : collectionChange.getRemovedValues()) {
-                sb.append(asListEntry(cloud.foundry.cli.logic.diff.output.FlagSymbol.REMOVED,
+                sb.append(asListEntry(FlagSymbol.REMOVED,
                         indentation,
                         element.toString()));
             }
@@ -169,16 +169,16 @@ public class DiffOutput {
 
     private String handleMapChange(int indentation, MapChange change) {
         StringBuilder sb = new StringBuilder();
-        sb.append(asPropertyEntry(cloud.foundry.cli.logic.diff.output.FlagSymbol.NONE, indentation, change.getPropertyName()));
+        sb.append(asPropertyEntry(FlagSymbol.NONE, indentation, change.getPropertyName()));
 
         for (EntryAdded element : change.getEntryAddedChanges()) {
-            sb.append(asKeyValueEntry(cloud.foundry.cli.logic.diff.output.FlagSymbol.ADDED,
+            sb.append(asKeyValueEntry(FlagSymbol.ADDED,
                     indentation,
                     "",
                     element.toString()));
         }
         for (EntryRemoved element :  change.getEntryRemovedChanges()) {
-            sb.append(asKeyValueEntry(cloud.foundry.cli.logic.diff.output.FlagSymbol.REMOVED,
+            sb.append(asKeyValueEntry(FlagSymbol.REMOVED,
                     indentation,
                     "",
                     element.toString()));
@@ -194,34 +194,34 @@ public class DiffOutput {
      * example : asAddedKeyValueEntry(4, 'name', 'elephantsql') :== '+    name: elephantsql'
      */
     private String asAddedKeyValueEntry(int indentation, String propertyName, String value) {
-        return asKeyValueEntry(cloud.foundry.cli.logic.diff.output.FlagSymbol.ADDED, indentation, propertyName, value);
+        return asKeyValueEntry(FlagSymbol.ADDED, indentation, propertyName, value);
     }
 
     /**
      * example : asRemovedKeyValueEntry(4, 'name', 'elephantsql') :== '-    name: elephantsql'
      */
     private String asRemovedKeyValueEntry(int indentation, String propertyName, String value) {
-        return asKeyValueEntry(cloud.foundry.cli.logic.diff.output.FlagSymbol.REMOVED, indentation, propertyName, value);
+        return asKeyValueEntry(FlagSymbol.REMOVED, indentation, propertyName, value);
     }
 
     /**
      * example : asListEntry('+', 4, 'elephantsql') :== '+    - elephantsql'
      */
-    private String asListEntry(cloud.foundry.cli.logic.diff.output.FlagSymbol flagSymbol, int indentation, String value) {
+    private String asListEntry(FlagSymbol flagSymbol, int indentation, String value) {
         return asKeyValueEntry(flagSymbol, indentation, "", "- " + value);
     }
 
     /**
      * example : asPropertyEntry('+', 4, 'manifest') :== '+    manifest:'
      */
-    private String asPropertyEntry(cloud.foundry.cli.logic.diff.output.FlagSymbol flagSymbol, int indentation, String property) {
+    private String asPropertyEntry(FlagSymbol flagSymbol, int indentation, String property) {
         return asKeyValueEntry(flagSymbol, indentation, property, "");
     }
 
     /**
      * example : asKeyValueEntry('+', 4, 'diskQuota', '1024') :== '+    diskQuota: 1024'
      */
-    private String asKeyValueEntry(cloud.foundry.cli.logic.diff.output.FlagSymbol flagSymbol, int indentation, String property, String value) {
+    private String asKeyValueEntry(FlagSymbol flagSymbol, int indentation, String property, String value) {
         return cloud.foundry.cli.logic.diff.output.DiffStringBuilder.builder()
                 .setFlagSymbol(flagSymbol)
                 .setIndentation(indentation)
