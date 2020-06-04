@@ -12,9 +12,4 @@ package cloud.foundry.cli.crosscutting.mapping.beans;
  */
 public interface Bean {
 
-    /**
-     * TODO doc
-     */
-    void visit(BeanVisitor visitor);
-
 }
