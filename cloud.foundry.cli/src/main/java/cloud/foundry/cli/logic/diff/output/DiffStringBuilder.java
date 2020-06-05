@@ -42,21 +42,25 @@ public class DiffStringBuilder {
     }
 
     public DiffStringBuilder setPropertyName(@Nonnull String propertyName) {
+        checkNotNull(propertyName);
         this.propertyName = propertyName;
         return this;
     }
 
     public DiffStringBuilder setFlagSymbol(@Nonnull FlagSymbol flagSymbol) {
+        checkNotNull(flagSymbol);
         this.flagSymbol = flagSymbol;
         return this;
     }
 
     public DiffStringBuilder setValue(@Nonnull String value) {
+        checkNotNull(value);
         this.value = value;
         return this;
     }
 
     public DiffStringBuilder setWrapperColor(@Nonnull WrapperColor wrapperColor) {
+        checkNotNull(wrapperColor);
         this.wrapperColor = wrapperColor;
         return this;
     }
