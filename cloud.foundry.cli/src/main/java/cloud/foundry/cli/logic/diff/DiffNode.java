@@ -18,18 +18,34 @@ import java.util.Map;
  */
 public class DiffNode {
 
+    protected DiffNode parentNode;
     protected Map<String, DiffNode> childNodes;
     //TODO use custom wrapper for the change object
     protected List<Change> changes;
     protected String propertyName;
 
-    //TODO parent node
     //TODO helper method isRoot()
 
     public DiffNode(@Nonnull String propertyName) {
+        this.parentNode = null;
         this.propertyName = propertyName;
         this.childNodes = new HashMap<>();
         this.changes = new LinkedList<>();
+    }
+
+    public DiffNode(@Nonnull String propertyName, @Nonnull DiffNode parentNode) {
+        this.parentNode = parentNode;
+        this.propertyName = propertyName;
+        this.childNodes = new HashMap<>();
+        this.changes = new LinkedList<>();
+    }
+
+    public DiffNode getParentNode() {
+        return parentNode;
+    }
+
+    public void setParentNode(DiffNode parentNode) {
+        this.parentNode = parentNode;
     }
 
     /**
@@ -88,6 +104,18 @@ public class DiffNode {
 
     public boolean isLeaf() {
         return this.childNodes.size() == 0;
+    }
+
+    public boolean isRoot() {
+        return this.parentNode == null;
+    }
+
+    public int getDepth() {
+        if (this.isRoot()) {
+            return 0;
+        }
+
+        return 1 + this.parentNode.getDepth();
     }
 
     public boolean isNewObject() {
