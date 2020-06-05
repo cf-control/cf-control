@@ -2,44 +2,42 @@ package cloud.foundry.cli.crosscutting.mapping;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
-import cloud.foundry.cli.crosscutting.beans.ServiceBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
 import org.junit.jupiter.api.Test;
 import org.yaml.snakeyaml.constructor.ConstructorException;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.HashMap;
 
 
 public class YamlMapperTest {
 
     @Test
-    public void dumpBeanTest() {
+    public void dumpTest() {
         //given
+        Map<String, ServiceBean> services = new HashMap<>();
         ServiceBean serviceBean = new ServiceBean();
-        serviceBean.setService("serviceName");
-        serviceBean.setName("test");
-        serviceBean.setApplications(null);
-        serviceBean.setPlan("default");
-        serviceBean.setId("testId");
-        serviceBean.setLastOperation("operation");
+        serviceBean.setService("someService");
+        serviceBean.setPlan(null);
         serviceBean.setTags(Arrays.asList("tag1", "tag2"));
+        services.put("serviceName", serviceBean);
         //when
-        String dump = YamlMapper.dumpBean(serviceBean);
+        String dump = YamlMapper.dump(services);
         //then
         assertThat(dump, is(
-                "applications: null\n" +
-                "id: testId\n" +
-                "lastOperation: operation\n" +
-                "name: test\n" +
-                "plan: default\n" +
-                "service: serviceName\n" +
-                "tags:\n" +
-                "- tag1\n" +
-                "- tag2\n" +
-                "type: null\n"
+                "serviceName:\n" +
+                "  service: someService\n" +
+                "  tags:\n" +
+                "  - tag1\n" +
+                "  - tag2\n"
         ));
     }
 
@@ -48,9 +46,19 @@ public class YamlMapperTest {
         //given
         String configFilePath = "./src/test/resources/refresolver/Application.yml";
         //when
-        ApplicationBean applicationBean = YamlMapper.loadBean(configFilePath, ApplicationBean.class);
+        SpecBean specBean = YamlMapper.loadBean(configFilePath, SpecBean.class);
         //then
-        assertThat(applicationBean.getName(), is("testApp"));
+        assertThat(specBean.getSpaceDevelopers(), is(nullValue()));
+        assertThat(specBean.getServices(), is(nullValue()));
+
+        Map<String, ApplicationBean> applicationBeans = specBean.getApps();
+        assertThat(applicationBeans.size(), is(1));
+        Entry<String, ApplicationBean> applicationEntry = applicationBeans.entrySet().iterator().next();
+
+        String applicationName = applicationEntry.getKey();
+        assertThat(applicationName, is("testApp"));
+
+        ApplicationBean applicationBean = applicationEntry.getValue();
         assertThat(applicationBean.getPath(), is("path/to/specify"));
     }
 

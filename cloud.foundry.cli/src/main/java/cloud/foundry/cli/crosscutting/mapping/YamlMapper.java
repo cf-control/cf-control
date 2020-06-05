@@ -1,30 +1,34 @@
 package cloud.foundry.cli.crosscutting.mapping;
 
-import cloud.foundry.cli.crosscutting.beans.Bean;
-import cloud.foundry.cli.crosscutting.beans.ServiceBean;
-import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
-import cloud.foundry.cli.crosscutting.beans.GetAllBean;
-import cloud.foundry.cli.crosscutting.beans.ApplicationManifestBean;
-import cloud.foundry.cli.crosscutting.beans.SpaceDevelopersBean;
-
 import cloud.foundry.cli.crosscutting.exceptions.RefResolvingException;
+import cloud.foundry.cli.crosscutting.mapping.beans.*;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.ConstructorException;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
+import org.yaml.snakeyaml.introspector.Property;
+import org.yaml.snakeyaml.nodes.NodeTuple;
 import org.yaml.snakeyaml.nodes.Tag;
 import org.yaml.snakeyaml.representer.Representer;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * This class takes care about loading {@link Bean beans} from configuration files and dumping {@link Bean beans} as
  * {@link String strings}. It guarantees consistent loading and dumping.
  */
 public class YamlMapper {
+
+    /**
+     * The indentation (number of white spaces) used for yaml dumping.
+     */
+    public static final int INDENTATION = 2;
 
     /**
      * Loads a configuration file as a bean. During this process, the ref-occurrences in the specified configuration
@@ -37,34 +41,14 @@ public class YamlMapper {
      * @throws ConstructorException if the resolved Object can not be dumped as the given Bean type
      */
     public static <B extends Bean> B loadBean(String configFilePath, Class<B> beanType) throws IOException {
-        return load(configFilePath, beanType);
-    }
-
-    /**
-     * Loads a configuration file as multiple beans. During this process, the ref-occurrences in the specified
-     * configuration file are resolved.
-     *
-     * @param configFilePath the path to the config file
-     * @param beanType the desired type of the beans to load
-     * @throws IOException if the config file cannot be accessed
-     * @throws RefResolvingException if an error during the ref-resolution process occurs
-     * @throws ConstructorException if the resolved Object can not be dumped as the given Bean type
-     */
-    public static <B extends Bean> Map<String, B> loadBeans(String configFilePath, Class<B> beanType)
-            throws IOException {
-        // the cast of the class object is a bit ugly but probably inevitable
-        return load(configFilePath, (Class<Map<String, B>>)(Class<?>) Map.class);
-    }
-
-    private static <T> T load(String filePath, Class<T> type) throws IOException {
-        Object yamlTreeRoot = loadYamlTree(filePath);
+        Object yamlTreeRoot = loadYamlTree(configFilePath);
         yamlTreeRoot = RefResolver.resolveRefs(yamlTreeRoot);
 
         Yaml treeDumper = createMinimalDumper();
         String resolvedConfig = treeDumper.dump(yamlTreeRoot);
 
-        Yaml beanLoader = createBeanLoader();
-        return beanLoader.loadAs(resolvedConfig, type);
+        Yaml yamlProcessor = new Yaml();
+        return yamlProcessor.loadAs(resolvedConfig, beanType);
     }
 
     /**
@@ -84,29 +68,17 @@ public class YamlMapper {
     }
 
     /**
-     * Dumps the contents of a bean instance as a string in the yaml format.
+     * Dumps the contents of an arbitrary object as a string in the yaml format.
      *
-     * @param bean the instance to dump
-     * @return the contents of the parameter as a string
+     * @param object the object to dump
+     * @return the contents of the parameter as a yaml string
      */
-    public static <B extends Bean> String dumpBean(B bean) {
-        return dump(bean);
-    }
-
-    /**
-     * Dumps the contents of bean instances as a string in the yaml format.
-     *
-     * @param beans the map of instances to dump
-     * @return the contents of the parameter as a string
-     */
-    public static <B extends Bean> String dumpBeans(Map<String, B> beans) {
-        return dump(beans);
-    }
-
-    //TODO set to private
     public static String dump(Object object) {
-        Yaml defaultYamlDumper = createDefaultDumper();
-        return defaultYamlDumper.dump(object);
+        return dump(object, createDefaultDumper());
+    }
+
+    private static String dump(Object object, Yaml yamlProcessor) {
+        return yamlProcessor.dump(object);
     }
 
     /**
@@ -123,15 +95,33 @@ public class YamlMapper {
         options.setPrettyFlow(true);
         options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
         // indentation aids readability
-        options.setIndent(2);
+        options.setIndent(INDENTATION);
         // use custom representer to hide bean class names in output
+        Representer representer = new Representer() {
+            @Override
+            protected NodeTuple representJavaBeanProperty(Object javaBean, Property property,
+                                                          Object propertyValue, Tag customTag) {
+                if (propertyValue == null) {
+                    // if value of property is null, ignore it.
+                    return null;
+                } else if (propertyValue instanceof Collection && ((Collection) propertyValue).isEmpty()) {
+                    // if the content of the property is empty, ignore it.
+                    return null;
+                } else if (propertyValue instanceof Map && ((Map) propertyValue).isEmpty()) {
+                    // if the content of the property is empty, ignore it.
+                    return null;
+                }
+                else {
+                    return super.representJavaBeanProperty(javaBean, property, propertyValue, customTag);
+                }
+            }
+        };
         // we explicitly have to add _all_ custom bean types
-        Representer representer = new Representer();
         representer.addClassTag(ApplicationBean.class, Tag.MAP);
         representer.addClassTag(ApplicationManifestBean.class, Tag.MAP);
         representer.addClassTag(ServiceBean.class, Tag.MAP);
         representer.addClassTag(SpaceDevelopersBean.class, Tag.MAP);
-        representer.addClassTag(GetAllBean.class, Tag.MAP);
+        representer.addClassTag(ConfigBean.class, Tag.MAP);
         return new Yaml(representer, options);
     }
 
@@ -142,9 +132,5 @@ public class YamlMapper {
         // minimal indentation needed as this does not serve as output to the user
         options.setIndent(1);
         return new Yaml(options);
-    }
-
-    private static Yaml createBeanLoader() {
-        return new Yaml();
     }
 }

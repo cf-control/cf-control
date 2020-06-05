@@ -1,4 +1,4 @@
-package cloud.foundry.cli.crosscutting.beans;
+package cloud.foundry.cli.crosscutting.mapping.beans;
 
 import java.util.List;
 
@@ -10,6 +10,10 @@ public class SpaceDevelopersBean implements Bean {
     private List<String> spaceDevelopers;
 
     public SpaceDevelopersBean() {
+    }
+
+    public SpaceDevelopersBean(List<String> spaceDevelopers) {
+        this.spaceDevelopers = spaceDevelopers;
     }
 
     public List<String> getSpaceDevelopers() {

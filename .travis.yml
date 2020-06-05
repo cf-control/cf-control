@@ -8,6 +8,7 @@ dist: bionic
 # we test against Java 10 and 11 by default
 # Java 8 might be too old, but we can always include it into our build matrix
 jdk:
+  - openjdk8
   - openjdk10
   - openjdk11
 
@@ -15,3 +16,8 @@ script:
   # our source code is currently in a subdirectory
   - cd cloud.foundry.cli
   - ./gradlew build
+  
+# send testreport to coveralls
+after_success:
+- ./gradlew jacocoTestReport coveralls
+

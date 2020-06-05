@@ -1,22 +1,22 @@
 package cloud.foundry.cli.services;
 
-import cloud.foundry.cli.crosscutting.beans.ApplicationBean;
-import cloud.foundry.cli.crosscutting.beans.GetAllBean;
-import cloud.foundry.cli.crosscutting.beans.ServiceBean;
-import cloud.foundry.cli.crosscutting.beans.SpaceDevelopersBean;
-import cloud.foundry.cli.crosscutting.logging.Log;
+import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
 import cloud.foundry.cli.crosscutting.mapping.YamlMapper;
-import cloud.foundry.cli.operations.AllInformationOperations;
-import cloud.foundry.cli.operations.ApplicationOperations;
+import cloud.foundry.cli.logic.GetLogic;
+import cloud.foundry.cli.operations.ApplicationsOperations;
 import cloud.foundry.cli.operations.ServicesOperations;
 import cloud.foundry.cli.operations.SpaceDevelopersOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
-import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Callable;
 
 /**
  * This class realizes the functionality that is needed for the get commands. They provide various information about a
@@ -30,92 +30,79 @@ import java.util.List;
                 GetController.GetSpaceDevelopersCommand.class,
                 GetController.GetApplicationsCommand.class,
                 GetController.GetAllInformation.class})
-public class GetController implements Runnable {
+public class GetController implements Callable<Integer> {
 
     @Override
-    public void run() {
-        // this code is executed if the user runs the get command without specifying any sub-command
-        CommandLine.usage(this, System.out);
-        return;
+    public Integer call() throws Exception {
+        // by default, return all information
+        // this is a convenient shortcut
+        return (new GetController.GetAllInformation()).call();
     }
 
     @Command(name = "space-developers",
             description = "List all space developers in the target space.",
             mixinStandardHelpOptions = true
     )
-    static class GetSpaceDevelopersCommand implements Runnable {
+    static class GetSpaceDevelopersCommand implements Callable<Integer> {
         @Mixin
         LoginCommandOptions loginOptions;
 
         @Override
-        public void run() {
-            try {
-                DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
-                SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
-                SpaceDevelopersBean spaceDevelopers = spaceDevelopersOperations.getAll();
+        public Integer call() throws Exception {
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+            SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
+            Mono<List<String>> spaceDevelopers = spaceDevelopersOperations.getAll();
 
-                System.out.println(YamlMapper.dumpBean(spaceDevelopers));
-            } catch (Exception e) {
-                Log.exception(e, "Unexpected error occurred");
-            }
+            System.out.println(YamlMapper.dump(spaceDevelopers.block()));
+            return 0;
         }
     }
 
     @Command(name = "services", description = "List all services in the target space.")
-    static class GetServicesCommand implements Runnable {
+    static class GetServicesCommand implements Callable<Integer> {
         @Mixin
         LoginCommandOptions loginOptions;
 
         @Override
-        public void run() {
-            try {
-                DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
-                ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
-                List<ServiceBean> services = servicesOperations.getAll();
+        public Integer call() throws Exception {
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+            ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
+            Mono<Map<String,ServiceBean>> services = servicesOperations.getAll();
 
-                //TODO replace by dumpBeans
-                System.out.println(YamlMapper.dump(services));
-            } catch (Exception e) {
-                Log.exception(e, "Unexpected error occurred");
-            }
+            System.out.println(YamlMapper.dump(services.block()));
+            return 0;
         }
     }
 
     @Command(name = "applications", description = "List all applications in the target space.")
-    static class GetApplicationsCommand implements Runnable {
+    static class GetApplicationsCommand implements Callable<Integer> {
         @Mixin
         LoginCommandOptions loginOptions;
 
         @Override
-        public void run() {
-            try {
-                DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
-                ApplicationOperations applicationOperations = new ApplicationOperations(cfOperations);
-                List<ApplicationBean> applications = applicationOperations.getAll();
+        public Integer call() throws Exception {
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+            ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
+            Mono<Map<String, ApplicationBean>> applications = applicationsOperations.getAll();
 
-                //TODO replace by dumpBeans
-                System.out.println(YamlMapper.dump(applications));
-            } catch (Exception e) {
-                Log.exception(e, "Unexpected error occurred");
-            }
+            System.out.println(YamlMapper.dump(applications.block()));
+            return 0;
         }
     }
 
     @Command(name = "all", description = "show all information in the target space")
-    static class GetAllInformation implements Runnable {
+    static class GetAllInformation implements Callable<Integer> {
         @Mixin
         LoginCommandOptions loginOptions;
 
         @Override
-        public void run() {
-            try {
-                DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
-                AllInformationOperations allInformationOperations = new AllInformationOperations(cfOperations);
-                GetAllBean allInformation = allInformationOperations.getAll();
-                System.out.println(YamlMapper.dumpBean(allInformation));
-            } catch (Exception e) {
-                Log.exception(e, "Unexpected error occurred");
-            }
+        public Integer call() throws Exception {
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+            GetLogic getLogic = new GetLogic(cfOperations);
+            ConfigBean allInformation = getLogic.getAll();
+
+            System.out.println(YamlMapper.dump(allInformation));
+            return 0;
         }
     }
 }
