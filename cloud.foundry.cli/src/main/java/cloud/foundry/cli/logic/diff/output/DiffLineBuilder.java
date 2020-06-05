@@ -2,6 +2,7 @@ package cloud.foundry.cli.logic.diff.output;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,22 +29,20 @@ import java.util.Map;
  */
 public class DiffLineBuilder {
 
-    private static final Map<FlagSymbol, AnsiColorCode> colorMap;
+    private static Map<FlagSymbol, ANSIColorCode> colorMap;
 
     static {
         colorMap = new HashMap<>();
-        colorMap.put(FlagSymbol.ADDED, AnsiColorCode.GREEN);
-        colorMap.put(FlagSymbol.REMOVED, AnsiColorCode.RED);
-        colorMap.put(FlagSymbol.NONE, AnsiColorCode.DEFAULT);
+        colorMap.put(FlagSymbol.ADDED, ANSIColorCode.GREEN);
+        colorMap.put(FlagSymbol.REMOVED, ANSIColorCode.RED);
+        colorMap.put(FlagSymbol.NONE, ANSIColorCode.DEFAULT);
     }
 
     private int indentation;
     private String propertyName;
     private FlagSymbol flagSymbol;
-    private AnsiColorCode colorCode;
+    private ANSIColorCode colorCode;
     private String value;
-
-    private boolean colorsEnabled;
 
     private DiffLineBuilder() {
         colorCode = null;
@@ -51,11 +50,6 @@ public class DiffLineBuilder {
         indentation = 0;
         propertyName = "";
         value = "";
-
-        // by default, we don't want to insert any color escape sequences in case the I/O we talk to is not a tty
-        // https://stackoverflow.com/a/1403817
-        // this can be overwritten by the user, though, by calling the corresponding setter
-        colorsEnabled = (System.console() != null || System.getenv("COLORS") != null);
     }
 
     /**
@@ -64,17 +58,6 @@ public class DiffLineBuilder {
      */
     public static DiffLineBuilder builder() {
         return new DiffLineBuilder();
-    }
-
-    /**
-     * Enable or disable color output. By default, colors are only enabled automatically when running the tool from a
-     * console. This method allows for overwriting that setting.
-     * @param enabled whether to enable or disable color outputs
-     * @return current builder object
-     */
-    public DiffLineBuilder setColorsEnabled(boolean enabled) {
-        this.colorsEnabled = enabled;
-        return this;
     }
 
     /**
@@ -93,7 +76,7 @@ public class DiffLineBuilder {
      * @return instance of the current builder object
      * @throws NullPointerException
      */
-    public DiffLineBuilder setPropertyName(String propertyName) {
+    public DiffLineBuilder setPropertyName(@Nonnull String propertyName) {
         checkNotNull(propertyName);
         this.propertyName = propertyName;
         return this;
@@ -105,7 +88,7 @@ public class DiffLineBuilder {
      * @return instance of the current builder object
      * @throws NullPointerException
      */
-    public DiffLineBuilder setFlagSymbol(FlagSymbol flagSymbol) {
+    public DiffLineBuilder setFlagSymbol(@Nonnull FlagSymbol flagSymbol) {
         checkNotNull(flagSymbol);
         this.flagSymbol = flagSymbol;
         return this;
@@ -117,7 +100,7 @@ public class DiffLineBuilder {
      * @return instance of the current builder object
      * @throws NullPointerException
      */
-    public DiffLineBuilder setValue(String value) {
+    public DiffLineBuilder setValue(@Nonnull String value) {
         checkNotNull(value);
         this.value = value;
         return this;
@@ -129,8 +112,7 @@ public class DiffLineBuilder {
      * @return instance of the current builder object
      * @throws NullPointerException
      */
-    public DiffLineBuilder setColorCode(AnsiColorCode colorCode) {
-        checkNotNull(colorCode);
+    public DiffLineBuilder setColorCode(@Nonnull ANSIColorCode colorCode) {
         this.colorCode = colorCode;
         return this;
     }
@@ -147,28 +129,9 @@ public class DiffLineBuilder {
         appendIndentation(sb);
         appendProperty(sb);
         appendValue(sb);
-        appendDefaultColor(sb);
+        sb.append(ANSIColorCode.DEFAULT);
 
         return sb.toString();
-    }
-
-    private void appendColor(StringBuilder sb) {
-        // we don't want to insert any color escape sequences in case the I/O we talk to is not a tty
-        // https://stackoverflow.com/a/1403817
-        if (colorsEnabled) {
-            // if color given, use that, else take color from default flag-to-color mapping
-            if (colorCode != null) {
-                sb.append(colorCode);
-            } else {
-                sb.append(colorMap.get(flagSymbol));
-            }
-        }
-    }
-
-    private void appendIndentation(StringBuilder sb) {
-        for (int i = 0; i < indentation; i++) {
-            sb.append(" ");
-        }
     }
 
     private void appendProperty(StringBuilder sb) {
@@ -187,10 +150,22 @@ public class DiffLineBuilder {
         }
     }
 
-    private void appendDefaultColor(StringBuilder sb) {
-        if (colorsEnabled) {
-            sb.append(AnsiColorCode.DEFAULT);
+    private void appendColor(StringBuilder sb) {
+        // we don't want to insert any color escape sequences in case the I/O we talk to is not a tty
+        // https://stackoverflow.com/a/1403817
+        if (System.console() != null) {
+            // if color given use that, else take color from default flag to color mapping
+            if (colorCode != null) {
+                sb.append(colorCode);
+            } else {
+                sb.append(colorMap.get(flagSymbol));
+            }
         }
     }
 
+    private void appendIndentation(StringBuilder sb) {
+        for (int i = 0; i < indentation; i++) {
+            sb.append(" ");
+        }
+    }
 }

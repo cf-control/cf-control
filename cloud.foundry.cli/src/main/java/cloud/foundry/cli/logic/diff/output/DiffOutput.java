@@ -103,7 +103,7 @@ public class DiffOutput {
         return yamlLines
                 .stream()
                 // apply flag and indentation
-                .map(line -> DiffStringBuilder.builder()
+                .map(line -> DiffLineBuilder.builder()
                         .setFlagSymbol(flagSymbol)
                         .setIndentation(indentation)
                         .setValue(line)
@@ -232,7 +232,7 @@ public class DiffOutput {
      * example : asKeyValueEntry('+', 4, 'diskQuota', '1024') :== '+    diskQuota: 1024'
      */
     private String asKeyValueEntry(FlagSymbol flagSymbol, int indentation, String property, String value) {
-        return DiffStringBuilder.builder()
+        return DiffLineBuilder.builder()
                 .setFlagSymbol(flagSymbol)
                 .setIndentation(indentation)
                 .setPropertyName(property)
