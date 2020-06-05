@@ -1,13 +1,13 @@
 package cloud.foundry.cli.logic.diff.output;
 
-public enum WrapperColor {
+public enum ANSIColorCode {
     RED("\u001B[31m"),
     GREEN("\u001B[32m"),
     DEFAULT("\u001B[0m");
 
     private String color;
 
-    private WrapperColor(String color) {
+    ANSIColorCode(String color) {
         this.color = color;
     }
 

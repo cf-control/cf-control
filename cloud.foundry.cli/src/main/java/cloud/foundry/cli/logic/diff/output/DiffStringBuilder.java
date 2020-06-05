@@ -31,23 +31,23 @@ import java.util.Map;
  */
 public class DiffStringBuilder {
 
-    private static final Map<FlagSymbol, WrapperColor> colorMapping;
+    private static Map<FlagSymbol, ANSIColorCode> colorMap;
 
     static {
-        colorMapping = new HashMap<>();
-        colorMapping.put(FlagSymbol.ADDED, WrapperColor.GREEN);
-        colorMapping.put(FlagSymbol.REMOVED, WrapperColor.RED);
-        colorMapping.put(FlagSymbol.NONE, WrapperColor.DEFAULT);
+        colorMap = new HashMap<>();
+        colorMap.put(FlagSymbol.ADDED, ANSIColorCode.GREEN);
+        colorMap.put(FlagSymbol.REMOVED, ANSIColorCode.RED);
+        colorMap.put(FlagSymbol.NONE, ANSIColorCode.DEFAULT);
     }
 
     private int indentation;
     private String propertyName;
     private FlagSymbol flagSymbol;
-    private WrapperColor wrapperColor;
+    private ANSIColorCode colorCode;
     private String value;
 
     private DiffStringBuilder() {
-        wrapperColor = null;
+        colorCode = null;
         flagSymbol = FlagSymbol.NONE;
         indentation = 0;
         propertyName = "";
@@ -110,13 +110,12 @@ public class DiffStringBuilder {
 
     /**
      *
-     * @param wrapperColor color the console should print the line in
+     * @param colorCode color the console should print the line in
      * @return instance of the current builder object
      * @throws NullPointerException
      */
-    public DiffStringBuilder setWrapperColor(@Nonnull WrapperColor wrapperColor) {
-        checkNotNull(wrapperColor);
-        this.wrapperColor = wrapperColor;
+    public DiffStringBuilder setColorCode(@Nonnull ANSIColorCode colorCode) {
+        this.colorCode = colorCode;
         return this;
     }
 
@@ -132,7 +131,7 @@ public class DiffStringBuilder {
         appendIndentation(sb);
         appendProperty(sb);
         appendValue(sb);
-        sb.append(WrapperColor.DEFAULT);
+        sb.append(ANSIColorCode.DEFAULT);
 
         return sb.toString();
     }
@@ -158,10 +157,10 @@ public class DiffStringBuilder {
         // https://stackoverflow.com/a/1403817
         if (System.console() != null) {
             // if color given use that, else take color from default flag to color mapping
-            if (wrapperColor != null) {
-                sb.append(wrapperColor);
+            if (colorCode != null) {
+                sb.append(colorCode);
             } else {
-                sb.append(colorMapping.get(flagSymbol));
+                sb.append(colorMap.get(flagSymbol));
             }
         }
     }
