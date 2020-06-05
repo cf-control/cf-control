@@ -29,19 +29,19 @@ import java.util.Map;
  */
 public class DiffLineBuilder {
 
-    private static Map<FlagSymbol, ANSIColorCode> colorMap;
+    private static Map<FlagSymbol, AnsiColorCode> colorMap;
 
     static {
         colorMap = new HashMap<>();
-        colorMap.put(FlagSymbol.ADDED, ANSIColorCode.GREEN);
-        colorMap.put(FlagSymbol.REMOVED, ANSIColorCode.RED);
-        colorMap.put(FlagSymbol.NONE, ANSIColorCode.DEFAULT);
+        colorMap.put(FlagSymbol.ADDED, AnsiColorCode.GREEN);
+        colorMap.put(FlagSymbol.REMOVED, AnsiColorCode.RED);
+        colorMap.put(FlagSymbol.NONE, AnsiColorCode.DEFAULT);
     }
 
     private int indentation;
     private String propertyName;
     private FlagSymbol flagSymbol;
-    private ANSIColorCode colorCode;
+    private AnsiColorCode colorCode;
     private String value;
 
     private DiffLineBuilder() {
@@ -112,7 +112,7 @@ public class DiffLineBuilder {
      * @return instance of the current builder object
      * @throws NullPointerException
      */
-    public DiffLineBuilder setColorCode(@Nonnull ANSIColorCode colorCode) {
+    public DiffLineBuilder setColorCode(@Nonnull AnsiColorCode colorCode) {
         this.colorCode = colorCode;
         return this;
     }
@@ -129,7 +129,7 @@ public class DiffLineBuilder {
         appendIndentation(sb);
         appendProperty(sb);
         appendValue(sb);
-        sb.append(ANSIColorCode.DEFAULT);
+        sb.append(AnsiColorCode.DEFAULT);
 
         return sb.toString();
     }
