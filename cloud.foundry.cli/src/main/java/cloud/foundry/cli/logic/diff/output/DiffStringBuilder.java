@@ -154,11 +154,15 @@ public class DiffStringBuilder {
     }
 
     private void appendColor(StringBuilder sb) {
-        // if color given use that, else take color from default flag to color mapping
-        if (wrapperColor != null) {
-            sb.append(wrapperColor);
-        } else {
-            sb.append(colorMapping.get(flagSymbol));
+        // we don't want to insert any color escape sequences in case the I/O we talk to is not a tty
+        // https://stackoverflow.com/a/1403817
+        if (System.console() != null) {
+            // if color given use that, else take color from default flag to color mapping
+            if (wrapperColor != null) {
+                sb.append(wrapperColor);
+            } else {
+                sb.append(colorMapping.get(flagSymbol));
+            }
         }
     }
 
