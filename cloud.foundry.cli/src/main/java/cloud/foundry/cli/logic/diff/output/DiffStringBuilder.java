@@ -1,5 +1,7 @@
 package cloud.foundry.cli.logic.diff.output;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.Map;
@@ -7,7 +9,7 @@ import java.util.Map;
 //TODO rename to DiffLineBuilder
 public class DiffStringBuilder {
 
-    private static Map<FlagSymbol, WrapperColor> colorMapping;
+    private static final Map<FlagSymbol, WrapperColor> colorMapping;
 
     static {
         colorMapping = new HashMap<>();
@@ -21,7 +23,6 @@ public class DiffStringBuilder {
     private FlagSymbol flagSymbol;
     private WrapperColor wrapperColor;
     private String value;
-    private boolean withNewLine;
 
     private DiffStringBuilder() {
         wrapperColor = null;
@@ -29,7 +30,6 @@ public class DiffStringBuilder {
         indentation = 0;
         propertyName = "";
         value = "";
-        withNewLine = false;
     }
 
     public static DiffStringBuilder builder() {
@@ -61,11 +61,6 @@ public class DiffStringBuilder {
         return this;
     }
 
-    public DiffStringBuilder setNewLine(boolean withNewLine) {
-        this.withNewLine = withNewLine;
-        return this;
-    }
-
     /**
      * TODO: needs better formatting here
      * {color}{flagSymbol} ' 'x{indentation} + [propertyName: ] + [value] + {colorReset} + {withNewLine ? true => \n}
@@ -82,34 +77,44 @@ public class DiffStringBuilder {
     public String build() {
         StringBuilder sb = new StringBuilder();
 
+        appendColor(sb);
+        sb.append(flagSymbol);
+        appendIndentation(sb);
+        appendProperty(sb);
+        appendValue(sb);
+        sb.append(WrapperColor.DEFAULT);
+
+        return sb.toString();
+    }
+
+    private void appendProperty(StringBuilder sb) {
+        if (!propertyName.isEmpty()) {
+            sb.append(propertyName).append(":");
+
+            if (!value.isEmpty()) {
+                sb.append(" ");
+            }
+        }
+    }
+
+    private void appendValue(StringBuilder sb) {
+        if (!value.isEmpty()) {
+            sb.append(value);
+        }
+    }
+
+    private void appendColor(StringBuilder sb) {
+        // if color given use that, else take color from default flag to color mapping
         if (wrapperColor != null) {
             sb.append(wrapperColor);
         } else {
             sb.append(colorMapping.get(flagSymbol));
         }
-
-        sb.append(flagSymbol);
-
-        repeat(sb, ' ', indentation);
-
-        if (!propertyName.isEmpty()) {
-            sb.append(propertyName).append(": ");
-        }
-        if (!value.isEmpty()) {
-            sb.append(value);
-        }
-        sb.append(WrapperColor.DEFAULT);
-
-        if (withNewLine) {
-            sb.append("\n");
-        }
-
-        return sb.toString();
     }
 
-    private void repeat(StringBuilder sb, char c, int times) {
-        for (int i = 0; i < times; i++) {
-            sb.append(c);
+    private void appendIndentation(StringBuilder sb) {
+        for (int i = 0; i < indentation; i++) {
+            sb.append(" ");
         }
     }
 }
