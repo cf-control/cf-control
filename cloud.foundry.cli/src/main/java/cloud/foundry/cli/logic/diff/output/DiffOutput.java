@@ -45,7 +45,8 @@ public class DiffOutput {
      * transforms a difference tree into a visual representation of configuration differences
      * @param node root of the difference tree that should be parse to the difference output
      * @return string of the difference output
-     * @throws UnsupportedChangeTypeException when a change type was used that is not supported within our bean hierarchy
+     * @throws UnsupportedChangeTypeException when a change type was used that is not supported within our bean
+     *  hierarchy
      */
     public String from(@Nonnull DiffNode node) throws UnsupportedChangeTypeException {
         return this.toDiffString(node, this.indentation);
@@ -128,7 +129,9 @@ public class DiffOutput {
         return "";
     }
 
-    private String handleContainerChange(int indentation, ContainerChange change) throws UnsupportedChangeTypeException {
+    private String handleContainerChange(int indentation, ContainerChange change)
+            throws UnsupportedChangeTypeException
+    {
         if (change instanceof CollectionChange) {
             CollectionChange collectionChange = (CollectionChange) change;
 
