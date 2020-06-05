@@ -69,7 +69,7 @@ public class DiffLineBuilderTest {
     }
 
      @Test
-    public void testBuildWithANSIColorCode() {
+    public void testBuildWithAnsiColorCode() {
         // given
         String expected = wrapWithColor(AnsiColorCode.GREEN, " ");
 
