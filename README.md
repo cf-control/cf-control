@@ -45,9 +45,9 @@ Then you can run the __cf-control.jar__ by using the command line tool like:
   
 ##### create [SUBCOMMAND]
 ```
-  service          Create a service in the target space.
+  service          Create services in the target space.
   space-developer  Assign users as space developers.
-  application      Create a application in the target space.
+  application      Create applications in the target space.
 ```
     
 ##### get [SUBCOMMAND]
