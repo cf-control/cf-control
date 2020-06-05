@@ -6,8 +6,6 @@ import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.Map;
 
-//TODO rename to DiffLineBuilder
-
 /**
  * Builder class that let's the user build a diff line with given properties
  *  <ul>
@@ -29,7 +27,7 @@ import java.util.Map;
  *      <li> Result: "[color]+ &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp size: 1024[color.reset]"</li>
  *  </ul>
  */
-public class DiffStringBuilder {
+public class DiffLineBuilder {
 
     private static Map<FlagSymbol, ANSIColorCode> colorMap;
 
@@ -46,7 +44,7 @@ public class DiffStringBuilder {
     private ANSIColorCode colorCode;
     private String value;
 
-    private DiffStringBuilder() {
+    private DiffLineBuilder() {
         colorCode = null;
         flagSymbol = FlagSymbol.NONE;
         indentation = 0;
@@ -58,8 +56,8 @@ public class DiffStringBuilder {
      *
      * @return the builder object
      */
-    public static DiffStringBuilder builder() {
-        return new DiffStringBuilder();
+    public static DiffLineBuilder builder() {
+        return new DiffLineBuilder();
     }
 
     /**
@@ -67,7 +65,7 @@ public class DiffStringBuilder {
      * @param indentation spaces left to the actual string
      * @return instance of the current builder object
      */
-    public DiffStringBuilder setIndentation(int indentation) {
+    public DiffLineBuilder setIndentation(int indentation) {
         this.indentation = indentation;
         return this;
     }
@@ -78,7 +76,7 @@ public class DiffStringBuilder {
      * @return instance of the current builder object
      * @throws NullPointerException
      */
-    public DiffStringBuilder setPropertyName(@Nonnull String propertyName) {
+    public DiffLineBuilder setPropertyName(@Nonnull String propertyName) {
         checkNotNull(propertyName);
         this.propertyName = propertyName;
         return this;
@@ -90,7 +88,7 @@ public class DiffStringBuilder {
      * @return instance of the current builder object
      * @throws NullPointerException
      */
-    public DiffStringBuilder setFlagSymbol(@Nonnull FlagSymbol flagSymbol) {
+    public DiffLineBuilder setFlagSymbol(@Nonnull FlagSymbol flagSymbol) {
         checkNotNull(flagSymbol);
         this.flagSymbol = flagSymbol;
         return this;
@@ -102,7 +100,7 @@ public class DiffStringBuilder {
      * @return instance of the current builder object
      * @throws NullPointerException
      */
-    public DiffStringBuilder setValue(@Nonnull String value) {
+    public DiffLineBuilder setValue(@Nonnull String value) {
         checkNotNull(value);
         this.value = value;
         return this;
@@ -114,7 +112,7 @@ public class DiffStringBuilder {
      * @return instance of the current builder object
      * @throws NullPointerException
      */
-    public DiffStringBuilder setColorCode(@Nonnull ANSIColorCode colorCode) {
+    public DiffLineBuilder setColorCode(@Nonnull ANSIColorCode colorCode) {
         this.colorCode = colorCode;
         return this;
     }
