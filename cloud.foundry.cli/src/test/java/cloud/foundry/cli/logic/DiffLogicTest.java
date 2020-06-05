@@ -1,4 +1,4 @@
-package cloud.foundry.cli;
+package cloud.foundry.cli.logic;
 
 import cloud.foundry.cli.crosscutting.exceptions.NotSupportedChangeType;
 import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
@@ -14,10 +14,11 @@ import java.io.FileNotFoundException;
 
 // TODO: remove this temporary test class, when no longer needed
 
-public class JaversTest {
+public class DiffLogicTest {
 
+    //TODO replace this dummy test with actual tests
     @Test
-    public void testJaversSimple() throws FileNotFoundException, NotSupportedChangeType {
+    public void testDiffLogic() throws FileNotFoundException {
         Yaml yamlProc = YamlCreator.createDefaultYamlProcessor();
         DiffLogic diffLogic = new DiffLogic();
 
@@ -26,6 +27,6 @@ public class JaversTest {
         ConfigBean configDesired = yamlProc.loadAs(new FileInputStream(
             new File("src/test/resources/basic/configDesired.yml")), ConfigBean.class);
 
-        System.out.println(diffLogic.createDiffOutput(configLive, configDesired));
+        // System.out.println(diffLogic.createDiffOutput(configLive, configDesired));
     }
 }
