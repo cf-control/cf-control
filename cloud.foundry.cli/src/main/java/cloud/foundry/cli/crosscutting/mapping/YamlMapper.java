@@ -1,7 +1,14 @@
 package cloud.foundry.cli.crosscutting.mapping;
 
 import cloud.foundry.cli.crosscutting.exceptions.RefResolvingException;
-import cloud.foundry.cli.crosscutting.mapping.beans.*;
+import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationManifestBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.Bean;
+import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.SpaceDevelopersBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.TargetBean;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.ConstructorException;
@@ -15,9 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 
 /**
  * This class takes care about loading {@link Bean beans} from configuration files and dumping {@link Bean beans} as
@@ -121,6 +126,8 @@ public class YamlMapper {
         representer.addClassTag(ApplicationManifestBean.class, Tag.MAP);
         representer.addClassTag(ServiceBean.class, Tag.MAP);
         representer.addClassTag(SpaceDevelopersBean.class, Tag.MAP);
+        representer.addClassTag(SpecBean.class, Tag.MAP);
+        representer.addClassTag(TargetBean.class, Tag.MAP);
         representer.addClassTag(ConfigBean.class, Tag.MAP);
         return new Yaml(representer, options);
     }

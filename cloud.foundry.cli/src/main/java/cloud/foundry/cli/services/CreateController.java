@@ -7,7 +7,6 @@ import static picocli.CommandLine.usage;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.SpaceDevelopersBean;
-import cloud.foundry.cli.crosscutting.exceptions.RefResolvingException;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
 import cloud.foundry.cli.crosscutting.mapping.YamlMapper;
@@ -16,9 +15,7 @@ import cloud.foundry.cli.operations.ApplicationsOperations;
 import cloud.foundry.cli.operations.ServicesOperations;
 import cloud.foundry.cli.operations.SpaceDevelopersOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
-import org.yaml.snakeyaml.constructor.ConstructorException;
 
-import java.io.IOException;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.Callable;
@@ -52,14 +49,8 @@ public class CreateController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            SpaceDevelopersBean spaceDevelopersBean;
-            try {
-                spaceDevelopersBean = YamlMapper.loadBean(commandOptions.getYamlFilePath(), SpaceDevelopersBean.class);
-                //TODO centralize exception handling
-            } catch (IOException | RefResolvingException | ConstructorException e) {
-                Log.exception(e, "Failed to read YAML file");
-                return 1;
-            }
+            SpaceDevelopersBean spaceDevelopersBean = YamlMapper.loadBean(commandOptions.getYamlFilePath(),
+                    SpaceDevelopersBean.class);
 
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
@@ -83,14 +74,7 @@ public class CreateController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            SpecBean specBean;
-            try {
-                specBean = YamlMapper.loadBean(commandOptions.getYamlFilePath(), SpecBean.class);
-                //TODO centralize exception handling
-            } catch (IOException | RefResolvingException | ConstructorException e) {
-                Log.exception(e, "Failed to read YAML file");
-                return 1;
-            }
+            SpecBean specBean = YamlMapper.loadBean(commandOptions.getYamlFilePath(), SpecBean.class);
             Map<String, ServiceBean> serviceBeans = specBean.getServices();
 
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
@@ -117,14 +101,7 @@ public class CreateController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            SpecBean specBean;
-            try {
-                specBean = YamlMapper.loadBean(commandOptions.getYamlFilePath(), SpecBean.class);
-                //TODO centralize exception handling
-            } catch (IOException | RefResolvingException | ConstructorException e) {
-                Log.exception(e, "Failed to read YAML file");
-                return 1;
-            }
+            SpecBean specBean = YamlMapper.loadBean(commandOptions.getYamlFilePath(), SpecBean.class);
             Map<String, ApplicationBean> applicationBeans = specBean.getApps();
 
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);

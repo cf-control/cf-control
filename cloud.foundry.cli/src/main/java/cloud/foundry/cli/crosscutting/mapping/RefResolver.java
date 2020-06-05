@@ -17,7 +17,10 @@ import java.util.Map;
  */
 public class RefResolver implements YamlTreeVisitor {
 
-    private static final String REF_KEY = "$ref";
+    /**
+     * This key describes ref-occurrences in mappings.
+     */
+    public static final String REF_KEY = "$ref";
 
     private final Object yamlTreeRoot;
 
