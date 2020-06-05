@@ -237,7 +237,6 @@ public class DiffOutput {
                 .setIndentation(indentation)
                 .setPropertyName(property)
                 .setValue(value)
-                .setNewLine(true)
                 .build();
     }
 
