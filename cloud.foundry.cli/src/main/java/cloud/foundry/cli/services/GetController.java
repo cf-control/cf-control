@@ -54,7 +54,7 @@ public class GetController implements Runnable {
                 SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
                 SpaceDevelopersBean spaceDevelopers = spaceDevelopersOperations.getAll();
 
-                System.out.println(YamlMapper.dump(spaceDevelopers));
+                System.out.println(YamlMapper.dumpBean(spaceDevelopers));
             } catch (Exception e) {
                 Log.exception(e, "Unexpected error occurred");
             }
@@ -73,6 +73,7 @@ public class GetController implements Runnable {
                 ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
                 List<ServiceBean> services = servicesOperations.getAll();
 
+                //TODO replace by dumpBeans
                 System.out.println(YamlMapper.dump(services));
             } catch (Exception e) {
                 Log.exception(e, "Unexpected error occurred");
@@ -92,6 +93,7 @@ public class GetController implements Runnable {
                 ApplicationOperations applicationOperations = new ApplicationOperations(cfOperations);
                 List<ApplicationBean> applications = applicationOperations.getAll();
 
+                //TODO replace by dumpBeans
                 System.out.println(YamlMapper.dump(applications));
             } catch (Exception e) {
                 Log.exception(e, "Unexpected error occurred");
@@ -110,7 +112,7 @@ public class GetController implements Runnable {
                 DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
                 AllInformationOperations allInformationOperations = new AllInformationOperations(cfOperations);
                 GetAllBean allInformation = allInformationOperations.getAll();
-                System.out.println(YamlMapper.dump(allInformation));
+                System.out.println(YamlMapper.dumpBean(allInformation));
             } catch (Exception e) {
                 Log.exception(e, "Unexpected error occurred");
             }

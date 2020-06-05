@@ -10,13 +10,13 @@ import org.junit.jupiter.api.Test;
 import org.yaml.snakeyaml.constructor.ConstructorException;
 
 import java.io.IOException;
-import java.util.LinkedList;
+import java.util.Arrays;
 
 
 public class YamlMapperTest {
 
     @Test
-    public void dumpTest() {
+    public void dumpBeanTest() {
         //given
         ServiceBean serviceBean = new ServiceBean();
         serviceBean.setService("serviceName");
@@ -25,13 +25,12 @@ public class YamlMapperTest {
         serviceBean.setPlan("default");
         serviceBean.setId("testId");
         serviceBean.setLastOperation("operation");
-        LinkedList<String> tags = new LinkedList<>();
-        tags.add("tag1");
-        serviceBean.setTags(tags);
+        serviceBean.setTags(Arrays.asList("tag1", "tag2"));
         //when
-        String dump = YamlMapper.dump(serviceBean);
+        String dump = YamlMapper.dumpBean(serviceBean);
         //then
-        assertThat(dump, is("applications: null\n" +
+        assertThat(dump, is(
+                "applications: null\n" +
                 "id: testId\n" +
                 "lastOperation: operation\n" +
                 "name: test\n" +
@@ -39,7 +38,9 @@ public class YamlMapperTest {
                 "service: serviceName\n" +
                 "tags:\n" +
                 "- tag1\n" +
-                "type: null\n"));
+                "- tag2\n" +
+                "type: null\n"
+        ));
     }
 
     @Test

@@ -18,6 +18,7 @@ import org.yaml.snakeyaml.representer.Representer;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This class takes care about loading {@link Bean beans} from configuration files and dumping {@link Bean beans} as
@@ -36,12 +37,34 @@ public class YamlMapper {
      * @throws ConstructorException if the resolved Object can not be dumped as the given Bean type
      */
     public static <B extends Bean> B loadBean(String configFilePath, Class<B> beanType) throws IOException {
-        Object yamlTreeRoot = loadYamlTree(configFilePath);
+        return load(configFilePath, beanType);
+    }
+
+    /**
+     * Loads a configuration file as multiple beans. During this process, the ref-occurrences in the specified
+     * configuration file are resolved.
+     *
+     * @param configFilePath the path to the config file
+     * @param beanType the desired type of the beans to load
+     * @throws IOException if the config file cannot be accessed
+     * @throws RefResolvingException if an error during the ref-resolution process occurs
+     * @throws ConstructorException if the resolved Object can not be dumped as the given Bean type
+     */
+    public static <B extends Bean> Map<String, B> loadBeans(String configFilePath, Class<B> beanType)
+            throws IOException {
+        // the cast of the class object is a bit ugly but probably inevitable
+        return load(configFilePath, (Class<Map<String, B>>)(Class<?>) Map.class);
+    }
+
+    private static <T> T load(String filePath, Class<T> type) throws IOException {
+        Object yamlTreeRoot = loadYamlTree(filePath);
         yamlTreeRoot = RefResolver.resolveRefs(yamlTreeRoot);
-        Yaml treeDumper = createTreeDumper();
+
+        Yaml treeDumper = createMinimalDumper();
         String resolvedConfig = treeDumper.dump(yamlTreeRoot);
+
         Yaml beanLoader = createBeanLoader();
-        return beanLoader.loadAs(resolvedConfig, beanType);
+        return beanLoader.loadAs(resolvedConfig, type);
     }
 
     /**
@@ -61,11 +84,26 @@ public class YamlMapper {
     }
 
     /**
-     * Dumps the contents of an object as a string in the yaml format.
+     * Dumps the contents of a bean instance as a string in the yaml format.
      *
-     * @param object the instance to dump
+     * @param bean the instance to dump
      * @return the contents of the parameter as a string
      */
+    public static <B extends Bean> String dumpBean(B bean) {
+        return dump(bean);
+    }
+
+    /**
+     * Dumps the contents of bean instances as a string in the yaml format.
+     *
+     * @param beans the map of instances to dump
+     * @return the contents of the parameter as a string
+     */
+    public static <B extends Bean> String dumpBeans(Map<String, B> beans) {
+        return dump(beans);
+    }
+
+    //TODO set to private
     public static String dump(Object object) {
         Yaml defaultYamlDumper = createDefaultDumper();
         return defaultYamlDumper.dump(object);
@@ -97,7 +135,7 @@ public class YamlMapper {
         return new Yaml(representer, options);
     }
 
-    private static Yaml createTreeDumper() {
+    private static Yaml createMinimalDumper() {
         DumperOptions options = new DumperOptions();
         // do not dump tags into the document
         options.setTags(new HashMap<>());
