@@ -1,13 +1,13 @@
 package cloud.foundry.cli.logic.diff.output;
 
-public enum ANSIColorCode {
+public enum AnsiColorCode {
     RED("\u001B[31m"),
     GREEN("\u001B[32m"),
     DEFAULT("\u001B[0m");
 
     private String color;
 
-    ANSIColorCode(String color) {
+    AnsiColorCode(String color) {
         this.color = color;
     }
 
