@@ -63,7 +63,7 @@ public class CreateController implements Callable<Integer> {
         }
     }
 
-    @Command(name = "service", description = "Create a service in the target space.")
+    @Command(name = "service", description = "Create services in the target space.")
     static class CreateServiceCommand implements Callable<Integer> {
 
         @Mixin
@@ -90,7 +90,7 @@ public class CreateController implements Callable<Integer> {
         }
     }
 
-    @Command(name = "application", description = "Create a application in the target space.")
+    @Command(name = "application", description = "Create applications in the target space.")
     static class CreateApplicationCommand implements Callable<Integer> {
 
         @Mixin

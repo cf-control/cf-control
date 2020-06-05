@@ -34,7 +34,7 @@ public class UpdateController implements Callable<Integer> {
         throw new UnsupportedOperationException("no default operation implemented in UpdateController");
     }
 
-    @Command(name = "remove-space-developer", description = "Removes a space developer.")
+    @Command(name = "remove-space-developer", description = "Removes space developers.")
     static class RemoveSpaceDeveloperCommand implements Callable<Integer> {
         @Mixin
         LoginCommandOptions loginOptions;
@@ -56,7 +56,7 @@ public class UpdateController implements Callable<Integer> {
         }
     }
 
-    @Command(name = "update-service", description = "Update a service instance")
+    @Command(name = "update-service", description = "Updates service instances.")
     static class UpdateServiceCommand implements Callable<Integer> {
 
         @Mixin
