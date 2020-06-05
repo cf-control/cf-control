@@ -1,6 +1,6 @@
 package cloud.foundry.cli.logic;
 
-import cloud.foundry.cli.crosscutting.exceptions.NotSupportedChangeType;
+import cloud.foundry.cli.crosscutting.exceptions.UnsupportedChangeTypeException;
 import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
 import cloud.foundry.cli.crosscutting.util.YamlCreator;
 import cloud.foundry.cli.logic.DiffLogic;

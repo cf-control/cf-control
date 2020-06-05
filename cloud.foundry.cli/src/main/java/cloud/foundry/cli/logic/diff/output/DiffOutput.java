@@ -1,6 +1,6 @@
 package cloud.foundry.cli.logic.diff.output;
 
-import cloud.foundry.cli.crosscutting.exceptions.NotSupportedChangeType;
+import cloud.foundry.cli.crosscutting.exceptions.UnsupportedChangeTypeException;
 import cloud.foundry.cli.crosscutting.mapping.beans.Bean;
 import cloud.foundry.cli.crosscutting.util.YamlCreator;
 import cloud.foundry.cli.logic.diff.DiffNode;
@@ -45,14 +45,14 @@ public class DiffOutput {
      * transforms a difference tree into a visual representation of configuration differences
      * @param node root of the difference tree that should be parse to the difference output
      * @return string of the difference output
-     * @throws NotSupportedChangeType when a change type was used that is not supported within our bean hierarchy
+     * @throws UnsupportedChangeTypeException when a change type was used that is not supported within our bean hierarchy
      */
-    public String from(@Nonnull DiffNode node) throws NotSupportedChangeType {
+    public String from(@Nonnull DiffNode node) throws UnsupportedChangeTypeException {
         return this.toDiffString(node, this.indentation);
     }
 
     //TODO pass StringBuilder with parameters to be more efficient
-    private String toDiffString(DiffNode node, int indentation) throws NotSupportedChangeType {
+    private String toDiffString(DiffNode node, int indentation) throws UnsupportedChangeTypeException {
         List<Change> changes = node.getChanges();
 
         //no changes at this level which means, there are no changes at the sub-levels also
@@ -116,7 +116,7 @@ public class DiffOutput {
         return asPropertyEntry(flagSymbol, indentation - 2, property) + fromBean(flagSymbol, indentation, bean);
     }
 
-    private String fromChange(int indentation, Change change) throws NotSupportedChangeType {
+    private String fromChange(int indentation, Change change) throws UnsupportedChangeTypeException {
         if (change instanceof ContainerChange) {
             return handleContainerChange(indentation, (ContainerChange) change);
         } else if (change instanceof ValueChange) {
@@ -128,7 +128,7 @@ public class DiffOutput {
         return "";
     }
 
-    private String handleContainerChange(int indentation, ContainerChange change) throws NotSupportedChangeType {
+    private String handleContainerChange(int indentation, ContainerChange change) throws UnsupportedChangeTypeException {
         if (change instanceof CollectionChange) {
             CollectionChange collectionChange = (CollectionChange) change;
 
@@ -154,7 +154,7 @@ public class DiffOutput {
             return sb.toString();
         }
 
-        throw new NotSupportedChangeType("Change of type " + change.getClass() + " not supported");
+        throw new UnsupportedChangeTypeException("Change of type " + change.getClass() + " not supported");
     }
 
     private String handleValueChange(int indentation, ValueChange valueChange) {
