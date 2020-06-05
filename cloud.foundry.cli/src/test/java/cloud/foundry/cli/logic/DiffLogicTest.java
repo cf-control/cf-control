@@ -1,8 +1,9 @@
 package cloud.foundry.cli.logic;
 
-import cloud.foundry.cli.crosscutting.exceptions.DiffException;
+import cloud.foundry.cli.crosscutting.exceptions.NotSupportedChangeType;
 import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
 import cloud.foundry.cli.crosscutting.util.YamlCreator;
+import cloud.foundry.cli.logic.DiffLogic;
 import org.junit.jupiter.api.Test;
 import org.yaml.snakeyaml.Yaml;
 
@@ -17,7 +18,7 @@ public class DiffLogicTest {
 
     //TODO replace this dummy test with actual tests
     @Test
-    public void testDiffLogic() throws FileNotFoundException, DiffException {
+    public void testDiffLogic() throws FileNotFoundException {
         Yaml yamlProc = YamlCreator.createDefaultYamlProcessor();
         DiffLogic diffLogic = new DiffLogic();
 
@@ -26,6 +27,6 @@ public class DiffLogicTest {
         ConfigBean configDesired = yamlProc.loadAs(new FileInputStream(
             new File("src/test/resources/basic/configDesired.yml")), ConfigBean.class);
 
-        System.out.println(diffLogic.createDiffOutput(configLive, configDesired));
+        // System.out.println(diffLogic.createDiffOutput(configLive, configDesired));
     }
 }
