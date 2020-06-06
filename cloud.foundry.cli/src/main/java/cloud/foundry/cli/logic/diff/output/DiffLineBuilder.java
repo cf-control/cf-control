@@ -1,6 +1,6 @@
 package cloud.foundry.cli.logic.diff.output;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static cloud.foundry.cli.crosscutting.Preconditions.checkNotNull;
 
 import javax.annotation.Nonnull;
 import java.util.HashMap;
