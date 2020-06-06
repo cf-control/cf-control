@@ -14,7 +14,7 @@ public class DiffLineBuilderTest {
         String expected = wrapWithColor(AnsiColorCode.DEFAULT," ");
 
         // when
-        String diffString = DiffLineBuilder.builder().build();
+        String diffString = DiffLineBuilder.builder().setColorsEnabled(true).build();
 
         // then
         assertThat(diffString, is(expected));
@@ -26,7 +26,7 @@ public class DiffLineBuilderTest {
         String expected = wrapWithColor(AnsiColorCode.DEFAULT,"      ");
 
         // when
-        String diffString = DiffLineBuilder.builder().setIndentation(5).build();
+        String diffString = DiffLineBuilder.builder().setColorsEnabled(true).setIndentation(5).build();
 
         // then
         assertThat(diffString, is(expected));
@@ -38,7 +38,7 @@ public class DiffLineBuilderTest {
         String expected = wrapWithColor(AnsiColorCode.DEFAULT, " property:");
 
         // when
-        String diffString = DiffLineBuilder.builder().setPropertyName("property").build();
+        String diffString = DiffLineBuilder.builder().setColorsEnabled(true).setPropertyName("property").build();
 
         // then
         assertThat(diffString, is(expected));
@@ -50,7 +50,7 @@ public class DiffLineBuilderTest {
         String expected = wrapWithColor(AnsiColorCode.DEFAULT, " value");
 
         // when
-        String diffString = DiffLineBuilder.builder().setValue("value").build();
+        String diffString = DiffLineBuilder.builder().setColorsEnabled(true).setValue("value").build();
 
         // then
         assertThat(diffString, is(expected));
@@ -62,7 +62,7 @@ public class DiffLineBuilderTest {
         String expected = wrapWithColor(AnsiColorCode.GREEN, "+");
 
         // when
-        String diffString = DiffLineBuilder.builder().setFlagSymbol(FlagSymbol.ADDED).build();
+        String diffString = DiffLineBuilder.builder().setColorsEnabled(true).setFlagSymbol(FlagSymbol.ADDED).build();
 
         // then
         assertThat(diffString, is(expected));
@@ -74,19 +74,19 @@ public class DiffLineBuilderTest {
         String expected = wrapWithColor(AnsiColorCode.GREEN, " ");
 
         // when
-        String diffString = DiffLineBuilder.builder().setColorCode(AnsiColorCode.GREEN).build();
+        String diffString = DiffLineBuilder.builder().setColorsEnabled(true).setColorCode(AnsiColorCode.GREEN).build();
 
         // then
         assertThat(diffString, is(expected));
     }
 
      @Test
-    public void testBuildIndentationWhenInputIsNegativ() {
+    public void testBuildIndentationWhenInputIsNegative() {
         // given
         String expected = wrapWithColor(AnsiColorCode.DEFAULT, " ");
 
         // when
-        String diffString = DiffLineBuilder.builder().setIndentation(-1).build();
+        String diffString = DiffLineBuilder.builder().setColorsEnabled(true).setIndentation(-1).build();
 
         // then
         assertThat(diffString, is(expected));
@@ -100,6 +100,7 @@ public class DiffLineBuilderTest {
         // when
         String diffString = DiffLineBuilder
                 .builder()
+                .setColorsEnabled(true)
                 .setColorCode(AnsiColorCode.GREEN)
                 .setFlagSymbol(FlagSymbol.REMOVED)
                 .setIndentation(6)
