@@ -131,6 +131,7 @@ public class DiffLineBuilder {
      * @throws NullPointerException
      */
     public DiffLineBuilder setColorCode(@Nonnull AnsiColorCode colorCode) {
+        checkNotNull(colorCode);
         this.colorCode = colorCode;
         return this;
     }
