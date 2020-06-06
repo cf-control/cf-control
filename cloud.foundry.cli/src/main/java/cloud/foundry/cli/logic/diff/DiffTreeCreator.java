@@ -1,5 +1,7 @@
 package cloud.foundry.cli.logic.diff;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import org.javers.core.diff.Change;
 
 import javax.annotation.Nonnull;
@@ -12,32 +14,32 @@ public class DiffTreeCreator {
      * API method
      * @return
      */
-    public DiffNode insert(@Nonnull DiffNode node,@Nonnull LinkedList<String> path, Change change) {
-        if (path.size() == 0) {
-            node.addChange(change);
-            return node;
-        }
+    public static void insert(@Nonnull DiffNode rootNode,@Nonnull LinkedList<String> path, @Nonnull Change change) {
+        checkArgument(!path.isEmpty(), "The path is empty");
+        checkArgument(rootNode.getPropertyName().equals(path.getFirst()),
+                "The root node is not the first node of the path");
 
+        doInsert(rootNode, path, change);
+    }
+
+    private static void doInsert(DiffNode node, LinkedList<String> path, Change change) {
         String propertyName = path.removeFirst();
-        if (!propertyName.equals(node.getPropertyName())) {
-            throw new IllegalArgumentException("not a valid path");
-        }
+        assert propertyName.equals(node.getPropertyName());
 
-        if (path.size() > 0) {
-            String childProperty = path.getFirst();
-
-            DiffNode childNode = node.getChild(childProperty);
-            if (childNode == null) {
-                childNode = new DiffNode(childProperty);
-                node.addChild(childNode);
-            }
-
-            insert(childNode, path, change);
-        } else {
+        if (path.isEmpty()) {
             node.addChange(change);
+            return;
         }
 
-        return node;
+        String childProperty = path.getFirst();
+
+        DiffNode childNode = node.getChild(childProperty);
+        if (childNode == null) {
+            childNode = new DiffNode(childProperty);
+            node.addChild(childNode);
+        }
+
+        insert(childNode, path, change);
     }
 
 }
