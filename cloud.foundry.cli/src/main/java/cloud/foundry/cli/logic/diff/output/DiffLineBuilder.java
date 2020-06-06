@@ -29,7 +29,7 @@ import java.util.Map;
  */
 public class DiffLineBuilder {
 
-    private static Map<FlagSymbol, AnsiColorCode> colorMap;
+    private static final Map<FlagSymbol, AnsiColorCode> colorMap;
 
     static {
         colorMap = new HashMap<>();
@@ -148,9 +148,28 @@ public class DiffLineBuilder {
         appendIndentation(sb);
         appendProperty(sb);
         appendValue(sb);
-        sb.append(AnsiColorCode.DEFAULT);
+        appendDefaultColor(sb);
 
         return sb.toString();
+    }
+
+    private void appendColor(StringBuilder sb) {
+        // we don't want to insert any color escape sequences in case the I/O we talk to is not a tty
+        // https://stackoverflow.com/a/1403817
+        if (colorsEnabled) {
+            // if color given, use that, else take color from default flag-to-color mapping
+            if (colorCode != null) {
+                sb.append(colorCode);
+            } else {
+                sb.append(colorMap.get(flagSymbol));
+            }
+        }
+    }
+
+    private void appendIndentation(StringBuilder sb) {
+        for (int i = 0; i < indentation; i++) {
+            sb.append(" ");
+        }
     }
 
     private void appendProperty(StringBuilder sb) {
@@ -169,22 +188,10 @@ public class DiffLineBuilder {
         }
     }
 
-    private void appendColor(StringBuilder sb) {
-        // we don't want to insert any color escape sequences in case the I/O we talk to is not a tty
-        // https://stackoverflow.com/a/1403817
-        if (colorsEnabled) {
-            // if color given use that, else take color from default flag to color mapping
-            if (colorCode != null) {
-                sb.append(colorCode);
-            } else {
-                sb.append(colorMap.get(flagSymbol));
-            }
+    private void appendDefaultColor(StringBuilder sb) {
+        if(colorsEnabled) {
+            sb.append(AnsiColorCode.DEFAULT);
         }
     }
 
-    private void appendIndentation(StringBuilder sb) {
-        for (int i = 0; i < indentation; i++) {
-            sb.append(" ");
-        }
-    }
 }
