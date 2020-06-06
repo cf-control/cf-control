@@ -23,7 +23,7 @@ public class DiffNode {
     protected Map<String, DiffNode> childNodes;
     //TODO use custom wrapper for the change object
     protected List<Change> changes;
-    protected String propertyName;
+    final protected String propertyName;
 
     public DiffNode(@Nonnull String propertyName) {
         this.parentNode = null;
