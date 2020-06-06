@@ -48,7 +48,8 @@ public class DiffResult {
         return field;
     }
 
-    private static void checkMapExists(Class<?> classWithField, String fieldName, Class<?> keyType, Class<?> valueType) {
+    private static void checkMapExists(Class<?> classWithField, String fieldName,
+                                       Class<?> keyType, Class<?> valueType) {
         Field field = checkFieldExists(classWithField, fieldName, Map.class);
         ParameterizedType genericType = (ParameterizedType) field.getGenericType();
         Type[] genericTypes = genericType.getActualTypeArguments();

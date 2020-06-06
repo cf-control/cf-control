@@ -19,15 +19,15 @@ import java.util.Map;
  */
 public class DiffNode {
 
+    protected final String propertyName;
     protected DiffNode parentNode;
     protected Map<String, DiffNode> childNodes;
     //TODO use custom wrapper for the change object
     protected List<Change> changes;
-    final protected String propertyName;
 
     public DiffNode(@Nonnull String propertyName) {
-        this.parentNode = null;
         this.propertyName = propertyName;
+        this.parentNode = null;
         this.childNodes = new HashMap<>();
         this.changes = new LinkedList<>();
     }
