@@ -113,7 +113,26 @@ public class DiffLineBuilderTest {
     }
 
     @Test
-    public void testBuildWithNullValuesThrowsException() {
+    public void testBuildWithoutColorsEnabled() {
+        // given
+        String expected = "-      property: value";
+
+        // when
+        String diffString = DiffLineBuilder
+                .builder()
+                .setColorCode(AnsiColorCode.GREEN)
+                .setFlagSymbol(FlagSymbol.REMOVED)
+                .setIndentation(6)
+                .setValue("value")
+                .setPropertyName("property")
+                .build();
+
+        // then
+        assertThat(diffString, is(expected));
+    }
+
+    @Test
+    public void testNullValuesThrowException() {
         // when
         assertThrows(NullPointerException.class, () -> DiffLineBuilder.builder().setFlagSymbol(null));
         assertThrows(NullPointerException.class, () -> DiffLineBuilder.builder().setValue(null));
