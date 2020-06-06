@@ -44,12 +44,19 @@ public class DiffLineBuilder {
     private AnsiColorCode colorCode;
     private String value;
 
+    private boolean colorsEnabled;
+
     private DiffLineBuilder() {
         colorCode = null;
         flagSymbol = FlagSymbol.NONE;
         indentation = 0;
         propertyName = "";
         value = "";
+
+        // we don't want to insert any color escape sequences in case the I/O we talk to is not a tty
+        // https://stackoverflow.com/a/1403817
+        // this can be overwritten by the user, though, by calling the corresponding setter
+        colorsEnabled = (System.console() != null);
     }
 
     /**
@@ -58,6 +65,17 @@ public class DiffLineBuilder {
      */
     public static DiffLineBuilder builder() {
         return new DiffLineBuilder();
+    }
+
+    /**
+     * Enable or disable color output. By default, colors are only enabled automatically when running the tool from a
+     * console. This method allows for overwriting that setting.
+     * @param enabled whether to enable or disable color outputs
+     * @return current builder object
+     */
+    public DiffLineBuilder setColorsEnabled(boolean enabled) {
+        this.colorsEnabled = enabled;
+        return this;
     }
 
     /**
@@ -153,7 +171,7 @@ public class DiffLineBuilder {
     private void appendColor(StringBuilder sb) {
         // we don't want to insert any color escape sequences in case the I/O we talk to is not a tty
         // https://stackoverflow.com/a/1403817
-        if (System.console() != null) {
+        if (colorsEnabled) {
             // if color given use that, else take color from default flag to color mapping
             if (colorCode != null) {
                 sb.append(colorCode);
