@@ -26,13 +26,13 @@ public class DiffTreeCreator {
         if (path.size() > 0) {
             String childProperty = path.getFirst();
 
-            if (node.getChild(childProperty) == null) {
-                node.addChild(childProperty, new DiffNode(childProperty, node));
+            DiffNode childNode = node.getChild(childProperty);
+            if (childNode == null) {
+                childNode = new DiffNode(childProperty);
+                node.addChild(childNode);
             }
 
-            DiffNode childNode = node.getChild(childProperty);
             insert(childNode, path, change);
-            node.addChild(childNode.propertyName, childNode);
         } else {
             node.addChange(change);
         }
