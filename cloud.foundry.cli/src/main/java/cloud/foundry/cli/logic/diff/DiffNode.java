@@ -1,8 +1,8 @@
 package cloud.foundry.cli.logic.diff;
 
-import org.javers.core.diff.Change;
-import org.javers.core.diff.changetype.NewObject;
-import org.javers.core.diff.changetype.ObjectRemoved;
+import cloud.foundry.cli.logic.diff.change.CfChange;
+import cloud.foundry.cli.logic.diff.change.ChangeType;
+import cloud.foundry.cli.logic.diff.change.object.CfObjectChange;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
@@ -23,7 +23,7 @@ public class DiffNode {
     protected DiffNode parentNode;
     protected Map<String, DiffNode> childNodes;
     //TODO use custom wrapper for the change object
-    protected List<Change> changes;
+    protected List<CfChange> changes;
 
     public DiffNode(@Nonnull String propertyName) {
         this.propertyName = propertyName;
@@ -44,7 +44,7 @@ public class DiffNode {
      * TODO immutable
      * @return
      */
-    public List<Change> getChanges() {
+    public List<CfChange> getChanges() {
         return Collections.unmodifiableList(changes);
     }
 
@@ -69,7 +69,7 @@ public class DiffNode {
         return this.childNodes.get(propertyName);
     }
 
-    public void addChange(@Nonnull Change change) {
+    public void addChange(@Nonnull CfChange change) {
         this.changes.add(change);
     }
 
@@ -90,10 +90,20 @@ public class DiffNode {
     }
 
     public boolean isNewObject() {
-        return changes.size() == 1 && changes.get(0) instanceof NewObject;
+        if ( changes.size() == 1 &&
+                changes.get(0) instanceof CfObjectChange &&
+        ((CfObjectChange) changes.get(0)).getChangeType() == ChangeType.ADDED) {
+            return true;
+        }
+        return false;
     }
 
     public boolean isRemovedObject() {
-        return changes.size() == 1 && changes.get(0) instanceof ObjectRemoved;
+        if ( changes.size() == 1 &&
+                changes.get(0) instanceof CfObjectChange &&
+                ((CfObjectChange) changes.get(0)).getChangeType() == ChangeType.REMOVED) {
+            return true;
+        }
+        return false;
     }
 }

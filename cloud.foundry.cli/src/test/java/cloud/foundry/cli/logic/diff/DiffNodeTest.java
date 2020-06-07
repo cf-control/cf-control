@@ -5,9 +5,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 
-import org.javers.core.diff.Change;
-import org.javers.core.diff.changetype.NewObject;
-import org.javers.core.diff.changetype.ObjectRemoved;
+import cloud.foundry.cli.logic.diff.change.CfChange;
+import cloud.foundry.cli.logic.diff.change.ChangeType;
+import cloud.foundry.cli.logic.diff.change.object.CfObjectChange;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -21,9 +21,9 @@ public class DiffNodeTest {
     @Test
     public void testSingleNode() {
         DiffNode node = new DiffNode("propertyName");
-        LinkedList<Change> changes = new LinkedList<>();
+        LinkedList<CfChange> changes = new LinkedList<>();
         for (int counter = 0; counter < 42; ++counter) {
-            Change mockedChange = Mockito.mock(Change.class);
+            CfChange mockedChange = Mockito.mock(CfChange.class);
             changes.add(mockedChange);
 
             node.addChange(mockedChange);
@@ -60,7 +60,7 @@ public class DiffNodeTest {
     @Test
     public void testNewObjectNode() {
         DiffNode node = new DiffNode("propertyName");
-        NewObject newObjectChange = Mockito.mock(NewObject.class);
+        CfObjectChange newObjectChange = new CfObjectChange(null, ChangeType.ADDED);
         node.addChange(newObjectChange);
 
         assertThat(node.getChanges().size(), is(1));
@@ -72,7 +72,7 @@ public class DiffNodeTest {
     @Test
     public void testObjectRemovedNode() {
         DiffNode node = new DiffNode("propertyName");
-        ObjectRemoved objectRemovedChange = Mockito.mock(ObjectRemoved.class);
+        CfObjectChange objectRemovedChange = new CfObjectChange(null, ChangeType.REMOVED);
         node.addChange(objectRemovedChange);
 
         assertThat(node.getChanges().size(), is(1));

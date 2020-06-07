@@ -6,7 +6,7 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import org.javers.core.diff.Change;
+import cloud.foundry.cli.logic.diff.change.CfChange;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -21,10 +21,10 @@ public class DiffTreeCreatorTest {
         LinkedList<String> pathToRoot = new LinkedList<>(Arrays.asList("root"));
         LinkedList<String> pathToChild = new LinkedList<>(Arrays.asList("root", "child"));
         LinkedList<String> pathToGrandchild = new LinkedList<>(Arrays.asList("root", "child", "grandchild"));
-        Change rootChange = Mockito.mock(Change.class);
-        Change childChange = Mockito.mock(Change.class);
-        Change firstGrandchildChange = Mockito.mock(Change.class);
-        Change secondGrandchildChange = Mockito.mock(Change.class);
+        CfChange rootChange = Mockito.mock(CfChange.class);
+        CfChange childChange = Mockito.mock(CfChange.class);
+        CfChange firstGrandchildChange = Mockito.mock(CfChange.class);
+        CfChange secondGrandchildChange = Mockito.mock(CfChange.class);
 
         // the lists are cloned because they are modified during the insertion procedure
         DiffTreeCreator.insert(root, (LinkedList<String>) pathToGrandchild.clone(), firstGrandchildChange);
@@ -58,7 +58,7 @@ public class DiffTreeCreatorTest {
     public void testIllegalPath() {
         DiffNode root = new DiffNode("root");
         LinkedList<String> illegalPath = new LinkedList<>(Arrays.asList("notRoot", "someChild"));
-        Change someChange = Mockito.mock(Change.class);
+        CfChange someChange = Mockito.mock(CfChange.class);
 
         assertThrows(IllegalArgumentException.class,
                 () -> DiffTreeCreator.insert(root, illegalPath, someChange));
@@ -68,7 +68,7 @@ public class DiffTreeCreatorTest {
     public void testEmptyPath() {
         DiffNode root = new DiffNode("root");
         LinkedList<String> emptyPath = new LinkedList<>();
-        Change someChange = Mockito.mock(Change.class);
+        CfChange someChange = Mockito.mock(CfChange.class);
 
         assertThrows(IllegalArgumentException.class,
                 () -> DiffTreeCreator.insert(root, emptyPath, someChange));
