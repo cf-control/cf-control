@@ -83,7 +83,7 @@ public class DiffOutput {
             }
 
             // recursion
-            for (DiffNode childNode : node.getChildNodes().values()) {
+            for (DiffNode childNode : node.getChildNodes()) {
                 sb.append(toDiffString(childNode, 2 + indentation));
             }
             return sb.toString();

@@ -6,6 +6,7 @@ import org.javers.core.diff.changetype.ObjectRemoved;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -18,24 +19,15 @@ import java.util.Map;
  */
 public class DiffNode {
 
+    protected final String propertyName;
     protected DiffNode parentNode;
     protected Map<String, DiffNode> childNodes;
     //TODO use custom wrapper for the change object
     protected List<Change> changes;
-    protected String propertyName;
-
-    //TODO helper method isRoot()
 
     public DiffNode(@Nonnull String propertyName) {
+        this.propertyName = propertyName;
         this.parentNode = null;
-        this.propertyName = propertyName;
-        this.childNodes = new HashMap<>();
-        this.changes = new LinkedList<>();
-    }
-
-    public DiffNode(@Nonnull String propertyName, @Nonnull DiffNode parentNode) {
-        this.parentNode = parentNode;
-        this.propertyName = propertyName;
         this.childNodes = new HashMap<>();
         this.changes = new LinkedList<>();
     }
@@ -44,7 +36,7 @@ public class DiffNode {
         return parentNode;
     }
 
-    public void setParentNode(DiffNode parentNode) {
+    private void setParentNode(DiffNode parentNode) {
         this.parentNode = parentNode;
     }
 
@@ -60,16 +52,17 @@ public class DiffNode {
      * TODO immutable
      * @return
      */
-    public Map<String, DiffNode> getChildNodes() {
-        return Collections.unmodifiableMap(childNodes);
+    public Collection<DiffNode> getChildNodes() {
+        return Collections.unmodifiableCollection(childNodes.values());
     }
 
     public String getPropertyName() {
         return propertyName;
     }
 
-    public void addChild(@Nonnull String propertyName,@Nonnull DiffNode child) {
-        this.childNodes.put(propertyName, child);
+    public void addChild(@Nonnull DiffNode child) {
+        this.childNodes.put(child.getPropertyName(), child);
+        child.setParentNode(this);
     }
 
     public DiffNode getChild(@Nonnull String propertyName) {
@@ -78,28 +71,6 @@ public class DiffNode {
 
     public void addChange(@Nonnull Change change) {
         this.changes.add(change);
-    }
-
-    //TODO move into wrapper class
-    public boolean hasNodeWith(@Nonnull String propertyName) {
-        if (this.propertyName.equals(propertyName)) {
-            return true;
-        }
-
-        for (DiffNode childNode : this.childNodes.values()) {
-            if (childNode.hasNodeWith(propertyName)) return true;
-        }
-
-        return false;
-    }
-
-    //TODO move into wrapper class
-    private DiffNode getChildWith(@Nonnull String propertyName) {
-        for (DiffNode childNode : this.childNodes.values()) {
-            if (childNode.getPropertyName().equals(propertyName)) return childNode;
-        }
-
-        return null;
     }
 
     public boolean isLeaf() {
