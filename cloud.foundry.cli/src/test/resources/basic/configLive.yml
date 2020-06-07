@@ -21,6 +21,9 @@ spec:
       path: src/app-1.0.1.jar
       manifest:
         buildpack: someBuildpack2
+        environmentVariables:
+          key1: value1
+          key2: value2
     secondApp:
       path: src/app2-1.0.jar
       manifest:
