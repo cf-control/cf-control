@@ -25,6 +25,7 @@ import cloud.foundry.cli.operations.ServicesOperations;
 @Command(name = "update", header = "%n@|green Update-Controller|@", subcommands = {
         UpdateController.RemoveSpaceDeveloperCommand.class,
         UpdateController.UpdateServiceCommand.class,
+        UpdateController.RemoveServiceInstanceCommand.class,
         UpdateController.UpdateApplicationCommand.class})
 public class UpdateController implements Callable<Integer> {
 
@@ -57,6 +58,31 @@ public class UpdateController implements Callable<Integer> {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
             spaceDevelopersOperations.removeSpaceDeveloper(spaceDevelopersBean.getSpaceDevelopers());
+
+            return 0;
+        }
+    }
+
+    @Command(name = "remove-service-instance", description = "Removes a service instance.")
+    static class RemoveServiceInstanceCommand implements Callable<Integer> {
+        @Mixin
+        LoginCommandOptions loginOptions;
+
+        @Mixin
+        CreateControllerCommandOptions commandOptions;
+
+        @Override
+        public Integer call() throws Exception {
+            Yaml yamlLoader = YamlCreator.createDefaultYamlProcessor();
+
+            String yamlFileContent = FileUtils.readLocalFile(commandOptions.getYamlFilePath());
+            Map<String, Object> mapServiceBean = yamlLoader.loadAs(yamlFileContent, Map.class);
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+
+            ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
+            for (String serviceInstanceName : mapServiceBean.keySet()) {
+                servicesOperations.removeServiceInstance(serviceInstanceName);
+            }
 
             return 0;
         }
