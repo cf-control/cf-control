@@ -189,7 +189,7 @@ public class DiffLineBuilder {
     }
 
     private void appendDefaultColor(StringBuilder sb) {
-        if(colorsEnabled) {
+        if (colorsEnabled) {
             sb.append(AnsiColorCode.DEFAULT);
         }
     }
