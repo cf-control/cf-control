@@ -1,15 +1,20 @@
 package cloud.foundry.cli.logic.diff;
 
 import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
+import cloud.foundry.cli.logic.diff.change.CfChange;
+import cloud.foundry.cli.logic.diff.change.ChangeParser;
 import org.javers.core.Javers;
 import org.javers.core.JaversBuilder;
 import org.javers.core.diff.Change;
 import org.javers.core.diff.Diff;
+import org.javers.core.diff.ListCompareAlgorithm;
 import org.javers.core.diff.changetype.ObjectRemoved;
 
 import javax.annotation.Nonnull;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
+import java.util.List;
 
 
 /**
@@ -17,7 +22,9 @@ import java.util.LinkedList;
  */
 public class Differ {
 
-    private static final Javers JAVERS = JaversBuilder.javers().build();
+    private static final Javers JAVERS = JaversBuilder.javers()
+            .withListCompareAlgorithm(ListCompareAlgorithm.AS_SET)
+            .build();
     private static final String ROOT_SYMBOL = "#";
     private static final String PATH_SEPARATOR_SYMBOL = "/";
     private static final String ROOT_NAME = "root";
@@ -36,15 +43,18 @@ public class Differ {
          * The idea is to build a tree data structure where each node holds the changes of their level.
          */
         Diff diff = JAVERS.compare(liveConfig, desiredConfig);
-        DiffTreeCreator diffTreeCreator = new DiffTreeCreator();
 
         DiffNode diffNode = new DiffNode(ROOT_NAME);
         for (Change change: diff.getChanges()) {
-           if (change instanceof ObjectRemoved) continue;
+            //TODO wrap change in custom change object
+            if (change instanceof ObjectRemoved) continue;
+
+            CfChange cfChange = ChangeParser.parse(change);
+            if (cfChange == null) continue;
 
             LinkedList<String> path = extractPath(change);
             replaceRoot(ROOT_NAME, path);
-            diffTreeCreator.insert(diffNode, path, change);
+            DiffTreeCreator.insert(diffNode, path, cfChange);
         }
 
         return diffNode;

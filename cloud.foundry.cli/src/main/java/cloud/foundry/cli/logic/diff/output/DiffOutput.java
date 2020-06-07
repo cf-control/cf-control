@@ -4,19 +4,18 @@ import cloud.foundry.cli.crosscutting.exceptions.UnsupportedChangeTypeException;
 import cloud.foundry.cli.crosscutting.mapping.beans.Bean;
 import cloud.foundry.cli.crosscutting.util.YamlCreator;
 import cloud.foundry.cli.logic.diff.DiffNode;
-import org.javers.core.diff.Change;
-import org.javers.core.diff.changetype.ValueChange;
-import org.javers.core.diff.changetype.container.CollectionChange;
-import org.javers.core.diff.changetype.container.ContainerChange;
-import org.javers.core.diff.changetype.container.ContainerElementChange;
-import org.javers.core.diff.changetype.map.EntryAdded;
-import org.javers.core.diff.changetype.map.EntryRemoved;
-import org.javers.core.diff.changetype.map.EntryValueChange;
-import org.javers.core.diff.changetype.map.MapChange;
+import cloud.foundry.cli.logic.diff.change.CfChange;
+import cloud.foundry.cli.logic.diff.change.ChangeType;
+import cloud.foundry.cli.logic.diff.change.container.CfContainerChange;
+import cloud.foundry.cli.logic.diff.change.container.CfContainerChangeValue;
+import cloud.foundry.cli.logic.diff.change.map.CfMapChange;
+import cloud.foundry.cli.logic.diff.change.map.CfMapChangeValue;
+import cloud.foundry.cli.logic.diff.change.object.CfObjectValueChange;
 import org.yaml.snakeyaml.Yaml;
 
 import javax.annotation.Nonnull;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -48,45 +47,53 @@ public class DiffOutput {
      * @throws UnsupportedChangeTypeException when a change type was used that is not supported within our bean
      *  hierarchy
      */
-    public String from(@Nonnull DiffNode node) throws UnsupportedChangeTypeException {
-        return this.toDiffString(node, this.indentation);
+    public String from(@Nonnull DiffNode node) {
+        List<String> lines = new LinkedList<>();
+        diffLines(lines, node, indentation);
+        return String.join("\n", lines);
     }
 
     //TODO pass StringBuilder with parameters to be more efficient
-    private String toDiffString(DiffNode node, int indentation) throws UnsupportedChangeTypeException {
-        List<Change> changes = node.getChanges();
+    private void diffLines(List<String> lines, DiffNode node, int indentation) {
+        List<CfChange> changes = node.getChanges();
 
         //no changes at this level which means, there are no changes at the sub-levels also
-        if (changes.size() == 0 && node.isLeaf()) return "";
+        if (changes.size() == 0 && node.isLeaf()) return;
 
         if (node.isNewObject()) {
-            return fromBean(FlagSymbol.ADDED,
+            lines.addAll(fromBean(FlagSymbol.ADDED,
                     indentation,
-                    (Bean) changes.get(0).getAffectedObject().get(),
-                    node.getPropertyName());
+                    (Bean) changes.get(0).getAffectedObject(),
+                    node.getPropertyName()));
         } else if (node.isRemovedObject()) {
-            return fromBean(FlagSymbol.REMOVED,
+            lines.addAll(fromBean(FlagSymbol.REMOVED,
                     indentation,
-                    (Bean) changes.get(0).getAffectedObject().get(),
-                    node.getPropertyName());
+                    (Bean) changes.get(0).getAffectedObject(),
+                    node.getPropertyName()));
         } else {
 
-            StringBuilder sb = new StringBuilder();
-            //TODO remove magic value
-            // calculate current indentation in relation to current node depth
-            sb.append(fromProperty(FlagSymbol.NONE, indentation - 2,  node.getPropertyName()));
+            // we dont want to print the root property since it's not part our yaml config specification
+            if (!node.isRoot()) {
+                //TODO remove magic value
+                // calculate current indentation in relation to current node depth
+                lines.add(fromProperty(FlagSymbol.NONE,
+                        calculateIndentation(node) - indentationIncrement,
+                        node.getPropertyName()));
+            }
 
-            for (Change change : changes) {
-                if (change instanceof MapChange && ! node.isLeaf()) continue;
+            for (CfChange change : changes) {
+                // TODO this line is necessary else changes will be displayed that are not relevant to the diff output
+                // TODO maybe already remove such changes when creating the diff tree
+                if (change instanceof CfMapChange && ! node.isLeaf()) continue;
 
-                sb.append(fromChange(indentation, change));
+                lines.addAll(fromChange(calculateIndentation(node), change));
             }
 
             // recursion
             for (DiffNode childNode : node.getChildNodes()) {
-                sb.append(toDiffString(childNode, 2 + indentation));
+                diffLines(lines, childNode, indentation + 2);
             }
-            return sb.toString();
+
         }
     }
 
@@ -94,7 +101,7 @@ public class DiffOutput {
         return asPropertyEntry(flagSymbol, indentation, propertyName);
     }
 
-    private String fromBean(FlagSymbol flagSymbol, int indentation, Bean bean) {
+    private List<String> fromBean(FlagSymbol flagSymbol, int indentation, Bean bean) {
         Yaml yamlProcessor = YamlCreator.createDefaultYamlProcessor();
         String yamlDump = yamlProcessor.dump(bean);
 
@@ -110,97 +117,85 @@ public class DiffOutput {
                         .setIndentation(indentation)
                         .setValue(line)
                         .build())
-                .collect(Collectors.joining("\n"))
-                + "\n";
+                .collect(Collectors.toList());
     }
 
-    private String fromBean(FlagSymbol flagSymbol, int indentation, Bean bean, String property) {
-        return asPropertyEntry(flagSymbol, indentation - 2, property) + fromBean(flagSymbol, indentation, bean);
+    private List<String> fromBean(FlagSymbol flagSymbol, int indentation, Bean bean, String property) {
+        List<String> lines = new LinkedList<>();
+        lines.add(asPropertyEntry(flagSymbol, indentation - 2, property));
+        lines.addAll(fromBean(flagSymbol, indentation, bean));
+        return lines;
     }
 
-    private String fromChange(int indentation, Change change) throws UnsupportedChangeTypeException {
-        if (change instanceof ContainerChange) {
-            return handleContainerChange(indentation, (ContainerChange) change);
-        } else if (change instanceof ValueChange) {
-            return handleValueChange(indentation, (ValueChange) change);
-        } else if (change instanceof MapChange) {
-            return handleMapChange(indentation, (MapChange) change) ;
+    private List<String> fromChange(int indentation, CfChange change) {
+        if (change instanceof CfContainerChange) {
+            return handleContainerChange(indentation, (CfContainerChange) change);
+        } else if (change instanceof CfObjectValueChange) {
+            return handleValueChange(indentation, (CfObjectValueChange) change);
+        } else {
+            return handleMapChange(indentation, (CfMapChange) change) ;
         }
-        // can be a reference change, but that's not relevant to use, so just skip
-        return "";
     }
 
-    private String handleContainerChange(int indentation, ContainerChange change)
-            throws UnsupportedChangeTypeException
-    {
-        if (change instanceof CollectionChange) {
-            CollectionChange collectionChange = (CollectionChange) change;
+    private List<String> handleContainerChange(int indentation, CfContainerChange change) {
+        List<String> lines = new LinkedList<>();
+        lines.add(asPropertyEntry(FlagSymbol.NONE, indentation, change.getPropertyName()));
 
-            StringBuilder sb = new StringBuilder();
-            sb.append(asPropertyEntry(FlagSymbol.NONE, indentation, change.getPropertyName()));
-
-            for (Object element : collectionChange.getAddedValues()) {
-                sb.append(asListEntry(FlagSymbol.ADDED,
+        for (CfContainerChangeValue element : change.getChangedValues()) {
+            if (element.getChangeType() == ChangeType.ADDED) {
+                lines.add(asListEntry(FlagSymbol.ADDED,
                         indentation,
-                        element.toString()));
-            }
-            for (Object element : collectionChange.getRemovedValues()) {
-                sb.append(asListEntry(FlagSymbol.REMOVED,
+                        element.getValue()));
+            } else if (element.getChangeType() == ChangeType.REMOVED) {
+                lines.add(asListEntry(FlagSymbol.REMOVED,
                         indentation,
-                        element.toString()));
+                        element.getValue()));
             }
-            //TODO check edge cases
-            //TODO research if getChanges() only captures ordering changes or other type of changes also
-            for (ContainerElementChange element : collectionChange.getChanges()) {
-
-            }
-
-            return sb.toString();
         }
-
-        throw new UnsupportedChangeTypeException("Change of type " + change.getClass() + " not supported");
+        return lines;
     }
 
-    private String handleValueChange(int indentation, ValueChange valueChange) {
-        StringBuilder sb = new StringBuilder();
+    private List<String> handleValueChange(int indentation, CfObjectValueChange valueChange) {
+        List<String> lines = new LinkedList<>();
 
-        if (valueChange.getRight() != null) {
-            sb.append(asAddedKeyValueEntry(indentation,
+        if (!valueChange.getValueAfter().isEmpty()) {
+            lines.add(asAddedKeyValueEntry(indentation,
                     valueChange.getPropertyName(),
-                    valueChange.getRight().toString()));
+                    valueChange.getValueAfter()));
         }
-         if (valueChange.getLeft() != null) {
-            sb.append(asRemovedKeyValueEntry(indentation,
+         if (!valueChange.getValueBefore().isEmpty()) {
+             lines.add(asRemovedKeyValueEntry(indentation,
                   valueChange.getPropertyName(),
-                  valueChange.getLeft().toString()));
+                  valueChange.getValueBefore()));
         }
 
-        return sb.toString();
+        return lines;
     }
 
 
-    private String handleMapChange(int indentation, MapChange change) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(asPropertyEntry(FlagSymbol.NONE, indentation, change.getPropertyName()));
+    private List<String> handleMapChange(int indentation, CfMapChange change) {
+        List<String> lines = new LinkedList<>();
+        lines.add(asPropertyEntry(FlagSymbol.NONE, indentation, change.getPropertyName()));
 
-        for (EntryAdded element : change.getEntryAddedChanges()) {
-            sb.append(asKeyValueEntry(FlagSymbol.ADDED,
-                    indentation,
-                    "",
-                    element.toString()));
-        }
-        for (EntryRemoved element :  change.getEntryRemovedChanges()) {
-            sb.append(asKeyValueEntry(FlagSymbol.REMOVED,
-                    indentation,
-                    "",
-                    element.toString()));
-        }
-        //TODO check edge cases
-        //TODO research if getChanges() only captures ordering changes or other type of changes also
-        for (EntryValueChange element :  change.getEntryValueChanges()) {
+        int valueIndentation = indentation + 2;
 
+        for (CfMapChangeValue element : change.getChangedValues()) {
+            if (element.getChangeType() == ChangeType.ADDED) {
+                lines.add(asKeyValueEntry(FlagSymbol.ADDED,
+                        valueIndentation,
+                        element.getKey(),
+                        element.getValueAfter()));
+            } else if ( element.getChangeType() == ChangeType.REMOVED) {
+                lines.add(asKeyValueEntry(FlagSymbol.REMOVED,
+                        valueIndentation,
+                        element.getKey(),
+                        element.getValueBefore()));
+            } else {
+                lines.add(asAddedKeyValueEntry(valueIndentation, element.getKey(), element.getValueAfter()));
+                lines.add(asRemovedKeyValueEntry(valueIndentation, element.getKey(), element.getValueBefore()));
+            }
         }
-        return sb.toString();
+        return lines;
     }
 
 
