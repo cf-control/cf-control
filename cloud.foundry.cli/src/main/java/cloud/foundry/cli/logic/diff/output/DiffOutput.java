@@ -106,6 +106,7 @@ public class DiffOutput {
                 // apply flag and indentation
                 .map(line -> DiffLineBuilder.builder()
                         .setFlagSymbol(flagSymbol)
+                        .setColorsEnabled(true)
                         .setIndentation(indentation)
                         .setValue(line)
                         .build())
@@ -236,6 +237,7 @@ public class DiffOutput {
      */
     private String asKeyValueEntry(FlagSymbol flagSymbol, int indentation, String property, String value) {
         return DiffLineBuilder.builder()
+                .setColorsEnabled(true)
                 .setFlagSymbol(flagSymbol)
                 .setIndentation(indentation)
                 .setPropertyName(property)
