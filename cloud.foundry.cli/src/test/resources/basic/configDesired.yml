@@ -1,6 +1,6 @@
 apiVersion: 1.2.0
 spec:
-  spaceDevelopers: ['t01234@datev.de', "other.mail@mailserbce.de", "another.mail@mailservice.de"]
+  spaceDevelopers: ["other.mail@mailserbce.de", "another.mail@mailservice.de"]
   services:
     mitarbeiter-web-route:
       service: datev-http-routing
@@ -13,6 +13,10 @@ spec:
       path: src/app-1.0.1.jar
       manifest:
         buildpack: someBuildpack3
+        environmentVariables:
+          key1: newValue1
+          key3: value3
+        disk: 1024
     thirdApp:
       path: src/app-3.0.1.jar
       manifest:
