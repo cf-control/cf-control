@@ -25,8 +25,11 @@ import java.util.stream.Collectors;
 public class DiffOutput {
 
     private static final int DEFAULT_INDENTATION = 2;
+    private static final int DEFAULT_INDENTATION_INCREMENT = 2;
 
     private int indentation;
+    private int indentationIncrement;
+    private boolean colorsEnabled;
 
     /**
      * sets the indentation of the output to the given value
@@ -38,6 +41,8 @@ public class DiffOutput {
 
     public DiffOutput() {
         this.indentation = DEFAULT_INDENTATION;
+        this.indentationIncrement = DEFAULT_INDENTATION_INCREMENT;
+        this.colorsEnabled = true;
     }
 
     /**
@@ -49,12 +54,12 @@ public class DiffOutput {
      */
     public String from(@Nonnull DiffNode node) {
         List<String> lines = new LinkedList<>();
-        diffLines(lines, node, indentation);
+        diffLines(lines, node);
         return String.join("\n", lines);
     }
 
     //TODO pass StringBuilder with parameters to be more efficient
-    private void diffLines(List<String> lines, DiffNode node, int indentation) {
+    private void diffLines(List<String> lines, DiffNode node) {
         List<CfChange> changes = node.getChanges();
 
         //no changes at this level which means, there are no changes at the sub-levels also
@@ -62,12 +67,12 @@ public class DiffOutput {
 
         if (node.isNewObject()) {
             lines.addAll(fromBean(FlagSymbol.ADDED,
-                    indentation,
+                    calculateIndentation(node.getDepth()),
                     (Bean) changes.get(0).getAffectedObject(),
                     node.getPropertyName()));
         } else if (node.isRemovedObject()) {
             lines.addAll(fromBean(FlagSymbol.REMOVED,
-                    indentation,
+                    calculateIndentation(node.getDepth()),
                     (Bean) changes.get(0).getAffectedObject(),
                     node.getPropertyName()));
         } else {
@@ -77,7 +82,7 @@ public class DiffOutput {
                 //TODO remove magic value
                 // calculate current indentation in relation to current node depth
                 lines.add(fromProperty(FlagSymbol.NONE,
-                        calculateIndentation(node) - indentationIncrement,
+                        calculateIndentation(node.getDepth()) - indentationIncrement,
                         node.getPropertyName()));
             }
 
@@ -86,15 +91,19 @@ public class DiffOutput {
                 // TODO maybe already remove such changes when creating the diff tree
                 if (change instanceof CfMapChange && ! node.isLeaf()) continue;
 
-                lines.addAll(fromChange(calculateIndentation(node), change));
+                lines.addAll(fromChange(calculateIndentation(node.getDepth()), change));
             }
 
             // recursion
             for (DiffNode childNode : node.getChildNodes()) {
-                diffLines(lines, childNode, indentation + 2);
+                diffLines(lines, childNode);
             }
 
         }
+    }
+
+    private int calculateIndentation(int currentDepth) {
+        return (1 + currentDepth) * indentationIncrement + indentation;
     }
 
     private String fromProperty(FlagSymbol flagSymbol, int indentation, String propertyName) {
@@ -122,7 +131,7 @@ public class DiffOutput {
 
     private List<String> fromBean(FlagSymbol flagSymbol, int indentation, Bean bean, String property) {
         List<String> lines = new LinkedList<>();
-        lines.add(asPropertyEntry(flagSymbol, indentation - 2, property));
+        lines.add(asPropertyEntry(flagSymbol, indentation - indentationIncrement, property));
         lines.addAll(fromBean(flagSymbol, indentation, bean));
         return lines;
     }
@@ -177,7 +186,7 @@ public class DiffOutput {
         List<String> lines = new LinkedList<>();
         lines.add(asPropertyEntry(FlagSymbol.NONE, indentation, change.getPropertyName()));
 
-        int valueIndentation = indentation + 2;
+        int valueIndentation = indentation + indentationIncrement;
 
         for (CfMapChangeValue element : change.getChangedValues()) {
             if (element.getChangeType() == ChangeType.ADDED) {
