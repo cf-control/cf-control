@@ -3,7 +3,7 @@ package cloud.foundry.cli.crosscutting.mapping.beans;
 /**
  * Bean holding all data of the state of a live system.
  */
-public class ConfigBean implements Bean{
+public class ConfigBean implements Bean {
 
     String apiVersion;
     TargetBean target;
