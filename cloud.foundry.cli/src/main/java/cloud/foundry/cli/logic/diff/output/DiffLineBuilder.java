@@ -53,10 +53,10 @@ public class DiffLineBuilder {
         propertyName = "";
         value = "";
 
-        // we don't want to insert any color escape sequences in case the I/O we talk to is not a tty
+        // by default, we don't want to insert any color escape sequences in case the I/O we talk to is not a tty
         // https://stackoverflow.com/a/1403817
         // this can be overwritten by the user, though, by calling the corresponding setter
-        colorsEnabled = (System.console() != null);
+        colorsEnabled = (System.console() != null || System.getenv("COLORS") != null);
     }
 
     /**
