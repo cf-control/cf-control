@@ -1,5 +1,7 @@
 package cloud.foundry.cli.logic.diff;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import cloud.foundry.cli.logic.diff.change.CfChange;
 import cloud.foundry.cli.logic.diff.change.object.CfNewObject;
 import cloud.foundry.cli.logic.diff.change.object.CfRemovedObject;
@@ -27,7 +29,6 @@ public class DiffNode {
      */
     public DiffNode(@Nonnull String propertyName) {
         checkNotNull(propertyName);
-
         this.propertyName = propertyName;
         this.parentNode = null;
         this.childNodes = new HashMap<>();
