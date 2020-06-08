@@ -24,23 +24,29 @@ import java.util.stream.Collectors;
  */
 public class DiffOutput {
 
-    private static final int DEFAULT_INDENTATION = 2;
     private static final int DEFAULT_INDENTATION_INCREMENT = 2;
 
-    private int indentation;
-    private int indentationIncrement;
+    private final int indentationIncrement;
 
     /**
-     * sets the indentation of the output to the given value
-     * @param indentation value for number of spaces to the left of the output
+     * Default constructor
      */
-    public void setIndentation(int indentation) {
-        this.indentation = indentation;
+    public DiffOutput() {
+        this.indentationIncrement = DEFAULT_INDENTATION_INCREMENT;
     }
 
-    public DiffOutput() {
-        this.indentation = DEFAULT_INDENTATION;
-        this.indentationIncrement = DEFAULT_INDENTATION_INCREMENT;
+    /**
+     * Construct with a custom indentation interval
+     *
+     * @param indentationIncrement indentation interval (>= 1)
+     * @throws IllegalArgumentException in case an invalid indentation interval is passed
+     */
+    public DiffOutput(int indentationIncrement) {
+        if (indentationIncrement >= 1) {
+            throw new IllegalArgumentException("YAML file output must be indented, values < 1 are not allowed");
+        }
+
+        this.indentationIncrement = indentationIncrement;
     }
 
     /**
@@ -55,33 +61,41 @@ public class DiffOutput {
         diffLines(lines, node);
         return String.join("\n", lines);
     }
+    
+    private int calculateIndentationFromDepth(int depth) {
+        return depth * indentationIncrement;
+    }
 
-    //TODO pass StringBuilder with parameters to be more efficient
     private void diffLines(List<String> lines, DiffNode node) {
         List<CfChange> changes = node.getChanges();
 
-        //no changes at this level which means, there are no changes at the sub-levels also
-        if (changes.size() == 0 && node.isLeaf()) return;
+        // no changes at this level which means, there are no changes at the sub-levels also
+        if (changes.size() == 0 && node.isLeaf()) {
+            return;
+        }
+
+        final int depth = node.getDepth();
+        final int thisNodeIndentation = calculateIndentationFromDepth(depth);
+        final int propertyIndentation = calculateIndentationFromDepth(depth - 1);
 
         if (node.isNewObject()) {
             lines.addAll(fromBean(FlagSymbol.ADDED,
-                    calculateIndentation(node.getDepth()),
+                    thisNodeIndentation,
                     (Bean) changes.get(0).getAffectedObject(),
-                    node.getPropertyName()));
+                    node.getPropertyName())
+            );
         } else if (node.isRemovedObject()) {
             lines.addAll(fromBean(FlagSymbol.REMOVED,
-                    calculateIndentation(node.getDepth()),
+                    thisNodeIndentation,
                     (Bean) changes.get(0).getAffectedObject(),
-                    node.getPropertyName()));
+                    node.getPropertyName())
+            );
         } else {
-
             // we dont want to print the root property since it's not part our yaml config specification
             if (!node.isRoot()) {
                 //TODO remove magic value
                 // calculate current indentation in relation to current node depth
-                lines.add(fromProperty(FlagSymbol.NONE,
-                        calculateIndentation(node.getDepth()) - indentationIncrement,
-                        node.getPropertyName()));
+                lines.add(fromProperty(FlagSymbol.NONE, propertyIndentation, node.getPropertyName()));
             }
 
             for (CfChange change : changes) {
@@ -89,19 +103,14 @@ public class DiffOutput {
                 // TODO maybe already remove such changes when creating the diff tree
                 if (change instanceof CfMapChange && ! node.isLeaf()) continue;
 
-                lines.addAll(fromChange(calculateIndentation(node.getDepth()), change));
+                lines.addAll(fromChange(thisNodeIndentation, change));
             }
 
             // recursion
             for (DiffNode childNode : node.getChildNodes()) {
                 diffLines(lines, childNode);
             }
-
         }
-    }
-
-    private int calculateIndentation(int currentDepth) {
-        return (1 + currentDepth) * indentationIncrement + indentation;
     }
 
     private String fromProperty(FlagSymbol flagSymbol, int indentation, String propertyName) {
