@@ -1,6 +1,7 @@
 package cloud.foundry.cli.logic.diff;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import cloud.foundry.cli.logic.diff.change.CfChange;
 
@@ -15,6 +16,9 @@ public class DiffTreeCreator {
      * @return
      */
     public static void insert(@Nonnull DiffNode rootNode,@Nonnull LinkedList<String> path, @Nonnull CfChange change) {
+        checkNotNull(rootNode);
+        checkNotNull(path);
+        checkNotNull(change);
         checkArgument(!path.isEmpty(), "The path is empty");
         checkArgument(rootNode.getPropertyName().equals(path.getFirst()),
                 "The root node is not the first node of the path");
