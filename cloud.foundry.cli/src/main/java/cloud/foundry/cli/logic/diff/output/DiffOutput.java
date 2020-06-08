@@ -29,7 +29,6 @@ public class DiffOutput {
 
     private int indentation;
     private int indentationIncrement;
-    private boolean colorsEnabled;
 
     /**
      * sets the indentation of the output to the given value
@@ -42,7 +41,6 @@ public class DiffOutput {
     public DiffOutput() {
         this.indentation = DEFAULT_INDENTATION;
         this.indentationIncrement = DEFAULT_INDENTATION_INCREMENT;
-        this.colorsEnabled = true;
     }
 
     /**
@@ -122,7 +120,6 @@ public class DiffOutput {
                 // apply flag and indentation
                 .map(line -> DiffLineBuilder.builder()
                         .setFlagSymbol(flagSymbol)
-                        .setColorsEnabled(true)
                         .setIndentation(indentation)
                         .setValue(line)
                         .build())
@@ -241,7 +238,6 @@ public class DiffOutput {
      */
     private String asKeyValueEntry(FlagSymbol flagSymbol, int indentation, String property, String value) {
         return DiffLineBuilder.builder()
-                .setColorsEnabled(true)
                 .setFlagSymbol(flagSymbol)
                 .setIndentation(indentation)
                 .setPropertyName(property)
