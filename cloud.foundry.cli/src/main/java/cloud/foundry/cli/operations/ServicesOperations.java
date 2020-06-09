@@ -1,15 +1,34 @@
 package cloud.foundry.cli.operations;
 
+import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import cloud.foundry.cli.crosscutting.logging.Log;
+
+import org.cloudfoundry.client.v2.servicebrokers.ListServiceBrokersRequest;
+import org.cloudfoundry.client.v2.servicebrokers.ListServiceBrokersResponse;
+import org.cloudfoundry.client.v2.serviceinstances.GetServiceInstanceParametersRequest;
+import org.cloudfoundry.client.v2.serviceinstances.GetServiceInstanceParametersResponse;
+import org.cloudfoundry.client.v2.serviceinstances.GetServiceInstancePermissionsRequest;
+import org.cloudfoundry.client.v2.serviceinstances.GetServiceInstancePermissionsResponse;
+import org.cloudfoundry.client.v2.serviceinstances.GetServiceInstanceResponse;
+import org.cloudfoundry.client.v2.serviceplans.ServiceInstanceSchema;
+import org.cloudfoundry.client.v2.services.GetServiceRequest;
+import org.cloudfoundry.client.v2.services.ListServicesRequest;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
+import org.cloudfoundry.operations.applications.ApplicationEnvironments;
+import org.cloudfoundry.operations.applications.ApplicationManifest;
+import org.cloudfoundry.operations.applications.GetApplicationEnvironmentsRequest;
 import org.cloudfoundry.operations.services.CreateServiceInstanceRequest;
+import org.cloudfoundry.operations.services.GetServiceInstanceRequest;
 import org.cloudfoundry.operations.services.RenameServiceInstanceRequest;
+import org.cloudfoundry.operations.services.ServiceInstance;
 import org.cloudfoundry.operations.services.ServiceInstanceSummary;
 import org.cloudfoundry.operations.services.UpdateServiceInstanceRequest;
 
 import reactor.core.publisher.Mono;
+
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -22,18 +41,29 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
     }
 
     /**
-     * This method fetches services data from the cloud foundry instance.
-     * To retrieve data given by the Mono object you can use the subscription methods (block, subscribe, etc.) provided
-     * by the reactor library.
-     * For more details on how to work with Mono's visit:
+     * This method fetches services data from the cloud foundry instance. To
+     * retrieve data given by the Mono object you can use the subscription methods
+     * (block, subscribe, etc.) provided by the reactor library. For more details on
+     * how to work with Mono's visit:
      * https://projectreactor.io/docs/core/release/reference/index.html#core-features
+     * 
      * @return Mono object of all services as list of ServiceBeans
      */
     public Mono<Map<String, ServiceBean>> getAll() {
+
+        return  this.cloudFoundryOperations.services()
+            .listInstances()
+            .flatMap(this::doGetServiceInstance)
+            .collectMap(ServiceInstance::getName, ServiceBean::new);
+    }
+
+    private Mono<ServiceInstance> doGetServiceInstance(ServiceInstanceSummary serviceInstanceSummary) {
         return this.cloudFoundryOperations
-                .services()
-                .listInstances()
-                .collectMap(ServiceInstanceSummary::getName, ServiceBean::new);
+            .services()
+            .getInstance(GetServiceInstanceRequest
+                .builder()
+                .name(serviceInstanceSummary.getName())
+                .build());
     }
 
     /**
@@ -102,8 +132,8 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
 
         try {
             this.cloudFoundryOperations.services()
-                    .updateInstance(updateServiceInstanceRequest)
-                    .block();
+                .updateInstance(updateServiceInstanceRequest)
+                .block();
             Log.info("Service Plan and Tags haven been updated");
         } catch (RuntimeException e) {
             throw new CreationException(e.getMessage());

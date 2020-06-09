@@ -1,8 +1,10 @@
 package cloud.foundry.cli.crosscutting.mapping.beans;
 
+import org.cloudfoundry.operations.services.ServiceInstance;
 import org.cloudfoundry.operations.services.ServiceInstanceSummary;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Bean holding all data that is related to an instance of a service.
@@ -12,11 +14,13 @@ public class ServiceBean implements Bean {
     private String service;
     private String plan;
     private List<String> tags;
+//    private Map<String, Object> params;
+    
 
-    public ServiceBean(ServiceInstanceSummary serviceInstanceSummary) {
-        this.service = serviceInstanceSummary.getService();
-        this.plan = serviceInstanceSummary.getPlan();
-        this.tags = serviceInstanceSummary.getTags();
+    public ServiceBean(ServiceInstance serviceInstance) {
+        this.service = serviceInstance.getService();
+        this.plan = serviceInstance.getPlan();
+        this.tags = serviceInstance.getTags();
     }
 
     public ServiceBean() {
