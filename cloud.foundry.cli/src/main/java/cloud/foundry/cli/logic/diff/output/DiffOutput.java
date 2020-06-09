@@ -2,8 +2,8 @@ package cloud.foundry.cli.logic.diff.output;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import cloud.foundry.cli.crosscutting.mapping.YamlMapper;
 import cloud.foundry.cli.crosscutting.mapping.beans.Bean;
-import cloud.foundry.cli.crosscutting.util.YamlCreator;
 import cloud.foundry.cli.logic.diff.DiffNode;
 import cloud.foundry.cli.logic.diff.change.CfChange;
 import cloud.foundry.cli.logic.diff.change.ChangeType;
@@ -12,7 +12,6 @@ import cloud.foundry.cli.logic.diff.change.container.CfContainerValueChanged;
 import cloud.foundry.cli.logic.diff.change.map.CfMapChange;
 import cloud.foundry.cli.logic.diff.change.map.CfMapValueChanged;
 import cloud.foundry.cli.logic.diff.change.object.CfObjectValueChanged;
-import org.yaml.snakeyaml.Yaml;
 
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -103,8 +102,7 @@ public class DiffOutput {
     }
 
     private List<String> fromBean(FlagSymbol flagSymbol, int indentation, Bean bean) {
-        Yaml yamlProcessor = YamlCreator.createDefaultYamlProcessor();
-        String yamlDump = yamlProcessor.dump(bean);
+        String yamlDump = YamlMapper.dump(bean);
 
         List<String> yamlLines = Arrays.asList(yamlDump.split("\n"));
 

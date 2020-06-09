@@ -3,14 +3,12 @@ package cloud.foundry.cli.services;
 import static picocli.CommandLine.usage;
 
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
+import cloud.foundry.cli.crosscutting.mapping.YamlMapper;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
-import cloud.foundry.cli.crosscutting.util.FileUtils;
-import cloud.foundry.cli.crosscutting.util.YamlCreator;
 import cloud.foundry.cli.logic.DiffLogic;
 import cloud.foundry.cli.operations.ApplicationsOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
-import org.yaml.snakeyaml.Yaml;
 import picocli.CommandLine;
 
 import java.util.Map;
@@ -45,12 +43,10 @@ public class DiffController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            String yamlFileContent = FileUtils.readLocalFile(commandOptions.getYamlFilePath());
-            Yaml yamlLoader = YamlCreator.createDefaultYamlProcessor();
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
 
-            SpecBean specBeanDesired = yamlLoader.loadAs(yamlFileContent, SpecBean.class);
+            SpecBean specBeanDesired = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
             Map<String, ApplicationBean> appsLive = applicationsOperations.getAll().block();
 
             SpecBean specBeanLive = new SpecBean();
