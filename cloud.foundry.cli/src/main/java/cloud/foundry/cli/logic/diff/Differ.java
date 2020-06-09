@@ -1,5 +1,6 @@
 package cloud.foundry.cli.logic.diff;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import cloud.foundry.cli.crosscutting.mapping.beans.Bean;
@@ -42,6 +43,7 @@ public class Differ {
     public DiffNode createDiffTree(Bean liveConfig, Bean desiredConfig) {
         checkNotNull(liveConfig);
         checkNotNull(desiredConfig);
+        checkArgument(liveConfig.getClass() == desiredConfig.getClass(), "Bean types don't match.");
 
         return doCreateDiffTree(liveConfig, desiredConfig);
     }
