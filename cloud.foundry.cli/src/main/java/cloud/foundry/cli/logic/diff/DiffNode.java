@@ -4,7 +4,7 @@ import cloud.foundry.cli.logic.diff.change.CfChange;
 import cloud.foundry.cli.logic.diff.change.object.CfNewObject;
 import cloud.foundry.cli.logic.diff.change.object.CfRemovedObject;
 
-import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -54,8 +54,8 @@ public class DiffNode {
     /**
      * @return
      */
-    public Collection<DiffNode> getChildNodes() {
-        return childNodes.values();
+    public Map<String, DiffNode> getChildNodes() {
+        return Collections.unmodifiableMap(childNodes);
     }
 
     public String getPropertyName() {

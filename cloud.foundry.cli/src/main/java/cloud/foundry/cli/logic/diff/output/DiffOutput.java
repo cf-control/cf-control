@@ -91,7 +91,7 @@ public class DiffOutput {
             }
 
             // recursion
-            for (DiffNode childNode : node.getChildNodes()) {
+            for (DiffNode childNode : node.getChildNodes().values()) {
                 diffLines(lines, childNode);
             }
         }
