@@ -33,7 +33,7 @@ public class Log {
         // by default, we don't want to log debug messages
         // however, the user can opt-in to them by setting the environment variable $DEBUG
         if (System.getenv(DEBUG_ENV_VAR_NAME) != null) {
-            logger.setLevel(Level.FINE);
+            logger.setLevel(Level.FINER);
         } else {
             logger.setLevel(Level.INFO);
         }
@@ -91,6 +91,15 @@ public class Log {
      * @param args optional additional arguments
      */
     public static void debug(Object arg0, Object... args) {
+        Log.log(Level.FINER, arg0, args);
+    }
+
+    /**
+     * Log a verbose info message.
+     * @param arg0 mandatory log argument
+     * @param args optional additional arguments
+     */
+    public static void verbose(Object arg0, Object... args) {
         Log.log(Level.FINE, arg0, args);
     }
 
