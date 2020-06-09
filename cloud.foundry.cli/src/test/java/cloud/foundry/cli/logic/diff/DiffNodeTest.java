@@ -4,12 +4,12 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+import static org.mockito.Mockito.mock;
 
 import cloud.foundry.cli.logic.diff.change.CfChange;
-import cloud.foundry.cli.logic.diff.change.ChangeType;
-import cloud.foundry.cli.logic.diff.change.object.CfObjectChange;
+import cloud.foundry.cli.logic.diff.change.object.CfNewObject;
+import cloud.foundry.cli.logic.diff.change.object.CfRemovedObject;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import java.util.Collections;
 import java.util.ArrayList;
@@ -23,7 +23,7 @@ public class DiffNodeTest {
         DiffNode node = new DiffNode("propertyName");
         LinkedList<CfChange> changes = new LinkedList<>();
         for (int counter = 0; counter < 42; ++counter) {
-            CfChange mockedChange = Mockito.mock(CfChange.class);
+            CfChange mockedChange = mock(CfChange.class);
             changes.add(mockedChange);
 
             node.addChange(mockedChange);
@@ -60,11 +60,11 @@ public class DiffNodeTest {
     @Test
     public void testNewObjectNode() {
         DiffNode node = new DiffNode("propertyName");
-        CfObjectChange newObjectChange = new CfObjectChange(null, ChangeType.ADDED);
-        node.addChange(newObjectChange);
+        CfNewObject cfNewObject = new CfNewObject(mock(Object.class), "", Collections.emptyList());
+        node.addChange(cfNewObject);
 
         assertThat(node.getChanges().size(), is(1));
-        assertThat(node.getChanges().get(0), is(newObjectChange));
+        assertThat(node.getChanges().get(0), is(cfNewObject));
         assertThat(node.isNewObject(), is(true));
         assertThat(node.isRemovedObject(), is(false));
     }
@@ -72,7 +72,7 @@ public class DiffNodeTest {
     @Test
     public void testObjectRemovedNode() {
         DiffNode node = new DiffNode("propertyName");
-        CfObjectChange objectRemovedChange = new CfObjectChange(null, ChangeType.REMOVED);
+        CfRemovedObject objectRemovedChange = new CfRemovedObject(mock(Object.class), "", Collections.emptyList());
         node.addChange(objectRemovedChange);
 
         assertThat(node.getChanges().size(), is(1));
