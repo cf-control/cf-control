@@ -37,6 +37,9 @@ import org.junit.jupiter.api.Test;
 import java.util.Collections;
 import java.util.HashMap;
 
+/**
+ * Test for {@link ChangeParser}
+ */
 public class ChangeParserTest {
 
     @Test
