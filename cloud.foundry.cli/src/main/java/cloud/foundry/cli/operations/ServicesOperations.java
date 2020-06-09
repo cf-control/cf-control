@@ -21,7 +21,6 @@ import org.cloudfoundry.operations.services.UpdateServiceInstanceRequest;
 
 import reactor.core.publisher.Mono;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -119,6 +118,7 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
                 .updateInstance(updateServiceInstanceRequest)
                 .block();
             Log.info("Service Plan and Tags haven been updated");
+        
         } catch (RuntimeException e) {
             throw new CreationException(e.getMessage());
         }
@@ -132,10 +132,7 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      */
     public void removeServiceInstance(String serviceInstanceName) {
         try {
-            // unbind route
-            unbindRoute(serviceInstanceName);
 
-            // unbind apps
             ServiceInstance serviceInstance = this.cloudFoundryOperations
                 .services()
                 .getInstance(
@@ -145,6 +142,10 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
                         .build())
                 .block();
 
+            // unbind route
+            unbindRoute(serviceInstanceName);
+
+            // unbind apps
             unbindApps(serviceInstanceName, serviceInstance);
 
             // delete keys
@@ -161,6 +162,7 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
                 .block();
 
             Log.info("Service " + serviceInstanceName + " has been removed.");
+      
         } catch (RuntimeException e) {
             throw new IllegalArgumentException(e.getMessage());
         }
@@ -174,31 +176,33 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      */
     private void deleteKeys(String serviceInstanceName, ServiceInstance serviceInstance) {
         if (!serviceInstance.getType().getValue().equals(USER_PROVIDED_SERVICE_INSTANCE)) {
-
             ListServiceKeysRequest listServiceKeysRequest = ListServiceKeysRequest
                 .builder()
                 .serviceInstanceName(serviceInstanceName)
                 .build();
 
-            List<ServiceKey> keys = this.cloudFoundryOperations
-                .services()
-                .listServiceKeys(listServiceKeysRequest)
-                .collectList()
-                .block();
-
-            if (keys != null && !keys.isEmpty()) {
-                keys.forEach(
-                    key -> this.cloudFoundryOperations
-                        .services()
-                        .deleteServiceKey(DeleteServiceKeyRequest.builder()
-                            .serviceInstanceName(serviceInstanceName)
-                            .serviceKeyName(key.getName())
-                            .build())
-                        .block());
-
+            try {
+                this.cloudFoundryOperations
+                    .services()
+                    .listServiceKeys(listServiceKeysRequest)
+                    .flatMap(key -> doDeleteKey(serviceInstanceName, key))
+                    .collectList()
+                    .block();
                 Log.info("All service keys of service instance " + serviceInstanceName + " have been deleted.");
+          
+            } catch (Exception e) {
+                Log.error(e.getMessage());
             }
         }
+    }
+
+    private Mono<Void> doDeleteKey(String serviceInstanceName, ServiceKey key) {
+        return this.cloudFoundryOperations
+            .services()
+            .deleteServiceKey(DeleteServiceKeyRequest.builder()
+                .serviceInstanceName(serviceInstanceName)
+                .serviceKeyName(key.getName())
+                .build());
     }
 
     /**
@@ -211,20 +215,31 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
         if (serviceInstance.getApplications() == null || serviceInstance.getApplications().isEmpty()) {
             Log.info("There is no application to unbind!");
         } else {
+            try {
+                serviceInstance.getApplications()
+                    .parallelStream()
+                    .forEach(applicationName -> doUnbindApp(serviceInstanceName, applicationName));
 
-            serviceInstance.getApplications()
-                .forEach(applicationName -> {
-                    this.cloudFoundryOperations
-                        .services()
-                        .unbind(
-                            UnbindServiceInstanceRequest.builder()
-                                .serviceInstanceName(serviceInstanceName)
-                                .applicationName(applicationName)
-                                .build())
-                        .block();
-                });
+                Log.info("All applications of service instance " + serviceInstanceName + " have been unbound.");
+            
+            } catch (Exception e) {
+                Log.error(e.getMessage());
+            }
+        }
+    }
 
-            Log.info("All applications of service instance " + serviceInstanceName + " have been unbound.");
+    private void doUnbindApp(String serviceInstanceName, String applicationName) {
+        try {
+            this.cloudFoundryOperations
+                .services()
+                .unbind(
+                    UnbindServiceInstanceRequest.builder()
+                        .serviceInstanceName(serviceInstanceName)
+                        .applicationName(applicationName)
+                        .build())
+                .block();
+        } catch (Exception e) {
+            Log.error(e.getMessage());
         }
     }
 
@@ -246,7 +261,7 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
             Log.info("All routes to service instance " + serviceInstanceName + " have been unbound.");
 
         } catch (Exception e) {
-            Log.error(e);
+            Log.error(e.getMessage());
         }
     }
 

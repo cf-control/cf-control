@@ -34,6 +34,8 @@ import org.cloudfoundry.operations.services.ServiceInstanceType;
 import org.cloudfoundry.operations.services.ServiceKey;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.mockito.stubbing.Answer;
+
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -45,6 +47,7 @@ import java.util.Map;
 public class ServicesOperationsTest {
 
     private static final String USER_PROVIDED_SERVICE_INSTANCE = "user_provided_service_instance";
+    private static final String MANAGER_PROVIDED_SERVICE_INSTANCE = "manager_provided_service_instance";
 
     @Test
     public void testGetServicesWithMockData() {
@@ -92,7 +95,7 @@ public class ServicesOperationsTest {
     public void testCreateExceptionWhenCreatingService() {
         // given
         String serviceInstanceName = "serviceInstanceName";
-        ServiceBean serviceBean = getServiceBeanMock();
+        ServiceBean serviceBean = mockServiceBean();
         DefaultCloudFoundryOperations cfMock = Mockito.mock(DefaultCloudFoundryOperations.class);
         Services servicesMock = Mockito.mock(Services.class);
         Mono<Void> monoCreated = mock(Mono.class);
@@ -112,7 +115,7 @@ public class ServicesOperationsTest {
     public void testUpdateService_ThrowException() throws CreationException {
         // given
         String serviceInstanceName = "serviceInstanceName";
-        ServiceBean serviceBeanMock = getServiceBeanMock();
+        ServiceBean serviceBeanMock = mockServiceBean();
         DefaultCloudFoundryOperations cfMock = Mockito.mock(DefaultCloudFoundryOperations.class);
 
         Services servicesMock = Mockito.mock(Services.class);
@@ -134,7 +137,7 @@ public class ServicesOperationsTest {
     @Test
     public void testUpdateServiceInstance() throws CreationException {
         // given
-        ServiceBean serviceBeanMock = getServiceBeanMock();
+        ServiceBean serviceBeanMock = mockServiceBean();
         String serviceInstanceName = "serviceInstanceName";
         DefaultCloudFoundryOperations cfMock = Mockito.mock(DefaultCloudFoundryOperations.class);
         Services servicesMock = Mockito.mock(Services.class);
@@ -176,12 +179,21 @@ public class ServicesOperationsTest {
     public void testRemoveServiceInstance() throws CreationException {
         // given
         String serviceInstanceName = "serviceInstanceName";
-
+        boolean isValid = true;
         Services servicesMock = mock(Services.class);
-        DefaultCloudFoundryOperations cfMock = mockRemoveServiceInstanceMethod(servicesMock);
+        Routes routesMock = mock(Routes.class);
 
-        Mono<Void> monoDeletedService = mock(Mono.class);
-        when(servicesMock.deleteInstance(any(DeleteServiceInstanceRequest.class))).thenReturn(monoDeletedService);
+        DefaultCloudFoundryOperations cfMock = mockRemoveServiceInstanceMethod(servicesMock, isValid);
+        ServiceKey serviceKeyMock = mockServiceKey(servicesMock);
+        Route routeMock = mockRoute(routesMock, isValid);
+
+        when(cfMock.routes()).thenReturn(routesMock);
+
+        doUnbindRoute(cfMock, routeMock);
+        doDeleteKey(cfMock, serviceInstanceName, serviceKeyMock);
+        when(servicesMock.unbind(any(UnbindServiceInstanceRequest.class)))
+            .thenReturn((Mono<Void>) mock(Mono.class));
+        when(servicesMock.deleteInstance(any(DeleteServiceInstanceRequest.class))).thenReturn(mock(Mono.class));
 
         // when
         ServicesOperations servicesOperations = new ServicesOperations(cfMock);
@@ -189,11 +201,66 @@ public class ServicesOperationsTest {
 
         // then
         verify(servicesMock, times(1)).deleteInstance(any(DeleteServiceInstanceRequest.class));
-        verify(monoDeletedService, times(1)).block();
-
+        verify(servicesMock, times(1)).deleteServiceKey(any(DeleteServiceKeyRequest.class));
+        verify(servicesMock, times(2)).unbind(any(UnbindServiceInstanceRequest.class));
+        verify(servicesMock, times(1)).unbindRoute(any(UnbindRouteServiceInstanceRequest.class));
     }
 
-    private ServiceBean getServiceBeanMock() {
+    @Test
+    public void testRemoveServiceInstanceWithoutConditions() {
+        // given
+        String serviceInstanceName = "serviceInstanceName";
+        boolean isValid = false;
+        Services servicesMock = mock(Services.class);
+        Routes routesMock = mock(Routes.class);
+
+        DefaultCloudFoundryOperations cfMock = mockRemoveServiceInstanceMethod(servicesMock, isValid);
+        Route routeMock = mockRoute(routesMock, isValid);
+        ServiceKey serviceKeyMock = mockServiceKey(servicesMock);
+
+        when(cfMock.services()).thenReturn(servicesMock);
+        when(cfMock.routes()).thenReturn(routesMock);
+
+        doUnbindRoute(cfMock, routeMock);
+        doDeleteKey(cfMock, serviceInstanceName, serviceKeyMock);
+        when(servicesMock.unbind(any(UnbindServiceInstanceRequest.class)))
+            .thenReturn((Mono<Void>) mock(Mono.class));
+        when(servicesMock.deleteInstance(any(DeleteServiceInstanceRequest.class))).thenReturn(mock(Mono.class));
+
+        // when
+        ServicesOperations servicesOperations = new ServicesOperations(cfMock);
+        servicesOperations.removeServiceInstance(serviceInstanceName);
+
+        // then
+        verify(servicesMock, times(1)).deleteInstance(any(DeleteServiceInstanceRequest.class));
+        verify(servicesMock, times(0)).deleteServiceKey(any(DeleteServiceKeyRequest.class));
+        verify(servicesMock, times(0)).unbind(any(UnbindServiceInstanceRequest.class));
+        verify(servicesMock, times(0)).unbindRoute(any(UnbindRouteServiceInstanceRequest.class));
+    }
+
+    private void doUnbindRoute(DefaultCloudFoundryOperations cloudFoundryOperations, Route route) {
+        when(cloudFoundryOperations.services()
+            .unbindRoute(
+                UnbindRouteServiceInstanceRequest
+                    .builder()
+                    .serviceInstanceName(route.getService())
+                    .domainName(route.getDomain())
+                    .hostname(route.getHost())
+                    .build())).thenReturn(Mono.empty());
+    }
+
+    private void doDeleteKey(DefaultCloudFoundryOperations cloudFoundryOperations, String serviceInstanceName,
+        ServiceKey serviceKey) {
+        when(cloudFoundryOperations
+            .services()
+            .deleteServiceKey(DeleteServiceKeyRequest.builder()
+                .serviceInstanceName(serviceInstanceName)
+                .serviceKeyName(serviceKey.getName())
+                .build()))
+                    .thenReturn(Mono.empty());
+    }
+
+    private ServiceBean mockServiceBean() {
         ServiceBean serviceBean = mock(ServiceBean.class);
         when(serviceBean.getService()).thenReturn("elephantsql");
         when(serviceBean.getPlan()).thenReturn("standard");
@@ -201,66 +268,61 @@ public class ServicesOperationsTest {
         return serviceBean;
     }
 
-    private DefaultCloudFoundryOperations mockRemoveServiceInstanceMethod(Services servicesMock) {
-        DefaultCloudFoundryOperations cfMock = mock(DefaultCloudFoundryOperations.class);
+    private ServiceInstance mockServiceInstance(Boolean isValid) {
+        ServiceInstance serviceInstanceMock = mock(ServiceInstance.class);
+        ServiceInstanceType serviceInstanceTypeMock = mock(ServiceInstanceType.class);
 
-        ServiceInstance serviceInstanceMock = mockServiceInstance();
+        if (isValid) {
+            when(serviceInstanceMock.getApplications()).thenReturn(Arrays.asList("app1", "app2"));
+            when(serviceInstanceMock.getType()).thenReturn(serviceInstanceTypeMock);
+            when(serviceInstanceTypeMock.getValue()).thenReturn(MANAGER_PROVIDED_SERVICE_INSTANCE);
+
+        } else {
+            when(serviceInstanceMock.getApplications()).thenReturn(Collections.emptyList());
+            when(serviceInstanceMock.getType()).thenReturn(serviceInstanceTypeMock);
+            when(serviceInstanceTypeMock.getValue()).thenReturn(USER_PROVIDED_SERVICE_INSTANCE);
+        }
+        return serviceInstanceMock;
+    }
+
+    private ServiceKey mockServiceKey(Services servicesMock) {
+        ServiceKey serviceKeyMock = mock(ServiceKey.class);
+        Flux<ServiceKey> fluxMock = Flux.just(serviceKeyMock);
+
+        when(serviceKeyMock.getName()).thenReturn("keyname");
+        when(servicesMock.listServiceKeys(any(ListServiceKeysRequest.class)))
+            .thenReturn(fluxMock);
+
+        return serviceKeyMock;
+    }
+
+    private Route mockRoute(Routes routesMock, boolean isValid) {
+        Route routeMock = mock(Route.class);
+        Flux<Route> fluxMock = Flux.just(routeMock);
+
+        when(routesMock.list(any(ListRoutesRequest.class))).thenReturn(fluxMock);
+        when(routeMock.getDomain()).thenReturn("domain");
+        when(routeMock.getHost()).thenReturn("host");
+        if (isValid) {
+            when(routeMock.getService()).thenReturn("serviceInstanceName");
+        } else {
+            when(routeMock.getService()).thenReturn("route");
+        }
+        return routeMock;
+
+    }
+
+    private DefaultCloudFoundryOperations mockRemoveServiceInstanceMethod(Services servicesMock, boolean isValid) {
+        DefaultCloudFoundryOperations cfMock = mock(DefaultCloudFoundryOperations.class);
+        ServiceInstance serviceInstanceMock = mockServiceInstance(isValid);
         Mono<ServiceInstance> monoserviceInstanceMock = mock(Mono.class);
 
-        Routes routesMock = mock(Routes.class);
-        mockRoute(routesMock);
-
-        mockServiceKey(servicesMock);
-
         when(cfMock.services()).thenReturn(servicesMock);
-        when(cfMock.routes()).thenReturn(routesMock);
-
-        when(servicesMock.unbindRoute(any(UnbindRouteServiceInstanceRequest.class)))
-            .thenReturn((Mono<Void>) mock(Mono.class));
-
-        when(servicesMock.unbind(any(UnbindServiceInstanceRequest.class)))
-            .thenReturn((Mono<Void>) mock(Mono.class));
-
-        when(servicesMock.deleteServiceKey(any(DeleteServiceKeyRequest.class)))
-            .thenReturn((Mono<Void>) mock(Mono.class));
-
         when(servicesMock.getInstance(any(GetServiceInstanceRequest.class)))
             .thenReturn(monoserviceInstanceMock);
         when(monoserviceInstanceMock.block()).thenReturn(serviceInstanceMock);
 
         return cfMock;
-    }
-
-    private ServiceInstance mockServiceInstance() {
-        ServiceInstance serviceInstanceMock = mock(ServiceInstance.class);
-        ServiceInstanceType serviceInstanceTypeMock = mock(ServiceInstanceType.class);
-
-        when(serviceInstanceMock.getApplications()).thenReturn(Arrays.asList("app1", "app2"));
-        when(serviceInstanceMock.getType()).thenReturn(serviceInstanceTypeMock);
-        when(serviceInstanceTypeMock.getValue()).thenReturn(USER_PROVIDED_SERVICE_INSTANCE);
-
-        return serviceInstanceMock;
-    }
-
-    private void mockServiceKey(Services servicesMock) {
-
-        ServiceKey serviceKeyMock = mock(ServiceKey.class);
-        Flux<ServiceKey> fluxMock = Flux.just(serviceKeyMock);
-
-        when(servicesMock.listServiceKeys(any(ListServiceKeysRequest.class))).thenReturn(fluxMock);
-        when(serviceKeyMock.getName()).thenReturn("keyname");
-
-    }
-
-    private void mockRoute(Routes routesMock) {
-        Route routeMock = mock(Route.class);
-        Flux<Route> fluxMock = Flux.just(routeMock);
-
-        when(routesMock.list(any(ListRoutesRequest.class))).thenReturn(fluxMock);
-        when(routeMock.getService()).thenReturn("route");
-        when(routeMock.getDomain()).thenReturn("domain");
-        when(routeMock.getHost()).thenReturn("host");
-
     }
 
     private DefaultCloudFoundryOperations mockGetAllMethod(List<ServiceInstanceSummary> summaries) {
