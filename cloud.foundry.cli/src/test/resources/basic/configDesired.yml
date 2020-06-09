@@ -1,28 +1,26 @@
-apiVersion: 1.2.0
+apiVersion: 1.0
+target:
+  org: somOrg
+  space: someSpace
+  endpoint: someEndpoint
 spec:
-  spaceDevelopers: ["other.mail@mailserbce.de", "another.mail@mailservice.de"]
+  spaceDevelopers:
+    - dev1
+    - dev3
   services:
-    mitarbeiter-web-route:
-      service: datev-http-routing
-      plan: unsecure
-      tags:
-        - tag1
-        - tag2
+    sql-service-name:
+      service: sql-service
+      plan: secure
   apps:
-    firstApp:
-      path: src/app-1.0.1.jar
+    app1:
+      path: some/path
       manifest:
-        buildpack: someBuildpack3
+        memory: 2048
         environmentVariables:
-          key1: newValue1
-          key3: value3
-        disk: 1024
-    thirdApp:
-      path: src/app-3.0.1.jar
+          TEST: somNewVal
+          LIVE: someOtherVal
+        disk: 2048
+    app3:
+      path: some/path
       manifest:
-        buildpack: someBuildpack
-        memory: 1024
-        instances: 10
-        disk: 1024
-        randomRoute: true
-        healthCheckHttpEndpoint : HTTP
+        instances: 2
