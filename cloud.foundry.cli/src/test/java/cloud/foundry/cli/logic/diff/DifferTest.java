@@ -15,7 +15,6 @@ import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
 import cloud.foundry.cli.logic.diff.change.ChangeType;
 import cloud.foundry.cli.logic.diff.change.container.CfContainerChange;
 import cloud.foundry.cli.logic.diff.change.map.CfMapChange;
-import cloud.foundry.cli.logic.diff.change.object.CfNewObject;
 import cloud.foundry.cli.logic.diff.change.object.CfObjectValueChanged;
 import org.junit.jupiter.api.Test;
 
@@ -53,6 +52,7 @@ public class DifferTest {
         assertThat(tree.getChanges().size(), is(0));
         assertThat(tree.getChildNodes().size(), is(1));
         assertTrue(tree.getChildNodes().containsKey("spec"));
+        assertTrue(tree.isRoot());
 
         // only spec, since there are no changes at target
         DiffNode specNode = tree.getChildNodes().get("spec");
@@ -77,7 +77,7 @@ public class DifferTest {
         assertThat(services.getChildNodes().size(), is(1));
         assertTrue(services.getChildNodes().containsKey("sql-service-name"));
         DiffNode service = services.getChildNodes().get("sql-service-name");
-        assertThat(service.getChildNodes().size(), is(0));
+        assertTrue(service.isLeaf());
         assertThat(service.getChanges().size(), is(1));
         assertThat(service.getChanges().get(0).getPropertyName(), is("plan"));
         assertThat(((CfObjectValueChanged) service.getChanges().get(0)).getValueBefore(), is("unsecure"));
@@ -96,8 +96,9 @@ public class DifferTest {
         assertThat(app1.getChanges().size(), is(0));
         assertThat(app1.getChildNodes().size(), is(1));
         assertTrue(app1.getChildNodes().containsKey("manifest"));
+
         DiffNode app1Manifest = app1.getChildNodes().get("manifest");
-        assertThat(app1Manifest.getChildNodes().size(), is(0));
+        assertTrue(app1Manifest.isLeaf());
         assertThat(app1Manifest.getChanges().size(), is(1));
         assertThat(app1Manifest.getChanges(), contains(instanceOf(CfMapChange.class)));
         CfMapChange environmentVariablesChange = (CfMapChange) app1Manifest.getChanges().get(0);
@@ -109,14 +110,12 @@ public class DifferTest {
 
         //app3
         DiffNode app3 = apps.getChildNodes().get("app3");
-        assertThat(app3.getChanges().size(), is(1));
-        assertTrue(app3.getChanges().get(0) instanceof CfNewObject);
+        assertTrue(app3.isNewObject());
         assertThat(app3.getChildNodes().size(), is(1));
         assertTrue(app3.getChildNodes().containsKey("manifest"));
         //new app manifest object also
         DiffNode app3Manifest = app3.getChildNodes().get("manifest");
-        assertThat(app3Manifest.getChildNodes().size(), is(0));
-        assertThat(app3Manifest.getChanges().size(), is(1));
-        assertTrue(app3Manifest.getChanges().get(0) instanceof CfNewObject);
+        assertTrue(app3Manifest.isNewObject());
+        assertTrue(app3Manifest.isLeaf());
     }
 }
