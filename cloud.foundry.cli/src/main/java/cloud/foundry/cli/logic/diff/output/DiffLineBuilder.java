@@ -2,7 +2,6 @@ package cloud.foundry.cli.logic.diff.output;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -94,7 +93,7 @@ public class DiffLineBuilder {
      * @return instance of the current builder object
      * @throws NullPointerException
      */
-    public DiffLineBuilder setPropertyName(@Nonnull String propertyName) {
+    public DiffLineBuilder setPropertyName(String propertyName) {
         checkNotNull(propertyName);
         this.propertyName = propertyName;
         return this;
@@ -106,7 +105,7 @@ public class DiffLineBuilder {
      * @return instance of the current builder object
      * @throws NullPointerException
      */
-    public DiffLineBuilder setFlagSymbol(@Nonnull FlagSymbol flagSymbol) {
+    public DiffLineBuilder setFlagSymbol(FlagSymbol flagSymbol) {
         checkNotNull(flagSymbol);
         this.flagSymbol = flagSymbol;
         return this;
@@ -118,7 +117,7 @@ public class DiffLineBuilder {
      * @return instance of the current builder object
      * @throws NullPointerException
      */
-    public DiffLineBuilder setValue(@Nonnull String value) {
+    public DiffLineBuilder setValue(String value) {
         checkNotNull(value);
         this.value = value;
         return this;
@@ -130,7 +129,7 @@ public class DiffLineBuilder {
      * @return instance of the current builder object
      * @throws NullPointerException
      */
-    public DiffLineBuilder setColorCode(@Nonnull AnsiColorCode colorCode) {
+    public DiffLineBuilder setColorCode(AnsiColorCode colorCode) {
         checkNotNull(colorCode);
         this.colorCode = colorCode;
         return this;

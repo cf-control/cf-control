@@ -2,6 +2,8 @@ package cloud.foundry.cli.logic.diff.change.container;
 
 import cloud.foundry.cli.logic.diff.change.ChangeType;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Data object that holds a container value change.
  * These changes can be ChangeType.REMOVED or ChangeType.DELETED.
@@ -21,6 +23,8 @@ public class CfContainerValueChanged {
     }
 
     public CfContainerValueChanged(String value, ChangeType changeType) {
+        checkNotNull(value);
+        checkNotNull(changeType);
         assert changeType != ChangeType.CHANGED;
 
         this.value = value;

@@ -29,6 +29,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * This class parses JaVers change objects to custom change objects
  */
@@ -44,6 +46,8 @@ public class ChangeParser {
      * @return custom change class
      */
     public static CfChange parse(Change change) {
+        checkNotNull(change);
+
         if (change instanceof ValueChange) {
             return parseValueChange((ValueChange)change);
         } else if (change instanceof MapChange) {
@@ -67,7 +71,6 @@ public class ChangeParser {
         return new CfObjectValueChanged(change.getAffectedObject().get(),
                 change.getPropertyName(),
                 extractPathFrom(change),
-                ChangeType.CHANGED,
                 change.getLeft() == null ? "" : change.getLeft().toString(),
                 change.getRight() == null ? "" : change.getRight().toString()
                 );
