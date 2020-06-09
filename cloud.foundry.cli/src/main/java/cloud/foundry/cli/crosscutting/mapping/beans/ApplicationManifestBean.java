@@ -1,5 +1,6 @@
 package cloud.foundry.cli.crosscutting.mapping.beans;
 
+import org.apache.commons.lang3.StringUtils;
 import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
 import org.cloudfoundry.operations.applications.ApplicationManifest;
 import org.cloudfoundry.operations.applications.Route;
@@ -233,4 +234,31 @@ public class ApplicationManifestBean implements Bean {
     public void setTimeout(Integer timeout) {
         this.timeout = timeout;
     }
+
+    @Override
+    public String toString() {
+        return "ApplicationManifestBean{" +
+                "buildpack='" + buildpack + '\'' +
+                ", command='" + command + '\'' +
+                ", disk=" + disk +
+                ", dockerImage='" + dockerImage + '\'' +
+                ", dockerUsername='" + dockerUsername + '\'' +
+                ", environmentVariables=" + StringUtils.join(environmentVariables) +
+                ", healthCheckHttpEndpoint='" + healthCheckHttpEndpoint + '\'' +
+                ", healthCheckType=" + healthCheckType.toString() +
+                ", instances=" + instances +
+                ", memory=" + memory +
+                ", noRoute=" + noRoute +
+                ", randomRoute=" + randomRoute +
+                ", routePath='" + routePath + '\'' +
+                ", routes=" + routes.toString() +
+                ", services=" + services.toString() +
+                ", stack='" + stack + '\'' +
+                ", timeout=" + timeout +
+                ", domains=" + domains +
+                ", hosts=" + hosts +
+                ", noHostname=" + noHostname +
+                '}';
+    }
+
 }

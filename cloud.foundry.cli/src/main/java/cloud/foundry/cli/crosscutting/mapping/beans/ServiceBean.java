@@ -45,4 +45,13 @@ public class ServiceBean implements Bean {
     public void setTags(List<String> tags) {
         this.tags = tags;
     }
+
+    @Override
+    public String toString() {
+        return "ServiceBean{" +
+                "service='" + service + '\'' +
+                ", plan='" + plan + '\'' +
+                ", tags=" + tags.toString() +
+                '}';
+    }
 }

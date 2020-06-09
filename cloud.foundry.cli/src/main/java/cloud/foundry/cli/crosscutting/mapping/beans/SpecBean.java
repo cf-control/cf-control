@@ -1,5 +1,7 @@
 package cloud.foundry.cli.crosscutting.mapping.beans;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.List;
 import java.util.Map;
 
@@ -38,5 +40,14 @@ public class SpecBean implements Bean {
 
     public void setApps(Map<String, ApplicationBean> apps) {
         this.apps = apps;
+    }
+
+    @Override
+    public String toString() {
+        return "SpecBean{" +
+                "spaceDevelopers=" + spaceDevelopers.toString() +
+                ", services=" + StringUtils.join(services) +
+                ", apps=" + StringUtils.join(apps) +
+                '}';
     }
 }
