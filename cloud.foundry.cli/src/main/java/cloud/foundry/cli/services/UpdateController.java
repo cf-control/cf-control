@@ -54,7 +54,7 @@ public class UpdateController implements Callable<Integer> {
             SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
 
             spaceDevelopersOperations.removeSpaceDeveloper(spaceDevelopersBean.getSpaceDevelopers());
-            Log.info("Space Developers removed: " , spaceDevelopersBean.getSpaceDevelopers().toString());
+            Log.info("Space Developers removed: " , String.valueOf(spaceDevelopersBean.getSpaceDevelopers()));
 
             return 0;
         }

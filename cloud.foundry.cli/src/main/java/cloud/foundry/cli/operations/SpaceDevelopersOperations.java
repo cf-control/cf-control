@@ -105,7 +105,7 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
      * @throws InvalidOperationException if usernameList is null/empty or spaceId is invalid.
      */
     public void removeSpaceDeveloper(List<String> usernameList) throws InvalidOperationException {
-        Log.debug("Remove space developer(s):", String.valueOf(usernameList.toString()));
+        Log.debug("Remove space developer(s):", String.valueOf(usernameList));
 
         assertValidUsernameList(usernameList);
         String spaceId = cloudFoundryOperations.getSpaceId().block();
