@@ -1,6 +1,7 @@
 package cloud.foundry.cli.logic.diff.output;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import cloud.foundry.cli.crosscutting.mapping.YamlMapper;
 import cloud.foundry.cli.crosscutting.mapping.beans.Bean;
@@ -19,7 +20,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * this class transforms a difference tree into a visual representation of configuration differences
+ * This class transforms a difference tree into a visual representation of configuration differences.
  */
 public class DiffOutput {
 
@@ -28,14 +29,14 @@ public class DiffOutput {
     private final int indentationIncrement;
 
     /**
-     * Default constructor
+     * Constructor with default indentation increment.
      */
     public DiffOutput() {
         this.indentationIncrement = DEFAULT_INDENTATION_INCREMENT;
     }
 
     /**
-     * Construct with a custom indentation interval
+     * Construct with a custom indentation interval.
      *
      * @param indentationIncrement indentation interval (>= 1)
      * @throws IllegalArgumentException in case an invalid indentation interval is passed
@@ -47,11 +48,14 @@ public class DiffOutput {
     }
 
     /**
-     * transforms a difference tree into a visual representation of configuration differences
+     * Transforms a difference tree into a visual representation of configuration differences.
      * @param node root of the difference tree that should be parse to the difference output
      * @return string of the difference output
+     * @throws NullPointerException if the argument is null
      */
     public String from(DiffNode node) {
+        checkNotNull(node);
+
         List<String> lines = new LinkedList<>();
         diffLines(lines, node);
         return String.join("\n", lines);
