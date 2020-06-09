@@ -1,5 +1,7 @@
 package cloud.foundry.cli.logic.diff.change.map;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import cloud.foundry.cli.logic.diff.change.CfChange;
 import cloud.foundry.cli.logic.diff.change.ChangeType;
 
@@ -7,8 +9,6 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Data object that holds Map changes.
