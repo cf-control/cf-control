@@ -41,7 +41,7 @@ public class DiffController implements Callable<Integer> {
         LoginCommandOptions loginOptions;
 
         @CommandLine.Mixin
-        YamlCommandOptions commandOptions;
+        YamlCommandOptions yamlCommandOptions;
 
         @Override
         public Integer call() throws Exception {
