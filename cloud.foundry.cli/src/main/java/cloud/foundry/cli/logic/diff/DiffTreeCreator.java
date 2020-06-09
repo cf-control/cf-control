@@ -5,17 +5,39 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import cloud.foundry.cli.logic.diff.change.CfChange;
 
-import javax.annotation.Nonnull;
 import java.util.LinkedList;
+import java.util.List;
 
 public class DiffTreeCreator {
 
+    /**
+     * Creates the a diff tree based on the given changes.
+     * Uses the path set in every change object to build the tree structure.
+     * @param changes list of changes
+     * @return DiffNode root node of the tree
+     * @throws NullPointerException when changes is null
+     */
+    public static DiffNode createFrom(List<CfChange> changes) {
+        checkNotNull(changes);
+
+        if(changes.size() > 0){
+            // the first entry of every node is the root name
+            String rootName = changes.get(0).getPath().get(0);
+
+            DiffNode diffNode = new DiffNode(rootName);
+            for (CfChange change : changes) {
+                DiffTreeCreator.insert(diffNode, new LinkedList<>(change.getPath()), change);
+            }
+            return diffNode;
+        }
+        return new DiffNode("");
+    }
 
     /**
      * API method
      * @return
      */
-    public static void insert(@Nonnull DiffNode rootNode,@Nonnull LinkedList<String> path, @Nonnull CfChange change) {
+    public static void insert(DiffNode rootNode, LinkedList<String> path, CfChange change) {
         checkNotNull(rootNode);
         checkNotNull(path);
         checkNotNull(change);
