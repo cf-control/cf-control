@@ -58,7 +58,9 @@ public class CreateController implements Callable<Integer> {
 
             for (String username : spaceDevelopersBean.getSpaceDevelopers()) {
                 spaceDevelopersOperations.assignSpaceDeveloper(username);
-                Log.info("New space developer assigned:" , username);
+                Log.info("Assigned new SpaceDeveloper:", username,
+                        "in org:", cfOperations.getOrganization(),
+                        "/ to the space:", cfOperations.getSpace());
             }
 
             return 0;

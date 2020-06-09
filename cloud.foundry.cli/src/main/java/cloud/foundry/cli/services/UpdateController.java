@@ -45,6 +45,8 @@ public class UpdateController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
+            Log.info("Remove space developers..." );
+
             SpaceDevelopersBean spaceDevelopersBean = YamlMapper.loadBean(commandOptions.getYamlFilePath(),
                     SpaceDevelopersBean.class);
 
@@ -82,8 +84,10 @@ public class UpdateController implements Callable<Integer> {
 
                 // "currentName" is currently a placeholder until diff is implemented
                 servicesOperations.renameServiceInstance(serviceName, "currentName");
+                Log.info("Service name changed: " , serviceName);
                 servicesOperations.updateServiceInstance(serviceName, serviceBean);
-                Log.info("Service updated: " , serviceName);
+                Log.info("Service Plan and Tags haven been updated of service:", serviceName);
+
             }
 
             return 0;
