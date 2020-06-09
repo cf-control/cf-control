@@ -245,14 +245,14 @@ public class ApplicationManifestBean implements Bean {
                 ", dockerUsername='" + dockerUsername + '\'' +
                 ", environmentVariables=" + StringUtils.join(environmentVariables) +
                 ", healthCheckHttpEndpoint='" + healthCheckHttpEndpoint + '\'' +
-                ", healthCheckType=" + healthCheckType.toString() +
+                ", healthCheckType=" + String.valueOf(healthCheckType) +
                 ", instances=" + instances +
                 ", memory=" + memory +
                 ", noRoute=" + noRoute +
                 ", randomRoute=" + randomRoute +
                 ", routePath='" + routePath + '\'' +
-                ", routes=" + routes.toString() +
-                ", services=" + services.toString() +
+                ", routes=" + String.valueOf(routes) +
+                ", services=" + String.valueOf(services) +
                 ", stack='" + stack + '\'' +
                 ", timeout=" + timeout +
                 ", domains=" + domains +

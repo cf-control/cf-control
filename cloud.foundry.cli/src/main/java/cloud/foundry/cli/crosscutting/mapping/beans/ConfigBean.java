@@ -41,8 +41,8 @@ public class ConfigBean {
     public String toString() {
         return "ConfigBean{" +
                 "apiVersion='" + apiVersion + '\'' +
-                ", target=" + target.toString() +
-                ", spec=" + spec.toString() +
+                ", target=" + String.valueOf(target) +
+                ", spec=" + String.valueOf(spec) +
                 '}';
     }
 }

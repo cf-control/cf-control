@@ -45,7 +45,7 @@ public class SpecBean implements Bean {
     @Override
     public String toString() {
         return "SpecBean{" +
-                "spaceDevelopers=" + spaceDevelopers.toString() +
+                "spaceDevelopers=" + String.valueOf(spaceDevelopers) +
                 ", services=" + StringUtils.join(services) +
                 ", apps=" + StringUtils.join(apps) +
                 '}';

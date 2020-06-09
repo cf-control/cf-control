@@ -27,7 +27,7 @@ public class SpaceDevelopersBean implements Bean {
     @Override
     public String toString() {
         return "SpaceDevelopersBean{" +
-                "spaceDevelopers=" + spaceDevelopers.toString() +
+                "spaceDevelopers=" + String.valueOf(spaceDevelopers) +
                 '}';
     }
 }
