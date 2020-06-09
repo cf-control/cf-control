@@ -1,12 +1,12 @@
 package cloud.foundry.cli.logic;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import cloud.foundry.cli.crosscutting.exceptions.DiffException;
 import cloud.foundry.cli.crosscutting.mapping.beans.Bean;
 import cloud.foundry.cli.logic.diff.DiffNode;
 import cloud.foundry.cli.logic.diff.Differ;
 import cloud.foundry.cli.logic.diff.output.DiffOutput;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 public class DiffLogic {
 
@@ -18,7 +18,7 @@ public class DiffLogic {
      * @throws DiffException
      */
     public DiffNode createDiffTree(Bean liveConfig, Bean desiredConfig) throws DiffException {
-        try{
+        try {
             checkNotNull(liveConfig);
             checkNotNull(desiredConfig);
 
@@ -41,7 +41,7 @@ public class DiffLogic {
      * @throws DiffException
      */
     public String createDiffOutput(Bean liveConfig, Bean desiredConfig) throws DiffException {
-        try{
+        try {
             checkNotNull(liveConfig);
             checkNotNull(desiredConfig);
 

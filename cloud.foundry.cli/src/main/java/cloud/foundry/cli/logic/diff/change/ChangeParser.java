@@ -1,5 +1,7 @@
 package cloud.foundry.cli.logic.diff.change;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.logic.diff.change.container.CfContainerChange;
 import cloud.foundry.cli.logic.diff.change.container.CfContainerValueChanged;
@@ -28,8 +30,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * This class parses JaVers change objects to custom change objects
