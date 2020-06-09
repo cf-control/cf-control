@@ -14,7 +14,6 @@ public class ServiceBean implements Bean {
     private String service;
     private String plan;
     private List<String> tags;
-//    private Map<String, Object> params;
     
 
     public ServiceBean(ServiceInstance serviceInstance) {
