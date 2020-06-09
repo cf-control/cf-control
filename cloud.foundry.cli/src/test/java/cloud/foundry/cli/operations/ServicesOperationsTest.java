@@ -52,6 +52,16 @@ public class ServicesOperationsTest {
     @Test
     public void testGetServicesWithMockData() {
         // given
+        ServiceInstance serviceInstanceMock = ServiceInstance.builder()
+            .id("serviceId")
+            .application("test-flask")
+            .name("serviceName")
+            .plan("standardPlan")
+            .service("service")
+            .tags(Arrays.asList("tag"))
+            .type(ServiceInstanceType.MANAGED)
+            .build();
+
         ServiceInstanceSummary summary = ServiceInstanceSummary.builder()
             .id("serviceId")
             .application("test-flask")
@@ -61,9 +71,11 @@ public class ServicesOperationsTest {
             .tags(Arrays.asList("tag"))
             .type(ServiceInstanceType.MANAGED)
             .build();
-        List<ServiceInstanceSummary> withServices = Arrays.asList(summary);
 
-        DefaultCloudFoundryOperations cfMock = mockGetAllMethod(withServices);
+        List<ServiceInstanceSummary> withServices = Arrays.asList(summary);
+        List<ServiceInstance> serviceInstances = Arrays.asList(serviceInstanceMock);
+
+        DefaultCloudFoundryOperations cfMock = mockGetAllMethod(withServices, serviceInstances);
         ServicesOperations servicesOperations = new ServicesOperations(cfMock);
 
         // when
@@ -81,7 +93,8 @@ public class ServicesOperationsTest {
     public void testGetServicesWithEmptyMockData() {
         // given
         List<ServiceInstanceSummary> withoutServices = Collections.emptyList();
-        DefaultCloudFoundryOperations cfMock = mockGetAllMethod(withoutServices);
+        List<ServiceInstance> withoutServiceInstances = Collections.emptyList();
+        DefaultCloudFoundryOperations cfMock = mockGetAllMethod(withoutServices, withoutServiceInstances);
         ServicesOperations servicesOperations = new ServicesOperations(cfMock);
 
         // when
@@ -325,13 +338,27 @@ public class ServicesOperationsTest {
         return cfMock;
     }
 
-    private DefaultCloudFoundryOperations mockGetAllMethod(List<ServiceInstanceSummary> summaries) {
+    private DefaultCloudFoundryOperations mockGetAllMethod(List<ServiceInstanceSummary> summaries,
+        List<ServiceInstance> serviceInstances) {
         DefaultCloudFoundryOperations cfMock = Mockito.mock(DefaultCloudFoundryOperations.class);
         Services servicesMock = Mockito.mock(Services.class);
         Flux<ServiceInstanceSummary> fluxMock = Flux.fromIterable(summaries);
 
         when(cfMock.services()).thenReturn(servicesMock);
         when(servicesMock.listInstances()).thenReturn(fluxMock);
+
+        when(servicesMock.getInstance(any(GetServiceInstanceRequest.class)))
+            .thenAnswer((Answer<Mono<ServiceInstance>>) invocation -> {
+                GetServiceInstanceRequest request = invocation.getArgument(0);
+
+                for (ServiceInstance serviceInstance : serviceInstances) {
+                    if (serviceInstance.getName().equals(request.getName())) {
+                        return Mono.just(serviceInstance);
+                    }
+                }
+                throw new RuntimeException("fixme");
+
+            });
 
         return cfMock;
     }

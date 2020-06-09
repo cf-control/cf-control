@@ -3,6 +3,7 @@ package cloud.foundry.cli.operations;
 import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import cloud.foundry.cli.crosscutting.logging.Log;
+
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.routes.ListRoutesRequest;
 import org.cloudfoundry.operations.routes.Route;
@@ -44,10 +45,20 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      * @return Mono object of all services as list of ServiceBeans
      */
     public Mono<Map<String, ServiceBean>> getAll() {
+
+        return  this.cloudFoundryOperations.services()
+            .listInstances()
+            .flatMap(this::doGetServiceInstance)
+            .collectMap(ServiceInstance::getName, ServiceBean::new);
+    }
+
+    private Mono<ServiceInstance> doGetServiceInstance(ServiceInstanceSummary serviceInstanceSummary) {
         return this.cloudFoundryOperations
             .services()
-            .listInstances()
-            .collectMap(ServiceInstanceSummary::getName, ServiceBean::new);
+            .getInstance(GetServiceInstanceRequest
+                .builder()
+                .name(serviceInstanceSummary.getName())
+                .build());
     }
 
     /**
