@@ -186,20 +186,4 @@ public class DiffTreeCreatorTest {
         assertThrows(NullPointerException.class,
                 () -> DiffTreeCreator.createFrom(null));
     }
-
-    @Test
-    public void testNullAsArguments() {
-        DiffNode root = new DiffNode("root");
-        LinkedList<String> path = new LinkedList<>(Arrays.asList("someRoot", "someChild"));
-        CfChange change = Mockito.mock(CfChange.class);
-
-        assertThrows(NullPointerException.class,
-                () -> DiffTreeCreator.insert(null, path, change));
-
-        assertThrows(NullPointerException.class,
-                () -> DiffTreeCreator.insert(root, null, change));
-
-        assertThrows(NullPointerException.class,
-                () -> DiffTreeCreator.insert(root, path, null));
-    }
 }
