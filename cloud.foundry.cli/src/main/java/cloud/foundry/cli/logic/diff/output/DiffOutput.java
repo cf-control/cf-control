@@ -1,23 +1,23 @@
 package cloud.foundry.cli.logic.diff.output;
 
-import cloud.foundry.cli.crosscutting.exceptions.UnsupportedChangeTypeException;
 import cloud.foundry.cli.crosscutting.mapping.beans.Bean;
 import cloud.foundry.cli.crosscutting.util.YamlCreator;
 import cloud.foundry.cli.logic.diff.DiffNode;
 import cloud.foundry.cli.logic.diff.change.CfChange;
 import cloud.foundry.cli.logic.diff.change.ChangeType;
 import cloud.foundry.cli.logic.diff.change.container.CfContainerChange;
-import cloud.foundry.cli.logic.diff.change.container.CfContainerChangeValue;
+import cloud.foundry.cli.logic.diff.change.container.CfContainerValueChanged;
 import cloud.foundry.cli.logic.diff.change.map.CfMapChange;
-import cloud.foundry.cli.logic.diff.change.map.CfMapChangeValue;
-import cloud.foundry.cli.logic.diff.change.object.CfObjectValueChange;
+import cloud.foundry.cli.logic.diff.change.map.CfMapValueChanged;
+import cloud.foundry.cli.logic.diff.change.object.CfObjectValueChanged;
 import org.yaml.snakeyaml.Yaml;
 
-import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * this class transforms a difference tree into a visual representation of configuration differences
@@ -42,9 +42,7 @@ public class DiffOutput {
      * @throws IllegalArgumentException in case an invalid indentation interval is passed
      */
     public DiffOutput(int indentationIncrement) {
-        if (indentationIncrement >= 1) {
-            throw new IllegalArgumentException("YAML file output must be indented, values < 1 are not allowed");
-        }
+        checkArgument(indentationIncrement >= 1, "YAML file output must be indented, values < 1 are not allowed");
 
         this.indentationIncrement = indentationIncrement;
     }
@@ -53,26 +51,19 @@ public class DiffOutput {
      * transforms a difference tree into a visual representation of configuration differences
      * @param node root of the difference tree that should be parse to the difference output
      * @return string of the difference output
-     * @throws UnsupportedChangeTypeException when a change type was used that is not supported within our bean
-     *  hierarchy
      */
-    public String from(@Nonnull DiffNode node) {
+    public String from(DiffNode node) {
         List<String> lines = new LinkedList<>();
         diffLines(lines, node);
         return String.join("\n", lines);
     }
-    
+
     private int calculateIndentationFromDepth(int depth) {
         return depth * indentationIncrement;
     }
 
     private void diffLines(List<String> lines, DiffNode node) {
         List<CfChange> changes = node.getChanges();
-
-        // no changes at this level which means, there are no changes at the sub-levels also
-        if (changes.size() == 0 && node.isLeaf()) {
-            return;
-        }
 
         final int depth = node.getDepth();
         final int thisNodeIndentation = calculateIndentationFromDepth(depth);
@@ -93,16 +84,10 @@ public class DiffOutput {
         } else {
             // we dont want to print the root property since it's not part our yaml config specification
             if (!node.isRoot()) {
-                //TODO remove magic value
-                // calculate current indentation in relation to current node depth
                 lines.add(fromProperty(FlagSymbol.NONE, propertyIndentation, node.getPropertyName()));
             }
 
             for (CfChange change : changes) {
-                // TODO this line is necessary else changes will be displayed that are not relevant to the diff output
-                // TODO maybe already remove such changes when creating the diff tree
-                if (change instanceof CfMapChange && ! node.isLeaf()) continue;
-
                 lines.addAll(fromChange(thisNodeIndentation, change));
             }
 
