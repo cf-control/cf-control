@@ -5,7 +5,7 @@ import picocli.CommandLine.Option;
 /**
  * Options that are required for create commands.
  */
-public class CreateControllerCommandOptions {
+public class YamlCommandOptions {
 
     @Option(names = {"-y", "--yaml"}, required = true, description = "The path to the yaml file.")
     String yamlFilePath;
