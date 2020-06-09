@@ -7,7 +7,7 @@ import cloud.foundry.cli.logic.diff.change.ChangeType;
  * These changes can be ChangeType.REMOVED or ChangeType.DELETED.
  * Since we are storing container types only in roots (e.g. spaceDevelopers), there will be no ChangeType.CHANGED.
  */
-public class CfContainerChangeValue {
+public class CfContainerValueChanged {
 
     private String value;
     private ChangeType changeType;
@@ -20,7 +20,7 @@ public class CfContainerChangeValue {
         return changeType;
     }
 
-    public CfContainerChangeValue(String value, ChangeType changeType) {
+    public CfContainerValueChanged(String value, ChangeType changeType) {
         assert changeType != ChangeType.CHANGED;
 
         this.value = value;
