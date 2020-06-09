@@ -4,20 +4,19 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import cloud.foundry.cli.crosscutting.mapping.beans.Bean;
+import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
 import cloud.foundry.cli.logic.diff.change.CfChange;
 import cloud.foundry.cli.logic.diff.change.ChangeParser;
-import cloud.foundry.cli.logic.diff.change.container.CfContainerChange;
 import cloud.foundry.cli.logic.diff.change.map.CfMapChange;
+import cloud.foundry.cli.logic.diff.change.object.CfRemovedObject;
 import org.javers.core.Javers;
 import org.javers.core.JaversBuilder;
 import org.javers.core.diff.Diff;
 import org.javers.core.diff.ListCompareAlgorithm;
 
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
 
 /**
  * This class compares two given beans of the same type and builds a DiffNode tree data structure
@@ -56,34 +55,18 @@ public class Differ {
         List<CfChange> cfChanges = diff.getChanges()
                 .stream()
                 .map(ChangeParser::parse)
-                // Null when javers change object is not parsable. Change types that are nor relevant to us will get
-                // parsed to null, so ignore them
+                // Change types that are not relevant to us will get parsed to null, so ignore them
                 .filter(Objects::nonNull)
+                // As of the specification, removed object nodes shouldn't be displayed.
+                // TODO make it configurable
+                .filter(change -> !(change instanceof CfRemovedObject))
+                // Always remove inner maps for now, since they clash with the output algorithm of DiffOutput.
+                // SpecBean contains the only inner maps
+                //TODO make it configurable
+                .filter(change -> !(change instanceof CfMapChange && change.getAffectedObject() instanceof SpecBean))
                 .collect(Collectors.toList());
 
-        DiffNode diffNode = new DiffNode("config");
-        for (CfChange cfChange : cfChanges) {
-            DiffTreeCreator.insert(diffNode, new LinkedList<>(cfChange.getPath()), cfChange);
-        }
-
-        //always remove inner maps and lists for now, since they clash with the output algorithm of DiffOutput
-        //TODO make it configurable
-        removeMapAndContainerChangesNotAtLeaf(diffNode);
-        return diffNode;
+        return DiffTreeCreator.createFrom(cfChanges);
     }
 
-    private void removeMapAndContainerChangesNotAtLeaf(DiffNode node) {
-        if (!node.isLeaf()) {
-            node.setChanges(node
-                    .getChanges()
-                    .stream()
-                    .filter(change -> !(change instanceof CfContainerChange) && !(change instanceof CfMapChange))
-                    .collect(Collectors.toList())
-            );
-        }
-
-        for (DiffNode childNode: node.getChildNodes()) {
-            removeMapAndContainerChangesNotAtLeaf(childNode);
-        }
-    }
 }
