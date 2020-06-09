@@ -1,5 +1,6 @@
 package cloud.foundry.cli.crosscutting.mapping;
 
+import static com.google.common.base.Preconditions.checkElementIndex;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import cloud.foundry.cli.crosscutting.exceptions.YamlTreeNodeNotFoundException;
@@ -58,7 +59,7 @@ public class YamlTreeDescender implements YamlTreeVisitor {
      */
     @Override
     public void visitMapping(Map<Object, Object> mappingNode) {
-        if (nodeIndex >= pointer.getNumberOfNodeNames()) {
+        if (nodeIndex == pointer.getNumberOfNodeNames()) {
             resultingYamlTreeNode = mappingNode;
             return;
         }
@@ -81,7 +82,7 @@ public class YamlTreeDescender implements YamlTreeVisitor {
      */
     @Override
     public void visitSequence(List<Object> sequenceNode) {
-        if (nodeIndex >= pointer.getNumberOfNodeNames()) {
+        if (nodeIndex == pointer.getNumberOfNodeNames()) {
             resultingYamlTreeNode = sequenceNode;
             return;
         }
@@ -110,7 +111,7 @@ public class YamlTreeDescender implements YamlTreeVisitor {
      */
     @Override
     public void visitScalar(Object scalarNode) {
-        if (nodeIndex != pointer.getNumberOfNodeNames()) {
+        if (nodeIndex < pointer.getNumberOfNodeNames()) {
             throw new YamlTreeNodeNotFoundException("Cannot descend further to '" +
                     pointer.getNodeName(nodeIndex) + "' because a scalar was reached");
         }
