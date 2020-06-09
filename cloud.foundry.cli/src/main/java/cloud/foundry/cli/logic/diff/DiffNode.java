@@ -24,8 +24,12 @@ public class DiffNode {
     protected Map<String, DiffNode> childNodes;
     protected List<CfChange> changes;
 
+    /**
+     * @param propertyName the name of the property that is affected by the changes of this node
+     */
     public DiffNode(String propertyName) {
         checkNotNull(propertyName);
+
         this.propertyName = propertyName;
         this.parentNode = null;
         this.childNodes = new HashMap<>();
@@ -40,13 +44,14 @@ public class DiffNode {
         this.parentNode = parentNode;
     }
 
-    /**
-     * @return
-     */
     public List<CfChange> getChanges() {
         return changes;
     }
 
+    /**
+     * @param changes the changes to set
+     * @throws NullPointerException if the argument is null
+     */
     public void setChanges(List<CfChange> changes) {
         checkNotNull(changes);
 
@@ -54,7 +59,7 @@ public class DiffNode {
     }
 
     /**
-     * @return
+     * @return a collection holding all child nodes of this node
      */
     public Collection<DiffNode> getChildNodes() {
         return childNodes.values();
@@ -64,6 +69,11 @@ public class DiffNode {
         return propertyName;
     }
 
+    /**
+     * Adds the node as a child of this node.
+     * @param child the child to add
+     * @throws NullPointerException if the argument is null
+     */
     public void addChild(DiffNode child) {
         checkNotNull(child);
 
@@ -71,26 +81,47 @@ public class DiffNode {
         child.setParentNode(this);
     }
 
+    /**
+     * Gets a child node by its property name.
+     * @param propertyName property name of the child
+     * @return the child node with the specified property name or null if there is no such child node
+     * @throws NullPointerException if the argument is null
+     */
     public DiffNode getChild(String propertyName) {
         checkNotNull(propertyName);
 
         return this.childNodes.get(propertyName);
     }
 
+    /**
+     * Adds the change to the changes of this node.
+     * @param change the change to add
+     * @throws NullPointerException if the argument is null
+     */
     public void addChange(CfChange change) {
         checkNotNull(change);
 
         this.changes.add(change);
     }
 
+    /**
+     * @return whether this node is a leaf node (i.e. whether it has no child nodes)
+     */
     public boolean isLeaf() {
         return this.childNodes.size() == 0;
     }
 
+    /**
+     * @return whether this node is a root node (i.e. whether it has no parent nodes)
+     */
     public boolean isRoot() {
         return this.parentNode == null;
     }
 
+    /**
+     * Determines the depth of this root in the whole tree. The root node returns a depth of 0.
+     * @return the depth of this node
+     */
     public int getDepth() {
         if (this.isRoot()) {
             return 0;
@@ -99,11 +130,17 @@ public class DiffNode {
         return 1 + this.parentNode.getDepth();
     }
 
+    /**
+     * @return whether this node holds the change, which tells that a new object was added.
+     */
     public boolean isNewObject() {
         return changes.size() == 1 &&
                 changes.get(0) instanceof CfNewObject;
     }
 
+    /**
+     * @return whether this node holds the change, which tells that an object was removed.
+     */
     public boolean isRemovedObject() {
         return changes.size() == 1 &&
                 changes.get(0) instanceof CfRemovedObject;
