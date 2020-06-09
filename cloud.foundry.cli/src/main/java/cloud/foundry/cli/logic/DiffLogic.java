@@ -1,5 +1,6 @@
 package cloud.foundry.cli.logic;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import cloud.foundry.cli.crosscutting.exceptions.DiffException;
@@ -21,6 +22,7 @@ public class DiffLogic {
         try {
             checkNotNull(liveConfig);
             checkNotNull(desiredConfig);
+            checkArgument(liveConfig.getClass() == desiredConfig.getClass(), "Bean types don't match.");
 
             return doCreateDiffTree(liveConfig, desiredConfig);
         } catch (Exception e) {
@@ -44,6 +46,7 @@ public class DiffLogic {
         try {
             checkNotNull(liveConfig);
             checkNotNull(desiredConfig);
+            checkArgument(liveConfig.getClass() == desiredConfig.getClass(), "Bean types don't match.");
 
             return doCreateDiffOutput(liveConfig, desiredConfig);
         } catch (Exception e) {
