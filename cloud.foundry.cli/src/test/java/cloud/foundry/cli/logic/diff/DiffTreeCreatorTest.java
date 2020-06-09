@@ -3,90 +3,185 @@ package cloud.foundry.cli.logic.diff;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import cloud.foundry.cli.logic.diff.change.CfChange;
+import cloud.foundry.cli.logic.diff.change.container.CfContainerChange;
+import cloud.foundry.cli.logic.diff.change.container.CfContainerValueChanged;
+import cloud.foundry.cli.logic.diff.change.map.CfMapChange;
+import cloud.foundry.cli.logic.diff.change.map.CfMapValueChanged;
+import cloud.foundry.cli.logic.diff.change.object.CfNewObject;
+import cloud.foundry.cli.logic.diff.change.object.CfObjectValueChanged;
+import cloud.foundry.cli.logic.diff.change.object.CfRemovedObject;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.util.Arrays;
-import java.util.LinkedList;
+import java.util.Collections;
+import java.util.List;
 
+/**
+ * Test for {@link DiffTreeCreator}
+ */
 public class DiffTreeCreatorTest {
 
     @Test
-    public void testInsertion() {
-        DiffNode root = new DiffNode("root");
-        LinkedList<String> pathToRoot = new LinkedList<>(Arrays.asList("root"));
-        LinkedList<String> pathToChild = new LinkedList<>(Arrays.asList("root", "child"));
-        LinkedList<String> pathToGrandchild = new LinkedList<>(Arrays.asList("root", "child", "grandchild"));
-        CfChange rootChange = Mockito.mock(CfChange.class);
-        CfChange childChange = Mockito.mock(CfChange.class);
-        CfChange firstGrandchildChange = Mockito.mock(CfChange.class);
-        CfChange secondGrandchildChange = Mockito.mock(CfChange.class);
+    public void testCreateFromSingleNewObject() {
+        Object affectedObject = Mockito.mock(Object.class);
+        List<String> path = Collections.singletonList("root");
+        CfNewObject newObject = new CfNewObject(affectedObject, "someName", path);
 
-        // the lists are cloned because they are modified during the insertion procedure
-        DiffTreeCreator.insert(root, (LinkedList<String>) pathToGrandchild.clone(), firstGrandchildChange);
-        DiffTreeCreator.insert(root, (LinkedList<String>) pathToRoot.clone(), rootChange);
-        DiffTreeCreator.insert(root, (LinkedList<String>) pathToChild.clone(), childChange);
-        DiffTreeCreator.insert(root, (LinkedList<String>) pathToGrandchild.clone(), secondGrandchildChange);
+        DiffNode node = DiffTreeCreator.createFrom(Collections.singletonList(newObject));
 
+        assertThat(node.getParentNode(), is(nullValue()));
+        assertThat(node.getChildNodes().isEmpty(), is(true));
+        assertThat(node.isNewObject(), is(true));
+        assertThat(node.isRemovedObject(), is(false));
 
-        assertThat(root.getParentNode(), is(nullValue()));
-        assertThat(root.getChildNodes().size(), is(1));
-        assertThat(root.getChanges().size(), is(1));
-        assertThat(root.getChanges().get(0), is(rootChange));
-
-        DiffNode child = root.getChild("child");
-        assertThat(child, is(notNullValue()));
-        assertThat(child.getChildNodes().size(), is(1));
-        assertThat(child.getParentNode(), is(root));
-        assertThat(child.getChanges().size(), is(1));
-        assertThat(child.getChanges().get(0), is(childChange));
-
-        DiffNode grandchild = child.getChild("grandchild");
-        assertThat(grandchild, is(notNullValue()));
-        assertThat(grandchild.getChildNodes().isEmpty(), is(true));
-        assertThat(grandchild.getParentNode(), is(child));
-        assertThat(grandchild.getChanges().size(), is(2));
-        assertThat(grandchild.getChanges().get(0), is(firstGrandchildChange));
-        assertThat(grandchild.getChanges().get(1), is(secondGrandchildChange));
+        List<CfChange> changes = node.getChanges();
+        assertThat(changes.size(), is(1));
+        assertThat(changes.get(0), is(newObject));
     }
 
     @Test
-    public void testIllegalPath() {
-        DiffNode root = new DiffNode("root");
-        LinkedList<String> illegalPath = new LinkedList<>(Arrays.asList("notRoot", "someChild"));
-        CfChange someChange = Mockito.mock(CfChange.class);
+    public void testCreateFromSingleRemovedObject() {
+        Object affectedObject = Mockito.mock(Object.class);
+        List<String> path = Collections.singletonList("root");
+        CfRemovedObject removedObject = new CfRemovedObject(affectedObject, "someName", path);
 
-        assertThrows(IllegalArgumentException.class,
-                () -> DiffTreeCreator.insert(root, illegalPath, someChange));
+        DiffNode node = DiffTreeCreator.createFrom(Collections.singletonList(removedObject));
+
+        assertThat(node.getParentNode(), is(nullValue()));
+        assertThat(node.getChildNodes().isEmpty(), is(true));
+        assertThat(node.isNewObject(), is(false));
+        assertThat(node.isRemovedObject(), is(true));
+
+        List<CfChange> changes = node.getChanges();
+        assertThat(changes.size(), is(1));
+        assertThat(changes.get(0), is(removedObject));
     }
 
     @Test
-    public void testEmptyPath() {
-        DiffNode root = new DiffNode("root");
-        LinkedList<String> emptyPath = new LinkedList<>();
-        CfChange someChange = Mockito.mock(CfChange.class);
+    public void testCreateFromSingleObjectValueChanged() {
+        Object affectedObject = Mockito.mock(Object.class);
+        List<String> path = Collections.singletonList("root");
+        String valueBefore = "before";
+        String valueAfter = "after";
+        CfObjectValueChanged valueChanged = new CfObjectValueChanged(
+                affectedObject, "someName", path, valueBefore, valueAfter);
 
-        assertThrows(IllegalArgumentException.class,
-                () -> DiffTreeCreator.insert(root, emptyPath, someChange));
+        DiffNode node = DiffTreeCreator.createFrom(Collections.singletonList(valueChanged));
+
+        assertThat(node.getParentNode(), is(nullValue()));
+        assertThat(node.getChildNodes().isEmpty(), is(true));
+        assertThat(node.isNewObject(), is(false));
+        assertThat(node.isRemovedObject(), is(false));
+
+        List<CfChange> changes = node.getChanges();
+        assertThat(changes.size(), is(1));
+        assertThat(changes.get(0), is(valueChanged));
     }
 
     @Test
-    public void testNullAsArguments() {
-        DiffNode root = new DiffNode("root");
-        LinkedList<String> path = new LinkedList<>(Arrays.asList("someRoot", "someChild"));
-        CfChange change = Mockito.mock(CfChange.class);
+    public void testCreateFromSingleMapChange() {
+        Object affectedObject = Mockito.mock(Object.class);
+        List<String> path = Collections.singletonList("root");
+        List<CfMapValueChanged> changedValues = Collections.singletonList(Mockito.mock(CfMapValueChanged.class));
+        CfMapChange mapChange = new CfMapChange(affectedObject, "someName", path, changedValues);
 
-        assertThrows(NullPointerException.class,
-                () -> DiffTreeCreator.insert(null, path, change));
+        DiffNode node = DiffTreeCreator.createFrom(Collections.singletonList(mapChange));
 
-        assertThrows(NullPointerException.class,
-                () -> DiffTreeCreator.insert(root, null, change));
+        assertThat(node.getParentNode(), is(nullValue()));
+        assertThat(node.getChildNodes().isEmpty(), is(true));
+        assertThat(node.isNewObject(), is(false));
+        assertThat(node.isRemovedObject(), is(false));
 
+        List<CfChange> changes = node.getChanges();
+        assertThat(changes.size(), is(1));
+        assertThat(changes.get(0), is(mapChange));
+    }
+
+    @Test
+    public void testCreateFromSingleContainerChange() {
+        Object affectedObject = Mockito.mock(Object.class);
+        List<String> path = Collections.singletonList("root");
+        List<CfContainerValueChanged> changedValues = Collections.singletonList(Mockito.mock(CfContainerValueChanged.class));
+        CfContainerChange containerChange = new CfContainerChange(affectedObject, "someName", path, changedValues);
+
+        DiffNode node = DiffTreeCreator.createFrom(Collections.singletonList(containerChange));
+
+        assertThat(node.getParentNode(), is(nullValue()));
+        assertThat(node.getChildNodes().isEmpty(), is(true));
+        assertThat(node.isNewObject(), is(false));
+        assertThat(node.isRemovedObject(), is(false));
+
+        List<CfChange> changes = node.getChanges();
+        assertThat(changes.size(), is(1));
+        assertThat(changes.get(0), is(containerChange));
+    }
+
+    @Test
+    public void testCreateFromMultipleChanges() {
+        List<String> rootPath = Collections.singletonList("root");
+        List<String> firstChildPath = Arrays.asList("root", "firstChild");
+        List<String> secondChildPath = Arrays.asList("root", "secondChild");
+
+        Object valueChangedAffected = Mockito.mock(Object.class);
+        CfObjectValueChanged valueChanged = new CfObjectValueChanged(
+                valueChangedAffected, "someNameForChangedValue", firstChildPath, "before", "after");
+
+        Object mapChangeAffected = Mockito.mock(Object.class);
+        List<CfMapValueChanged> changedMapValues = Collections.singletonList(Mockito.mock(CfMapValueChanged.class));
+        CfMapChange mapChange = new CfMapChange(
+                mapChangeAffected, "someNameForChangedMap", rootPath, changedMapValues);
+
+        Object removedObjectAffected = Mockito.mock(Object.class);
+        CfRemovedObject removedObject = new CfRemovedObject(
+                removedObjectAffected, "someNameForRemovedObject", secondChildPath);
+
+        Object containerChangeAffected = Mockito.mock(Object.class);
+        List<CfContainerValueChanged> changedContainerValues = Collections.singletonList(
+                Mockito.mock(CfContainerValueChanged.class));
+        CfContainerChange containerChange = new CfContainerChange(
+                containerChangeAffected, "someNameForChangedContainer", firstChildPath, changedContainerValues);
+
+        DiffNode rootNode = DiffTreeCreator.createFrom(
+                Arrays.asList(valueChanged, mapChange, removedObject, containerChange));
+
+        assertThat(rootNode.getParentNode(), is(nullValue()));
+        assertThat(rootNode.getChildNodes().size(), is(2));
+        assertThat(rootNode.isNewObject(), is(false));
+        assertThat(rootNode.isRemovedObject(), is(false));
+
+        List<CfChange> rootChanges = rootNode.getChanges();
+        assertThat(rootChanges.size(), is(1));
+        assertThat(rootChanges.get(0), is(mapChange));
+
+        DiffNode firstChildNode = rootNode.getChild("firstChild");
+        assertThat(firstChildNode.getParentNode(), is(rootNode));
+        assertThat(firstChildNode.getChildNodes().isEmpty(), is(true));
+        assertThat(firstChildNode.isNewObject(), is(false));
+        assertThat(firstChildNode.isRemovedObject(), is(false));
+
+        List<CfChange> firstChildNodeChanges = firstChildNode.getChanges();
+        assertThat(firstChildNodeChanges.size(), is(2));
+        assertThat(firstChildNodeChanges.contains(valueChanged), is(true));
+        assertThat(firstChildNodeChanges.contains(containerChange), is(true));
+
+        DiffNode secondChildNode = rootNode.getChild("secondChild");
+        assertThat(secondChildNode.getParentNode(), is(rootNode));
+        assertThat(secondChildNode.getChildNodes().isEmpty(), is(true));
+        assertThat(secondChildNode.isNewObject(), is(false));
+        assertThat(secondChildNode.isRemovedObject(), is(true));
+
+        List<CfChange> secondChildNodeChanges = secondChildNode.getChanges();
+        assertThat(secondChildNodeChanges.size(), is(1));
+        assertThat(secondChildNodeChanges.get(0), is(removedObject));
+    }
+
+    @Test
+    public void testCreateFromNull() {
         assertThrows(NullPointerException.class,
-                () -> DiffTreeCreator.insert(root, path, null));
+                () -> DiffTreeCreator.createFrom(null));
     }
 }
