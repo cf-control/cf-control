@@ -1,32 +1,29 @@
-apiVersion: 1.0.0
+apiVersion: 1.0
 target:
-  endpoint: 'api.pcfsys.dev.datev.de'
-  org: LOON
-  space: Master-Secure
+  org: somOrg
+  space: someSpace
+  endpoint: someEndpoint
 spec:
-  spaceDevelopers: ['t01234@datev.de', "other.mail@mailserbce.de"]
+  spaceDevelopers:
+    - dev1
+    - dev2
   services:
-    mitarbeiter-web-route:
-      service: datev-http-routing
-      plan: secure
-      tags:
-      - tag1
-      - tag2
-    service-database:
-      service: elephantsql
-      tags:
-        - tag1
+    sql-service-name:
+      service: sql-service
+      plan: unsecure
+    web-service-name:
+      service: web-service
+      plan: unsecure
   apps:
-    firstApp:
-      path: src/app-1.0.1.jar
+    app1:
+      path: some/path
       manifest:
-        buildpack: someBuildpack2
+        memory: 2048
         environmentVariables:
-          key1: value1
-          key2: value2
-    secondApp:
-      path: src/app2-1.0.jar
+          TEST: somval
+          PROD: someotherval
+        disk: 2048
+    app2:
+      path: some/path
       manifest:
-        buildpack: other buildpack
-        services:
-        - some service
+        instances: 1
