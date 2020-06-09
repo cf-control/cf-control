@@ -54,7 +54,7 @@ public class DifferTest {
         assertThat(tree.getChildNodes().size(), is(1));
         assertTrue(tree.getChildNodes().containsKey("spec"));
 
-        // only spec, since there are not changes at target
+        // only spec, since there are no changes at target
         DiffNode specNode = tree.getChildNodes().get("spec");
         assertThat(specNode.getChildNodes().size(), is(2));
         assertTrue(specNode.getChildNodes().containsKey("services"));
