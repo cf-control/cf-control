@@ -19,10 +19,9 @@ public class DiffLogic {
      * @param liveConfig the configuration that is currently on the live system
      * @param desiredConfig the configuration state that the live system should change to
      * @return @DiffNode object which is the root of the tree
-     * @throws NullPointerException when liveConfig is null
-     *  when desiredConfig is null
-     * @throws IllegalArgumentException when the two beans don't have the same type
-     * @throws DiffException in case of any errors during the diff procedure
+     * @throws DiffException when liveConfig or desiredConfig is null,
+     * when the two beans don't have the same type
+     * or in case of any errors during the diff procedure
      */
     public DiffNode createDiffTree(Bean liveConfig, Bean desiredConfig) throws DiffException {
         try {
@@ -46,10 +45,9 @@ public class DiffLogic {
      * @param liveConfig the configuration that is currently on the live system
      * @param desiredConfig the configuration state that the live system should change to
      * @return @DiffNode object which is the root of the tree
-     * @throws NullPointerException when liveConfig is null
-     *  when desiredConfig is null
-     * @throws IllegalArgumentException when the two beans don't have the same type
-     * @throws DiffException in case of any errors during the diff procedure
+     * @throws DiffException when liveConfig or desiredConfig is null,
+     * when the two beans don't have the same type
+     * or in case of any errors during the diff procedure
      */
     public String createDiffOutput(Bean liveConfig, Bean desiredConfig) throws DiffException {
         try {
