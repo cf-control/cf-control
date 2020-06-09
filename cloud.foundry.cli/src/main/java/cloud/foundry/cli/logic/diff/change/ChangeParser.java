@@ -31,14 +31,14 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * This class parses JaVers change objects to custom change objects
+ * This class parses JaVers change objects to custom change objects.
  */
 public class ChangeParser {
 
     /**
-     * Parse the JaVers change object to a more appropriate custom change object
+     * Parse the JaVers change object to a more appropriate custom change object.
      * @param change the JaVers change object
-     * @return custom change object
+     * @return custom change object or null if the change type is not supported
      * @throws NullPointerException when change is null
      */
     public static CfChange parse(Change change) {
