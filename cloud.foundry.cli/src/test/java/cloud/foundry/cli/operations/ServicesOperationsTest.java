@@ -15,13 +15,23 @@ import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import org.cloudfoundry.client.v2.ClientV2Exception;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
+import org.cloudfoundry.operations.routes.ListRoutesRequest;
+import org.cloudfoundry.operations.routes.Route;
+import org.cloudfoundry.operations.routes.Routes;
 import org.cloudfoundry.operations.services.CreateServiceInstanceRequest;
+import org.cloudfoundry.operations.services.DeleteServiceInstanceRequest;
+import org.cloudfoundry.operations.services.DeleteServiceKeyRequest;
+import org.cloudfoundry.operations.services.GetServiceInstanceRequest;
+import org.cloudfoundry.operations.services.ListServiceKeysRequest;
 import org.cloudfoundry.operations.services.UpdateServiceInstanceRequest;
 import org.cloudfoundry.operations.services.RenameServiceInstanceRequest;
+import org.cloudfoundry.operations.services.ServiceInstance;
 import org.cloudfoundry.operations.services.ServiceInstanceSummary;
 import org.cloudfoundry.operations.services.Services;
+import org.cloudfoundry.operations.services.UnbindRouteServiceInstanceRequest;
+import org.cloudfoundry.operations.services.UnbindServiceInstanceRequest;
 import org.cloudfoundry.operations.services.ServiceInstanceType;
-
+import org.cloudfoundry.operations.services.ServiceKey;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import reactor.core.publisher.Flux;
@@ -34,18 +44,20 @@ import java.util.Map;
 
 public class ServicesOperationsTest {
 
+    private static final String USER_PROVIDED_SERVICE_INSTANCE = "user_provided_service_instance";
+
     @Test
     public void testGetServicesWithMockData() {
         // given
         ServiceInstanceSummary summary = ServiceInstanceSummary.builder()
-                .id("serviceId")
-                .application("test-flask")
-                .name("serviceName")
-                .plan("standardPlan")
-                .service("service")
-                .tags(Arrays.asList("tag"))
-                .type(ServiceInstanceType.MANAGED)
-                .build();
+            .id("serviceId")
+            .application("test-flask")
+            .name("serviceName")
+            .plan("standardPlan")
+            .service("service")
+            .tags(Arrays.asList("tag"))
+            .type(ServiceInstanceType.MANAGED)
+            .build();
         List<ServiceInstanceSummary> withServices = Arrays.asList(summary);
 
         DefaultCloudFoundryOperations cfMock = mockGetAllMethod(withServices);
@@ -160,12 +172,95 @@ public class ServicesOperationsTest {
         verify(monoRenamed, times(1)).block();
     }
 
+    @Test
+    public void testRemoveServiceInstance() throws CreationException {
+        // given
+        String serviceInstanceName = "serviceInstanceName";
+
+        Services servicesMock = mock(Services.class);
+        DefaultCloudFoundryOperations cfMock = mockRemoveServiceInstanceMethod(servicesMock);
+
+        Mono<Void> monoDeletedService = mock(Mono.class);
+        when(servicesMock.deleteInstance(any(DeleteServiceInstanceRequest.class))).thenReturn(monoDeletedService);
+
+        // when
+        ServicesOperations servicesOperations = new ServicesOperations(cfMock);
+        servicesOperations.removeServiceInstance(serviceInstanceName);
+
+        // then
+        verify(servicesMock, times(1)).deleteInstance(any(DeleteServiceInstanceRequest.class));
+        verify(monoDeletedService, times(1)).block();
+
+    }
+
     private ServiceBean getServiceBeanMock() {
         ServiceBean serviceBean = mock(ServiceBean.class);
         when(serviceBean.getService()).thenReturn("elephantsql");
         when(serviceBean.getPlan()).thenReturn("standard");
         when(serviceBean.getTags()).thenReturn(Arrays.asList("Tag1", "Tag2"));
         return serviceBean;
+    }
+
+    private DefaultCloudFoundryOperations mockRemoveServiceInstanceMethod(Services servicesMock) {
+        DefaultCloudFoundryOperations cfMock = mock(DefaultCloudFoundryOperations.class);
+
+        ServiceInstance serviceInstanceMock = mockServiceInstance();
+        Mono<ServiceInstance> monoserviceInstanceMock = mock(Mono.class);
+
+        Routes routesMock = mock(Routes.class);
+        mockRoute(routesMock);
+
+        mockServiceKey(servicesMock);
+
+        when(cfMock.services()).thenReturn(servicesMock);
+        when(cfMock.routes()).thenReturn(routesMock);
+
+        when(servicesMock.unbindRoute(any(UnbindRouteServiceInstanceRequest.class)))
+            .thenReturn((Mono<Void>) mock(Mono.class));
+
+        when(servicesMock.unbind(any(UnbindServiceInstanceRequest.class)))
+            .thenReturn((Mono<Void>) mock(Mono.class));
+
+        when(servicesMock.deleteServiceKey(any(DeleteServiceKeyRequest.class)))
+            .thenReturn((Mono<Void>) mock(Mono.class));
+
+        when(servicesMock.getInstance(any(GetServiceInstanceRequest.class)))
+            .thenReturn(monoserviceInstanceMock);
+        when(monoserviceInstanceMock.block()).thenReturn(serviceInstanceMock);
+
+        return cfMock;
+    }
+
+    private ServiceInstance mockServiceInstance() {
+        ServiceInstance serviceInstanceMock = mock(ServiceInstance.class);
+        ServiceInstanceType serviceInstanceTypeMock = mock(ServiceInstanceType.class);
+
+        when(serviceInstanceMock.getApplications()).thenReturn(Arrays.asList("app1", "app2"));
+        when(serviceInstanceMock.getType()).thenReturn(serviceInstanceTypeMock);
+        when(serviceInstanceTypeMock.getValue()).thenReturn(USER_PROVIDED_SERVICE_INSTANCE);
+
+        return serviceInstanceMock;
+    }
+
+    private void mockServiceKey(Services servicesMock) {
+
+        ServiceKey serviceKeyMock = mock(ServiceKey.class);
+        Flux<ServiceKey> fluxMock = Flux.just(serviceKeyMock);
+
+        when(servicesMock.listServiceKeys(any(ListServiceKeysRequest.class))).thenReturn(fluxMock);
+        when(serviceKeyMock.getName()).thenReturn("keyname");
+
+    }
+
+    private void mockRoute(Routes routesMock) {
+        Route routeMock = mock(Route.class);
+        Flux<Route> fluxMock = Flux.just(routeMock);
+
+        when(routesMock.list(any(ListRoutesRequest.class))).thenReturn(fluxMock);
+        when(routeMock.getService()).thenReturn("route");
+        when(routeMock.getDomain()).thenReturn("domain");
+        when(routeMock.getHost()).thenReturn("host");
+
     }
 
     private DefaultCloudFoundryOperations mockGetAllMethod(List<ServiceInstanceSummary> summaries) {
