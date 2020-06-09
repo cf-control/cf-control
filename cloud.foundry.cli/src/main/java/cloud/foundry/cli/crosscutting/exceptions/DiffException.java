@@ -1,6 +1,6 @@
 package cloud.foundry.cli.crosscutting.exceptions;
 
-public class DiffException extends Throwable {
+public class DiffException extends Exception {
 
     public DiffException(String message) {
         super(message);
