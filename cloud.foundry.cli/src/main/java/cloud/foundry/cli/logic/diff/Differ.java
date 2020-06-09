@@ -20,15 +20,13 @@ import java.util.stream.Collectors;
 
 
 /**
- * the classes serves as the main module for creating the difference between two configurations
+ * This class compares two given beans of the same type and builds a DiffNode tree data structure
+ * with differences found between the bean objects.
+ * Javers stores changes in a Change class, which holds information about the absolute path
+ * from the Root Object (ConfigBean here) to the actual level where a change has taken place.
+ * The idea is to build a tree data structure where each node holds the changes of their level.
  */
 public class Differ {
-
-    /**
-     * Javers stores changes in a Change class, which holds information about the absolute path
-     * from the Root Object (ConfigBean here) to the actual level where a change has taken place.
-     * The idea is to build a tree data structure where each node holds the changes of their level.
-     */
 
     private static final Javers JAVERS = JaversBuilder.javers()
             .withListCompareAlgorithm(ListCompareAlgorithm.AS_SET)
@@ -39,6 +37,9 @@ public class Differ {
      * @param liveConfig the configuration that is currently on the live system
      * @param desiredConfig the configuration state that the live system should change to
      * @return @DiffNode objects which is the root of the tree
+     * @throws NullPointerException when liveConfig is null
+     *  when desiredConfig is null
+     * @throws IllegalArgumentException when the two beans don't have the same type
      */
     public DiffNode createDiffTree(Bean liveConfig, Bean desiredConfig) {
         checkNotNull(liveConfig);
@@ -51,16 +52,12 @@ public class Differ {
     private DiffNode doCreateDiffTree(Bean liveConfig, Bean desiredConfig) {
         Diff diff = JAVERS.compare(liveConfig, desiredConfig);
 
-        diff.getChanges().forEach(change -> {
-            System.out.println(change.getAffectedGlobalId());
-            System.out.println(change.getClass());
-        });
-
+        // parse the change objects created by the JaVers diff to custom change objects
         List<CfChange> cfChanges = diff.getChanges()
                 .stream()
-                // parse to custom change object
                 .map(ChangeParser::parse)
-                // null when javers change object is not parsable, but not parsable objects are irrelevant to us
+                // Null when javers change object is not parsable. Change types that are nor relevant to us will get
+                // parsed to null, so ignore them
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
@@ -69,11 +66,13 @@ public class Differ {
             DiffTreeCreator.insert(diffNode, new LinkedList<>(cfChange.getPath()), cfChange);
         }
 
-        removeAllMapsAndContainersNotAtLeaf(diffNode);
+        //always remove inner maps and lists for now, since they clash with the output algorithm of DiffOutput
+        //TODO make it configurable
+        removeMapAndContainerChangesNotAtLeaf(diffNode);
         return diffNode;
     }
 
-    private void removeAllMapsAndContainersNotAtLeaf(DiffNode node) {
+    private void removeMapAndContainerChangesNotAtLeaf(DiffNode node) {
         if (!node.isLeaf()) {
             node.setChanges(node
                     .getChanges()
@@ -84,7 +83,7 @@ public class Differ {
         }
 
         for (DiffNode childNode: node.getChildNodes()) {
-            removeAllMapsAndContainersNotAtLeaf(childNode);
+            removeMapAndContainerChangesNotAtLeaf(childNode);
         }
     }
 }
