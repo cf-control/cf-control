@@ -84,7 +84,7 @@ public class ChangeParser {
 
         return new CfMapChange(change.getAffectedObject().get(),
                 change.getPropertyName(),
-                Collections.emptyList(),
+                extractPathFrom(change),
                 cfChanges);
     }
 
@@ -116,7 +116,7 @@ public class ChangeParser {
 
         return new CfContainerChange(change.getAffectedObject().get(),
                 change.getPropertyName(),
-                Collections.emptyList(),
+                extractPathFrom(change),
                 cfChanges);
     }
 
