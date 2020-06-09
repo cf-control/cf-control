@@ -1,6 +1,6 @@
 package cloud.foundry.cli.logic;
 
-import cloud.foundry.cli.crosscutting.exceptions.UnsupportedChangeTypeException;
+import cloud.foundry.cli.crosscutting.exceptions.DiffException;
 import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
 import cloud.foundry.cli.crosscutting.util.YamlCreator;
 import org.junit.jupiter.api.Test;
@@ -17,7 +17,7 @@ public class DiffLogicTest {
 
     //TODO replace this dummy test with actual tests
     @Test
-    public void testDiffLogic() throws FileNotFoundException, UnsupportedChangeTypeException {
+    public void testDiffLogic() throws FileNotFoundException, DiffException {
         Yaml yamlProc = YamlCreator.createDefaultYamlProcessor();
         DiffLogic diffLogic = new DiffLogic();
 

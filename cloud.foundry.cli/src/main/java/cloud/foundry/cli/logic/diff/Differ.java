@@ -1,6 +1,6 @@
 package cloud.foundry.cli.logic.diff;
 
-import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.Bean;
 import cloud.foundry.cli.logic.diff.change.CfChange;
 import cloud.foundry.cli.logic.diff.change.ChangeParser;
 import org.javers.core.Javers;
@@ -35,13 +35,11 @@ public class Differ {
      * @param desiredConfig the configuration state that the live system should change to
      * @return @DiffNode objects which is the root of the tree
      */
-    public static DiffNode createDiffTree(@Nonnull ConfigBean liveConfig,@Nonnull ConfigBean desiredConfig) {
+    public DiffNode createDiffTree(Bean liveConfig, Bean desiredConfig) {
+        return doCreateDiffTree(liveConfig, desiredConfig);
+    }
 
-        /**
-         * Javers stores changes in a Change class, which holds information about the absolute path
-         * from the Root Object (ConfigBean here) to the actual level where a change has taken place.
-         * The idea is to build a tree data structure where each node holds the changes of their level.
-         */
+    private DiffNode doCreateDiffTree(Bean liveConfig, Bean desiredConfig) {
         Diff diff = JAVERS.compare(liveConfig, desiredConfig);
 
         DiffNode diffNode = new DiffNode(ROOT_NAME);
