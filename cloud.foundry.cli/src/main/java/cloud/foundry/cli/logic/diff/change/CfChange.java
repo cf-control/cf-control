@@ -1,8 +1,8 @@
 package cloud.foundry.cli.logic.diff.change;
 
-import java.util.List;
-
 import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.List;
 
 /**
  * Base class for all change classes
