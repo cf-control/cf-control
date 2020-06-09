@@ -44,7 +44,7 @@ public class UpdateController implements Callable<Integer> {
         LoginCommandOptions loginOptions;
 
         @Mixin
-        CreateControllerCommandOptions commandOptions;
+        YamlCommandOptions commandOptions;
 
         @Override
         public Integer call() throws Exception {
@@ -69,7 +69,7 @@ public class UpdateController implements Callable<Integer> {
         LoginCommandOptions loginOptions;
 
         @Mixin
-        CreateControllerCommandOptions commandOptions;
+        YamlCommandOptions commandOptions;
 
         @Override
         public Integer call() throws Exception {
@@ -103,7 +103,7 @@ public class UpdateController implements Callable<Integer> {
         LoginCommandOptions loginOptions;
 
         @Mixin
-        CreateControllerCommandOptions commandOptions;
+        YamlCommandOptions commandOptions;
 
         @Override
         public Integer call() throws Exception {
