@@ -11,7 +11,7 @@ import cloud.foundry.cli.logic.diff.change.object.CfNewObject;
 import cloud.foundry.cli.logic.diff.change.object.CfRemovedObject;
 import org.junit.jupiter.api.Test;
 
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -60,7 +60,8 @@ public class DiffNodeTest {
     @Test
     public void testNewObjectNode() {
         DiffNode node = new DiffNode("propertyName");
-        CfNewObject cfNewObject = new CfNewObject(mock(Object.class), "", Collections.emptyList());
+        List<String> path = Arrays.asList("someRoot");
+        CfNewObject cfNewObject = new CfNewObject(mock(Object.class), "", path);
         node.addChange(cfNewObject);
 
         assertThat(node.getChanges().size(), is(1));
@@ -72,7 +73,8 @@ public class DiffNodeTest {
     @Test
     public void testObjectRemovedNode() {
         DiffNode node = new DiffNode("propertyName");
-        CfRemovedObject objectRemovedChange = new CfRemovedObject(mock(Object.class), "", Collections.emptyList());
+        List<String> path = Arrays.asList("someRoot");
+        CfRemovedObject objectRemovedChange = new CfRemovedObject(mock(Object.class), "", path);
         node.addChange(objectRemovedChange);
 
         assertThat(node.getChanges().size(), is(1));

@@ -1,12 +1,13 @@
 package cloud.foundry.cli.logic.diff.change.container;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import cloud.foundry.cli.logic.diff.change.ChangeType;
 
 /**
  * Data object that holds a container value change.
- * These changes can be ChangeType.REMOVED or ChangeType.DELETED.
+ * These changes can be either ChangeType.ADDED or ChangeType.REMOVED.
  * Since we are storing container types only in roots (e.g. spaceDevelopers), there will be no ChangeType.CHANGED.
  */
 public class CfContainerValueChanged {
@@ -22,10 +23,16 @@ public class CfContainerValueChanged {
         return changeType;
     }
 
+    /**
+     * @param value the value that changed
+     * @param changeType whether the value was added or removed
+     * @throws IllegalArgumentException if the change type is not added or removed (i.e. changed)
+     */
     public CfContainerValueChanged(String value, ChangeType changeType) {
         checkNotNull(value);
         checkNotNull(changeType);
-        assert changeType != ChangeType.CHANGED;
+        checkArgument(changeType != ChangeType.CHANGED,
+                "The change type must either be added or removed");
 
         this.value = value;
         this.changeType = changeType;
