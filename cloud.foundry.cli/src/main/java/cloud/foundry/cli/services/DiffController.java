@@ -1,5 +1,7 @@
 package cloud.foundry.cli.services;
 
+import static picocli.CommandLine.usage;
+
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
@@ -13,8 +15,6 @@ import picocli.CommandLine;
 
 import java.util.Map;
 import java.util.concurrent.Callable;
-
-import static picocli.CommandLine.usage;
 
 /**
  * This class realizes the functionality that is needed for the diff commands. They provide a comparison of the
@@ -44,7 +44,7 @@ public class DiffController implements Callable<Integer> {
         YamlCommandOptions commandOptions;
 
         @Override
-        public Integer call() throws Exception{
+        public Integer call() throws Exception {
             String yamlFileContent = FileUtils.readLocalFile(commandOptions.getYamlFilePath());
             Yaml yamlLoader = YamlCreator.createDefaultYamlProcessor();
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
@@ -59,9 +59,9 @@ public class DiffController implements Callable<Integer> {
             DiffLogic diffLogic = new DiffLogic();
             String output = diffLogic.createDiffOutput(specBeanLive, specBeanDesired);
 
-            if(output.isEmpty()) {
+            if (output.isEmpty()) {
                 System.out.println("There are no differences.");
-            }else {
+            } else {
                 System.out.println(output);
             }
 
