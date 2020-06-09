@@ -1,12 +1,11 @@
 package cloud.foundry.cli.logic;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import cloud.foundry.cli.crosscutting.exceptions.DiffException;
 import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 
 /**
  * Test for {@link DiffLogic}
