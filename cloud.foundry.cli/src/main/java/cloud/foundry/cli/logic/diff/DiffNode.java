@@ -3,8 +3,8 @@ package cloud.foundry.cli.logic.diff;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import cloud.foundry.cli.logic.diff.change.CfChange;
-import cloud.foundry.cli.logic.diff.change.ChangeType;
-import cloud.foundry.cli.logic.diff.change.object.CfObjectChange;
+import cloud.foundry.cli.logic.diff.change.object.CfNewObject;
+import cloud.foundry.cli.logic.diff.change.object.CfRemovedObject;
 
 import javax.annotation.Nonnull;
 import java.util.Collections;
@@ -93,20 +93,12 @@ public class DiffNode {
     }
 
     public boolean isNewObject() {
-        if ( changes.size() == 1 &&
-                changes.get(0) instanceof CfObjectChange &&
-        ((CfObjectChange) changes.get(0)).getChangeType() == ChangeType.ADDED) {
-            return true;
-        }
-        return false;
+        return changes.size() == 1 &&
+                changes.get(0) instanceof CfNewObject;
     }
 
     public boolean isRemovedObject() {
-        if ( changes.size() == 1 &&
-                changes.get(0) instanceof CfObjectChange &&
-                ((CfObjectChange) changes.get(0)).getChangeType() == ChangeType.REMOVED) {
-            return true;
-        }
-        return false;
+        return changes.size() == 1 &&
+                changes.get(0) instanceof CfRemovedObject;
     }
 }
