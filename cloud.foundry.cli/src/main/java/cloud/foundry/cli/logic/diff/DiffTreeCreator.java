@@ -38,22 +38,7 @@ public class DiffTreeCreator {
         return new DiffNode("");
     }
 
-    /**
-     * API method
-     * @return
-     */
-    public static void insert(@Nonnull DiffNode rootNode,@Nonnull LinkedList<String> path, @Nonnull CfChange change) {
-        checkNotNull(rootNode);
-        checkNotNull(path);
-        checkNotNull(change);
-        checkArgument(!path.isEmpty(), "The path is empty");
-        checkArgument(rootNode.getPropertyName().equals(path.getFirst()),
-                "The root node is not the first node of the path");
-
-        doInsert(rootNode, path, change);
-    }
-
-    private static void doInsert(DiffNode node, LinkedList<String> path, CfChange change) {
+    private static void insert(DiffNode node, LinkedList<String> path, CfChange change) {
         String propertyName = path.removeFirst();
         assert propertyName.equals(node.getPropertyName());
 
