@@ -147,12 +147,4 @@ public class DiffNodeTest {
         assertThat(child.getChildNodes().isEmpty(), is(true));
     }
 
-    @Test
-    public void testUnmodifiabilityOfGetterCollections() {
-        DiffNode root = new DiffNode("root");
-        Class<?> unmodifiableCollectionClass = Collections.unmodifiableCollection(Collections.EMPTY_LIST).getClass();
-
-        assertThat(unmodifiableCollectionClass.isInstance(root.getChanges()), is(true));
-        assertThat(unmodifiableCollectionClass.isInstance(root.getChildNodes()), is(true));
-    }
 }
