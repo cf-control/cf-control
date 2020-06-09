@@ -1,0 +1,4 @@
+this: url
+cannot: be
+reached:
+  $ref: 'http://foo.bar.baz:80/config/myFile.yaml'

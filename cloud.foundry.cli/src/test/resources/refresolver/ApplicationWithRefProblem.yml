@@ -1,0 +1,18 @@
+name: testApp
+path:
+  $ref: ./src/test/resources/refresolver/ApplicationPathWithRefProblem.yml#/PATHWRONG
+manifest:
+  memory : 2048
+  instances : 1
+  timeout : 80
+  stack :
+    $ref: ./src/test/resources/refresolver/ApplicationManifest.yml#/stack
+  randomRoute : true
+  healthCheckType : PORT
+  healthCheckHttpEndpoint: /health
+  buildpack : https://github.com/cloudfoundry/java-buildpack.git
+  services:
+    $ref: ./src/test/resources/refresolver/ApplicationManifest.yml#/services
+  environmentVariables :
+    $ref: ./src/test/resources/refresolver/ApplicationManifest.yml#/environmentVariables
+  disk : 2048
