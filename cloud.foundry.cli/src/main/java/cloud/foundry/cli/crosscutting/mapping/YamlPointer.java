@@ -1,5 +1,6 @@
 package cloud.foundry.cli.crosscutting.mapping;
 
+import static com.google.common.base.Preconditions.checkElementIndex;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -51,9 +52,7 @@ public class YamlPointer {
      * @throws IndexOutOfBoundsException if the index parameter is out of range
      */
     public String getNodeName(int index) {
-        if (index < 0 || index >= nodeNames.length) {
-            throw new IndexOutOfBoundsException("The node index is out of bounds");
-        }
+        checkElementIndex(index, nodeNames.length, "The node index is out of bounds");
         return nodeNames[index];
     }
 
