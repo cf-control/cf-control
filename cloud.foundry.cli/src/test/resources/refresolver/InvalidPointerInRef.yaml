@@ -1,0 +1,4 @@
+the: pointer of the
+reference: adresses
+non-existant: entries
+$ref: './src/test/resources/basic/VariousContents.yaml#/person/1/gender'

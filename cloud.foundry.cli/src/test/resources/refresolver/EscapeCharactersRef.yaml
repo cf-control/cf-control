@@ -1,0 +1,3 @@
+rights:
+  $ref: './src/test/resources/basic/SpecialCharacters.yaml#/~1users~1user~0id'
+  shouldBe: overridden

@@ -123,7 +123,7 @@ public class GetLogicTest {
 
         assertThat(configBean.getSpec().getApps().size(), is(1));
         assertThat(configBean.getSpec().getApps().containsKey("testApp"), is(true));
-        assertThat(configBean.getSpec().getApps().get("testApp").getPath(), is("some/path"));
+        assertThat(configBean.getSpec().getApps().get("testApp").getPath(), is(Paths.get("some/path").toString()));
         ApplicationManifestBean appManifest = configBean.getSpec().getApps().get("testApp").getManifest();
         assertThat(appManifest.getBuildpack(), is("buildpack"));
         assertThat(appManifest.getDisk(), is(1024));

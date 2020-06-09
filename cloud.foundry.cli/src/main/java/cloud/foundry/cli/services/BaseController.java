@@ -2,7 +2,10 @@ package cloud.foundry.cli.services;
 
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import cloud.foundry.cli.crosscutting.exceptions.CredentialException;
+import cloud.foundry.cli.crosscutting.exceptions.RefResolvingException;
 import cloud.foundry.cli.crosscutting.logging.Log;
+import cloud.foundry.cli.crosscutting.mapping.RefResolver;
+import org.yaml.snakeyaml.constructor.ConstructorException;
 import picocli.CommandLine.Command;
 import picocli.CommandLine;
 
@@ -50,6 +53,10 @@ public class BaseController implements Callable<Integer> {
                 Log.error("Operation not supported/implemented:", ex.getMessage());
             } else if (ex instanceof CredentialException) {
                 Log.error("Credentials error:", ex.getMessage());
+            } else if (ex instanceof RefResolvingException) {
+                Log.error("Failed to resolve " + RefResolver.REF_KEY + "-occurrences:", ex.getMessage());
+            } else if (ex instanceof ConstructorException) {
+                Log.error("Cannot interpret yaml contents:", ex.getMessage());
             } else if (ex instanceof IllegalStateException) {
                 // a little bit ugly, but it works
                 // the problem is in reactor.core.Exceptions

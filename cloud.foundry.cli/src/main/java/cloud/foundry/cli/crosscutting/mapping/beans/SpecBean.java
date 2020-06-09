@@ -6,7 +6,7 @@ import java.util.Map;
 /**
  * Bean holding all data that is related to cloud foundry specification.
  */
-public class SpecBean {
+public class SpecBean implements Bean {
 
     private List<String> spaceDevelopers;
     private Map<String, ServiceBean> services;
