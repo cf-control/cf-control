@@ -105,7 +105,8 @@ public class DiffTreeCreatorTest {
     public void testCreateFromSingleContainerChange() {
         Object affectedObject = Mockito.mock(Object.class);
         List<String> path = Collections.singletonList("root");
-        List<CfContainerValueChanged> changedValues = Collections.singletonList(Mockito.mock(CfContainerValueChanged.class));
+        List<CfContainerValueChanged> changedValues = Collections.singletonList(
+                Mockito.mock(CfContainerValueChanged.class));
         CfContainerChange containerChange = new CfContainerChange(affectedObject, "someName", path, changedValues);
 
         DiffNode node = DiffTreeCreator.createFrom(Collections.singletonList(containerChange));
