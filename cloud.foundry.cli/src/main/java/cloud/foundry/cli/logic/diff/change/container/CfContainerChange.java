@@ -8,6 +8,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Data object that holds container changes.
  */
@@ -24,11 +26,14 @@ public class CfContainerChange extends CfChange {
                              List<String> path,
                              List<CfContainerValueChanged> changedValues) {
         super(affectedObject, propertyName, path);
+        checkNotNull(changedValues);
 
         this.changedValues = new LinkedList<>(changedValues);
     }
 
     public List<CfContainerValueChanged> getValueChangesBy(ChangeType changeType) {
+        checkNotNull(changeType);
+
         return changedValues
                 .stream()
                 .filter( valueChange -> valueChange.getChangeType().equals(changeType))

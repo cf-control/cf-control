@@ -14,7 +14,6 @@ public class CfObjectValueChanged extends CfChange {
 
     private String valueBefore;
     private String valueAfter;
-    private ChangeType changeType;
 
     public String getValueBefore() {
         return valueBefore;
@@ -24,22 +23,15 @@ public class CfObjectValueChanged extends CfChange {
         return valueAfter;
     }
 
-    public ChangeType getChangeType() {
-        return changeType;
-    }
-
     public CfObjectValueChanged(Object affectedObject,
                                 String propertyName,
                                 List<String> path,
-                                ChangeType changeType,
                                 String valueBefore,
                                 String valueAfter) {
         super(affectedObject, propertyName, path);
-        checkNotNull(changeType);
         checkNotNull(valueBefore);
         checkNotNull(valueAfter);
 
-        this.changeType = changeType;
         this.valueBefore = valueBefore;
         this.valueAfter = valueAfter;
     }
