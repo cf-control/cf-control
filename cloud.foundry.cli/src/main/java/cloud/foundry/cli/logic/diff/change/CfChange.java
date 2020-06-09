@@ -26,6 +26,10 @@ public abstract class CfChange {
     }
 
     public CfChange(Object affectedObject, String propertyName, List<String> path) {
+        checkNotNull(affectedObject);
+        checkNotNull(propertyName);
+        checkNotNull(path);
+
         this.affectedObject = affectedObject;
         this.propertyName = propertyName;
         this.path = path;

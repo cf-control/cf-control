@@ -4,8 +4,6 @@ import cloud.foundry.cli.logic.diff.change.CfChange;
 import cloud.foundry.cli.logic.diff.change.object.CfNewObject;
 import cloud.foundry.cli.logic.diff.change.object.CfRemovedObject;
 
-import javax.annotation.Nonnull;
-import java.util.Collections;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -22,10 +20,10 @@ public class DiffNode {
     protected final String propertyName;
     protected DiffNode parentNode;
     protected Map<String, DiffNode> childNodes;
-    //TODO use custom wrapper for the change object
     protected List<CfChange> changes;
 
     public DiffNode(@Nonnull String propertyName) {
+        checkNotNull(propertyName);
         this.propertyName = propertyName;
         this.parentNode = null;
         this.childNodes = new HashMap<>();
@@ -41,35 +39,45 @@ public class DiffNode {
     }
 
     /**
-     * TODO immutable
      * @return
      */
     public List<CfChange> getChanges() {
-        return Collections.unmodifiableList(changes);
+        return changes;
+    }
+
+    public void setChanges(List<CfChange> changes) {
+        checkNotNull(changes);
+
+        this.changes = changes;
     }
 
     /**
-     * TODO immutable
      * @return
      */
     public Collection<DiffNode> getChildNodes() {
-        return Collections.unmodifiableCollection(childNodes.values());
+        return childNodes.values();
     }
 
     public String getPropertyName() {
         return propertyName;
     }
 
-    public void addChild(@Nonnull DiffNode child) {
+    public void addChild(DiffNode child) {
+        checkNotNull(child);
+
         this.childNodes.put(child.getPropertyName(), child);
         child.setParentNode(this);
     }
 
-    public DiffNode getChild(@Nonnull String propertyName) {
+    public DiffNode getChild(String propertyName) {
+        checkNotNull(propertyName);
+
         return this.childNodes.get(propertyName);
     }
 
-    public void addChange(@Nonnull CfChange change) {
+    public void addChange(CfChange change) {
+        checkNotNull(change);
+
         this.changes.add(change);
     }
 

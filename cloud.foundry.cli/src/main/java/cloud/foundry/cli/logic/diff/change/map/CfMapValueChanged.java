@@ -2,6 +2,8 @@ package cloud.foundry.cli.logic.diff.change.map;
 
 import cloud.foundry.cli.logic.diff.change.ChangeType;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Data object that holds a map value change.
  * These changes can be ChangeType.REMOVED, ChangeType.DELETED, ChangeType.CHANGED.
@@ -26,6 +28,11 @@ public class CfMapValueChanged {
     }
 
     public CfMapValueChanged(String key, String valueBefore, String valueAfter, ChangeType changeType) {
+        checkNotNull(key);
+        checkNotNull(valueBefore);
+        checkNotNull(valueAfter);
+        checkNotNull(changeType);
+
         this.key = key;
         this.valueBefore = valueBefore;
         this.valueAfter = valueAfter;

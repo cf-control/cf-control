@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 
 /**
  * the classes serves as the main module for creating the difference between two configurations
@@ -37,6 +39,9 @@ public class Differ {
      * @return @DiffNode objects which is the root of the tree
      */
     public DiffNode createDiffTree(Bean liveConfig, Bean desiredConfig) {
+        checkNotNull(liveConfig);
+        checkNotNull(desiredConfig);
+
         return doCreateDiffTree(liveConfig, desiredConfig);
     }
 
