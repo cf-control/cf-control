@@ -3,9 +3,8 @@ package cloud.foundry.cli.services;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
-import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
-import cloud.foundry.cli.crosscutting.util.YamlCreator;
+import cloud.foundry.cli.crosscutting.mapping.YamlMapper;
 import cloud.foundry.cli.logic.GetLogic;
 import cloud.foundry.cli.operations.ApplicationsOperations;
 import cloud.foundry.cli.operations.ServicesOperations;
@@ -54,7 +53,7 @@ public class GetController implements Callable<Integer> {
             SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
             Mono<List<String>> spaceDevelopers = spaceDevelopersOperations.getAll();
 
-            System.out.println(YamlCreator.createDefaultYamlProcessor().dump(spaceDevelopers.block()));
+            System.out.println(YamlMapper.dump(spaceDevelopers.block()));
             return 0;
         }
     }
@@ -70,7 +69,7 @@ public class GetController implements Callable<Integer> {
             ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
             Mono<Map<String,ServiceBean>> services = servicesOperations.getAll();
 
-            System.out.println(YamlCreator.createDefaultYamlProcessor().dump(services.block()));
+            System.out.println(YamlMapper.dump(services.block()));
             return 0;
         }
     }
@@ -86,7 +85,7 @@ public class GetController implements Callable<Integer> {
             ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
             Mono<Map<String, ApplicationBean>> applications = applicationsOperations.getAll();
 
-            System.out.println(YamlCreator.createDefaultYamlProcessor().dump(applications.block()));
+            System.out.println(YamlMapper.dump(applications.block()));
             return 0;
         }
     }
@@ -102,7 +101,7 @@ public class GetController implements Callable<Integer> {
             GetLogic getLogic = new GetLogic(cfOperations);
             ConfigBean allInformation = getLogic.getAll();
 
-            System.out.println(YamlCreator.createDefaultYamlProcessor().dump(allInformation));
+            System.out.println(YamlMapper.dump(allInformation));
             return 0;
         }
     }

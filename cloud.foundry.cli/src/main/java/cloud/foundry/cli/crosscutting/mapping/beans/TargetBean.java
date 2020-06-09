@@ -3,7 +3,7 @@ package cloud.foundry.cli.crosscutting.mapping.beans;
 /**
  * Bean holding all data that is related to the target space.
  */
-public class TargetBean {
+public class TargetBean implements Bean {
 
     private String endpoint;
     private String org;

@@ -1,0 +1,3 @@
+- this is not a propper url
+-
+  $ref: 'http:something.is:90/wrong/here.yaml'

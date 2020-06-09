@@ -1,0 +1,2 @@
+myFavoriteFileContent:
+  $ref: './this/file/does/not/exist.yaml'
