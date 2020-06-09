@@ -28,6 +28,7 @@ public class CfMapValueChanged {
     }
 
     /**
+     * @param key the key of which the value changes
      * @param valueBefore the value before the change
      * @param valueAfter the value after the change
      * @param changeType whether the value was added, removed or changed
