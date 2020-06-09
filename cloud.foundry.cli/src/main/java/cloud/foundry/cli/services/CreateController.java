@@ -49,7 +49,7 @@ public class CreateController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            Log.info("Assign space-developer(s) running...");
+            Log.info("Assigning space-developer(s)...");
             SpaceDevelopersBean spaceDevelopersBean = YamlMapper.loadBean(commandOptions.getYamlFilePath(),
                     SpaceDevelopersBean.class);
 
@@ -78,7 +78,7 @@ public class CreateController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            Log.info("Create service(s) running...");
+            Log.info("Creating service(s)...");
             SpecBean specBean = YamlMapper.loadBean(commandOptions.getYamlFilePath(), SpecBean.class);
             Map<String, ServiceBean> serviceBeans = specBean.getServices();
 
@@ -107,7 +107,7 @@ public class CreateController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            Log.info("Create application(s) running...");
+            Log.info("Creating application(s)...");
             SpecBean specBean = YamlMapper.loadBean(commandOptions.getYamlFilePath(), SpecBean.class);
             Map<String, ApplicationBean> applicationBeans = specBean.getApps();
 

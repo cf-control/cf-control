@@ -44,8 +44,8 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      * @throws CreationException when the creation or the binding was not successful
      */
     public void create(String serviceInstanceName, ServiceBean serviceBean) throws CreationException {
-        Log.debug("Create service:", serviceInstanceName,
-                "\n bean of the service:", serviceBean);
+        Log.debug("Create service:", serviceInstanceName);
+        Log.debug("Bean of the service:", serviceBean);
 
         CreateServiceInstanceRequest createServiceRequest = CreateServiceInstanceRequest.builder()
             .serviceName(serviceBean.getService())
@@ -72,8 +72,8 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      * @throws CreationException when the creation or the binding was not successful
      */
     public void renameServiceInstance(String newName, String currentName) throws CreationException {
-        Log.debug("Rename service:", currentName,
-                "\n with new name:", newName);
+        Log.debug("Rename service:", currentName);
+        Log.debug("With new name:", newName);
 
         RenameServiceInstanceRequest renameServiceInstanceRequest = RenameServiceInstanceRequest.builder()
             .name(currentName)
@@ -97,8 +97,8 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      * @throws CreationException when the creation or the binding was not successful
      */
     public void updateServiceInstance(String serviceInstanceName, ServiceBean serviceBean) throws CreationException {
-        Log.debug("Update service Instance:", serviceInstanceName,
-                "\n with the bean:", serviceBean);
+        Log.debug("Update service Instance:", serviceInstanceName);
+        Log.debug("With the bean:", serviceBean);
 
         UpdateServiceInstanceRequest updateServiceInstanceRequest = UpdateServiceInstanceRequest.builder()
             .serviceInstanceName(serviceInstanceName)

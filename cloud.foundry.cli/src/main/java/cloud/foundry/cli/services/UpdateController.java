@@ -45,7 +45,7 @@ public class UpdateController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            Log.info("Remove space developers..." );
+            Log.info("Removing space developers..." );
 
             SpaceDevelopersBean spaceDevelopersBean = YamlMapper.loadBean(commandOptions.getYamlFilePath(),
                     SpaceDevelopersBean.class);
@@ -77,7 +77,7 @@ public class UpdateController implements Callable<Integer> {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
 
-            Log.info("Update services..." );
+            Log.info("Updating services..." );
             for (Entry<String, ServiceBean> serviceEntry : serviceBeans.entrySet()) {
                 String serviceName = serviceEntry.getKey();
                 ServiceBean serviceBean = serviceEntry.getValue();
@@ -87,7 +87,6 @@ public class UpdateController implements Callable<Integer> {
                 Log.info("Service name changed: " , serviceName);
                 servicesOperations.updateServiceInstance(serviceName, serviceBean);
                 Log.info("Service Plan and Tags haven been updated of service:", serviceName);
-
             }
 
             return 0;
