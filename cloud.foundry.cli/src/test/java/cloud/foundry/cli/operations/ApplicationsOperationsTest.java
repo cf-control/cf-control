@@ -49,7 +49,6 @@ public class ApplicationsOperationsTest {
         DefaultCloudFoundryOperations cfMock = createMockCloudFoundryOperations(Collections.emptyList(),
                 Collections.emptyList());
 
-        // forge YAML document
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfMock);
         Map<String, ApplicationBean> apps = applicationsOperations.getAll().block();
 
@@ -78,7 +77,7 @@ public class ApplicationsOperationsTest {
         assertThat(apps.size(), is(1));
         assertTrue(apps.containsKey("notyetrandomname"));
         ApplicationBean appBean = apps.get("notyetrandomname");
-        assertThat(appBean.getPath(), is("/test/uri"));
+        assertThat(appBean.getPath(), is(Paths.get("/test/uri").toString()));
         assertThat(appBean.getManifest().getBuildpack(), is("test_buildpack"));
         assertThat(appBean.getManifest().getCommand(), is("test command"));
         assertThat(appBean.getManifest().getDisk(), is(1234));

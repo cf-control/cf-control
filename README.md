@@ -45,9 +45,9 @@ Then you can run the __cf-control.jar__ by using the command line tool like:
   
 ##### create [SUBCOMMAND]
 ```
-  service          Create a service in the target space.
+  service          Create services in the target space.
   space-developer  Assign users as space developers.
-  application      Create a application in the target space.
+  application      Create applications in the target space.
 ```
     
 ##### get [SUBCOMMAND]
@@ -65,11 +65,16 @@ Then you can run the __cf-control.jar__ by using the command line tool like:
   -p, --password=<password>              Your password of your cf account.
   -s, --space=<space>                    Your CF space name.
   -u, --user=<userName>                  Your account's e-mail address or username.
+  -y, --yaml=<yamlFile>                  The path to the yaml file. (Not needed for the get commands)
   ```
 
 
   for example, you can run the command: \
   ```java -jar cf-control.jar get services -a api.run.pivotal.io -o cloud.foundry.cli -s development -u mustermann@test.com -p somePassword;)```
 
+### Convenience features
+You are able to include contents of other YAML files into the one that you pass as an argument to the tool. To do so, you have to use the so called **$ref-syntax**. A description on how to use it can be found [here](https://swagger.io/docs/specification/using-ref/).
+* The tool supports **Remote References** and **URL References**.
+* **Local References** are not natively supported, but you can achieve the same effect by using **Anchors and Alisases** as they are stated in the YAML specification.
 
 __Happy coding!__

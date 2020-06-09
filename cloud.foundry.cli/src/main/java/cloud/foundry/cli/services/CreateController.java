@@ -9,15 +9,15 @@ import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.SpaceDevelopersBean;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
-import cloud.foundry.cli.crosscutting.util.FileUtils;
-import cloud.foundry.cli.crosscutting.util.YamlCreator;
+import cloud.foundry.cli.crosscutting.mapping.YamlMapper;
+import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
 import cloud.foundry.cli.operations.ApplicationsOperations;
 import cloud.foundry.cli.operations.ServicesOperations;
 import cloud.foundry.cli.operations.SpaceDevelopersOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
-import org.yaml.snakeyaml.Yaml;
 
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 
 /**
@@ -49,10 +49,8 @@ public class CreateController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            String yamlFileContent = FileUtils.readLocalFile(commandOptions.getYamlFilePath());
-
-            Yaml yamlLoader = YamlCreator.createDefaultYamlProcessor();
-            SpaceDevelopersBean spaceDevelopersBean = yamlLoader.loadAs(yamlFileContent, SpaceDevelopersBean.class);
+            SpaceDevelopersBean spaceDevelopersBean = YamlMapper.loadBean(commandOptions.getYamlFilePath(),
+                    SpaceDevelopersBean.class);
 
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
@@ -65,7 +63,7 @@ public class CreateController implements Callable<Integer> {
         }
     }
 
-    @Command(name = "service", description = "Create a service in the target space.")
+    @Command(name = "service", description = "Create services in the target space.")
     static class CreateServiceCommand implements Callable<Integer> {
 
         @Mixin
@@ -76,25 +74,23 @@ public class CreateController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            String yamlFileContent = FileUtils.readLocalFile(commandOptions.getYamlFilePath());
+            SpecBean specBean = YamlMapper.loadBean(commandOptions.getYamlFilePath(), SpecBean.class);
+            Map<String, ServiceBean> serviceBeans = specBean.getServices();
 
-            Yaml yamlLoader = YamlCreator.createDefaultYamlProcessor();
-
-            Map<String, Object> mapServiceBean = yamlLoader.loadAs(yamlFileContent, Map.class);
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
-
             ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
-            for (String serviceInstanceName : mapServiceBean.keySet()) {
-                String serviceBeanYaml = yamlLoader.dump(mapServiceBean.get(serviceInstanceName));
-                ServiceBean serviceBean = yamlLoader.loadAs(serviceBeanYaml, ServiceBean.class);
-                servicesOperations.create(serviceInstanceName, serviceBean);
+
+            for (Entry<String, ServiceBean> serviceEntry : serviceBeans.entrySet()) {
+                String serviceName = serviceEntry.getKey();
+                ServiceBean serviceBean = serviceEntry.getValue();
+                servicesOperations.create(serviceName, serviceBean);
             }
 
             return 0;
         }
     }
 
-    @Command(name = "application", description = "Create a application in the target space.")
+    @Command(name = "application", description = "Create applications in the target space.")
     static class CreateApplicationCommand implements Callable<Integer> {
 
         @Mixin
@@ -105,28 +101,20 @@ public class CreateController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-                String yamlFileContent = FileUtils.readLocalFile(commandOptions.getYamlFilePath());
+            SpecBean specBean = YamlMapper.loadBean(commandOptions.getYamlFilePath(), SpecBean.class);
+            Map<String, ApplicationBean> applicationBeans = specBean.getApps();
 
-                Yaml yamlProcessor = YamlCreator.createDefaultYamlProcessor();
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+            ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
 
-                Map<String, Object> appMap = yamlProcessor.loadAs(yamlFileContent, Map.class);
+            for (Entry<String, ApplicationBean> applicationEntry : applicationBeans.entrySet()) {
+                String applicationName = applicationEntry.getKey();
+                ApplicationBean applicationBean = applicationEntry.getValue();
+                applicationsOperations.create(applicationName, applicationBean, false);
+                Log.info("App created:", applicationName);
+            }
 
-                if (appMap.entrySet().iterator().hasNext()) {
-                    Map.Entry<String, Object> appObj = appMap.entrySet().iterator().next();
-                    String name = appObj.getKey();
-                    ApplicationBean applicationBean = yamlProcessor
-                            .loadAs(yamlProcessor.dump(appObj.getValue()), ApplicationBean.class);
-
-                    DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
-                    ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
-
-                    applicationsOperations.create(name, applicationBean, false);
-                    Log.info("App created:", name);
-                    return 0;
-                }
-
-                Log.error("App entry in the yaml input file has not a valid format or was missing");
-                return 1;
+            return 0;
         }
     }
 

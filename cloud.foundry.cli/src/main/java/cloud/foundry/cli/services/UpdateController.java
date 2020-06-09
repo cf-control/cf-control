@@ -4,17 +4,16 @@ import static picocli.CommandLine.Command;
 import static picocli.CommandLine.Mixin;
 
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 
 import cloud.foundry.cli.crosscutting.mapping.beans.SpaceDevelopersBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
 import cloud.foundry.cli.operations.SpaceDevelopersOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
-import org.yaml.snakeyaml.Yaml;
-
 import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
-import cloud.foundry.cli.crosscutting.util.FileUtils;
-import cloud.foundry.cli.crosscutting.util.YamlCreator;
+import cloud.foundry.cli.crosscutting.mapping.YamlMapper;
 import cloud.foundry.cli.operations.ServicesOperations;
 
 /**
@@ -28,9 +27,6 @@ import cloud.foundry.cli.operations.ServicesOperations;
         UpdateController.UpdateApplicationCommand.class})
 public class UpdateController implements Callable<Integer> {
 
-    private static final String FAILED_TO_READ_YAML_FILE = "Failed to read YAML file";
-    private static final String UNEXPECTED_ERROR_OCCURRED = "Unexpected error occurred";
-
     @Override
     public Integer call() throws Exception {
         // this code is executed if the user runs the create command without specifying
@@ -38,7 +34,7 @@ public class UpdateController implements Callable<Integer> {
         throw new UnsupportedOperationException("no default operation implemented in UpdateController");
     }
 
-    @Command(name = "remove-space-developer", description = "Removes a space developer.")
+    @Command(name = "remove-space-developer", description = "Removes space developers.")
     static class RemoveSpaceDeveloperCommand implements Callable<Integer> {
         @Mixin
         LoginCommandOptions loginOptions;
@@ -48,21 +44,19 @@ public class UpdateController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            String yamlFileContent = FileUtils.readLocalFile(commandOptions.getYamlFilePath());
-
-            Yaml yamlLoader = YamlCreator.createDefaultYamlProcessor();
-
-            SpaceDevelopersBean spaceDevelopersBean = yamlLoader.loadAs(yamlFileContent, SpaceDevelopersBean.class);
+            SpaceDevelopersBean spaceDevelopersBean = YamlMapper.loadBean(commandOptions.getYamlFilePath(),
+                    SpaceDevelopersBean.class);
 
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
+
             spaceDevelopersOperations.removeSpaceDeveloper(spaceDevelopersBean.getSpaceDevelopers());
 
             return 0;
         }
     }
 
-    @Command(name = "update-service", description = "Update a service instance")
+    @Command(name = "update-service", description = "Updates service instances.")
     static class UpdateServiceCommand implements Callable<Integer> {
 
         @Mixin
@@ -73,22 +67,19 @@ public class UpdateController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            String yamlFileContent = FileUtils.readLocalFile(commandOptions.getYamlFilePath());
+            SpecBean specBean = specBean = YamlMapper.loadBean(commandOptions.getYamlFilePath(), SpecBean.class);
+            Map<String, ServiceBean> serviceBeans = specBean.getServices();
 
-            Yaml yamlLoader = YamlCreator.createDefaultYamlProcessor();
-
-            Map<String, Object> mapServiceBean = yamlLoader.loadAs(yamlFileContent, Map.class);
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
-
             ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
-            for (String serviceInstanceName : mapServiceBean.keySet()) {
 
-                String serviceBeanYaml = yamlLoader.dump(mapServiceBean.get(serviceInstanceName));
-                ServiceBean serviceBean = yamlLoader.loadAs(serviceBeanYaml, ServiceBean.class);
+            for (Entry<String, ServiceBean> serviceEntry : serviceBeans.entrySet()) {
+                String serviceName = serviceEntry.getKey();
+                ServiceBean serviceBean = serviceEntry.getValue();
+
                 // "currentName" is currently a placeholder until diff is implemented
-                servicesOperations.renameServiceInstance(serviceInstanceName, "currentName");
-                servicesOperations.updateServiceInstance(serviceInstanceName, serviceBean);
-
+                servicesOperations.renameServiceInstance(serviceName, "currentName");
+                servicesOperations.updateServiceInstance(serviceName, serviceBean);
             }
 
             return 0;

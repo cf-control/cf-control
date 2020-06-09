@@ -1,0 +1,4 @@
+me:
+  $ref: './src/test/resources/basic/SimpleMap.yaml'
+myFriend:
+  $ref: './src/test/resources/basic/VariousContents.yaml#/persons/1'
