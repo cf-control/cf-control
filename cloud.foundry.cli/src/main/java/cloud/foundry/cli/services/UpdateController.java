@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 
+import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.beans.SpaceDevelopersBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
 import cloud.foundry.cli.operations.SpaceDevelopersOperations;
@@ -51,6 +52,7 @@ public class UpdateController implements Callable<Integer> {
             SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
 
             spaceDevelopersOperations.removeSpaceDeveloper(spaceDevelopersBean.getSpaceDevelopers());
+            Log.info("Space Developers removed: " , spaceDevelopersBean.getSpaceDevelopers().toString());
 
             return 0;
         }
@@ -73,6 +75,7 @@ public class UpdateController implements Callable<Integer> {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
 
+            Log.info("Update services..." );
             for (Entry<String, ServiceBean> serviceEntry : serviceBeans.entrySet()) {
                 String serviceName = serviceEntry.getKey();
                 ServiceBean serviceBean = serviceEntry.getValue();
@@ -80,6 +83,7 @@ public class UpdateController implements Callable<Integer> {
                 // "currentName" is currently a placeholder until diff is implemented
                 servicesOperations.renameServiceInstance(serviceName, "currentName");
                 servicesOperations.updateServiceInstance(serviceName, serviceBean);
+                Log.info("Service updated: " , serviceName);
             }
 
             return 0;
