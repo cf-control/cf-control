@@ -107,7 +107,7 @@ public class DiffOutputTest {
     }
 
     @Test
-    public void testFromObjectValueChange() {
+    public void testFromWithObjectValueChanged() {
         // given
         DiffNode config = new DiffNode("config");
         CfObjectValueChanged cfObjectValueChanged = new CfObjectValueChanged(mock(Object.class),
@@ -126,7 +126,7 @@ public class DiffOutputTest {
     }
 
     @Test
-    public void testFromObjectChangeAdded() {
+    public void testFromWithNewObject() {
         // given
         DiffNode config = new DiffNode("config");
         DiffNode target = new DiffNode("target");
@@ -149,7 +149,7 @@ public class DiffOutputTest {
 
 
     @Test
-    public void testFromObjectChangeRemoved() {
+    public void testFromWithRemovedObject() {
         // given
         DiffNode config = new DiffNode("config");
         DiffNode target = new DiffNode("target");
@@ -172,7 +172,7 @@ public class DiffOutputTest {
 
 
     @Test
-    public void testFromObjectChangeValueDeep() {
+    public void testFromWithObjectValueChangedDeep() {
         // given
         DiffNode config = new DiffNode("config");
         DiffNode target = new DiffNode("target");
@@ -195,7 +195,7 @@ public class DiffOutputTest {
     }
 
     @Test
-    public void testFromObjectChangeValueDeepAndSetIndentationIncrement() {
+    public void testFromWithObjectValueChangedDeepAndSetIndentationIncrement() {
         // given
         DiffOutput diffOutput = new DiffOutput(4);
         DiffNode config = new DiffNode("config");
