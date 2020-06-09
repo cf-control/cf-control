@@ -1,5 +1,7 @@
 package cloud.foundry.cli.logic.diff;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import cloud.foundry.cli.crosscutting.mapping.beans.Bean;
 import cloud.foundry.cli.logic.diff.change.CfChange;
 import cloud.foundry.cli.logic.diff.change.ChangeParser;
@@ -14,8 +16,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 
 /**
@@ -32,6 +32,7 @@ public class Differ {
     private static final Javers JAVERS = JaversBuilder.javers()
             .withListCompareAlgorithm(ListCompareAlgorithm.AS_SET)
             .build();
+
     /**
      * compares the two given configurations and creates a tree composed of @DiffNode objects
      * @param liveConfig the configuration that is currently on the live system
@@ -62,7 +63,7 @@ public class Differ {
                 .collect(Collectors.toList());
 
         DiffNode diffNode = new DiffNode("config");
-        for(CfChange cfChange : cfChanges) {
+        for (CfChange cfChange : cfChanges) {
             DiffTreeCreator.insert(diffNode, new LinkedList<>(cfChange.getPath()), cfChange);
         }
 
@@ -71,7 +72,7 @@ public class Differ {
     }
 
     private void removeAllMapsAndContainersNotAtLeaf(DiffNode node) {
-        if(!node.isLeaf()) {
+        if (!node.isLeaf()) {
             node.setChanges(node
                     .getChanges()
                     .stream()
@@ -80,7 +81,7 @@ public class Differ {
             );
         }
 
-        for(DiffNode childNode: node.getChildNodes()){
+        for (DiffNode childNode: node.getChildNodes()) {
             removeAllMapsAndContainersNotAtLeaf(childNode);
         }
     }
