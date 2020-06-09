@@ -64,8 +64,9 @@ public class YamlMapper {
      * @throws IOException if the file cannot be accessed
      */
     static Object loadYamlTree(String filePath) throws IOException {
-        InputStream inputStream = FileUtils.openLocalOrRemoteFile(filePath);
-        return createTreeLoader().load(inputStream);
+        try (InputStream inputStream = FileUtils.openLocalOrRemoteFile(filePath)) {
+            return createTreeLoader().load(inputStream);
+        }
     }
 
     private static Yaml createTreeLoader() {
