@@ -145,8 +145,8 @@ public class DiffOutput {
     private List<String> fromChange(int indentation, CfChange change) {
         if (change instanceof CfContainerChange) {
             return handleContainerChange(indentation, (CfContainerChange) change);
-        } else if (change instanceof CfObjectValueChange) {
-            return handleValueChange(indentation, (CfObjectValueChange) change);
+        } else if (change instanceof CfObjectValueChanged) {
+            return handleValueChange(indentation, (CfObjectValueChanged) change);
         } else {
             return handleMapChange(indentation, (CfMapChange) change) ;
         }
@@ -156,7 +156,7 @@ public class DiffOutput {
         List<String> lines = new LinkedList<>();
         lines.add(asPropertyEntry(FlagSymbol.NONE, indentation, change.getPropertyName()));
 
-        for (CfContainerChangeValue element : change.getChangedValues()) {
+        for (CfContainerValueChanged element : change.getChangedValues()) {
             if (element.getChangeType() == ChangeType.ADDED) {
                 lines.add(asListEntry(FlagSymbol.ADDED,
                         indentation,
@@ -170,7 +170,7 @@ public class DiffOutput {
         return lines;
     }
 
-    private List<String> handleValueChange(int indentation, CfObjectValueChange valueChange) {
+    private List<String> handleValueChange(int indentation, CfObjectValueChanged valueChange) {
         List<String> lines = new LinkedList<>();
 
         if (!valueChange.getValueAfter().isEmpty()) {
@@ -194,7 +194,7 @@ public class DiffOutput {
 
         int valueIndentation = indentation + indentationIncrement;
 
-        for (CfMapChangeValue element : change.getChangedValues()) {
+        for (CfMapValueChanged element : change.getChangedValues()) {
             if (element.getChangeType() == ChangeType.ADDED) {
                 lines.add(asKeyValueEntry(FlagSymbol.ADDED,
                         valueIndentation,

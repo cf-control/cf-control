@@ -1,7 +1,5 @@
 package cloud.foundry.cli.logic.diff.change.container;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import cloud.foundry.cli.logic.diff.change.ChangeType;
 
 /**
@@ -23,8 +21,6 @@ public class CfContainerValueChanged {
     }
 
     public CfContainerValueChanged(String value, ChangeType changeType) {
-        checkNotNull(value);
-        checkNotNull(changeType);
         assert changeType != ChangeType.CHANGED;
 
         this.value = value;
