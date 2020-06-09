@@ -48,16 +48,6 @@ public class DiffNode {
     }
 
     /**
-     * @param changes the changes to set
-     * @throws NullPointerException if the argument is null
-     */
-    public void setChanges(List<CfChange> changes) {
-        checkNotNull(changes);
-
-        this.changes = changes;
-    }
-
-    /**
      * @return a collection holding all child nodes of this node
      */
     public Map<String, DiffNode> getChildNodes() {
