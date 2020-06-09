@@ -3,18 +3,17 @@ package cloud.foundry.cli.logic.diff;
 import cloud.foundry.cli.crosscutting.mapping.beans.Bean;
 import cloud.foundry.cli.logic.diff.change.CfChange;
 import cloud.foundry.cli.logic.diff.change.ChangeParser;
+import cloud.foundry.cli.logic.diff.change.container.CfContainerChange;
+import cloud.foundry.cli.logic.diff.change.map.CfMapChange;
 import org.javers.core.Javers;
 import org.javers.core.JaversBuilder;
-import org.javers.core.diff.Change;
 import org.javers.core.diff.Diff;
 import org.javers.core.diff.ListCompareAlgorithm;
-import org.javers.core.diff.changetype.ObjectRemoved;
 
-import javax.annotation.Nonnull;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 
 /**
@@ -22,13 +21,15 @@ import java.util.List;
  */
 public class Differ {
 
+    /**
+     * Javers stores changes in a Change class, which holds information about the absolute path
+     * from the Root Object (ConfigBean here) to the actual level where a change has taken place.
+     * The idea is to build a tree data structure where each node holds the changes of their level.
+     */
+
     private static final Javers JAVERS = JaversBuilder.javers()
             .withListCompareAlgorithm(ListCompareAlgorithm.AS_SET)
             .build();
-    private static final String ROOT_SYMBOL = "#";
-    private static final String PATH_SEPARATOR_SYMBOL = "/";
-    private static final String ROOT_NAME = "root";
-
     /**
      * compares the two given configurations and creates a tree composed of @DiffNode objects
      * @param liveConfig the configuration that is currently on the live system
@@ -42,42 +43,40 @@ public class Differ {
     private DiffNode doCreateDiffTree(Bean liveConfig, Bean desiredConfig) {
         Diff diff = JAVERS.compare(liveConfig, desiredConfig);
 
-        DiffNode diffNode = new DiffNode(ROOT_NAME);
-        for (Change change: diff.getChanges()) {
-            //TODO wrap change in custom change object
-            if (change instanceof ObjectRemoved) continue;
+        diff.getChanges().forEach(change -> {
+            System.out.println(change.getAffectedGlobalId());
+            System.out.println(change.getClass());
+        });
 
-            CfChange cfChange = ChangeParser.parse(change);
-            if (cfChange == null) continue;
+        List<CfChange> cfChanges = diff.getChanges()
+                .stream()
+                // parse to custom change object
+                .map(ChangeParser::parse)
+                // null when javers change object is not parsable, but not parsable objects are irrelevant to us
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
 
-            LinkedList<String> path = extractPath(change);
-            replaceRoot(ROOT_NAME, path);
-            DiffTreeCreator.insert(diffNode, path, cfChange);
+        DiffNode diffNode = new DiffNode("config");
+        for(CfChange cfChange : cfChanges) {
+            DiffTreeCreator.insert(diffNode, new LinkedList<>(cfChange.getPath()), cfChange);
         }
 
+        removeAllMapsAndContainersNotAtLeaf(diffNode);
         return diffNode;
     }
 
-    /**
-     * for example:
-     * change.getAffectedGlobalId() = cloud.foundry.cli.crosscutting.bean.ConfigBean/#spec/apps/someApp/manifest
-     *                           -> [cloud.foundry.cli.crosscutting.bean.ConfigBean, spec, apps, someApp, manifest]
-     */
-    private static LinkedList<String> extractPath(Change change) {
-        return new LinkedList<>(Arrays.asList(change
-                .getAffectedGlobalId()
-                .toString()
-                .replace(ROOT_SYMBOL, "")
-                .split(PATH_SEPARATOR_SYMBOL)));
-    }
+    private void removeAllMapsAndContainersNotAtLeaf(DiffNode node) {
+        if(!node.isLeaf()) {
+            node.setChanges(node
+                    .getChanges()
+                    .stream()
+                    .filter(change -> !(change instanceof CfContainerChange) && !(change instanceof CfMapChange))
+                    .collect(Collectors.toList())
+            );
+        }
 
-    /**
-     * example: from [cloud.foundry.cli.crosscutting.bean.ConfigBean, spec, apps, someApp, manifest]
-     *          to [{propertyName}, spec, apps, someApp, manifest]
-     */
-    private static void replaceRoot(String propertyName, LinkedList<String> path) {
-        path.removeFirst();
-        path.addFirst(propertyName);
+        for(DiffNode childNode: node.getChildNodes()){
+            removeAllMapsAndContainersNotAtLeaf(childNode);
+        }
     }
-
 }
