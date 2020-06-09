@@ -3,13 +3,17 @@ package cloud.foundry.cli.operations;
 import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import cloud.foundry.cli.crosscutting.logging.Log;
+
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.services.CreateServiceInstanceRequest;
+import org.cloudfoundry.operations.services.GetServiceInstanceRequest;
 import org.cloudfoundry.operations.services.RenameServiceInstanceRequest;
+import org.cloudfoundry.operations.services.ServiceInstance;
 import org.cloudfoundry.operations.services.ServiceInstanceSummary;
 import org.cloudfoundry.operations.services.UpdateServiceInstanceRequest;
 
 import reactor.core.publisher.Mono;
+
 import java.util.Map;
 
 /**
@@ -22,18 +26,29 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
     }
 
     /**
-     * This method fetches services data from the cloud foundry instance.
-     * To retrieve data given by the Mono object you can use the subscription methods (block, subscribe, etc.) provided
-     * by the reactor library.
-     * For more details on how to work with Mono's visit:
+     * This method fetches services data from the cloud foundry instance. To
+     * retrieve data given by the Mono object you can use the subscription methods
+     * (block, subscribe, etc.) provided by the reactor library. For more details on
+     * how to work with Mono's visit:
      * https://projectreactor.io/docs/core/release/reference/index.html#core-features
+     * 
      * @return Mono object of all services as list of ServiceBeans
      */
     public Mono<Map<String, ServiceBean>> getAll() {
+
+        return  this.cloudFoundryOperations.services()
+            .listInstances()
+            .flatMap(this::doGetServiceInstance)
+            .collectMap(ServiceInstance::getName, ServiceBean::new);
+    }
+
+    private Mono<ServiceInstance> doGetServiceInstance(ServiceInstanceSummary serviceInstanceSummary) {
         return this.cloudFoundryOperations
-                .services()
-                .listInstances()
-                .collectMap(ServiceInstanceSummary::getName, ServiceBean::new);
+            .services()
+            .getInstance(GetServiceInstanceRequest
+                .builder()
+                .name(serviceInstanceSummary.getName())
+                .build());
     }
 
     /**
@@ -102,8 +117,8 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
 
         try {
             this.cloudFoundryOperations.services()
-                    .updateInstance(updateServiceInstanceRequest)
-                    .block();
+                .updateInstance(updateServiceInstanceRequest)
+                .block();
             Log.info("Service Plan and Tags haven been updated");
         } catch (RuntimeException e) {
             throw new CreationException(e.getMessage());
