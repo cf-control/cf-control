@@ -13,24 +13,22 @@ import java.util.stream.Collectors;
  */
 public class CfContainerChange extends CfChange {
 
-    private String propertyName;
-    private List<CfContainerChangeValue> changedValues;
+    private final List<CfContainerValueChanged> changedValues;
 
-    public String getPropertyName() {
-        return propertyName;
-    }
-
-    public List<CfContainerChangeValue> getChangedValues() {
+    public List<CfContainerValueChanged> getChangedValues() {
         return Collections.unmodifiableList(changedValues);
     }
 
-    public CfContainerChange(Object affectedObject, String propertyName, List<CfContainerChangeValue> changedValues) {
-        super(affectedObject);
-        this.propertyName = propertyName;
+    public CfContainerChange(Object affectedObject,
+                             String propertyName,
+                             List<String> path,
+                             List<CfContainerValueChanged> changedValues) {
+        super(affectedObject, propertyName, path);
+
         this.changedValues = new LinkedList<>(changedValues);
     }
 
-    public List<CfContainerChangeValue> getValueChangesBy(ChangeType changeType) {
+    public List<CfContainerValueChanged> getValueChangesBy(ChangeType changeType) {
         return changedValues
                 .stream()
                 .filter( valueChange -> valueChange.getChangeType().equals(changeType))

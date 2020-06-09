@@ -2,11 +2,12 @@ package cloud.foundry.cli.logic.diff.change;
 
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.logic.diff.change.container.CfContainerChange;
-import cloud.foundry.cli.logic.diff.change.container.CfContainerChangeValue;
+import cloud.foundry.cli.logic.diff.change.container.CfContainerValueChanged;
 import cloud.foundry.cli.logic.diff.change.map.CfMapChange;
-import cloud.foundry.cli.logic.diff.change.map.CfMapChangeValue;
-import cloud.foundry.cli.logic.diff.change.object.CfObjectChange;
-import cloud.foundry.cli.logic.diff.change.object.CfObjectValueChange;
+import cloud.foundry.cli.logic.diff.change.map.CfMapValueChanged;
+import cloud.foundry.cli.logic.diff.change.object.CfNewObject;
+import cloud.foundry.cli.logic.diff.change.object.CfRemovedObject;
+import cloud.foundry.cli.logic.diff.change.object.CfObjectValueChanged;
 import org.javers.core.diff.Change;
 import org.javers.core.diff.changetype.NewObject;
 import org.javers.core.diff.changetype.ObjectRemoved;
@@ -43,42 +44,53 @@ public class ChangeParser {
         } else if (change instanceof ContainerChange) {
             return parseContainerChange((ContainerChange) change);
         } else if (change instanceof ObjectRemoved) {
-            return new CfObjectChange(change.getAffectedObject().get(), ChangeType.REMOVED);
+            return new CfRemovedObject(change.getAffectedObject().get(),
+                    "",
+                    extractPathFrom(change));
         } else if (change instanceof NewObject) {
-            return new CfObjectChange(change.getAffectedObject().get(), ChangeType.ADDED);
+            return new CfNewObject(change.getAffectedObject().get(),
+                    "",
+                    extractPathFrom(change));
         }
         Log.info("Change type " + change.getClass() + " is not supported for parsing. Ignoring it.");
         return null;
     }
 
     private static CfChange parseValueChange(ValueChange change) {
-        return new CfObjectValueChange(change.getAffectedObject().get(),
+        return new CfObjectValueChanged(change.getAffectedObject().get(),
+                change.getPropertyName(),
+                extractPathFrom(change),
+                ChangeType.CHANGED,
                 change.getLeft() == null ? "" : change.getLeft().toString(),
-                change.getRight() == null ? "" : change.getRight().toString(),
-                change.getPropertyName());
+                change.getRight() == null ? "" : change.getRight().toString()
+                );
     }
 
     private static CfMapChange parseMapChange(MapChange change) {
-        List<CfMapChangeValue> cfChanges = change.getEntryChanges()
+        List<CfMapValueChanged> cfChanges = change.getEntryChanges()
                 .stream()
                 .map(ChangeParser::parseMapEntry)
                 .collect(Collectors.toList());
-        return new CfMapChange(change.getAffectedObject().get(), change.getPropertyName(), cfChanges);
+
+        return new CfMapChange(change.getAffectedObject().get(),
+                change.getPropertyName(),
+                Collections.emptyList(),
+                cfChanges);
     }
 
-    private static CfMapChangeValue parseMapEntry(EntryChange entryChange) {
+    private static CfMapValueChanged parseMapEntry(EntryChange entryChange) {
         if (entryChange instanceof EntryAdded) {
-            return new CfMapChangeValue(entryChange.getKey().toString(),
+            return new CfMapValueChanged(entryChange.getKey().toString(),
                     "",
                     ((EntryAdded) entryChange).getValue().toString(),
                     ChangeType.ADDED);
         } else if ( entryChange instanceof EntryRemoved) {
-            return new CfMapChangeValue(entryChange.getKey().toString(),
+            return new CfMapValueChanged(entryChange.getKey().toString(),
                     ((EntryRemoved) entryChange).getValue().toString(),
                     "" ,
                     ChangeType.REMOVED);
         } else {
-            return new CfMapChangeValue(entryChange.getKey().toString(),
+            return new CfMapValueChanged(entryChange.getKey().toString(),
                     ((EntryValueChange) entryChange).getLeftValue().toString(),
                     ((EntryValueChange) entryChange).getRightValue().toString(),
                     ChangeType.CHANGED);
@@ -86,20 +98,24 @@ public class ChangeParser {
     }
 
     private static CfChange parseContainerChange(ContainerChange change) {
-        List<CfContainerChangeValue> cfChanges = change.getChanges()
+        List<CfContainerValueChanged> cfChanges = change.getChanges()
                 .stream()
                 .map(ChangeParser::parseListEntry)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
-        return new CfContainerChange(change.getAffectedObject().get(), change.getPropertyName(), cfChanges);
+
+        return new CfContainerChange(change.getAffectedObject().get(),
+                change.getPropertyName(),
+                Collections.emptyList(),
+                cfChanges);
     }
 
-    private static CfContainerChangeValue parseListEntry(ContainerElementChange elementChange) {
+    private static CfContainerValueChanged parseListEntry(ContainerElementChange elementChange) {
         if (elementChange instanceof ValueAdded) {
-            return new CfContainerChangeValue(((ValueAdded) elementChange).getAddedValue().toString(),
+            return new CfContainerValueChanged(((ValueAdded) elementChange).getAddedValue().toString(),
                     ChangeType.ADDED);
         } else if ( elementChange instanceof ValueRemoved) {
-            return new CfContainerChangeValue(((ValueRemoved) elementChange).getRemovedValue().toString(),
+            return new CfContainerValueChanged(((ValueRemoved) elementChange).getRemovedValue().toString(),
                     ChangeType.REMOVED);
         }
         Log.warn("List change type not supported: " + elementChange.getClass());

@@ -13,24 +13,22 @@ import java.util.stream.Collectors;
  */
 public class CfMapChange extends CfChange {
 
-    private String propertyName;
-    private List<CfMapChangeValue> changedValues;
+    private final List<CfMapValueChanged> changedValues;
 
-    public String getPropertyName() {
-        return propertyName;
-    }
-
-    public List<CfMapChangeValue> getChangedValues() {
+    public List<CfMapValueChanged> getChangedValues() {
         return Collections.unmodifiableList(changedValues);
     }
 
-    public CfMapChange(Object affectedObject , String propertyName, List<CfMapChangeValue> changedValues) {
-        super(affectedObject);
-        this.propertyName = propertyName;
+    public CfMapChange(Object affectedObject,
+                       String propertyName,
+                       List<String> path,
+                       List<CfMapValueChanged> changedValues) {
+        super(affectedObject, propertyName, path);
+
         this.changedValues = new LinkedList<>(changedValues);
     }
 
-    public List<CfMapChangeValue> getValueChangesBy(ChangeType changeType) {
+    public List<CfMapValueChanged> getValueChangesBy(ChangeType changeType) {
         return changedValues
                 .stream()
                 .filter( valueChange -> valueChange.getChangeType().equals(changeType))
