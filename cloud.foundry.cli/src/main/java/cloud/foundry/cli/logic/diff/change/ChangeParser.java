@@ -22,6 +22,9 @@ import org.javers.core.diff.changetype.map.EntryRemoved;
 import org.javers.core.diff.changetype.map.EntryValueChange;
 import org.javers.core.diff.changetype.map.MapChange;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -30,6 +33,10 @@ import java.util.stream.Collectors;
  * This class parses JaVers change objects to custom change objects
  */
 public class ChangeParser {
+
+    private static final String ROOT_NAME = "config";
+    private static final String ROOT_SYMBOL = "#";
+    private static final String PATH_SEPARATOR_SYMBOL = "/";
 
     /**
      * Parse the JaVers change class to a more appropriate custom change class
@@ -120,5 +127,29 @@ public class ChangeParser {
         }
         Log.warn("List change type not supported: " + elementChange.getClass());
         return null;
+    }
+
+    /**
+     * for example:
+     * change.getAffectedGlobalId() = cloud.foundry.cli.crosscutting.bean.ConfigBean/#spec/apps/someApp/manifest
+     *                           -> [cloud.foundry.cli.crosscutting.bean.ConfigBean, spec, apps, someApp, manifest]
+     */
+    private static LinkedList<String> extractPathFrom(Change change) {
+        LinkedList<String> path = new LinkedList<>(Arrays.asList(change
+                .getAffectedGlobalId()
+                .toString()
+                .replace(ROOT_SYMBOL, "")
+                .split(PATH_SEPARATOR_SYMBOL)));
+        replaceRoot(ROOT_NAME, path);
+        return path;
+    }
+
+    /**
+     * example: from [cloud.foundry.cli.crosscutting.bean.ConfigBean, spec, apps, someApp, manifest]
+     *          to [{propertyName}, spec, apps, someApp, manifest]
+     */
+    private static void replaceRoot(String propertyName, LinkedList<String> path) {
+        path.removeFirst();
+        path.addFirst(propertyName);
     }
 }
