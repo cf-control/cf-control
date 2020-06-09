@@ -19,7 +19,8 @@ import java.util.concurrent.Callable;
  * state of a cloud foundry instance with a provided configuration file.
  */
 @CommandLine.Command(name = "diff",
-        header = "%n@|green Get the current configuration of your cf instance.|@",
+        header = "%n@|green Print the differences between the given yaml file" +
+                " and the configuration of your cf instance.|@",
         mixinStandardHelpOptions = true,
         subcommands = {
                 DiffController.DiffApplicationCommand.class})
@@ -31,8 +32,8 @@ public class DiffController implements Callable<Integer> {
         return 0;
     }
 
-    @CommandLine.Command(name = "applications", description = "Show the differences between apps of the live " +
-            "system and apps specified in the yaml file.")
+    @CommandLine.Command(name = "applications", description = "Print the differences between " +
+            "the apps given int the yaml file and the configuration of the apps of your cf instance.")
     static class DiffApplicationCommand implements Callable<Integer> {
 
         @CommandLine.Mixin
