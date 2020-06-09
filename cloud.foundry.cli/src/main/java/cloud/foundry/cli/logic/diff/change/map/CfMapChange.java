@@ -8,6 +8,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Data object that holds Map changes.
  */
@@ -24,6 +26,7 @@ public class CfMapChange extends CfChange {
                        List<String> path,
                        List<CfMapValueChanged> changedValues) {
         super(affectedObject, propertyName, path);
+        checkNotNull(changedValues);
 
         this.changedValues = new LinkedList<>(changedValues);
     }
