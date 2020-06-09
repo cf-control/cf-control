@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
  * This class compares two given beans of the same type and builds a DiffNode tree data structure
  * with differences found between the bean objects.
  * Javers stores changes in a Change class, which holds information about the absolute path
- * from the Root Object (ConfigBean here) to the actual level where a change has taken place.
+ * from the root object to the actual level where a change has taken place.
  * The idea is to build a tree data structure where each node holds the changes of their level.
  */
 public class Differ {
