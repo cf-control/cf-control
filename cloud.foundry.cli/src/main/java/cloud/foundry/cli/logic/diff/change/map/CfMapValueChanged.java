@@ -27,6 +27,11 @@ public class CfMapValueChanged {
         return changeType;
     }
 
+    /**
+     * @param valueBefore the value before the change
+     * @param valueAfter the value after the change
+     * @param changeType whether the value was added, removed or changed
+     */
     public CfMapValueChanged(String key, String valueBefore, String valueAfter, ChangeType changeType) {
         checkNotNull(key);
         checkNotNull(valueBefore);

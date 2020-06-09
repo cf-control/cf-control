@@ -11,16 +11,27 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Data object that holds Map changes.
+ * Data object that holds changes that occurred in a map.
  */
 public class CfMapChange extends CfChange {
 
     private final List<CfMapValueChanged> changedValues;
 
+    /**
+     * @return all changed values of the map as unmodifiable list
+     */
     public List<CfMapValueChanged> getChangedValues() {
         return Collections.unmodifiableList(changedValues);
     }
 
+    /**
+     * @param affectedObject the object that holds the changed map as a field
+     * @param propertyName the field name of the map
+     * @param path the field names of the object graph that lead to the map (with the compared object as root)
+     * @param changedValues the changes within the map
+     * @throws NullPointerException if any of the arguments is null
+     * @throws IllegalArgumentException if the path does not contain a root (i.e. if the path is empty)
+     */
     public CfMapChange(Object affectedObject,
                        String propertyName,
                        List<String> path,
@@ -31,7 +42,14 @@ public class CfMapChange extends CfChange {
         this.changedValues = new LinkedList<>(changedValues);
     }
 
+    /**
+     * @param changeType the desired type of changes
+     * @return a list of map changes containing all changes with the desired change type
+     * @throws NullPointerException if the change type is null
+     */
     public List<CfMapValueChanged> getValueChangesBy(ChangeType changeType) {
+        checkNotNull(changeType);
+
         return changedValues
                 .stream()
                 .filter( valueChange -> valueChange.getChangeType().equals(changeType))
