@@ -1,5 +1,14 @@
 package cloud.foundry.cli.logic.diff;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import cloud.foundry.cli.crosscutting.mapping.YamlMapper;
 import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
@@ -12,11 +21,6 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 public class DifferTest {
 
     @Test
@@ -27,7 +31,8 @@ public class DifferTest {
 
     @Test
     public void testCreateDiffTreeOfDifferentBeanTypesThrowsException() {
-        assertThrows(IllegalArgumentException.class, () -> new Differ().createDiffTree(new SpecBean(), new ConfigBean()));
+        assertThrows(IllegalArgumentException.class,
+                () -> new Differ().createDiffTree(new SpecBean(), new ConfigBean()));
     }
 
     @Test
