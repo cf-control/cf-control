@@ -1,5 +1,11 @@
 package cloud.foundry.cli.logic.diff.output;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+
 import cloud.foundry.cli.crosscutting.mapping.beans.TargetBean;
 import cloud.foundry.cli.logic.diff.DiffNode;
 import cloud.foundry.cli.logic.diff.change.ChangeType;
@@ -14,12 +20,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
 
 public class DiffOutputTest {
 
@@ -113,7 +113,6 @@ public class DiffOutputTest {
         CfObjectValueChanged cfObjectValueChanged = new CfObjectValueChanged(mock(Object.class),
                 "key",
                 Arrays.asList("root"),
-                ChangeType.CHANGED,
                 "valueBefore",
                 "valueAfter");
         config.addChange(cfObjectValueChanged);
@@ -182,7 +181,6 @@ public class DiffOutputTest {
         CfObjectValueChanged cfObjectValueChanged = new CfObjectValueChanged(new TargetBean(),
                 "org",
                 Arrays.asList("config", "target"),
-                ChangeType.CHANGED,
                 "orgNameBefore",
                 "orgNameAfter");
         target.addChange(cfObjectValueChanged);
@@ -207,7 +205,6 @@ public class DiffOutputTest {
         CfObjectValueChanged cfObjectValueChanged = new CfObjectValueChanged(new TargetBean(),
                 "org",
                 Arrays.asList("config", "target"),
-                ChangeType.CHANGED,
                 "orgNameBefore",
                 "orgNameAfter");
         target.addChange(cfObjectValueChanged);

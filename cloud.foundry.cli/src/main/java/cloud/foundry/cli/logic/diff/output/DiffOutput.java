@@ -1,5 +1,7 @@
 package cloud.foundry.cli.logic.diff.output;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import cloud.foundry.cli.crosscutting.mapping.beans.Bean;
 import cloud.foundry.cli.crosscutting.util.YamlCreator;
 import cloud.foundry.cli.logic.diff.DiffNode;
@@ -16,8 +18,6 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * this class transforms a difference tree into a visual representation of configuration differences
