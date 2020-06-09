@@ -13,6 +13,9 @@ import org.mockito.Mockito;
 import java.util.Arrays;
 import java.util.LinkedList;
 
+/**
+ * Test for {@link DiffTreeCreator}
+ */
 public class DiffTreeCreatorTest {
 
     @Test

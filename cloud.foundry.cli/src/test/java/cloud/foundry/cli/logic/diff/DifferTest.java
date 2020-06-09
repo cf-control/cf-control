@@ -21,6 +21,9 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
+/**
+ * Test for {@link Differ}
+ */
 public class DifferTest {
 
     @Test
