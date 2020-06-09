@@ -32,10 +32,10 @@ public class Differ {
             .build();
 
     /**
-     * compares the two given configurations and creates a tree composed of @DiffNode objects
+     * Compares the two given configurations and creates a tree composed of @DiffNode objects.
      * @param liveConfig the configuration that is currently on the live system
      * @param desiredConfig the configuration state that the live system should change to
-     * @return @DiffNode objects which is the root of the tree
+     * @return @DiffNode object which is the root of the tree
      * @throws NullPointerException when liveConfig is null
      *  when desiredConfig is null
      * @throws IllegalArgumentException when the two beans don't have the same type

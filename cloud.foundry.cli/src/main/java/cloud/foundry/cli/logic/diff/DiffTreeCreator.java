@@ -7,6 +7,10 @@ import cloud.foundry.cli.logic.diff.change.CfChange;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * This class is responsible for creating a diff tree consisting of {@link DiffNode diff nodes} from a number of
+ * {@link CfChange change objects}.
+ */
 public class DiffTreeCreator {
 
     /**
