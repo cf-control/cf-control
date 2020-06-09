@@ -1,5 +1,6 @@
 package cloud.foundry.cli.logic.diff.change.map;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import cloud.foundry.cli.logic.diff.change.CfChange;
@@ -31,6 +32,7 @@ public class CfMapChange extends CfChange {
      * @param changedValues the changes within the map
      * @throws NullPointerException if any of the arguments is null
      * @throws IllegalArgumentException if the path does not contain a root (i.e. if the path is empty)
+     *                                  or if the changed values are empty
      */
     public CfMapChange(Object affectedObject,
                        String propertyName,
@@ -38,6 +40,7 @@ public class CfMapChange extends CfChange {
                        List<CfMapValueChanged> changedValues) {
         super(affectedObject, propertyName, path);
         checkNotNull(changedValues);
+        checkArgument(!changedValues.isEmpty(), "The changed values cannot be empty.");
 
         this.changedValues = new LinkedList<>(changedValues);
     }
