@@ -1,5 +1,5 @@
-TESTELEPHANT:
-  plan: turtle
-  service: elephantsql
-  application:
+services:
+    RefDemo:
+      plan: turtle
+      service: elephantsql
 

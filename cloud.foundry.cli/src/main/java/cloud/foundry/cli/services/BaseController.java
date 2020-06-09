@@ -34,7 +34,7 @@ public class BaseController implements Callable<Integer> {
     }
 
     public static void main(String[] args) {
-        CommandLine cli = new CommandLine(new UpdateController());
+        CommandLine cli = new CommandLine(new BaseController());
 
         // picocli has a nice hidden feature: one can register a special exception handler and thus deal with
         // exceptions occurring during the execution of a Callable, Runnable etc.

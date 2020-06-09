@@ -1,4 +1,4 @@
-elephantsql:
+testfree:
   plan: lemur
   service: cloudamqp
   application: testApp
