@@ -19,7 +19,7 @@ public class DiffTreeCreator {
     public static DiffNode createFrom(List<CfChange> changes) {
         checkNotNull(changes);
 
-        if(changes.size() > 0){
+        if (changes.size() > 0) {
             // the first entry of every node is the root name
             String rootName = changes.get(0).getPath().get(0);
 
