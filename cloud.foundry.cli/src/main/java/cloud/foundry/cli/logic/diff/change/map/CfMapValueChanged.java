@@ -6,7 +6,7 @@ import cloud.foundry.cli.logic.diff.change.ChangeType;
  * Data object that holds a map value change.
  * These changes can be ChangeType.REMOVED, ChangeType.DELETED, ChangeType.CHANGED.
  */
-public class CfMapChangeValue {
+public class CfMapValueChanged {
 
     private String key;
     private String valueBefore;
@@ -25,7 +25,7 @@ public class CfMapChangeValue {
         return changeType;
     }
 
-    public CfMapChangeValue(String key, String valueBefore, String valueAfter, ChangeType changeType) {
+    public CfMapValueChanged(String key, String valueBefore, String valueAfter, ChangeType changeType) {
         this.key = key;
         this.valueBefore = valueBefore;
         this.valueAfter = valueAfter;

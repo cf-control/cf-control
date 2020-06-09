@@ -12,11 +12,12 @@ import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.TargetBean;
 import cloud.foundry.cli.logic.diff.change.container.CfContainerChange;
-import cloud.foundry.cli.logic.diff.change.container.CfContainerChangeValue;
+import cloud.foundry.cli.logic.diff.change.container.CfContainerValueChanged;
 import cloud.foundry.cli.logic.diff.change.map.CfMapChange;
-import cloud.foundry.cli.logic.diff.change.map.CfMapChangeValue;
-import cloud.foundry.cli.logic.diff.change.object.CfObjectChange;
-import cloud.foundry.cli.logic.diff.change.object.CfObjectValueChange;
+import cloud.foundry.cli.logic.diff.change.map.CfMapValueChanged;
+import cloud.foundry.cli.logic.diff.change.object.CfNewObject;
+import cloud.foundry.cli.logic.diff.change.object.CfRemovedObject;
+import cloud.foundry.cli.logic.diff.change.object.CfObjectValueChanged;
 import org.javers.core.Changes;
 import org.javers.core.JaversBuilder;
 import org.javers.core.diff.ListCompareAlgorithm;
@@ -53,9 +54,8 @@ public class ChangeParserTest {
         CfChange cfChange = ChangeParser.parse(newObject);
 
         // then
-        assertTrue(cfChange instanceof CfObjectChange);
+        assertTrue(cfChange instanceof CfNewObject);
         assertThat(cfChange.getAffectedObject(), is(newObject.getAffectedObject().get()));
-        assertThat(((CfObjectChange) cfChange).getChangeType(), is(ChangeType.ADDED));
     }
 
     @Test
@@ -72,9 +72,8 @@ public class ChangeParserTest {
         CfChange cfChange = ChangeParser.parse(objectRemoved);
 
         // then
-        assertTrue(cfChange instanceof CfObjectChange);
+        assertTrue(cfChange instanceof CfRemovedObject);
         assertThat(cfChange.getAffectedObject(), is(objectRemoved.getAffectedObject().get()));
-        assertThat(((CfObjectChange) cfChange).getChangeType(), is(ChangeType.REMOVED));
     }
 
     @Test
@@ -92,11 +91,11 @@ public class ChangeParserTest {
         CfChange cfChange = ChangeParser.parse(valueChange);
 
         // then
-        assertTrue(cfChange instanceof CfObjectValueChange);
+        assertTrue(cfChange instanceof CfObjectValueChanged);
         assertThat(cfChange.getAffectedObject(), is(valueChange.getAffectedObject().get()));
-        assertThat(((CfObjectValueChange) cfChange).getPropertyName(), is(valueChange.getPropertyName()));
-        assertThat(((CfObjectValueChange) cfChange).getValueBefore(), is(valueChange.getLeft().toString()));
-        assertThat(((CfObjectValueChange) cfChange).getValueAfter(), is(valueChange.getRight().toString()));
+        assertThat(cfChange.getPropertyName(), is(valueChange.getPropertyName()));
+        assertThat(((CfObjectValueChanged) cfChange).getValueBefore(), is(valueChange.getLeft().toString()));
+        assertThat(((CfObjectValueChanged) cfChange).getValueAfter(), is(valueChange.getRight().toString()));
     }
 
 
@@ -123,7 +122,7 @@ public class ChangeParserTest {
         assertThat(cfMapChange.getPropertyName(), is("environmentVariables"));
         assertThat(cfMapChange.getPropertyName(), is(mapChange.getPropertyName()));
 
-        CfMapChangeValue mapChangeValue = cfMapChange.getValueChangesBy(ChangeType.ADDED).get(0);
+        CfMapValueChanged mapChangeValue = cfMapChange.getValueChangesBy(ChangeType.ADDED).get(0);
         EntryAdded entryAdded = mapChange.getEntryAddedChanges().get(0);
         assertThat(mapChangeValue.getKey(), is(entryAdded.getKey().toString()));
         assertThat(mapChangeValue.getChangeType(), is(ChangeType.ADDED));
@@ -154,7 +153,7 @@ public class ChangeParserTest {
         assertThat(cfMapChange.getPropertyName(), is("environmentVariables"));
         assertThat(cfMapChange.getPropertyName(), is(mapChange.getPropertyName()));
 
-        CfMapChangeValue mapChangeValue = cfMapChange.getValueChangesBy(ChangeType.REMOVED).get(0);
+        CfMapValueChanged mapChangeValue = cfMapChange.getValueChangesBy(ChangeType.REMOVED).get(0);
         EntryRemoved entryRemoved = mapChange.getEntryRemovedChanges().get(0);
         assertThat(mapChangeValue.getKey(), is(entryRemoved.getKey()));
         assertThat(mapChangeValue.getChangeType(), is(ChangeType.REMOVED));
@@ -185,7 +184,7 @@ public class ChangeParserTest {
         assertThat(cfMapChange.getPropertyName(), is("environmentVariables"));
         assertThat(cfMapChange.getPropertyName(), is(mapChange.getPropertyName()));
 
-        CfMapChangeValue mapChangeValue = cfMapChange.getValueChangesBy(ChangeType.CHANGED).get(0);
+        CfMapValueChanged mapChangeValue = cfMapChange.getValueChangesBy(ChangeType.CHANGED).get(0);
         EntryValueChange entryValueChange = mapChange.getEntryValueChanges().get(0);
         assertThat(mapChangeValue.getKey(), is(entryValueChange.getKey()));
         assertThat(mapChangeValue.getChangeType(), is(ChangeType.CHANGED));
@@ -214,7 +213,7 @@ public class ChangeParserTest {
         assertThat(cfContainerChange.getValueChangesBy(ChangeType.ADDED).size(), is(1));
         assertThat(cfContainerChange.getChangedValues().size(), is(1));
 
-        CfContainerChangeValue containerChangeValue = cfContainerChange.getValueChangesBy(ChangeType.ADDED).get(0);
+        CfContainerValueChanged containerChangeValue = cfContainerChange.getValueChangesBy(ChangeType.ADDED).get(0);
         ValueAdded valueAdded = containerChange.getValueAddedChanges().get(0);
         assertThat(containerChangeValue.getChangeType(), is(ChangeType.ADDED));
         assertThat(containerChangeValue.getValue(), is(valueAdded.getAddedValue().toString()));
@@ -241,7 +240,7 @@ public class ChangeParserTest {
         assertThat(cfContainerChange.getValueChangesBy(ChangeType.REMOVED).size(), is(1));
         assertThat(cfContainerChange.getChangedValues().size(), is(1));
 
-        CfContainerChangeValue containerChangeValue = cfContainerChange.getValueChangesBy(ChangeType.REMOVED).get(0);
+        CfContainerValueChanged containerChangeValue = cfContainerChange.getValueChangesBy(ChangeType.REMOVED).get(0);
         ValueRemoved valueRemoved = containerChange.getValueRemovedChanges().get(0);
         assertThat(containerChangeValue.getChangeType(), is(ChangeType.REMOVED));
         assertThat(containerChangeValue.getValue(), is(valueRemoved.getRemovedValue().toString()));
