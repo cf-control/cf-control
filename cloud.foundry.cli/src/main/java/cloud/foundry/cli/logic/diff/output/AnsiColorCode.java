@@ -1,5 +1,8 @@
 package cloud.foundry.cli.logic.diff.output;
 
+/**
+ * Holds color codes for a colored console output.
+ */
 public enum AnsiColorCode {
     RED("\u001B[31m"),
     GREEN("\u001B[32m"),

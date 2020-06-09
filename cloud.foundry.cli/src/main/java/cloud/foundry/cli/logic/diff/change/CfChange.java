@@ -15,7 +15,6 @@ public abstract class CfChange {
     protected List<String> path;
 
     /**
-     *
      * @param affectedObject the object that holds the changed content as a field
      * @param propertyName the field name of the content
      * @param path the field names of the object graph that lead to the content (with the compared object as root)

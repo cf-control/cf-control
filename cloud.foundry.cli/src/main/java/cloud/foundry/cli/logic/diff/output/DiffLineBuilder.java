@@ -91,7 +91,7 @@ public class DiffLineBuilder {
      *
      * @param propertyName name of the property (a colon will be added after the property name)
      * @return instance of the current builder object
-     * @throws NullPointerException
+     * @throws NullPointerException if the argument is null
      */
     public DiffLineBuilder setPropertyName(String propertyName) {
         checkNotNull(propertyName);
@@ -103,7 +103,7 @@ public class DiffLineBuilder {
      *
      * @param flagSymbol the symbol that is the first character of the diff line ('+', '-', ...)
      * @return instance of the current builder object
-     * @throws NullPointerException
+     * @throws NullPointerException if the argument is null
      */
     public DiffLineBuilder setFlagSymbol(FlagSymbol flagSymbol) {
         checkNotNull(flagSymbol);
@@ -115,7 +115,7 @@ public class DiffLineBuilder {
      *
      * @param value value that comes after the property name
      * @return instance of the current builder object
-     * @throws NullPointerException
+     * @throws NullPointerException if the argument is null
      */
     public DiffLineBuilder setValue(String value) {
         checkNotNull(value);
@@ -127,7 +127,7 @@ public class DiffLineBuilder {
      *
      * @param colorCode color the console should print the line in
      * @return instance of the current builder object
-     * @throws NullPointerException
+     * @throws NullPointerException if the argument is null
      */
     public DiffLineBuilder setColorCode(AnsiColorCode colorCode) {
         checkNotNull(colorCode);
@@ -136,7 +136,7 @@ public class DiffLineBuilder {
     }
 
     /**
-     * build the diff line with the given parameters of the build process
+     * Builds the diff line with the given parameters of the build process.
      * @return the diff line as string
      */
     public String build() {

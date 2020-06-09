@@ -9,14 +9,20 @@ import cloud.foundry.cli.logic.diff.DiffNode;
 import cloud.foundry.cli.logic.diff.Differ;
 import cloud.foundry.cli.logic.diff.output.DiffOutput;
 
+/**
+ * Handles the operations to compare the configuration of a cloud foundry instance with a different configuration.
+ */
 public class DiffLogic {
 
     /**
-     *
-     * @param liveConfig
-     * @param desiredConfig
-     * @return
-     * @throws DiffException
+     * Compares the two given configurations and creates a tree composed of @DiffNode objects.
+     * @param liveConfig the configuration that is currently on the live system
+     * @param desiredConfig the configuration state that the live system should change to
+     * @return @DiffNode object which is the root of the tree
+     * @throws NullPointerException when liveConfig is null
+     *  when desiredConfig is null
+     * @throws IllegalArgumentException when the two beans don't have the same type
+     * @throws DiffException in case of any errors during the diff procedure
      */
     public DiffNode createDiffTree(Bean liveConfig, Bean desiredConfig) throws DiffException {
         try {
@@ -36,11 +42,14 @@ public class DiffLogic {
     }
 
     /**
-     *
-     * @param liveConfig
-     * @param desiredConfig
-     * @return
-     * @throws DiffException
+     * Compares the two given configurations and creates a string representation of the differences.
+     * @param liveConfig the configuration that is currently on the live system
+     * @param desiredConfig the configuration state that the live system should change to
+     * @return @DiffNode object which is the root of the tree
+     * @throws NullPointerException when liveConfig is null
+     *  when desiredConfig is null
+     * @throws IllegalArgumentException when the two beans don't have the same type
+     * @throws DiffException in case of any errors during the diff procedure
      */
     public String createDiffOutput(Bean liveConfig, Bean desiredConfig) throws DiffException {
         try {
