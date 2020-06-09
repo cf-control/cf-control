@@ -7,7 +7,6 @@ import static picocli.CommandLine.usage;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.SpaceDevelopersBean;
-import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
 import cloud.foundry.cli.crosscutting.util.FileUtils;
@@ -46,7 +45,7 @@ public class CreateController implements Callable<Integer> {
         LoginCommandOptions loginOptions;
 
         @Mixin
-        CreateControllerCommandOptions commandOptions;
+        YamlCommandOptions commandOptions;
 
         @Override
         public Integer call() throws Exception {
@@ -73,7 +72,7 @@ public class CreateController implements Callable<Integer> {
         LoginCommandOptions loginOptions;
 
         @Mixin
-        CreateControllerCommandOptions commandOptions;
+        YamlCommandOptions commandOptions;
 
         @Override
         public Integer call() throws Exception {
@@ -102,7 +101,7 @@ public class CreateController implements Callable<Integer> {
         LoginCommandOptions loginOptions;
 
         @Mixin
-        CreateControllerCommandOptions commandOptions;
+        YamlCommandOptions commandOptions;
 
         @Override
         public Integer call() throws Exception {
