@@ -45,7 +45,7 @@ public class CreateController implements Callable<Integer> {
         LoginCommandOptions loginOptions;
 
         @Mixin
-        CreateControllerCommandOptions commandOptions;
+        YamlCommandOptions commandOptions;
 
         @Override
         public Integer call() throws Exception {
@@ -70,7 +70,7 @@ public class CreateController implements Callable<Integer> {
         LoginCommandOptions loginOptions;
 
         @Mixin
-        CreateControllerCommandOptions commandOptions;
+        YamlCommandOptions commandOptions;
 
         @Override
         public Integer call() throws Exception {
@@ -97,7 +97,7 @@ public class CreateController implements Callable<Integer> {
         LoginCommandOptions loginOptions;
 
         @Mixin
-        CreateControllerCommandOptions commandOptions;
+        YamlCommandOptions commandOptions;
 
         @Override
         public Integer call() throws Exception {
