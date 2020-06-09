@@ -1,5 +1,6 @@
 package cloud.foundry.cli.logic;
 
+import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
@@ -52,6 +53,7 @@ public class GetLogic extends AbstractOperations<DefaultCloudFoundryOperations> 
         SpecBean specBean = new SpecBean();
 
         // start async querying of config data from the cloud foundry instance
+        Log.debug("Start async querying of apps, services and space developers...");
         Flux.merge(apiVersion.doOnSuccess(configBean::setApiVersion),
                 spaceDevelopers.doOnSuccess(s -> specBean.setSpaceDevelopers(s)),
                 services.doOnSuccess(specBean::setServices),

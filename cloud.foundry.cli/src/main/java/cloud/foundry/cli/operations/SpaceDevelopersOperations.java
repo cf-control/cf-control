@@ -66,6 +66,8 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
      * @throws IllegalArgumentException when username is empty
      */
     public void assignSpaceDeveloper(String username) throws CreationException {
+        Log.debug("Assign a space developer:", username);
+
         checkNotNull(username);
         checkArgument(!username.isEmpty(), "Username must not be empty.");
 
@@ -81,7 +83,6 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
             .listSpaceUsers(spaceUsersRequest)
             .block();
         if (!spaceUsers.getDevelopers().contains(username)) {
-            Log.info("Assigning role SpaceDeveloper to user", username, "in org", organization, "/ space", space);
             AssociateSpaceDeveloperByUsernameRequest request = AssociateSpaceDeveloperByUsernameRequest.builder()
                 .username(username)
                 .spaceId(spaceId)
@@ -104,6 +105,8 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
      * @throws InvalidOperationException if usernameList is null/empty or spaceId is invalid.
      */
     public void removeSpaceDeveloper(List<String> usernameList) throws InvalidOperationException {
+        Log.debug("Remove space developer(s):", usernameList.toString());
+
         assertValidUsernameList(usernameList);
         String spaceId = cloudFoundryOperations.getSpaceId().block();
         assertValidSpaceId(spaceId);

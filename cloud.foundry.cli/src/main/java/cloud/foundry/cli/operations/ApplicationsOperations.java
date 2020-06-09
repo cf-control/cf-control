@@ -97,8 +97,13 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
         }
 
         try {
+            Log.debug("Create app:", appName,
+                    "\n bean of the app:", bean,
+                    "\n should start:", shouldStart);
+
             doCreate(appName, bean, shouldStart);
         } catch (RuntimeException e) {
+            Log.debug("Clean up the app you tried to create:", appName);
             cleanUp(appName);
             throw new CreationException(e);
         }

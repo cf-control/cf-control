@@ -44,6 +44,9 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      * @throws CreationException when the creation or the binding was not successful
      */
     public void create(String serviceInstanceName, ServiceBean serviceBean) throws CreationException {
+        Log.debug("Create service:", serviceInstanceName,
+                "\n bean of the service:", serviceBean);
+
         CreateServiceInstanceRequest createServiceRequest = CreateServiceInstanceRequest.builder()
             .serviceName(serviceBean.getService())
             .serviceInstanceName(serviceInstanceName)
@@ -55,7 +58,6 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
 
         try {
             created.block();
-            Log.info("Service \"" + serviceInstanceName + "\" has been created.");
         } catch (RuntimeException e) {
             throw new CreationException(e.getMessage());
         }
@@ -70,6 +72,9 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      * @throws CreationException when the creation or the binding was not successful
      */
     public void renameServiceInstance(String newName, String currentName) throws CreationException {
+        Log.debug("Rename service:", currentName,
+                "\n with new name:", newName);
+
         RenameServiceInstanceRequest renameServiceInstanceRequest = RenameServiceInstanceRequest.builder()
             .name(currentName)
             .newName(newName)
@@ -79,7 +84,6 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
             this.cloudFoundryOperations.services()
                 .renameInstance(renameServiceInstanceRequest)
                 .block();
-            Log.info("Name of Service Instance has been changed");
         } catch (RuntimeException e) {
             throw new CreationException(e.getMessage());
         }
@@ -93,6 +97,8 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      * @throws CreationException when the creation or the binding was not successful
      */
     public void updateServiceInstance(String serviceInstanceName, ServiceBean serviceBean) throws CreationException {
+        Log.debug("Update service Instance:", serviceInstanceName,
+                "\n with the bean:", serviceBean);
 
         UpdateServiceInstanceRequest updateServiceInstanceRequest = UpdateServiceInstanceRequest.builder()
             .serviceInstanceName(serviceInstanceName)
@@ -104,7 +110,6 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
             this.cloudFoundryOperations.services()
                     .updateInstance(updateServiceInstanceRequest)
                     .block();
-            Log.info("Service Plan and Tags haven been updated");
         } catch (RuntimeException e) {
             throw new CreationException(e.getMessage());
         }
