@@ -35,7 +35,7 @@ public class DiffController implements Callable<Integer> {
     }
 
     @CommandLine.Command(name = "applications", description = "Print the differences between " +
-            "the apps given int the yaml file and the configuration of the apps of your cf instance.")
+            "the apps given in the yaml file and the configuration of the apps of your cf instance.")
     static class DiffApplicationCommand implements Callable<Integer> {
 
         @CommandLine.Mixin
