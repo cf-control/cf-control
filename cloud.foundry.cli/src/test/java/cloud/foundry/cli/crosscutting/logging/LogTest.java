@@ -1,6 +1,10 @@
 package cloud.foundry.cli.crosscutting.logging;
 
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,30 +12,32 @@ import java.util.Random;
 import java.util.logging.Handler;
 import java.util.logging.LogRecord;
 
-class TestHandler extends Handler {
-    private List<LogRecord> records = new ArrayList<>();
-
-    public List<LogRecord> getRecords() {
-        return records;
-    }
-
-    @Override
-    public void publish(LogRecord logRecord) {
-        System.err.println(logRecord);
-        records.add(logRecord);
-    }
-
-    @Override
-    public void flush() {}
-
-    @Override
-    public void close() throws SecurityException {}
-}
-
 /**
  * Test for {@link Log}
  */
 public class LogTest {
+    private static class TestHandler extends Handler {
+        private List<LogRecord> records = new ArrayList<>();
+
+        public List<LogRecord> getRecords() {
+            return records;
+        }
+
+        @Override
+        public void publish(LogRecord logRecord) {
+            records.add(logRecord);
+        }
+
+        @Override
+        public void flush() {
+
+        }
+
+        @Override
+        public void close() throws SecurityException {
+
+        }
+    }
 
     private static TestHandler handler = new TestHandler();
     
@@ -89,7 +95,7 @@ public class LogTest {
 
     private static LogRecord popLastRecord() {
         List<LogRecord> records = handler.getRecords();
-        return records.remove(records.size()-1);
+        return records.remove(records.size() - 1);
     }
 
     private static void assertNoMessagesRecorded() {
