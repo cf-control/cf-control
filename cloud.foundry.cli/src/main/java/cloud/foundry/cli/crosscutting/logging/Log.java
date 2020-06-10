@@ -96,8 +96,7 @@ public class Log {
     }
 
     /**
-     * Configure level of log messages to be shown to the user, e.g., by printing them to the console.
-     * @param level messages of this or any higher level will be shown by the logger
+     * Configure logger to default verbosity.
      */
     public static void setDefaultLogLevel() {
         setLogLevel(DEFAULT_LEVEL);
