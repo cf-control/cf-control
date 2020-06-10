@@ -18,14 +18,14 @@ public class Log {
     // the name of the environment variable that needs to be set to turn on the debug messages
     private static final String DEBUG_ENV_VAR_NAME = "DEBUG";
 
-    private static final Level ERROR_LEVEL = Level.SEVERE;
-    private static final Level WARN_LEVEL = Level.WARNING;
-    private static final Level INFO_LEVEL = Level.INFO;
-    private static final Level VERBOSE_LEVEL = Level.FINE;
-    private static final Level DEBUG_LEVEL = Level.FINER;
+    public static final Level ERROR_LEVEL = Level.SEVERE;
+    public static final Level WARN_LEVEL = Level.WARNING;
+    public static final Level INFO_LEVEL = Level.INFO;
+    public static final Level VERBOSE_LEVEL = Level.FINE;
+    public static final Level DEBUG_LEVEL = Level.FINER;
 
     // by default, we only want to log messages of levels info and greater
-    private static final Level DEFAULT_LEVEL = INFO_LEVEL;
+    public static final Level DEFAULT_LEVEL = INFO_LEVEL;
 
     /**
      * The name of the CF-Control logger.
