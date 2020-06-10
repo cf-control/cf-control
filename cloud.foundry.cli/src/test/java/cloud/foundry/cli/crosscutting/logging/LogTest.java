@@ -48,51 +48,50 @@ public class LogTest {
                 .toString();
     }
 
-    @Test
-    public void testError() {
-        String uniqueTestString = makeRandomTestString();
-
-        Log.error(uniqueTestString);
-
+    private static String getStderr() {
         // make sure everything in err has been written to cache
         System.err.flush();
 
         // cache in separate variable to allow for introspection during debugging
         String stderr = stderrCache.toString();
 
-        assert stderr.contains("SEVERE: " + uniqueTestString);
+        return stderr;
+    }
+
+    @Test
+    public void testError() {
+        String uniqueTestString = makeRandomTestString();
+
+        // error messages should be available on the default loglevel
+        Log.setDefaultLogLevel();
+
+        Log.error(uniqueTestString);
+
+        assert getStderr().contains("SEVERE: " + uniqueTestString);
     }
 
     @Test
     public void testWarn() {
         String uniqueTestString = makeRandomTestString();
 
+        // warning messages should be available on the default loglevel
+        Log.setDefaultLogLevel();
+
         Log.warn(uniqueTestString);
 
-        // make sure everything in err has been written to cache
-        System.out.flush();
-        System.err.flush();
-
-        // cache in separate variable to allow for introspection during debugging
-        String stderr = stderrCache.toString();
-
-        assert stderr.contains("WARNING: " + uniqueTestString);
+        assert getStderr().contains("WARNING: " + uniqueTestString);
     }
 
     @Test
     public void testInfo() {
         String uniqueTestString = makeRandomTestString();
 
+        // info messages should be available on the default loglevel
+        Log.setDefaultLogLevel();
+
         Log.info(uniqueTestString);
 
-        // make sure everything in err has been written to cache
-        System.out.flush();
-        System.err.flush();
-
-        // cache in separate variable to allow for introspection during debugging
-        String stderr = stderrCache.toString();
-
-        assert stderr.contains("INFO: " + uniqueTestString);
+        assert getStderr().contains("INFO: " + uniqueTestString);
     }
 
     @Test
