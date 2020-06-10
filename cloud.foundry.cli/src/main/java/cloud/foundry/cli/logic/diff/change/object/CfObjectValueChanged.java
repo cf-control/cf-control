@@ -16,6 +16,20 @@ public class CfObjectValueChanged extends CfChange {
     private String valueAfter;
 
     /**
+     * @return the value the object field before the change
+     */
+    public String getValueBefore() {
+        return valueBefore;
+    }
+
+    /**
+     * @return the value the object field after the change
+     */
+    public String getValueAfter() {
+        return valueAfter;
+    }
+
+    /**
      * @param affectedObject the object that holds the changed scalar as a field
      * @param propertyName the field name of the scalar
      * @param path the field names of the object graph that lead to the scalar (with the compared object as root)
@@ -35,13 +49,5 @@ public class CfObjectValueChanged extends CfChange {
 
         this.valueBefore = valueBefore;
         this.valueAfter = valueAfter;
-    }
-
-    public String getValueBefore() {
-        return valueBefore;
-    }
-
-    public String getValueAfter() {
-        return valueAfter;
     }
 }

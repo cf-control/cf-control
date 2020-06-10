@@ -32,14 +32,23 @@ public abstract class CfChange {
         this.path = path;
     }
 
+    /**
+     * @return the object in which the change has taken place
+     */
     public Object getAffectedObject() {
         return affectedObject;
     }
 
+    /**
+     * @return the property of the change
+     */
     public String getPropertyName() {
         return propertyName;
     }
 
+    /**
+     * @return absolute path to the property where the change is
+     */
     public List<String> getPath() {
         return path;
     }

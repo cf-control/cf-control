@@ -16,6 +16,20 @@ public class CfContainerValueChanged {
     private ChangeType changeType;
 
     /**
+     * @return the value was either removed or added, depending on the change type
+     */
+    public String getValue() {
+        return value;
+    }
+
+    /**
+     * @return the change type which can either be ChangeType.ADDED or ChangeType.REMOVED
+     */
+    public ChangeType getChangeType() {
+        return changeType;
+    }
+
+    /**
      * @param value the value that changed
      * @param changeType whether the value was added or removed
      * @throws IllegalArgumentException if the change type is not added or removed (i.e. changed)
@@ -28,13 +42,5 @@ public class CfContainerValueChanged {
 
         this.value = value;
         this.changeType = changeType;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public ChangeType getChangeType() {
-        return changeType;
     }
 }
