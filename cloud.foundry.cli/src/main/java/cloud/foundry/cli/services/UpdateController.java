@@ -22,9 +22,10 @@ import cloud.foundry.cli.operations.ServicesOperations;
  * instance such that it matches with a provided configuration file.
  */
 @Command(name = "update", header = "%n@|green Update-Controller|@", subcommands = {
-        UpdateController.RemoveSpaceDeveloperCommand.class,
-        UpdateController.UpdateServiceCommand.class,
-        UpdateController.UpdateApplicationCommand.class})
+    UpdateController.RemoveSpaceDeveloperCommand.class,
+    UpdateController.UpdateServiceCommand.class,
+    UpdateController.RemoveServiceInstanceCommand.class,
+    UpdateController.UpdateApplicationCommand.class })
 public class UpdateController implements Callable<Integer> {
 
     @Override
@@ -36,6 +37,7 @@ public class UpdateController implements Callable<Integer> {
 
     @Command(name = "remove-space-developer", description = "Removes space developers.")
     static class RemoveSpaceDeveloperCommand implements Callable<Integer> {
+
         @Mixin
         LoginCommandOptions loginOptions;
 
@@ -45,13 +47,39 @@ public class UpdateController implements Callable<Integer> {
         @Override
         public Integer call() throws Exception {
             SpaceDevelopersBean spaceDevelopersBean = YamlMapper.loadBean(commandOptions.getYamlFilePath(),
-                    SpaceDevelopersBean.class);
+                SpaceDevelopersBean.class);
 
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
 
             spaceDevelopersOperations.removeSpaceDeveloper(spaceDevelopersBean.getSpaceDevelopers());
 
+            return 0;
+        }
+    }
+
+    @Command(name = "remove-service-instance", description = "Removes a service instance.")
+    static class RemoveServiceInstanceCommand implements Callable<Integer> {
+
+        @Mixin
+        LoginCommandOptions loginOptions;
+
+        @Mixin
+        CreateControllerCommandOptions commandOptions;
+
+        @Override
+        public Integer call() throws Exception {
+            SpecBean specBean = specBean = YamlMapper.loadBean(commandOptions.getYamlFilePath(), SpecBean.class);
+            Map<String, ServiceBean> serviceBeans = specBean.getServices();
+
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+
+            ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
+
+            for (Entry<String, ServiceBean> serviceEntry : serviceBeans.entrySet()) {
+                String serviceName = serviceEntry.getKey();
+                servicesOperations.removeServiceInstance(serviceName);
+            }
             return 0;
         }
     }
@@ -85,7 +113,6 @@ public class UpdateController implements Callable<Integer> {
             return 0;
         }
     }
-
 
     @Command(name = "update-application", description = "Update ")
     static class UpdateApplicationCommand implements Callable<Integer> {

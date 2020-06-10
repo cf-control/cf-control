@@ -22,7 +22,8 @@ import java.util.concurrent.Callable;
         version = "1.0",
         subcommands = {
         CreateController.class,
-        GetController.class})
+        GetController.class,
+        UpdateController.class})
 public class BaseController implements Callable<Integer> {
 
     @Override
