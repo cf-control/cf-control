@@ -2,6 +2,7 @@ package cloud.foundry.cli.crosscutting.logging;
 
 import java.util.Arrays;
 import java.util.Locale;
+import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -54,6 +55,14 @@ public class Log {
         if (System.getenv(DEBUG_ENV_VAR_NAME) != null) {
             setDebugLogLevel();
         }
+    }
+
+    public static void addHandler(Handler handler) {
+        logger.addHandler(handler);
+    }
+
+    public static void removeHandler(Handler handler) {
+        logger.removeHandler(handler);
     }
 
     /**
