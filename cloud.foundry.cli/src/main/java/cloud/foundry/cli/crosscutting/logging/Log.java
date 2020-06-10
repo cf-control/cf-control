@@ -39,12 +39,13 @@ public class Log {
 
         logger = java.util.logging.Logger.getLogger(LOGGER_NAME);
 
+        // set default log level
+        setDefaultLogLevel();
+
         // by default, we don't want to log debug messages
         // however, the user can opt-in to them by setting the environment variable $DEBUG
         if (System.getenv(DEBUG_ENV_VAR_NAME) != null) {
-            logger.setLevel(Level.FINER);
-        } else {
-            logger.setLevel(Level.INFO);
+            setLogLevel(DEBUG_LEVEL);
         }
     }
 
@@ -92,6 +93,15 @@ public class Log {
     public static void setLogLevel(Level level) {
         logger.setLevel(level);
         Arrays.stream(logger.getHandlers()).forEach(h -> h.setLevel(level));
+    }
+
+    /**
+     * Configure level of log messages to be shown to the user, e.g., by printing them to the console.
+     * @param level messages of this or any higher level will be shown by the logger
+     */
+    public static void setDefaultLogLevel() {
+        logger.setLevel(DEFAULT_LEVEL);
+        Arrays.stream(logger.getHandlers()).forEach(h -> h.setLevel(DEFAULT_LEVEL));
     }
 
     /**
