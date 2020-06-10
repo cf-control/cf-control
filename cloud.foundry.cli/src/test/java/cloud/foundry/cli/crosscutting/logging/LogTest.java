@@ -39,7 +39,7 @@ public class LogTest {
         }
     }
 
-    private static TestHandler handler = new TestHandler();
+    private static final TestHandler handler = new TestHandler();
     
     String uniqueTestString = null;
 
