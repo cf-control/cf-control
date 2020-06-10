@@ -102,14 +102,14 @@ public class DiffNode {
     }
 
     /**
-     * @return whether this node is a root node (i.e. whether it has no parent nodes)
+     * @return whether this node is a root node (i.e. whether it has no parent node)
      */
     public boolean isRoot() {
         return this.parentNode == null;
     }
 
     /**
-     * Determines the depth of this root in the whole tree. The root node returns a depth of 0.
+     * Determines the depth of this node in the whole tree. A root node returns a depth of 0.
      * @return the depth of this node
      */
     public int getDepth() {
@@ -121,7 +121,7 @@ public class DiffNode {
     }
 
     /**
-     * @return whether this node holds the change, which tells that a new object was added.
+     * @return whether this node holds a single change, which tells that a new object was added.
      */
     public boolean isNewObject() {
         return changes.size() == 1 &&
@@ -129,7 +129,7 @@ public class DiffNode {
     }
 
     /**
-     * @return whether this node holds the change, which tells that an object was removed.
+     * @return whether this node holds a single change, which tells that an object was removed.
      */
     public boolean isRemovedObject() {
         return changes.size() == 1 &&
