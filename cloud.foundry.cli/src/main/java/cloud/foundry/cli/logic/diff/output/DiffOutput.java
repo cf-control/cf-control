@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
  */
 public class DiffOutput {
 
-    private static final int DEFAULT_INDENTATION_INCREMENT = 2;
+    private static final int DEFAULT_INDENTATION_INCREMENT = YamlMapper.INDENTATION;
 
     private final int indentationIncrement;
 
