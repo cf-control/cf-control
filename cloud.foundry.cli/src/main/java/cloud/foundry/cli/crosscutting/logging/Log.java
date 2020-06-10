@@ -17,6 +17,7 @@ public class Log {
 
     // the name of the environment variable that needs to be set to turn on the debug messages
     private static final String DEBUG_ENV_VAR_NAME = "DEBUG";
+    private static final String VERBOSE_ENV_VAR_NAME = "VERBOSE";
 
     public static final Level ERROR_LEVEL = Level.SEVERE;
     public static final Level WARN_LEVEL = Level.WARNING;
@@ -41,6 +42,12 @@ public class Log {
 
         // set default log level
         setDefaultLogLevel();
+
+        // by default, we don't want to log verbose messages
+        // however, the user can opt-in to them by setting the environment variable $VERBOSE
+        if (System.getenv(VERBOSE_ENV_VAR_NAME) != null) {
+            setVerboseLogLevel();
+        }
 
         // by default, we don't want to log debug messages
         // however, the user can opt-in to them by setting the environment variable $DEBUG
