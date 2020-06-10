@@ -95,6 +95,44 @@ public class LogTest {
     }
 
     @Test
+    public void testVerbose() {
+        String uniqueTestString = makeRandomTestString();
+
+        // verbose logs should *not* be available on the default loglevel
+        Log.setDefaultLogLevel();
+
+        Log.verbose(uniqueTestString);
+
+        assert !getStderr().contains("FINE: " + uniqueTestString);
+
+        // but they should be visible in verbose mode
+        Log.setVerboseLogLevel();
+
+        Log.verbose(uniqueTestString);
+
+        assert getStderr().contains("FINE: " + uniqueTestString);
+    }
+
+    @Test
+    public void testDebug() {
+        String uniqueTestString = makeRandomTestString();
+
+        // debug logs should *not* be available on the default loglevel
+        Log.setDefaultLogLevel();
+
+        Log.verbose(uniqueTestString);
+
+        assert !getStderr().contains("FINER: " + uniqueTestString);
+
+        // but they should be visible in debug mode
+        Log.setDebugLogLevel();
+
+        Log.debug(uniqueTestString);
+
+        assert getStderr().contains("FINER: " + uniqueTestString);
+    }
+
+    @Test
     public void testException() {
         String uniqueTestString = makeRandomTestString();
 
