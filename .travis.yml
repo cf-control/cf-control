@@ -12,6 +12,24 @@ jdk:
   - openjdk10
   - openjdk11
 
+# a special Java 8 configuration to build a .jar and upload it somewhere
+matrix:
+  include:
+    name: "Build and upload .jar (uploads for master builds and tags only, Java 8)"
+    jdk: openjdk8
+    script:
+      - cd cloud.foundry.cli
+      - ./gradlew jar
+    after_success:
+      - wget -c https://github.com/probonopd/uploadtool/raw/master/upload.sh
+      # upload to alternative location unless on master branch (or building a tag)
+      - |2
+        if [ "$TRAVIS_EVENT_TYPE" == "pull_request" ] || [ "$TRAVIS_BRANCH" != "master" ] && [ "$TRAVIS_TAG" == "" ]; then
+          echo "Uploads to transfer.sh disabled for performance reasons"
+        else
+          bash upload.sh build/libs/cf-control.jar
+        fi
+
 script:
   # our source code is currently in a subdirectory
   - cd cloud.foundry.cli
@@ -21,3 +39,7 @@ script:
 after_success:
 - ./gradlew jacocoTestReport coveralls
 
+branches:
+  except:
+    - # Do not build tags that we create when we upload to GitHub Releases
+    - /^(?i:continuous)/

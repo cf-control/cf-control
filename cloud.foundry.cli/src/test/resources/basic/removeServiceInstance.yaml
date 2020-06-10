@@ -1,0 +1,5 @@
+services:
+    RefDemo:
+      plan: turtle
+      service: elephantsql
+

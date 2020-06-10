@@ -1,11 +1,4 @@
-applications:
-  - test-flask
-id: 6f1a1d2e-08df-4679-a7d1-90ed7c831575
-lastOperation: update succeeded
-name: TESTELEPHANT
-plan: turtle
-service: elephantsql
-tags: 
-  - TESTTAG
-type: MANAGED
-
+testfree:
+  plan: lemur
+  service: cloudamqp
+  application: testApp
