@@ -100,8 +100,7 @@ public class Log {
      * @param level messages of this or any higher level will be shown by the logger
      */
     public static void setDefaultLogLevel() {
-        logger.setLevel(DEFAULT_LEVEL);
-        Arrays.stream(logger.getHandlers()).forEach(h -> h.setLevel(DEFAULT_LEVEL));
+        setLogLevel(DEFAULT_LEVEL);
     }
 
     /**
