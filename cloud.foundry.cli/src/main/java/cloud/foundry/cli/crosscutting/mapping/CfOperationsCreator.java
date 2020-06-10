@@ -1,6 +1,7 @@
 package cloud.foundry.cli.crosscutting.mapping;
 
 import cloud.foundry.cli.crosscutting.exceptions.CredentialException;
+import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.services.LoginCommandOptions;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.reactor.DefaultConnectionContext;
@@ -31,6 +32,7 @@ public class CfOperationsCreator {
      */
     public static DefaultCloudFoundryOperations createCfOperations(LoginCommandOptions commandOptions)
             throws Exception {
+        Log.debug("Create the cfOperations object with your login command options...");
 
         DefaultConnectionContext connectionContext = createConnectionContext(commandOptions);
         PasswordGrantTokenProvider tokenProvider = createTokenProvider(commandOptions);

@@ -97,8 +97,13 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
         }
 
         try {
+            Log.debug("Create app:", appName);
+            Log.debug("Bean of the app:", bean);
+            Log.debug("Should the app start:", shouldStart);
+
             doCreate(appName, bean, shouldStart);
         } catch (RuntimeException e) {
+            Log.debug("Clean up the app you tried to create");
             cleanUp(appName);
             throw new CreationException(e);
         }
@@ -118,10 +123,10 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                         //Fatal errors, exclude them.
                         && !throwable.getMessage().contains("Application")
                         && !throwable.getMessage().contains("Stack"),
-                (throwable, o) -> Log.warn(throwable.getMessage()))
+                (throwable, o) -> Log.warning(throwable.getMessage()))
             //Error when staging or starting. So don't throw error, only log error.
             .onErrorContinue(throwable -> throwable instanceof IllegalStateException,
-                    (throwable, o) -> Log.warn(throwable.getMessage()))
+                    (throwable, o) -> Log.warning(throwable.getMessage()))
             .block();
     }
 

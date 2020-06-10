@@ -1,37 +1,82 @@
 package cloud.foundry.cli.crosscutting.logging;
 
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import java.io.ByteArrayOutputStream;
-import java.io.FileDescriptor;
-import java.io.FileOutputStream;
-import java.io.PrintStream;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
+import java.util.logging.Handler;
+import java.util.logging.LogRecord;
 
 /**
  * Test for {@link Log}
  */
 public class LogTest {
+    private static class TestHandler extends Handler {
+        private List<LogRecord> records = new ArrayList<>();
 
-    private static ByteArrayOutputStream stdoutCache;
-    private static ByteArrayOutputStream stderrCache;
+        public List<LogRecord> getRecords() {
+            return records;
+        }
+
+        @Override
+        public void publish(LogRecord logRecord) {
+            records.add(logRecord);
+        }
+
+        @Override
+        public void flush() {
+
+        }
+
+        @Override
+        public void close() throws SecurityException {
+
+        }
+    }
+
+    private static final TestHandler handler = new TestHandler();
+    
+    String uniqueTestString = null;
 
     @BeforeAll
-    private static void setUp() {
-        stdoutCache = new ByteArrayOutputStream();
-        stderrCache = new ByteArrayOutputStream();
-
-        System.setOut(new PrintStream(stdoutCache));
-        System.setErr(new PrintStream(stderrCache));
+    private static void setUpAll() {
+        Log.addHandler(handler);
     }
 
     // no idea why, but running the tearDown after each test seems to break all but the first test
     // therefore, we run it once for now
     @AfterAll
-    private static void tearDown() {
-        System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out)));
-        System.setErr(new PrintStream(new FileOutputStream(FileDescriptor.err)));
+    private static void tearDownAll() {
+        Log.removeHandler(handler);
+    }
+
+    @BeforeEach
+    private void setUp() {
+        assert uniqueTestString == null;
+        uniqueTestString = makeRandomTestString();
+        
+        // make sure logger is reset to default loglevel
+        Log.setDefaultLogLevel();
+        
+        // check common preconditions
+        assertNoMessagesRecorded();
+    }
+
+    @AfterEach
+    private void tearDown() {
+        uniqueTestString = null;
+
+        // make sure logger is reset to default loglevel
+        Log.setDefaultLogLevel();
+
+        // check common postconditions
+        // all messages should've been consumed
+        assertNoMessagesRecorded();
     }
 
     private static String makeRandomTestString() {
@@ -48,73 +93,92 @@ public class LogTest {
                 .toString();
     }
 
-    @Test
-    public void testError() {
-        String uniqueTestString = makeRandomTestString();
+    private static LogRecord popLastRecord() {
+        List<LogRecord> records = handler.getRecords();
+        return records.remove(records.size() - 1);
+    }
 
-        Log.error(uniqueTestString);
-
-        // make sure everything in err has been written to cache
-        System.err.flush();
-
-        // cache in separate variable to allow for introspection during debugging
-        String stderr = stderrCache.toString();
-
-        assert stderr.contains("SEVERE: " + uniqueTestString);
+    private static void assertNoMessagesRecorded() {
+        assert handler.getRecords().size() == 0;
     }
 
     @Test
-    public void testWarn() {
-        String uniqueTestString = makeRandomTestString();
+    public void testError() {
+        Log.error(uniqueTestString);
 
-        Log.warn(uniqueTestString);
+        LogRecord lastRecord = popLastRecord();
+        assert lastRecord.getLevel() == Log.ERROR_LEVEL;
+        assert lastRecord.getMessage().contains(uniqueTestString);
+    }
 
-        // make sure everything in err has been written to cache
-        System.out.flush();
-        System.err.flush();
+    @Test
+    public void testWarning() {
+        Log.warning(uniqueTestString);
 
-        // cache in separate variable to allow for introspection during debugging
-        String stderr = stderrCache.toString();
-
-        assert stderr.contains("WARNING: " + uniqueTestString);
+        LogRecord lastRecord = popLastRecord();
+        assert lastRecord.getLevel() == Log.WARNING_LEVEL;
+        assert lastRecord.getMessage().contains(uniqueTestString);
     }
 
     @Test
     public void testInfo() {
-        String uniqueTestString = makeRandomTestString();
-
         Log.info(uniqueTestString);
 
-        // make sure everything in err has been written to cache
-        System.out.flush();
-        System.err.flush();
+        LogRecord lastRecord = popLastRecord();
+        assert lastRecord.getLevel() == Log.INFO_LEVEL;
+        assert lastRecord.getMessage().contains(uniqueTestString);
+    }
 
-        // cache in separate variable to allow for introspection during debugging
-        String stderr = stderrCache.toString();
+    @Test
+    public void testVerbose() {
+        Log.verbose(uniqueTestString);
 
-        assert stderr.contains("INFO: " + uniqueTestString);
+        // verbose messages should not be visible by default
+        assertNoMessagesRecorded();
+
+        // but they should be visible in verbose mode
+        Log.setVerboseLogLevel();
+
+        Log.verbose(uniqueTestString);
+
+        LogRecord lastRecord = popLastRecord();
+        assert lastRecord.getLevel() == Log.VERBOSE_LEVEL;
+        assert lastRecord.getMessage().contains(uniqueTestString);
+    }
+
+    @Test
+    public void testDebug() {
+        Log.debug(uniqueTestString);
+
+        // debug messages should not be visible by default
+        assertNoMessagesRecorded();
+
+        // but they should be visible in verbose mode
+        Log.setDebugLogLevel();
+
+        Log.debug(uniqueTestString);
+
+        LogRecord lastRecord = popLastRecord();
+        assert lastRecord.getLevel() == Log.DEBUG_LEVEL;
+        assert lastRecord.getMessage().contains(uniqueTestString);
     }
 
     @Test
     public void testException() {
-        String uniqueTestString = makeRandomTestString();
+        Throwable exception = null;
 
         // generate exception
         try {
             int i = 1 / 0;
         } catch (ArithmeticException e) {
+            exception = e;
             Log.exception(e, uniqueTestString);
         }
 
-        // make sure everything in err has been written to cache
-        System.out.flush();
-        System.err.flush();
-
-        // cache in separate variable to allow for introspection during debugging
-        String stderr = stderrCache.toString();
-
-        assert stderr.contains("SEVERE: " + uniqueTestString);
-        assert stderr.contains("java.lang.ArithmeticException: / by zero");
+        LogRecord lastRecord = popLastRecord();
+        assert lastRecord.getLevel() == Log.ERROR_LEVEL;
+        assert lastRecord.getMessage().contains(uniqueTestString);
+        assert lastRecord.getThrown() == exception;
     }
 
 }
