@@ -26,6 +26,8 @@ import java.util.concurrent.Callable;
                 DiffController.DiffApplicationCommand.class})
 public class DiffController implements Callable<Integer> {
 
+    private static final String NO_DIFFERENCES = "There are no differences.";
+
     @Override
     public Integer call() {
         usage(this, System.out);
@@ -57,7 +59,7 @@ public class DiffController implements Callable<Integer> {
             String output = diffLogic.createDiffOutput(specBeanLive, specBeanDesired);
 
             if (output.isEmpty()) {
-                System.out.println("There are no differences.");
+                System.out.println(NO_DIFFERENCES);
             } else {
                 System.out.println(output);
             }
