@@ -1,0 +1,29 @@
+apiVersion: 1.0
+target:
+  org: somOrg
+  space: someSpace
+  endpoint: someEndpoint
+spec:
+  spaceDevelopers:
+    - dev1
+    - dev2
+  services:
+    sql-service-name:
+      service: sql-service
+      plan: unsecure
+    web-service-name:
+      service: web-service
+      plan: unsecure
+  apps:
+    app1:
+      path: some/path
+      manifest:
+        memory: 2048
+        environmentVariables:
+          TEST: somval
+          PROD: someotherval
+        disk: 2048
+    app2:
+      path: some/path
+      manifest:
+        instances: 1

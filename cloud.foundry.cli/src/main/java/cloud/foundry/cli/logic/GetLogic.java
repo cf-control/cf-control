@@ -55,7 +55,7 @@ public class GetLogic extends AbstractOperations<DefaultCloudFoundryOperations> 
         // start async querying of config data from the cloud foundry instance
         Log.debug("Start async querying of apps, services and space developers...");
         Flux.merge(apiVersion.doOnSuccess(configBean::setApiVersion),
-                spaceDevelopers.doOnSuccess(s -> specBean.setSpaceDevelopers(s)),
+                spaceDevelopers.doOnSuccess(specBean::setSpaceDevelopers),
                 services.doOnSuccess(specBean::setServices),
                 apps.doOnSuccess(specBean::setApps))
             .blockLast();
@@ -78,30 +78,6 @@ public class GetLogic extends AbstractOperations<DefaultCloudFoundryOperations> 
 
         return cfClientInfo.get(infoRequest).map(GetInfoResponse::getApiVersion);
     }
-
-    /**
-     * Determines the Spec-Node configuration-information from a cloud foundry instance.
-     *
-     * @return SpecBean
-     */
-    private SpecBean determineSpec() {
-        SpecBean spec = new SpecBean();
-
-        SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cloudFoundryOperations);
-        Mono<List<String>> spaceDevelopers = spaceDevelopersOperations.getAll();
-        spec.setSpaceDevelopers(spaceDevelopers.block());
-
-        ServicesOperations servicesOperations = new ServicesOperations(cloudFoundryOperations);
-        Mono<Map<String, ServiceBean>> services = servicesOperations.getAll();
-        spec.setServices(services.block());
-
-        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cloudFoundryOperations);
-        Mono<Map<String, ApplicationBean>> applications = applicationsOperations.getAll();
-        spec.setApps(applications.block());
-
-        return spec;
-    }
-
 
     /**
      * Determines the Target-Node configuration-information from a cloud foundry instance.

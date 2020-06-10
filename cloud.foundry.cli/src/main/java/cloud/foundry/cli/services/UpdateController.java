@@ -43,13 +43,13 @@ public class UpdateController implements Callable<Integer> {
         LoginCommandOptions loginOptions;
 
         @Mixin
-        CreateControllerCommandOptions commandOptions;
+        YamlCommandOptions yamlCommandOptions;
 
         @Override
         public Integer call() throws Exception {
             Log.info("Removing space developers..." );
 
-            SpaceDevelopersBean spaceDevelopersBean = YamlMapper.loadBean(commandOptions.getYamlFilePath(),
+            SpaceDevelopersBean spaceDevelopersBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(),
                 SpaceDevelopersBean.class);
 
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
@@ -69,11 +69,11 @@ public class UpdateController implements Callable<Integer> {
         LoginCommandOptions loginOptions;
 
         @Mixin
-        CreateControllerCommandOptions commandOptions;
+        YamlCommandOptions yamlCommandOptions;
 
         @Override
         public Integer call() throws Exception {
-            SpecBean specBean = specBean = YamlMapper.loadBean(commandOptions.getYamlFilePath(), SpecBean.class);
+            SpecBean specBean = specBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
             Map<String, ServiceBean> serviceBeans = specBean.getServices();
 
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
@@ -95,11 +95,11 @@ public class UpdateController implements Callable<Integer> {
         LoginCommandOptions loginOptions;
 
         @Mixin
-        CreateControllerCommandOptions commandOptions;
+        YamlCommandOptions yamlCommandOptions;
 
         @Override
         public Integer call() throws Exception {
-            SpecBean specBean = specBean = YamlMapper.loadBean(commandOptions.getYamlFilePath(), SpecBean.class);
+            SpecBean specBean = specBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
             Map<String, ServiceBean> serviceBeans = specBean.getServices();
 
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
@@ -128,7 +128,7 @@ public class UpdateController implements Callable<Integer> {
         LoginCommandOptions loginOptions;
 
         @Mixin
-        CreateControllerCommandOptions commandOptions;
+        YamlCommandOptions commandOptions;
 
         @Override
         public Integer call() throws Exception {

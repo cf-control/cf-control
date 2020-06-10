@@ -23,7 +23,7 @@ public class SpaceDevelopersBean implements Bean {
     public void setSpaceDevelopers(List<String> spaceDevelopers) {
         this.spaceDevelopers = spaceDevelopers;
     }
-
+  
     @Override
     public String toString() {
         return "SpaceDevelopersBean{" +
