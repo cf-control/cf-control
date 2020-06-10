@@ -41,6 +41,7 @@ Then you can run the __cf-control.jar__ by using the command line tool like:
 ```
   create          Create a new app, service or add a new space developer.
   get             Get the current configuration of your cf instance.
+  diff            Print the differences between the given yaml file and the configuration of your cf instance.
 ```
   
 ##### create [SUBCOMMAND]
@@ -55,7 +56,12 @@ Then you can run the __cf-control.jar__ by using the command line tool like:
    services          List all services in the target space.
    space-developers  List all space developers in the target space.
    applications      List all applications in the target space.
-   all               show all information in the target space
+   all               Show all information in the target space.
+   ```       
+##### diff [SUBCOMMAND]
+   ```
+   applications      Print the differences between the apps given in the yaml file and
+                     the configuration of the apps of your cf instance.
    ```       
         
 ##### [PARAMS]
