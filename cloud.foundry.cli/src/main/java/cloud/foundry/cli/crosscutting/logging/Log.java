@@ -57,10 +57,18 @@ public class Log {
         }
     }
 
+    /**
+     * Add a handler to the internal logger.
+     * @param handler handler to add
+     */
     public static void addHandler(Handler handler) {
         logger.addHandler(handler);
     }
 
+    /**
+     * Remove a handler from the internal logger.
+     * @param handler handler to remove
+     */
     public static void removeHandler(Handler handler) {
         logger.removeHandler(handler);
     }
