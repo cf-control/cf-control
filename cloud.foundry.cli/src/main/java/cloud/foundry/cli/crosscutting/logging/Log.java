@@ -45,7 +45,7 @@ public class Log {
         // by default, we don't want to log debug messages
         // however, the user can opt-in to them by setting the environment variable $DEBUG
         if (System.getenv(DEBUG_ENV_VAR_NAME) != null) {
-            setLogLevel(DEBUG_LEVEL);
+            setDebugLogLevel();
         }
     }
 
