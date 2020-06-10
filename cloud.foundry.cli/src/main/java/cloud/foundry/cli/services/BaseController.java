@@ -23,7 +23,7 @@ import java.util.concurrent.Callable;
         subcommands = {
         CreateController.class,
         GetController.class,
-        DiffController.class})
+        DiffController.class,
         UpdateController.class})
 public class BaseController implements Callable<Integer> {
 
