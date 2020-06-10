@@ -103,6 +103,20 @@ public class Log {
     }
 
     /**
+     * Configure logger to display verbose messages, too.
+     */
+    public static void setVerboseLogLevel() {
+        setLogLevel(VERBOSE_LEVEL);
+    }
+
+    /**
+     * Configure logger to display all messages, including debug and verbose messages.
+     */
+    public static void setDebugLogLevel() {
+        setLogLevel(DEBUG_LEVEL);
+    }
+
+    /**
      * Log a debug message. These are typically not displayed outside a development environment.
      * @param arg0 mandatory log argument
      * @param args optional additional arguments
