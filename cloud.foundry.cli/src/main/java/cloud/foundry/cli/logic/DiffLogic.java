@@ -14,21 +14,23 @@ import cloud.foundry.cli.logic.diff.output.DiffOutput;
  */
 public class DiffLogic {
 
+    private static final String BEANS_DONT_MATCH_ERROR = "Bean types don't match.";
+
     /**
      * Compares the two given configurations and creates a tree composed of @DiffNode objects.
      * @param liveConfig the configuration that is currently on the live system
      * @param desiredConfig the configuration state that the live system should change to
      * @return @DiffNode object which is the root of the tree
-     * @throws DiffException when liveConfig or desiredConfig is null,
-     * when the two beans don't have the same type
-     * or in case of any errors during the diff procedure
+     * @throws NullPointerException when liveConfig or desiredConfig is null
+     * @throws IllegalArgumentException when the two beans don't have the same type
+     * @throws DiffException in case of any errors during the diff procedure
      */
     public DiffNode createDiffTree(Bean liveConfig, Bean desiredConfig) throws DiffException {
-        try {
-            checkNotNull(liveConfig);
-            checkNotNull(desiredConfig);
-            checkArgument(liveConfig.getClass() == desiredConfig.getClass(), "Bean types don't match.");
+        checkNotNull(liveConfig);
+        checkNotNull(desiredConfig);
+        checkArgument(liveConfig.getClass() == desiredConfig.getClass(), BEANS_DONT_MATCH_ERROR);
 
+        try {
             return doCreateDiffTree(liveConfig, desiredConfig);
         } catch (Exception e) {
             throw new DiffException(e.getMessage(), e);
@@ -45,16 +47,16 @@ public class DiffLogic {
      * @param liveConfig the configuration that is currently on the live system
      * @param desiredConfig the configuration state that the live system should change to
      * @return @DiffNode object which is the root of the tree
-     * @throws DiffException when liveConfig or desiredConfig is null,
-     * when the two beans don't have the same type
-     * or in case of any errors during the diff procedure
+     * @throws NullPointerException when liveConfig or desiredConfig is null
+     * @throws IllegalArgumentException when the two beans don't have the same type
+     * @throws DiffException in case of any errors during the diff procedure
      */
     public String createDiffOutput(Bean liveConfig, Bean desiredConfig) throws DiffException {
-        try {
-            checkNotNull(liveConfig);
-            checkNotNull(desiredConfig);
-            checkArgument(liveConfig.getClass() == desiredConfig.getClass(), "Bean types don't match.");
+        checkNotNull(liveConfig);
+        checkNotNull(desiredConfig);
+        checkArgument(liveConfig.getClass() == desiredConfig.getClass(), BEANS_DONT_MATCH_ERROR);
 
+        try {
             return doCreateDiffOutput(liveConfig, desiredConfig);
         } catch (Exception e) {
             throw new DiffException(e.getMessage(), e);
