@@ -36,4 +36,13 @@ public class TargetBean implements Bean {
     public void setSpace(String space) {
         this.space = space;
     }
+
+    @Override
+    public String toString() {
+        return "TargetBean{" +
+                "endpoint='" + endpoint + '\'' +
+                ", org='" + org + '\'' +
+                ", space='" + space + '\'' +
+                '}';
+    }
 }

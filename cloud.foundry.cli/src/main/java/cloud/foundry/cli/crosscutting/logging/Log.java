@@ -2,6 +2,7 @@ package cloud.foundry.cli.crosscutting.logging;
 
 import java.util.Arrays;
 import java.util.Locale;
+import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -17,6 +18,16 @@ public class Log {
 
     // the name of the environment variable that needs to be set to turn on the debug messages
     private static final String DEBUG_ENV_VAR_NAME = "DEBUG";
+    private static final String VERBOSE_ENV_VAR_NAME = "VERBOSE";
+
+    public static final Level ERROR_LEVEL = Level.SEVERE;
+    public static final Level WARNING_LEVEL = Level.WARNING;
+    public static final Level INFO_LEVEL = Level.INFO;
+    public static final Level VERBOSE_LEVEL = Level.FINE;
+    public static final Level DEBUG_LEVEL = Level.FINER;
+
+    // by default, we only want to log messages of levels info and greater
+    public static final Level DEFAULT_LEVEL = INFO_LEVEL;
 
     /**
      * The name of the CF-Control logger.
@@ -30,13 +41,36 @@ public class Log {
 
         logger = java.util.logging.Logger.getLogger(LOGGER_NAME);
 
+        // set default log level
+        setDefaultLogLevel();
+
+        // by default, we don't want to log verbose messages
+        // however, the user can opt-in to them by setting the environment variable $VERBOSE
+        if (System.getenv(VERBOSE_ENV_VAR_NAME) != null) {
+            setVerboseLogLevel();
+        }
+
         // by default, we don't want to log debug messages
         // however, the user can opt-in to them by setting the environment variable $DEBUG
         if (System.getenv(DEBUG_ENV_VAR_NAME) != null) {
-            logger.setLevel(Level.FINE);
-        } else {
-            logger.setLevel(Level.INFO);
+            setDebugLogLevel();
         }
+    }
+
+    /**
+     * Add a handler to the internal logger.
+     * @param handler handler to add
+     */
+    public static void addHandler(Handler handler) {
+        logger.addHandler(handler);
+    }
+
+    /**
+     * Remove a handler from the internal logger.
+     * @param handler handler to remove
+     */
+    public static void removeHandler(Handler handler) {
+        logger.removeHandler(handler);
     }
 
     /**
@@ -86,12 +120,42 @@ public class Log {
     }
 
     /**
+     * Configure logger to default verbosity.
+     */
+    public static void setDefaultLogLevel() {
+        setLogLevel(DEFAULT_LEVEL);
+    }
+
+    /**
+     * Configure logger to display verbose messages, too.
+     */
+    public static void setVerboseLogLevel() {
+        setLogLevel(VERBOSE_LEVEL);
+    }
+
+    /**
+     * Configure logger to display all messages, including debug and verbose messages.
+     */
+    public static void setDebugLogLevel() {
+        setLogLevel(DEBUG_LEVEL);
+    }
+
+    /**
      * Log a debug message. These are typically not displayed outside a development environment.
      * @param arg0 mandatory log argument
      * @param args optional additional arguments
      */
     public static void debug(Object arg0, Object... args) {
-        Log.log(Level.FINE, arg0, args);
+        Log.log(DEBUG_LEVEL, arg0, args);
+    }
+
+    /**
+     * Log a verbose info message.
+     * @param arg0 mandatory log argument
+     * @param args optional additional arguments
+     */
+    public static void verbose(Object arg0, Object... args) {
+        Log.log(VERBOSE_LEVEL, arg0, args);
     }
 
     /**
@@ -101,7 +165,7 @@ public class Log {
      * @param args optional additional arguments
      */
     public static void info(Object arg0,Object... args) {
-        Log.log(Level.INFO, arg0, args);
+        Log.log(INFO_LEVEL, arg0, args);
     }
 
     /**
@@ -109,8 +173,8 @@ public class Log {
      * @param arg0 mandatory log argument
      * @param args optional additional arguments
      */
-    public static void warn(Object arg0, Object... args) {
-        Log.log(Level.WARNING, arg0, args);
+    public static void warning(Object arg0, Object... args) {
+        Log.log(WARNING_LEVEL, arg0, args);
     }
 
     /**
@@ -121,7 +185,7 @@ public class Log {
      * @param args optional additional arguments
      */
     public static void error(Object arg0, Object... args) {
-        Log.log(Level.SEVERE, arg0, args);
+        Log.log(ERROR_LEVEL, arg0, args);
     }
 
     /**
@@ -134,6 +198,6 @@ public class Log {
      */
     public static void exception(Throwable thrown, Object arg0, Object... args) {
         String message = buildString(arg0, args);
-        logger.log(Level.SEVERE, message, thrown);
+        logger.log(ERROR_LEVEL, message, thrown);
     }
 }

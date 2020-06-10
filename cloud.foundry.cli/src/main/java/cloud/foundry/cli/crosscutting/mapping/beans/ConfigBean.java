@@ -36,4 +36,13 @@ public class ConfigBean implements Bean {
     public void setSpec(SpecBean spec) {
         this.spec = spec;
     }
+
+    @Override
+    public String toString() {
+        return "ConfigBean{" +
+                "apiVersion='" + apiVersion + '\'' +
+                ", target=" + String.valueOf(target) +
+                ", spec=" + String.valueOf(spec) +
+                '}';
+    }
 }

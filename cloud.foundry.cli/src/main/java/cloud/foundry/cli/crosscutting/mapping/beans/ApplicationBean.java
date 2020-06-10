@@ -34,4 +34,11 @@ public class ApplicationBean implements Bean {
     public ApplicationBean() {
     }
 
+    @Override
+    public String toString() {
+        return "ApplicationBean{" +
+                "manifest=" + String.valueOf(manifest) +
+                ", path='" + path + '\'' +
+                '}';
+    }
 }

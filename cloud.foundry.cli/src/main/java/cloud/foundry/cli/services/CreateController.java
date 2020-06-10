@@ -49,7 +49,8 @@ public class CreateController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            SpaceDevelopersBean spaceDevelopersBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(),
+            Log.info("Assigning space-developer(s)...");
+            SpaceDevelopersBean spaceDevelopersBean = YamlMapper.loadBean(commandOptions.getYamlFilePath(),
                     SpaceDevelopersBean.class);
 
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
@@ -57,6 +58,9 @@ public class CreateController implements Callable<Integer> {
 
             for (String username : spaceDevelopersBean.getSpaceDevelopers()) {
                 spaceDevelopersOperations.assignSpaceDeveloper(username);
+                Log.info("Assigned new SpaceDeveloper:", username,
+                        "in org:", cfOperations.getOrganization(),
+                        "/ to the space:", cfOperations.getSpace());
             }
 
             return 0;
@@ -74,7 +78,9 @@ public class CreateController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            SpecBean specBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
+            Log.info("Creating service(s)...");
+            SpecBean specBean = YamlMapper.loadBean(commandOptions.getYamlFilePath(), SpecBean.class);
+
             Map<String, ServiceBean> serviceBeans = specBean.getServices();
 
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
@@ -84,6 +90,7 @@ public class CreateController implements Callable<Integer> {
                 String serviceName = serviceEntry.getKey();
                 ServiceBean serviceBean = serviceEntry.getValue();
                 servicesOperations.create(serviceName, serviceBean);
+                Log.info("Service created:" , serviceName);
             }
 
             return 0;
@@ -101,7 +108,9 @@ public class CreateController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            SpecBean specBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
+            Log.info("Creating application(s)...");
+            SpecBean specBean = YamlMapper.loadBean(commandOptions.getYamlFilePath(), SpecBean.class);
+
             Map<String, ApplicationBean> applicationBeans = specBean.getApps();
 
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
