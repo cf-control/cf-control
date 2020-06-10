@@ -123,10 +123,10 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                         //Fatal errors, exclude them.
                         && !throwable.getMessage().contains("Application")
                         && !throwable.getMessage().contains("Stack"),
-                (throwable, o) -> Log.warn(throwable.getMessage()))
+                (throwable, o) -> Log.warning(throwable.getMessage()))
             //Error when staging or starting. So don't throw error, only log error.
             .onErrorContinue(throwable -> throwable instanceof IllegalStateException,
-                    (throwable, o) -> Log.warn(throwable.getMessage()))
+                    (throwable, o) -> Log.warning(throwable.getMessage()))
             .block();
     }
 

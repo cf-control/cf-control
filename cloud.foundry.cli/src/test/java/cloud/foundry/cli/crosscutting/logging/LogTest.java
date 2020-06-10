@@ -112,11 +112,11 @@ public class LogTest {
     }
 
     @Test
-    public void testWarn() {
-        Log.warn(uniqueTestString);
+    public void testWarning() {
+        Log.warning(uniqueTestString);
 
         LogRecord lastRecord = popLastRecord();
-        assert lastRecord.getLevel() == Log.WARN_LEVEL;
+        assert lastRecord.getLevel() == Log.WARNING_LEVEL;
         assert lastRecord.getMessage().contains(uniqueTestString);
     }
 

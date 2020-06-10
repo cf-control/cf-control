@@ -21,7 +21,7 @@ public class Log {
     private static final String VERBOSE_ENV_VAR_NAME = "VERBOSE";
 
     public static final Level ERROR_LEVEL = Level.SEVERE;
-    public static final Level WARN_LEVEL = Level.WARNING;
+    public static final Level WARNING_LEVEL = Level.WARNING;
     public static final Level INFO_LEVEL = Level.INFO;
     public static final Level VERBOSE_LEVEL = Level.FINE;
     public static final Level DEBUG_LEVEL = Level.FINER;
@@ -173,8 +173,8 @@ public class Log {
      * @param arg0 mandatory log argument
      * @param args optional additional arguments
      */
-    public static void warn(Object arg0, Object... args) {
-        Log.log(WARN_LEVEL, arg0, args);
+    public static void warning(Object arg0, Object... args) {
+        Log.log(WARNING_LEVEL, arg0, args);
     }
 
     /**
