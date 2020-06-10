@@ -18,6 +18,15 @@ public class Log {
     // the name of the environment variable that needs to be set to turn on the debug messages
     private static final String DEBUG_ENV_VAR_NAME = "DEBUG";
 
+    private static final Level ERROR_LEVEL = Level.SEVERE;
+    private static final Level WARN_LEVEL = Level.WARNING;
+    private static final Level INFO_LEVEL = Level.INFO;
+    private static final Level VERBOSE_LEVEL = Level.FINE;
+    private static final Level DEBUG_LEVEL = Level.FINER;
+
+    // by default, we only want to log messages of levels info and greater
+    private static final Level DEFAULT_LEVEL = INFO_LEVEL;
+
     /**
      * The name of the CF-Control logger.
      */
@@ -91,7 +100,7 @@ public class Log {
      * @param args optional additional arguments
      */
     public static void debug(Object arg0, Object... args) {
-        Log.log(Level.FINER, arg0, args);
+        Log.log(DEBUG_LEVEL, arg0, args);
     }
 
     /**
@@ -100,7 +109,7 @@ public class Log {
      * @param args optional additional arguments
      */
     public static void verbose(Object arg0, Object... args) {
-        Log.log(Level.FINE, arg0, args);
+        Log.log(VERBOSE_LEVEL, arg0, args);
     }
 
     /**
@@ -110,7 +119,7 @@ public class Log {
      * @param args optional additional arguments
      */
     public static void info(Object arg0,Object... args) {
-        Log.log(Level.INFO, arg0, args);
+        Log.log(INFO_LEVEL, arg0, args);
     }
 
     /**
@@ -119,7 +128,7 @@ public class Log {
      * @param args optional additional arguments
      */
     public static void warn(Object arg0, Object... args) {
-        Log.log(Level.WARNING, arg0, args);
+        Log.log(WARN_LEVEL, arg0, args);
     }
 
     /**
@@ -130,7 +139,7 @@ public class Log {
      * @param args optional additional arguments
      */
     public static void error(Object arg0, Object... args) {
-        Log.log(Level.SEVERE, arg0, args);
+        Log.log(ERROR_LEVEL, arg0, args);
     }
 
     /**
@@ -143,6 +152,6 @@ public class Log {
      */
     public static void exception(Throwable thrown, Object arg0, Object... args) {
         String message = buildString(arg0, args);
-        logger.log(Level.SEVERE, message, thrown);
+        logger.log(ERROR_LEVEL, message, thrown);
     }
 }
