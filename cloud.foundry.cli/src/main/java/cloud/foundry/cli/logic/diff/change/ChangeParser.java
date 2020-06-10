@@ -59,7 +59,7 @@ public class ChangeParser {
                     "",
                     extractPathFrom(change));
         }
-        Log.info("Change type " + change.getClass() + " is not supported for parsing. Ignoring it.");
+        Log.debug("Change type " + change.getClass() + " is not supported for parsing. Ignoring it.");
         return null;
     }
 
@@ -124,7 +124,7 @@ public class ChangeParser {
             return new CfContainerValueChanged(((ValueRemoved) elementChange).getRemovedValue().toString(),
                     ChangeType.REMOVED);
         }
-        Log.warn("List change type not supported: " + elementChange.getClass());
+        Log.debug("List change type not supported: " + elementChange.getClass());
         return null;
     }
 
