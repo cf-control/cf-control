@@ -15,10 +15,16 @@ public class CfObjectValueChanged extends CfChange {
     private String valueBefore;
     private String valueAfter;
 
+    /**
+     * @return the value the object field before the change
+     */
     public String getValueBefore() {
         return valueBefore;
     }
 
+    /**
+     * @return the value the object field after the change
+     */
     public String getValueAfter() {
         return valueAfter;
     }

@@ -36,14 +36,24 @@ public class DiffNode {
         this.changes = new LinkedList<>();
     }
 
+    /**
+     * @return the direct parent of this node
+     */
     public DiffNode getParentNode() {
         return parentNode;
     }
 
+    /**
+     * set the direct parent for this node
+     * @param parentNode node that should be the parent
+     */
     private void setParentNode(DiffNode parentNode) {
         this.parentNode = parentNode;
     }
 
+    /**
+     * @return list of changes of that node
+     */
     public List<CfChange> getChanges() {
         return changes;
     }

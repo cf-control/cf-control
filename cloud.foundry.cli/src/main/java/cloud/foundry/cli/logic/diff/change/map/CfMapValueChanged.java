@@ -15,14 +15,26 @@ public class CfMapValueChanged {
     private String valueAfter;
     private ChangeType changeType;
 
+    /**
+     * @return key of the map entry
+     */
     public String getKey() { return key; }
 
+    /**
+     * @return value of the map entry before the change
+     */
     public String getValueBefore() {
         return valueBefore;
     }
 
+    /**
+     * @return value of the map entry after the change
+     */
     public String getValueAfter() { return valueAfter; }
 
+    /**
+     * @return the change type which can either be ChangeType.ADDED, ChangeType.REMOVED or ChangeType.CHANGED
+     */
     public ChangeType getChangeType() {
         return changeType;
     }

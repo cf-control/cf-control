@@ -15,10 +15,16 @@ public class CfContainerValueChanged {
     private String value;
     private ChangeType changeType;
 
+    /**
+     * @return the value was either removed or added, depending on the change type
+     */
     public String getValue() {
         return value;
     }
 
+    /**
+     * @return the change type which can either be ChangeType.ADDED or ChangeType.REMOVED
+     */
     public ChangeType getChangeType() {
         return changeType;
     }
