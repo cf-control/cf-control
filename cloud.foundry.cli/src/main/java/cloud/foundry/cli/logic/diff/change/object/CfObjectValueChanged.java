@@ -15,14 +15,6 @@ public class CfObjectValueChanged extends CfChange {
     private String valueBefore;
     private String valueAfter;
 
-    public String getValueBefore() {
-        return valueBefore;
-    }
-
-    public String getValueAfter() {
-        return valueAfter;
-    }
-
     /**
      * @param affectedObject the object that holds the changed scalar as a field
      * @param propertyName the field name of the scalar
@@ -43,5 +35,13 @@ public class CfObjectValueChanged extends CfChange {
 
         this.valueBefore = valueBefore;
         this.valueAfter = valueAfter;
+    }
+
+    public String getValueBefore() {
+        return valueBefore;
+    }
+
+    public String getValueAfter() {
+        return valueAfter;
     }
 }

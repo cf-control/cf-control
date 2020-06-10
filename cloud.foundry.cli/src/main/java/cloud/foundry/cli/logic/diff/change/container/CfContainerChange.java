@@ -19,13 +19,6 @@ public class CfContainerChange extends CfChange {
     private final List<CfContainerValueChanged> changedValues;
 
     /**
-     * @return all changed values of the container as unmodifiable list
-     */
-    public List<CfContainerValueChanged> getChangedValues() {
-        return Collections.unmodifiableList(changedValues);
-    }
-
-    /**
      * @param affectedObject the object that holds the changed container as a field
      * @param propertyName the field name of the container
      * @param path the field names of the object graph that lead to the container (with the compared object as root)
@@ -43,6 +36,13 @@ public class CfContainerChange extends CfChange {
         checkArgument(!changedValues.isEmpty(), "The changed values cannot be empty.");
 
         this.changedValues = new LinkedList<>(changedValues);
+    }
+
+    /**
+     * @return all changed values of the container as unmodifiable list
+     */
+    public List<CfContainerValueChanged> getChangedValues() {
+        return Collections.unmodifiableList(changedValues);
     }
 
     /**

@@ -15,14 +15,6 @@ public class CfContainerValueChanged {
     private String value;
     private ChangeType changeType;
 
-    public String getValue() {
-        return value;
-    }
-
-    public ChangeType getChangeType() {
-        return changeType;
-    }
-
     /**
      * @param value the value that changed
      * @param changeType whether the value was added or removed
@@ -36,5 +28,13 @@ public class CfContainerValueChanged {
 
         this.value = value;
         this.changeType = changeType;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public ChangeType getChangeType() {
+        return changeType;
     }
 }

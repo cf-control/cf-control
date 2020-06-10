@@ -19,13 +19,6 @@ public class CfMapChange extends CfChange {
     private final List<CfMapValueChanged> changedValues;
 
     /**
-     * @return all changed values of the map as unmodifiable list
-     */
-    public List<CfMapValueChanged> getChangedValues() {
-        return Collections.unmodifiableList(changedValues);
-    }
-
-    /**
      * @param affectedObject the object that holds the changed map as a field
      * @param propertyName the field name of the map
      * @param path the field names of the object graph that lead to the map (with the compared object as root)
@@ -43,6 +36,13 @@ public class CfMapChange extends CfChange {
         checkArgument(!changedValues.isEmpty(), "The changed values cannot be empty.");
 
         this.changedValues = new LinkedList<>(changedValues);
+    }
+
+    /**
+     * @return all changed values of the map as unmodifiable list
+     */
+    public List<CfMapValueChanged> getChangedValues() {
+        return Collections.unmodifiableList(changedValues);
     }
 
     /**

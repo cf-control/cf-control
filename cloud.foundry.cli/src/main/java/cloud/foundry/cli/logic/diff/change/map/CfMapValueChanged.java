@@ -15,18 +15,6 @@ public class CfMapValueChanged {
     private String valueAfter;
     private ChangeType changeType;
 
-    public String getKey() { return key; }
-
-    public String getValueBefore() {
-        return valueBefore;
-    }
-
-    public String getValueAfter() { return valueAfter; }
-
-    public ChangeType getChangeType() {
-        return changeType;
-    }
-
     /**
      * @param key the key of which the value changes
      * @param valueBefore the value before the change
@@ -43,5 +31,17 @@ public class CfMapValueChanged {
         this.valueBefore = valueBefore;
         this.valueAfter = valueAfter;
         this.changeType = changeType;
+    }
+
+    public String getKey() { return key; }
+
+    public String getValueBefore() {
+        return valueBefore;
+    }
+
+    public String getValueAfter() { return valueAfter; }
+
+    public ChangeType getChangeType() {
+        return changeType;
     }
 }
