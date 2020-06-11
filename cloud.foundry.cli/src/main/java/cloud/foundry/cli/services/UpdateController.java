@@ -8,14 +8,17 @@ import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 
 import cloud.foundry.cli.crosscutting.logging.Log;
+import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.SpaceDevelopersBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
+import cloud.foundry.cli.operations.ApplicationsOperations;
 import cloud.foundry.cli.operations.SpaceDevelopersOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
 import cloud.foundry.cli.crosscutting.mapping.YamlMapper;
 import cloud.foundry.cli.operations.ServicesOperations;
+import reactor.core.publisher.Flux;
 
 /**
  * This class realizes the functionality that is needed for the update commands.
@@ -23,14 +26,15 @@ import cloud.foundry.cli.operations.ServicesOperations;
  * instance such that it matches with a provided configuration file.
  */
 @Command(name = "update", header = "%n@|green Update-Controller|@", subcommands = {
-    UpdateController.RemoveSpaceDeveloperCommand.class,
-    UpdateController.UpdateServiceCommand.class,
-    UpdateController.RemoveServiceInstanceCommand.class,
-    UpdateController.UpdateApplicationCommand.class })
+        UpdateController.RemoveSpaceDeveloperCommand.class,
+        UpdateController.UpdateServiceCommand.class,
+        UpdateController.RemoveServiceInstanceCommand.class,
+        UpdateController.RemoveApplicationCommand.class,
+        UpdateController.UpdateApplicationCommand.class})
 public class UpdateController implements Callable<Integer> {
 
     @Override
-    public Integer call() throws Exception {
+    public Integer call() {
         // this code is executed if the user runs the create command without specifying
         // any sub-command
         throw new UnsupportedOperationException("no default operation implemented in UpdateController");
@@ -47,16 +51,16 @@ public class UpdateController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            Log.info("Removing space developers..." );
+            Log.info("Removing space developers...");
 
             SpaceDevelopersBean spaceDevelopersBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(),
-                SpaceDevelopersBean.class);
+                    SpaceDevelopersBean.class);
 
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
 
             spaceDevelopersOperations.removeSpaceDeveloper(spaceDevelopersBean.getSpaceDevelopers());
-            Log.info("Space Developers removed: " , String.valueOf(spaceDevelopersBean.getSpaceDevelopers()));
+            Log.info("Space Developers removed: ", String.valueOf(spaceDevelopersBean.getSpaceDevelopers()));
 
             return 0;
         }
@@ -73,7 +77,7 @@ public class UpdateController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            SpecBean specBean = specBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
+            SpecBean specBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
             Map<String, ServiceBean> serviceBeans = specBean.getServices();
 
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
@@ -84,6 +88,29 @@ public class UpdateController implements Callable<Integer> {
                 String serviceName = serviceEntry.getKey();
                 servicesOperations.removeServiceInstance(serviceName);
             }
+
+            return 0;
+        }
+    }
+
+    @Command(name = "remove-application-instance", description = "Removes an application instance.")
+    static class RemoveApplicationCommand implements Callable<Integer> {
+
+        @Mixin
+        LoginCommandOptions loginOptions;
+
+        @Mixin
+        YamlCommandOptions yamlCommandOptions;
+
+        @Override
+        public Integer call() throws Exception {
+            SpecBean specBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
+            Map<String, ApplicationBean> applicationBeans = specBean.getApps();
+
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+            ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
+            applicationBeans.keySet().forEach(applicationsOperations::removeApplicationInstance);
+
             return 0;
         }
     }
@@ -99,20 +126,20 @@ public class UpdateController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            SpecBean specBean = specBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
+            SpecBean specBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
             Map<String, ServiceBean> serviceBeans = specBean.getServices();
 
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
 
-            Log.info("Updating services..." );
+            Log.info("Updating services...");
             for (Entry<String, ServiceBean> serviceEntry : serviceBeans.entrySet()) {
                 String serviceName = serviceEntry.getKey();
                 ServiceBean serviceBean = serviceEntry.getValue();
 
                 // "currentName" is currently a placeholder until diff is implemented
                 servicesOperations.renameServiceInstance(serviceName, "currentName");
-                Log.info("Service name changed: " , serviceName);
+                Log.info("Service name changed: ", serviceName);
                 servicesOperations.updateServiceInstance(serviceName, serviceBean);
                 Log.info("Service Plan and Tags haven been updated of service:", serviceName);
             }
