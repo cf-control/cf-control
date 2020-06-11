@@ -22,7 +22,7 @@ public abstract class BeanChange {
 
     private void doGetAllChanges(DiffNode node, List<CfChange> list) {
         list.addAll(node.getChanges());
-        for (DiffNode child : node.getChildNodes().values()) {
+        for (DiffNode child : node.getChildNodes()) {
             doGetAllChanges(child, list);
         }
     }
