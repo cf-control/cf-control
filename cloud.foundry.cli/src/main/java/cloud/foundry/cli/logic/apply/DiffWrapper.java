@@ -4,7 +4,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.TargetBean;
 import cloud.foundry.cli.logic.diff.DiffNode;
 import cloud.foundry.cli.logic.diff.change.CfChange;
 import cloud.foundry.cli.logic.diff.change.container.CfContainerChange;
@@ -37,8 +39,12 @@ public class DiffWrapper {
 
     // ensure that the bean classes have fields with according names and types
     static {
+        checkFieldExists(ConfigBean.class, TARGET_FIELD_NAME, TargetBean.class);
         checkFieldExists(ConfigBean.class, SPEC_FIELD_NAME, SpecBean.class);
         checkMapExists(SpecBean.class, APPS_FIELD_NAME, String.class, ApplicationBean.class);
+        checkMapExists(SpecBean.class, SERVICES_FIELD_NAME, String.class, ServiceBean.class);
+        checkFieldExists(SpecBean.class, SPACE_DEVELOPERS_PROPERTY_NAME, List.class);
+        checkFieldExists(ConfigBean.class, API_VERSION_PROPERTY_NAME, String.class);
     }
 
     private final DiffNode rootNode;
