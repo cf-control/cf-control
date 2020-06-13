@@ -10,8 +10,10 @@ import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
 import cloud.foundry.cli.logic.DiffLogic;
 import cloud.foundry.cli.operations.ApplicationsOperations;
+import cloud.foundry.cli.operations.SpaceDevelopersOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
@@ -55,6 +57,41 @@ public class DiffController implements Callable<Integer> {
 
             SpecBean specBeanLive = new SpecBean();
             specBeanLive.setApps(appsLive);
+
+            DiffLogic diffLogic = new DiffLogic();
+            String output = diffLogic.createDiffOutput(specBeanLive, specBeanDesired);
+
+            if (output.isEmpty()) {
+                System.out.println(NO_DIFFERENCES);
+            } else {
+                System.out.println(output);
+            }
+
+            return 0;
+        }
+    }
+
+    @Command(name = "space-developers", description = "Print the differences between " +
+            "the space developers given in the yaml file and the space developers of your cf instance.")
+    static class DiffSpaceDevelopersCommand implements Callable<Integer> {
+
+        @Mixin
+        LoginCommandOptions loginOptions;
+
+        @Mixin
+        YamlCommandOptions yamlCommandOptions;
+
+        @Override
+        public Integer call() throws Exception {
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+            SpaceDevelopersOperations spaceDevOperations = new SpaceDevelopersOperations(cfOperations);
+
+            SpecBean specBeanDesired =
+                    YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
+
+            List<String> spaceDevs = spaceDevOperations.getAll().block();
+            SpecBean specBeanLive = new SpecBean();
+            specBeanLive.setSpaceDevelopers(spaceDevs);
 
             DiffLogic diffLogic = new DiffLogic();
             String output = diffLogic.createDiffOutput(specBeanLive, specBeanDesired);
