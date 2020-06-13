@@ -26,7 +26,8 @@ import java.util.concurrent.Callable;
                 " and the configuration of your cf instance.|@",
         mixinStandardHelpOptions = true,
         subcommands = {
-                DiffController.DiffApplicationCommand.class})
+                DiffController.DiffApplicationCommand.class,
+                DiffController.DiffSpaceDevelopersCommand.class})
 public class DiffController implements Callable<Integer> {
 
     private static final String NO_DIFFERENCES = "There are no differences.";
