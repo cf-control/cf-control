@@ -25,7 +25,7 @@ public class DiffLogic {
      * @throws IllegalArgumentException when the two beans don't have the same type
      * @throws DiffException in case of any errors during the diff procedure
      */
-    public DiffNode createDiffTree(Bean liveConfig, Bean desiredConfig) throws DiffException {
+    public DiffNode createDiffTree(Bean liveConfig, Bean desiredConfig) {
         checkNotNull(liveConfig);
         checkNotNull(desiredConfig);
         checkArgument(liveConfig.getClass() == desiredConfig.getClass(), BEANS_DONT_MATCH_ERROR);
@@ -51,7 +51,7 @@ public class DiffLogic {
      * @throws IllegalArgumentException when the two beans don't have the same type
      * @throws DiffException in case of any errors during the diff procedure
      */
-    public String createDiffOutput(Bean liveConfig, Bean desiredConfig) throws DiffException {
+    public String createDiffOutput(Bean liveConfig, Bean desiredConfig) {
         checkNotNull(liveConfig);
         checkNotNull(desiredConfig);
         checkArgument(liveConfig.getClass() == desiredConfig.getClass(), BEANS_DONT_MATCH_ERROR);
