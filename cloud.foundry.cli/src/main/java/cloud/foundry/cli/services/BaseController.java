@@ -25,6 +25,7 @@ import java.util.concurrent.Callable;
         CreateController.class,
         GetController.class,
         DiffController.class,
+        ApplyController.class,
         UpdateController.class})
 public class BaseController implements Callable<Integer> {
 
