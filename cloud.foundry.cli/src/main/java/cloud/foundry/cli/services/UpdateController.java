@@ -109,7 +109,7 @@ public class UpdateController implements Callable<Integer> {
 
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
-            applicationBeans.keySet().forEach(applicationsOperations::removeApplicationInstance);
+            applicationBeans.keySet().forEach(applicationsOperations::removeApplication);
 
             return 0;
         }
