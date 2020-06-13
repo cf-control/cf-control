@@ -74,7 +74,7 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
      *
      * @param applicationName applicationName Name of an application.
      */
-    public void removeApplicationInstance(String applicationName) {
+    public void removeApplication(String applicationName) {
         DeleteApplicationRequest request = DeleteApplicationRequest
                 .builder()
                 .name(applicationName)
