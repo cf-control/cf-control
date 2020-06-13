@@ -135,12 +135,12 @@ public class ChangeParser {
      */
     private static LinkedList<String> extractPathFrom(Change change) {
         String rootSymbol = "#";
-        String pathSeperatorSymbol = "/";
+        String pathSeparatorSymbol = "/";
         LinkedList<String> path = new LinkedList<>(Arrays.asList(change
                 .getAffectedGlobalId()
                 .toString()
                 .replace(rootSymbol, "")
-                .split(pathSeperatorSymbol)));
+                .split(pathSeparatorSymbol)));
         return path;
     }
 }
