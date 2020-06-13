@@ -101,15 +101,15 @@ public class DiffWrapper {
     }
 
     private Map<String, List<CfChange>> getAllChangesFromMapNode(DiffNode node) {
-        Map<String, List<CfChange>> serviceChanges = new HashMap<>();
+        Map<String, List<CfChange>> mapChanges = new HashMap<>();
 
         if (node != null) {
             for (DiffNode childNode : node.getChildNodes()) {
-                serviceChanges.put(childNode.getPropertyName(), getAllChanges(childNode));
+                mapChanges.put(childNode.getPropertyName(), getAllChanges(childNode));
             }
         }
 
-        return serviceChanges;
+        return mapChanges;
     }
 
     /**
