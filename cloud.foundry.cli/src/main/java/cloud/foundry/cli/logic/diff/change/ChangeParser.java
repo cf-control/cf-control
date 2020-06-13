@@ -67,8 +67,8 @@ public class ChangeParser {
         return new CfObjectValueChanged(change.getAffectedObject().get(),
                 change.getPropertyName(),
                 extractPathFrom(change),
-                change.getLeft() == null ? "" : change.getLeft().toString(),
-                change.getRight() == null ? "" : change.getRight().toString()
+                Objects.toString(change.getLeft(), null),
+                Objects.toString(change.getRight(), null)
                 );
     }
 

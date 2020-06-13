@@ -1,10 +1,11 @@
 package cloud.foundry.cli.logic.diff.change.object;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkArgument;
 
 import cloud.foundry.cli.logic.diff.change.CfChange;
 
 import java.util.List;
+import java.util.Objects;
 
 
 /**
@@ -44,8 +45,7 @@ public class CfObjectValueChanged extends CfChange {
                                 String valueBefore,
                                 String valueAfter) {
         super(affectedObject, propertyName, path);
-        checkNotNull(valueBefore);
-        checkNotNull(valueAfter);
+        checkArgument(!Objects.equals(valueAfter, valueBefore), "values may not be equal");
 
         this.valueBefore = valueBefore;
         this.valueAfter = valueAfter;
