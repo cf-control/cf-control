@@ -93,7 +93,7 @@ public class UpdateController implements Callable<Integer> {
         }
     }
 
-    @Command(name = "remove-application-instance", description = "Removes an application instance.")
+    @Command(name = "remove-application", description = "Removes an application.")
     static class RemoveApplicationCommand implements Callable<Integer> {
 
         @Mixin
