@@ -4,6 +4,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -262,7 +263,7 @@ public class ApplicationsOperationsTest {
     }
 
     @Test
-    public void testRemoveApplicationInstance() {
+    public void testRemoveApplication() {
         // given
         DefaultCloudFoundryOperations cfoMock = mock(DefaultCloudFoundryOperations.class);
         Applications applicationsMock = mock(Applications.class);
@@ -276,10 +277,25 @@ public class ApplicationsOperationsTest {
 
         // when
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfoMock);
-        applicationsOperations.removeApplicationInstance(SOME_APPLICATION);
+        applicationsOperations.removeApplication(SOME_APPLICATION);
 
         // then
         verify(applicationsMock, times(1)).delete(any(DeleteApplicationRequest.class));
+    }
+
+    @Test
+    public void testRemoveApplicationShouldNotThrowAnIllegalArgumentException() {
+        // given
+        DefaultCloudFoundryOperations cfoMock = mock(DefaultCloudFoundryOperations.class);
+        Applications applicationsMock = mock(Applications.class);
+
+        when(cfoMock.applications()).thenReturn(applicationsMock);
+        when(applicationsMock.delete(any())).thenThrow(IllegalArgumentException.class);
+
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfoMock);
+
+        // when -> then
+        assertDoesNotThrow(() -> applicationsOperations.removeApplication(SOME_APPLICATION));
     }
 
     /**

@@ -72,9 +72,9 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
     /**
      * Deletes a specific application associated with the name <code>applicationName</code>.
      *
-     * @param applicationName applicationInstanceName Name of an application instance.
+     * @param applicationName applicationName Name of an application.
      */
-    public void removeApplicationInstance(String applicationName) {
+    public void removeApplication(String applicationName) {
         DeleteApplicationRequest request = DeleteApplicationRequest
                 .builder()
                 .name(applicationName)
@@ -126,7 +126,7 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
             doCreate(appName, bean, shouldStart);
         } catch (RuntimeException e) {
             Log.debug("Clean up the app you tried to create");
-            cleanUp(appName);
+            removeApplication(appName);
             throw new CreationException(e);
         }
     }
@@ -150,21 +150,6 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                 .onErrorContinue(throwable -> throwable instanceof IllegalStateException,
                         (throwable, o) -> Log.warning(throwable.getMessage()))
                 .block();
-    }
-
-    private void cleanUp(String appName) {
-        // Could fail when app wasn't created, but that's ok, because we just wanted to delete it anyway.
-        try {
-            this.cloudFoundryOperations
-                    .applications()
-                    .delete(DeleteApplicationRequest
-                            .builder()
-                            .name(appName)
-                            .build())
-                    .block();
-        } catch (RuntimeException e) {
-            Log.exception(e, "Error on cleaning up.");
-        }
     }
 
     private ApplicationManifest buildApplicationManifest(String appName, ApplicationBean bean) {
