@@ -1,6 +1,8 @@
 package cloud.foundry.cli.logic;
 
+import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
+import cloud.foundry.cli.logic.apply.ApplyResolver;
 import cloud.foundry.cli.logic.apply.DiffWrapper;
 import cloud.foundry.cli.logic.diff.DiffNode;
 import cloud.foundry.cli.logic.diff.change.CfChange;
@@ -31,9 +33,11 @@ public class ApplyLogic {
 
         for (Entry<String, List<CfChange>> applicationChangesEntry : allApplicationChanges.entrySet()) {
             String applicationName = applicationChangesEntry.getKey();
+            Log.debug("Start applying the changes to the app:", applicationName);
             List<CfChange> applicationChanges = applicationChangesEntry.getValue();
-
             //TODO apply the changes to the live system using a visitor
+            ApplyResolver applyResolver = new ApplyResolver();
+            applyResolver.applyOnAppChanges(applicationChanges);
         }
     }
 
