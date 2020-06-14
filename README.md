@@ -43,6 +43,16 @@ Then you can run the __cf-control.jar__ by using the command line tool like:
   ```java -jar cf-control.jar [COMMAND] [SUBCOMMAND] [PARAMS]```
 
 
+## Logging
+
+The application logs its activities using multiple loglevels. At the moment, the default level is `INFO`. Verbosity can be increased to *verbose* or even *debug* logging by setting the `VERBOSE` respectively `DEBUG` environment variables to any value.
+
+The loglevel is always configured to the most verbose value the user specified. For instance, if both *verbose* and *debug* logging are enabled, the application will use the *debug* level.
+
+
+## Available commands
+
+
 ##### [COMMAND]
 
 ```
