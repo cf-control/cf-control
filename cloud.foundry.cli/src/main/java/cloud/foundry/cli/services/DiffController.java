@@ -54,6 +54,8 @@ public class DiffController implements Callable<Integer> {
             ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
 
             SpecBean specBeanDesired = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
+            specBeanDesired.setSpaceDevelopers(null);
+            specBeanDesired.setApps(null);
             Map<String, ServiceBean> servicesLive = servicesOperations.getAll().block();
 
             SpecBean specBeanLive = new SpecBean();
@@ -88,6 +90,8 @@ public class DiffController implements Callable<Integer> {
             ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
 
             SpecBean specBeanDesired = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
+            specBeanDesired.setSpaceDevelopers(null);
+            specBeanDesired.setServices(null);
             Map<String, ApplicationBean> appsLive = applicationsOperations.getAll().block();
 
             SpecBean specBeanLive = new SpecBean();
