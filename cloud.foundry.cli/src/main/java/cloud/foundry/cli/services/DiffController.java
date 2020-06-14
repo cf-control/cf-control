@@ -89,6 +89,8 @@ public class DiffController implements Callable<Integer> {
 
             SpecBean specBeanDesired =
                     YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
+            specBeanDesired.setApps(null);
+            specBeanDesired.setServices(null);
 
             List<String> spaceDevs = spaceDevOperations.getAll().block();
             SpecBean specBeanLive = new SpecBean();
