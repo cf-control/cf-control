@@ -1,5 +1,6 @@
 package cloud.foundry.cli.logic.diff.change;
 
+import cloud.foundry.cli.crosscutting.exceptions.ApplyExcpetion;
 import cloud.foundry.cli.logic.apply.ApplyVisitor;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -59,5 +60,5 @@ public abstract class CfChange {
      * Ensuring that each change object accepts an apply visitor.
      * @param visitor
      */
-    public abstract void accept(ApplyVisitor visitor);
+    public abstract void accept(ApplyVisitor visitor) throws ApplyExcpetion;
 }

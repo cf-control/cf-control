@@ -1,5 +1,6 @@
 package cloud.foundry.cli.logic.diff.change.object;
 
+import cloud.foundry.cli.crosscutting.exceptions.ApplyExcpetion;
 import cloud.foundry.cli.logic.apply.ApplyVisitor;
 import cloud.foundry.cli.logic.diff.change.CfChange;
 
@@ -26,7 +27,7 @@ public class CfNewObject extends CfChange {
      * @param visitor
      */
     @Override
-    public void accept(ApplyVisitor visitor) {
+    public void accept(ApplyVisitor visitor) throws ApplyExcpetion {
         visitor.visitNewObject(this);
     }
 }
