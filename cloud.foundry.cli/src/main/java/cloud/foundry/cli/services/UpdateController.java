@@ -5,12 +5,15 @@ import static picocli.CommandLine.Mixin;
 
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Scanner;
 import java.util.concurrent.Callable;
 
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.beans.SpaceDevelopersBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
 import cloud.foundry.cli.operations.SpaceDevelopersOperations;
+import picocli.CommandLine.Option;
+
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
@@ -62,7 +65,7 @@ public class UpdateController implements Callable<Integer> {
         }
     }
 
-    @Command(name = "remove-service-instance", description = "Removes a service instance.")
+    @Command(name = "remove-service", description = "Removes a service instance.")
     static class RemoveServiceInstanceCommand implements Callable<Integer> {
 
         @Mixin
@@ -70,9 +73,33 @@ public class UpdateController implements Callable<Integer> {
 
         @Mixin
         YamlCommandOptions yamlCommandOptions;
+      
+        @Option(names = { "-f", "--force" }, required = false, description = "Force deletion without confirmation.")
+        Boolean force;
 
         @Override
         public Integer call() throws Exception {
+
+            if (force != null) {
+                doRemoveServiceInstance(yamlCommandOptions);
+
+            } else {
+                
+                System.out.println("Really delete the service y/n?");
+                String input = new Scanner(System.in).nextLine();
+                
+                if (input.equals("y") || input.equals("yes")) {
+                    doRemoveServiceInstance(yamlCommandOptions);
+                } else {
+                    System.out.println("Delete cancelled");
+                    return 0;
+                }
+            }
+            return 0;
+        }
+
+        private void doRemoveServiceInstance(YamlCommandOptions yamlCommandOptions) throws Exception {
+
             SpecBean specBean = specBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
             Map<String, ServiceBean> serviceBeans = specBean.getServices();
 
@@ -84,7 +111,6 @@ public class UpdateController implements Callable<Integer> {
                 String serviceName = serviceEntry.getKey();
                 servicesOperations.removeServiceInstance(serviceName);
             }
-            return 0;
         }
     }
 
