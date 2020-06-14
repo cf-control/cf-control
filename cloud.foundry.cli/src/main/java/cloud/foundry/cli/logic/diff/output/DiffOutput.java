@@ -25,8 +25,10 @@ import java.util.stream.Collectors;
 public class DiffOutput {
 
     private static final int DEFAULT_INDENTATION_INCREMENT = YamlMapper.INDENTATION;
+    private static final int BASE_INDENTATION = 1;
 
     private final int indentationIncrement;
+
 
     /**
      * Constructor with default indentation increment.
@@ -62,7 +64,7 @@ public class DiffOutput {
     }
 
     private int calculateIndentationFromDepth(int depth) {
-        return depth * indentationIncrement;
+        return BASE_INDENTATION + depth * indentationIncrement;
     }
 
     private void diffLines(List<String> lines, DiffNode node) {

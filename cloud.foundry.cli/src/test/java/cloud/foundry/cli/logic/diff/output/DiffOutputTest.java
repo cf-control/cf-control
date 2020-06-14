@@ -82,11 +82,11 @@ public class DiffOutputTest {
         String diffString = diffOutput.from(config);
 
         //then
-        assertThat(diffString, is(" mapName:\n" +
-                "+  key1: value1After\n" +
-                "-  key1: value1Before\n" +
-                "+  key2: value2\n" +
-                "-  key3: value3"));
+        assertThat(diffString, is("  mapName:\n" +
+                "+   key1: value1After\n" +
+                "-   key1: value1Before\n" +
+                "+   key2: value2\n" +
+                "-   key3: value3"));
     }
 
     @Test
@@ -104,9 +104,9 @@ public class DiffOutputTest {
         String diffString = diffOutput.from(config);
 
         //then
-        assertThat(diffString, is(" listName:\n" +
-                "+- value1\n" +
-                "-- value2"));
+        assertThat(diffString, is("  listName:\n" +
+                "+ - value1\n" +
+                "- - value2"));
     }
 
     @Test
@@ -124,8 +124,8 @@ public class DiffOutputTest {
         String diffString = diffOutput.from(config);
 
         //then
-        assertThat(diffString, is("+key: valueAfter\n" +
-                "-key: valueBefore"));
+        assertThat(diffString, is("+ key: valueAfter\n" +
+                "- key: valueBefore"));
     }
 
     @Test
@@ -146,8 +146,8 @@ public class DiffOutputTest {
         String diffString = diffOutput.from(config);
 
         //then
-        assertThat(diffString, is("+target:\n" +
-                "+  org: orgName"));
+        assertThat(diffString, is("+ target:\n" +
+                "+   org: orgName"));
     }
 
 
@@ -169,8 +169,8 @@ public class DiffOutputTest {
         String diffString = diffOutput.from(config);
 
         //then
-        assertThat(diffString, is("-target:\n" +
-                "-  org: orgName"));
+        assertThat(diffString, is("- target:\n" +
+                "-   org: orgName"));
     }
 
 
@@ -192,9 +192,9 @@ public class DiffOutputTest {
         String diffString = diffOutput.from(config);
 
         //then
-        assertThat(diffString, is(" target:\n" +
-                "+  org: orgNameAfter\n" +
-                "-  org: orgNameBefore"));
+        assertThat(diffString, is("  target:\n" +
+                "+   org: orgNameAfter\n" +
+                "-   org: orgNameBefore"));
     }
 
     @Test
@@ -216,8 +216,8 @@ public class DiffOutputTest {
         String diffString = diffOutput.from(config);
 
         //then
-        assertThat(diffString, is(" target:\n" +
-                "+    org: orgNameAfter\n" +
-                "-    org: orgNameBefore"));
+        assertThat(diffString, is("  target:\n" +
+                "+     org: orgNameAfter\n" +
+                "-     org: orgNameBefore"));
     }
 }
