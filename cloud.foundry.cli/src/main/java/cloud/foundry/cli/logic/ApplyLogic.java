@@ -1,8 +1,9 @@
 package cloud.foundry.cli.logic;
 
+import cloud.foundry.cli.crosscutting.exceptions.ApplyExcpetion;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
-import cloud.foundry.cli.logic.apply.ApplyResolver;
+import cloud.foundry.cli.logic.apply.AppApplyResolver;
 import cloud.foundry.cli.logic.apply.DiffWrapper;
 import cloud.foundry.cli.logic.diff.DiffNode;
 import cloud.foundry.cli.logic.diff.change.CfChange;
@@ -20,7 +21,7 @@ public class ApplyLogic {
         this.cfOperations = cfOperations;
     }
 
-    public void applyApplications(ConfigBean desiredConfig) {
+    public void applyApplications(ConfigBean desiredConfig) throws ApplyExcpetion {
         GetLogic getLogic = new GetLogic(cfOperations);
         ConfigBean liveConfig = getLogic.getAll();
 
@@ -36,8 +37,8 @@ public class ApplyLogic {
             Log.debug("Start applying the changes to the app:", applicationName);
             List<CfChange> applicationChanges = applicationChangesEntry.getValue();
             //TODO apply the changes to the live system using a visitor
-            ApplyResolver applyResolver = new ApplyResolver();
-            applyResolver.applyOnAppChanges(applicationChanges);
+            AppApplyResolver appApplyResolver = new AppApplyResolver(cfOperations, applicationName);
+            appApplyResolver.applyOnAppChanges(applicationChanges);
         }
     }
 
