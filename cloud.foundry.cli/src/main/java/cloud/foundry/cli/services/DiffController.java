@@ -4,6 +4,7 @@ import static picocli.CommandLine.usage;
 import static picocli.CommandLine.Command;
 import static picocli.CommandLine.Mixin;
 
+import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
 import cloud.foundry.cli.crosscutting.mapping.YamlMapper;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
@@ -84,18 +85,24 @@ public class DiffController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
+            Log.info("Diffing space-developer(s)...");
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             SpaceDevelopersOperations spaceDevOperations = new SpaceDevelopersOperations(cfOperations);
 
             SpecBean specBeanDesired =
                     YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
+            specBeanDesired.setApps(null);
+            specBeanDesired.setServices(null);
+            Log.debug("Space Devs Yaml File:", specBeanDesired);
 
             List<String> spaceDevs = spaceDevOperations.getAll().block();
             SpecBean specBeanLive = new SpecBean();
             specBeanLive.setSpaceDevelopers(spaceDevs);
+            Log.debug("Space Devs current config:", specBeanLive);
 
             DiffLogic diffLogic = new DiffLogic();
             String output = diffLogic.createDiffOutput(specBeanLive, specBeanDesired);
+            Log.debug("Diff string:", output);
 
             if (output.isEmpty()) {
                 System.out.println(NO_DIFFERENCES);
