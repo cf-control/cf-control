@@ -2,7 +2,7 @@ package cloud.foundry.cli.logic.diff.change.object;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import cloud.foundry.cli.logic.apply.ApplyVisitor;
+import cloud.foundry.cli.logic.apply.CfChangeVisitor;
 import cloud.foundry.cli.logic.diff.change.CfChange;
 
 import java.util.List;
@@ -57,7 +57,7 @@ public class CfObjectValueChanged extends CfChange {
      * @param visitor
      */
     @Override
-    public void accept(ApplyVisitor visitor) {
+    public void accept(CfChangeVisitor visitor) {
         visitor.visitObjectValueChanged(this);
     }
 }

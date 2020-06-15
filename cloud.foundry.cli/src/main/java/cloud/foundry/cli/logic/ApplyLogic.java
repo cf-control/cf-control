@@ -4,7 +4,7 @@ import cloud.foundry.cli.crosscutting.exceptions.ApplyExcpetion;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
-import cloud.foundry.cli.logic.apply.AppApplyResolver;
+import cloud.foundry.cli.logic.apply.ApplicationApplier;
 import cloud.foundry.cli.logic.apply.DiffWrapper;
 import cloud.foundry.cli.logic.diff.DiffNode;
 import cloud.foundry.cli.logic.diff.change.CfChange;
@@ -43,8 +43,7 @@ public class ApplyLogic {
             Log.debug("Start applying the changes to the app:", applicationName);
             List<CfChange> applicationChanges = applicationChangesEntry.getValue();
 
-            AppApplyResolver appApplyResolver = new AppApplyResolver(cfOperations, applicationName);
-            appApplyResolver.applyOnAppChanges(applicationChanges);
+            ApplicationApplier.apply(cfOperations, applicationName, applicationChanges);
         }
     }
 

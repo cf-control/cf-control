@@ -16,7 +16,7 @@ import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 
 import java.util.List;
 
-public class AppApplyResolver implements ApplyVisitor {
+public class ApplicationApplier implements CfChangeVisitor {
 
     private final DefaultCloudFoundryOperations cfOperations;
     private final String applicationName;

@@ -1,6 +1,6 @@
 package cloud.foundry.cli.logic.diff.change.object;
 
-import cloud.foundry.cli.logic.apply.ApplyVisitor;
+import cloud.foundry.cli.logic.apply.CfChangeVisitor;
 import cloud.foundry.cli.logic.diff.change.CfChange;
 
 import java.util.List;
@@ -26,7 +26,7 @@ public class CfRemovedObject extends CfChange {
      * @param visitor
      */
     @Override
-    public void accept(ApplyVisitor visitor) {
+    public void accept(CfChangeVisitor visitor) {
         visitor.visitRemovedObject(this);
     }
 
