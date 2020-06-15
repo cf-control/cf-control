@@ -21,7 +21,7 @@ public class ApplicationApplier implements CfChangeVisitor {
     private final DefaultCloudFoundryOperations cfOperations;
     private final String applicationName;
 
-    public AppApplyResolver(DefaultCloudFoundryOperations cfOperations, String applicationName) {
+    private ApplicationApplier(DefaultCloudFoundryOperations cfOperations, String applicationName) {
         this.cfOperations = cfOperations;
         this.applicationName = applicationName;
     }
@@ -37,6 +37,9 @@ public class ApplicationApplier implements CfChangeVisitor {
             } catch (CreationException e) {
                 throw new ApplyExcpetion(e);
             }
+        }
+        else if (!(affectedObject instanceof ApplicationManifestBean)) {
+            throw new IllegalArgumentException("Only changes of applications and manifests are permitted.");
         }
         return;
     }
@@ -74,7 +77,7 @@ public class ApplicationApplier implements CfChangeVisitor {
                              List<CfChange> applicationChanges) throws ApplyExcpetion {
         ApplicationApplier applicationApplier = new ApplicationApplier(cfOperations, applicationName);
         for (CfChange applicationChange : applicationChanges) {
-            applicationChange.accept(this);
+            applicationChange.accept(applicationApplier);
         }
     }
 }
