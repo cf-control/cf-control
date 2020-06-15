@@ -1,6 +1,5 @@
 package cloud.foundry.cli.logic;
 
-import cloud.foundry.cli.crosscutting.exceptions.ApplyExcpetion;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
@@ -23,7 +22,7 @@ public class ApplyLogic {
         this.cfOperations = cfOperations;
     }
 
-    public void applyApplications(Map<String, ApplicationBean> desiredApplications) throws ApplyExcpetion {
+    public void applyApplications(Map<String, ApplicationBean> desiredApplications) {
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
         Map<String, ApplicationBean> liveApplications = applicationsOperations.getAll().block();
 

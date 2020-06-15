@@ -60,5 +60,5 @@ public abstract class CfChange {
      * Ensuring that each change object accepts an apply visitor.
      * @param visitor
      */
-    public abstract void accept(CfChangeVisitor visitor) throws ApplyExcpetion;
+    public abstract void accept(CfChangeVisitor visitor);
 }

@@ -13,7 +13,7 @@ import cloud.foundry.cli.logic.diff.change.object.CfRemovedObject;
  */
 public interface CfChangeVisitor {
 
-    void visitNewObject(CfNewObject newObject) throws ApplyExcpetion;
+    void visitNewObject(CfNewObject newObject);
 
     void visitObjectValueChanged(CfObjectValueChanged objectValueChanged);
 

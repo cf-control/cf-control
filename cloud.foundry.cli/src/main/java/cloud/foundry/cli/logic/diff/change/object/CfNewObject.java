@@ -27,7 +27,7 @@ public class CfNewObject extends CfChange {
      * @param visitor
      */
     @Override
-    public void accept(CfChangeVisitor visitor) throws ApplyExcpetion {
+    public void accept(CfChangeVisitor visitor) {
         visitor.visitNewObject(this);
     }
 }

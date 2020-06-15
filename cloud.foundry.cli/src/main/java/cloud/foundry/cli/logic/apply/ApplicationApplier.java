@@ -27,7 +27,7 @@ public class ApplicationApplier implements CfChangeVisitor {
     }
 
     @Override
-    public void visitNewObject(CfNewObject newObject) throws ApplyExcpetion {
+    public void visitNewObject(CfNewObject newObject) {
         //TODO: this US
         Object affectedObject = newObject.getAffectedObject();
         //TODO: determine what type the affected object is
@@ -74,7 +74,7 @@ public class ApplicationApplier implements CfChangeVisitor {
 
 
     public static void apply(DefaultCloudFoundryOperations cfOperations, String applicationName,
-                             List<CfChange> applicationChanges) throws ApplyExcpetion {
+                             List<CfChange> applicationChanges) {
         ApplicationApplier applicationApplier = new ApplicationApplier(cfOperations, applicationName);
         for (CfChange applicationChange : applicationChanges) {
             applicationChange.accept(applicationApplier);
