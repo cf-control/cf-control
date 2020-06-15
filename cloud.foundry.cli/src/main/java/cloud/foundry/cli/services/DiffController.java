@@ -57,16 +57,18 @@ public class DiffController implements Callable<Integer> {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
 
-            SpecBean specBeanDesired = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
-            specBeanDesired.setSpaceDevelopers(null);
-            specBeanDesired.setApps(null);
+            SpecBean loadedSpecBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
+            Map<String, ServiceBean> desiredServices = loadedSpecBean.getServices();
+            SpecBean desiredSpecBean = new SpecBean();
+            desiredSpecBean.setServices(desiredServices);
+
             Map<String, ServiceBean> servicesLive = servicesOperations.getAll().block();
 
             SpecBean specBeanLive = new SpecBean();
             specBeanLive.setServices(servicesLive);
 
             DiffLogic diffLogic = new DiffLogic();
-            String output = diffLogic.createDiffOutput(specBeanLive, specBeanDesired);
+            String output = diffLogic.createDiffOutput(specBeanLive, desiredSpecBean);
 
             if (output.isEmpty()) {
                 System.out.println(NO_DIFFERENCES);
@@ -93,16 +95,18 @@ public class DiffController implements Callable<Integer> {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
 
-            SpecBean specBeanDesired = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
-            specBeanDesired.setSpaceDevelopers(null);
-            specBeanDesired.setServices(null);
+            SpecBean loadedSpecBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
+            Map<String, ApplicationBean> desiredApplications = loadedSpecBean.getApps();
+            SpecBean desiredSpecBean = new SpecBean();
+            desiredSpecBean.setApps(desiredApplications);
+
             Map<String, ApplicationBean> appsLive = applicationsOperations.getAll().block();
 
             SpecBean specBeanLive = new SpecBean();
             specBeanLive.setApps(appsLive);
 
             DiffLogic diffLogic = new DiffLogic();
-            String output = diffLogic.createDiffOutput(specBeanLive, specBeanDesired);
+            String output = diffLogic.createDiffOutput(specBeanLive, desiredSpecBean);
 
             if (output.isEmpty()) {
                 System.out.println(NO_DIFFERENCES);
@@ -130,11 +134,12 @@ public class DiffController implements Callable<Integer> {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             SpaceDevelopersOperations spaceDevOperations = new SpaceDevelopersOperations(cfOperations);
 
-            SpecBean specBeanDesired =
-                    YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
-            specBeanDesired.setApps(null);
-            specBeanDesired.setServices(null);
-            Log.debug("Space Devs Yaml File:", specBeanDesired);
+            SpecBean loadedSpecBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
+            List<String> desiredSpaceDevelopers = loadedSpecBean.getSpaceDevelopers();
+            SpecBean desiredSpecBean = new SpecBean();
+            desiredSpecBean.setSpaceDevelopers(desiredSpaceDevelopers);
+
+            Log.debug("Space Devs Yaml File:", desiredSpecBean);
 
             List<String> spaceDevs = spaceDevOperations.getAll().block();
             SpecBean specBeanLive = new SpecBean();
@@ -142,7 +147,7 @@ public class DiffController implements Callable<Integer> {
             Log.debug("Space Devs current config:", specBeanLive);
 
             DiffLogic diffLogic = new DiffLogic();
-            String output = diffLogic.createDiffOutput(specBeanLive, specBeanDesired);
+            String output = diffLogic.createDiffOutput(specBeanLive, desiredSpecBean);
             Log.debug("Diff string:", output);
 
             if (output.isEmpty()) {
