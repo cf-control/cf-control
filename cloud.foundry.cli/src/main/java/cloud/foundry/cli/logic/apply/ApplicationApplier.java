@@ -12,7 +12,6 @@ import cloud.foundry.cli.logic.diff.change.object.CfNewObject;
 import cloud.foundry.cli.logic.diff.change.object.CfObjectValueChanged;
 import cloud.foundry.cli.logic.diff.change.object.CfRemovedObject;
 import cloud.foundry.cli.operations.ApplicationsOperations;
-import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 
 import java.util.List;
 
@@ -22,11 +21,11 @@ import java.util.List;
  */
 public class ApplicationApplier implements CfChangeVisitor {
 
-    private final DefaultCloudFoundryOperations cfOperations;
+    private final ApplicationsOperations appOperations;
     private final String applicationName;
 
-    private ApplicationApplier(DefaultCloudFoundryOperations cfOperations, String applicationName) {
-        this.cfOperations = cfOperations;
+    private ApplicationApplier(ApplicationsOperations appOperations, String applicationName) {
+        this.appOperations = appOperations;
         this.applicationName = applicationName;
     }
 
@@ -51,8 +50,7 @@ public class ApplicationApplier implements CfChangeVisitor {
     }
 
     private void doCreateNewApp(ApplicationBean affectedObject) throws CreationException {
-        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
-        applicationsOperations.create(this.applicationName, affectedObject, false);
+        this.appOperations.create(this.applicationName, affectedObject, false);
         Log.info("App created:", applicationName);
     }
 
@@ -98,15 +96,15 @@ public class ApplicationApplier implements CfChangeVisitor {
 
     /**
      * Apply for all changes regarding one application.
-     * @param cfOperations the cfOperations object connected to the cfInstance
+     * @param appOperations the ApplicationOperations object used for
      * @param applicationName the name of the application
      * @param applicationChanges a list with all the Changes found during diff for that specific application
      * @throws ApplyException if an error during the apply logic occurs. May contain another exception inside,
      * with more details.
      */
-    public static void apply(DefaultCloudFoundryOperations cfOperations, String applicationName,
+    public static void apply(ApplicationsOperations appOperations, String applicationName,
                              List<CfChange> applicationChanges) {
-        ApplicationApplier applicationApplier = new ApplicationApplier(cfOperations, applicationName);
+        ApplicationApplier applicationApplier = new ApplicationApplier(appOperations, applicationName);
         for (CfChange applicationChange : applicationChanges) {
             applicationChange.accept(applicationApplier);
         }
