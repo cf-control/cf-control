@@ -32,7 +32,7 @@ public class AppApplyResolver implements ApplyVisitor {
             try {
                 doCreateNewApp((ApplicationBean) affectedObject);
             } catch (CreationException e) {
-                throw new ApplyExcpetion(e.getMessage());
+                throw new ApplyExcpetion(e);
             }
         }
         return;
