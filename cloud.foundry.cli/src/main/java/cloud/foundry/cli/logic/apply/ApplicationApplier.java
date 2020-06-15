@@ -83,6 +83,7 @@ public class ApplicationApplier implements CfChangeVisitor {
     @Override
     public void visitContainerChange(CfContainerChange containerChange) {
         //TODO: later US
+        return;
     }
 
     /**
@@ -92,6 +93,7 @@ public class ApplicationApplier implements CfChangeVisitor {
     @Override
     public void visitMapChange(CfMapChange mapChange) {
         //TODO: later US
+        return;
     }
 
     /**
