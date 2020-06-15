@@ -16,6 +16,10 @@ import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 
 import java.util.List;
 
+/**
+ * This class is responsible to apply in the context of applications according to the CfChanges.
+ * The class performs the apply task by implementing the {@link CfChangeVisitor} interface.
+ */
 public class ApplicationApplier implements CfChangeVisitor {
 
     private final DefaultCloudFoundryOperations cfOperations;
@@ -26,11 +30,13 @@ public class ApplicationApplier implements CfChangeVisitor {
         this.applicationName = applicationName;
     }
 
+    /**
+     * Apply logic for CfNewObject
+     * @param newObject the CfNewObject to be visited
+     */
     @Override
     public void visitNewObject(CfNewObject newObject) {
-        //TODO: this US
         Object affectedObject = newObject.getAffectedObject();
-        //TODO: determine what type the affected object is
         if (affectedObject instanceof ApplicationBean) {
             try {
                 doCreateNewApp((ApplicationBean) affectedObject);
@@ -50,29 +56,52 @@ public class ApplicationApplier implements CfChangeVisitor {
         Log.info("App created:", applicationName);
     }
 
+    /**
+     * Apply logic for CfObjectValueChanged
+     * @param objectValueChanged the CfObjectValueChanged to be visited
+     */
     @Override
     public void visitObjectValueChanged(CfObjectValueChanged objectValueChanged) {
         //TODO: later US
         return;
     }
 
+    /**
+     * Apply logic for CfRemovedObject
+     * @param removedObject the CfRemovedObject to be visited
+     */
     @Override
     public void visitRemovedObject(CfRemovedObject removedObject) {
         //TODO: later US
         return;
     }
 
+    /**
+     * Apply logic for CfContainerChange
+     * @param containerChange the CfContainerChange to be visited
+     */
     @Override
     public void visitContainerChange(CfContainerChange containerChange) {
         //TODO: later US
     }
 
+    /**
+     * Apply logic for CfMapChange
+     * @param mapChange the CfMapChange to be visited
+     */
     @Override
     public void visitMapChange(CfMapChange mapChange) {
         //TODO: later US
     }
 
-
+    /**
+     * Apply for all changes regarding one application.
+     * @param cfOperations the cfOperations object connected to the cfInstance
+     * @param applicationName the name of the application
+     * @param applicationChanges a list with all the Changes found during diff for that specific application
+     * @throws ApplyException if an error during the apply logic occurs. May contain another exception inside,
+     * with more details.
+     */
     public static void apply(DefaultCloudFoundryOperations cfOperations, String applicationName,
                              List<CfChange> applicationChanges) {
         ApplicationApplier applicationApplier = new ApplicationApplier(cfOperations, applicationName);

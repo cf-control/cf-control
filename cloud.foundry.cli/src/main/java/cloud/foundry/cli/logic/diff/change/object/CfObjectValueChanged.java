@@ -53,8 +53,8 @@ public class CfObjectValueChanged extends CfChange {
     }
 
     /**
-     * Call the visitObjectValueChanged method from the visitor.
-     * @param visitor
+     * Accept a visitor handling that specific type of change object. Used for the applyLogic
+     * @param visitor the concrete visitor to work on that object.
      */
     @Override
     public void accept(CfChangeVisitor visitor) {
