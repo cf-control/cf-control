@@ -3,7 +3,7 @@ package cloud.foundry.cli.logic.diff.change.container;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import cloud.foundry.cli.logic.apply.ApplyVisitor;
+import cloud.foundry.cli.logic.apply.CfChangeVisitor;
 import cloud.foundry.cli.logic.diff.change.CfChange;
 import cloud.foundry.cli.logic.diff.change.ChangeType;
 
@@ -61,8 +61,7 @@ public class CfContainerChange extends CfChange {
     }
 
     @Override
-    public void accept(ApplyVisitor visitor) {
-        //TODO
-        return;
+    public void accept(CfChangeVisitor visitor) {
+        visitor.visitContainerChange(this);
     }
 }
