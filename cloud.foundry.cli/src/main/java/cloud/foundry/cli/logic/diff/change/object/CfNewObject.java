@@ -1,6 +1,5 @@
 package cloud.foundry.cli.logic.diff.change.object;
 
-import cloud.foundry.cli.crosscutting.exceptions.ApplyExcpetion;
 import cloud.foundry.cli.logic.apply.CfChangeVisitor;
 import cloud.foundry.cli.logic.diff.change.CfChange;
 

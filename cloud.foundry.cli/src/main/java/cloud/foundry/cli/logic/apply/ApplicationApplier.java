@@ -1,6 +1,6 @@
 package cloud.foundry.cli.logic.apply;
 
-import cloud.foundry.cli.crosscutting.exceptions.ApplyExcpetion;
+import cloud.foundry.cli.crosscutting.exceptions.ApplyException;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
@@ -35,7 +35,7 @@ public class ApplicationApplier implements CfChangeVisitor {
             try {
                 doCreateNewApp((ApplicationBean) affectedObject);
             } catch (CreationException e) {
-                throw new ApplyExcpetion(e);
+                throw new ApplyException(e);
             }
         }
         else if (!(affectedObject instanceof ApplicationManifestBean)) {

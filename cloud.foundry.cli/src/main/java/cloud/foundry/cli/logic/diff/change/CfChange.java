@@ -3,7 +3,6 @@ package cloud.foundry.cli.logic.diff.change;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import cloud.foundry.cli.crosscutting.exceptions.ApplyExcpetion;
 import cloud.foundry.cli.logic.apply.CfChangeVisitor;
 
 import java.util.List;
