@@ -33,7 +33,7 @@ public class ApplyLogic {
 
         // compare entire configs as the diff wrapper is only suited for diff trees of these
         DiffLogic diffLogic = new DiffLogic();
-        DiffNode diffTreeRoot = diffLogic.createDiffTree(desiredApplicationsConfig, liveApplicationsConfig);
+        DiffNode diffTreeRoot = diffLogic.createDiffTree(liveApplicationsConfig, desiredApplicationsConfig);
         DiffWrapper wrappedDiff = new DiffWrapper(diffTreeRoot);
 
         Map<String, List<CfChange>> allApplicationChanges = wrappedDiff.getApplicationChanges();
