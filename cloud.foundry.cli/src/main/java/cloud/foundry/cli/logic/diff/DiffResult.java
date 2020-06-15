@@ -1,4 +1,4 @@
-package cloud.foundry.cli.logic.apply;
+package cloud.foundry.cli.logic.diff;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -27,7 +27,7 @@ import java.util.Map;
  * It serves as a wrapper for a complete tree consisting of diff nodes. It provides convenience methods for
  * getting changes of certain beans.
  */
-public class DiffWrapper {
+public class DiffResult {
 
     // lists the field names of bean classes that are needed in this class
     private static final String TARGET_FIELD_NAME = "target";
@@ -53,7 +53,7 @@ public class DiffWrapper {
     private final DiffNode appsNode;
     private final DiffNode servicesNode;
 
-    public DiffWrapper(@Nonnull DiffNode rootNode) {
+    public DiffResult(@Nonnull DiffNode rootNode) {
         checkNotNull(rootNode);
         this.rootNode = rootNode;
         this.targetNode = rootNode.getChild(TARGET_FIELD_NAME);

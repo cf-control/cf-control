@@ -6,8 +6,7 @@ import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
 import cloud.foundry.cli.logic.apply.ApplicationApplier;
-import cloud.foundry.cli.logic.apply.DiffWrapper;
-import cloud.foundry.cli.logic.diff.DiffNode;
+import cloud.foundry.cli.logic.diff.DiffResult;
 import cloud.foundry.cli.logic.diff.change.CfChange;
 import cloud.foundry.cli.operations.ApplicationsOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
@@ -40,8 +39,7 @@ public class ApplyLogic {
 
         // compare entire configs as the diff wrapper is only suited for diff trees of these
         DiffLogic diffLogic = new DiffLogic();
-        DiffNode diffTreeRoot = diffLogic.createDiffTree(liveApplicationsConfig, desiredApplicationsConfig);
-        DiffWrapper wrappedDiff = new DiffWrapper(diffTreeRoot);
+        DiffResult wrappedDiff = diffLogic.createDiffResult(liveApplicationsConfig, desiredApplicationsConfig);
 
         Map<String, List<CfChange>> allApplicationChanges = wrappedDiff.getApplicationChanges();
 

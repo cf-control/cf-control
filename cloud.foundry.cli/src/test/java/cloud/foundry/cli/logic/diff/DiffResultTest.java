@@ -1,4 +1,4 @@
-package cloud.foundry.cli.logic.apply;
+package cloud.foundry.cli.logic.diff;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
@@ -11,7 +11,6 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
-import cloud.foundry.cli.logic.diff.DiffNode;
 import cloud.foundry.cli.logic.diff.change.CfChange;
 import cloud.foundry.cli.logic.diff.change.container.CfContainerChange;
 import cloud.foundry.cli.logic.diff.change.map.CfMapChange;
@@ -25,22 +24,22 @@ import org.mockito.Mockito;
 import java.util.List;
 import java.util.Map;
 
-public class DiffWrapperTest {
+public class DiffResultTest {
 
     @Test
     public void testConstructorOnNullNodeThrowsException() {
         // when and then
-        assertThrows(NullPointerException.class, () -> new DiffWrapper(null));
+        assertThrows(NullPointerException.class, () -> new DiffResult(null));
     }
 
 
     @Test
     public void testGetApplicationChangesWithDataReturnsCorrectMapOfChanges() {
         // given
-        DiffWrapper diffWrapper = new DiffWrapper(createTreeStructure());
+        DiffResult diffResult = new DiffResult(createTreeStructure());
 
         // when
-        Map<String, List<CfChange>> applicationChanges = diffWrapper.getApplicationChanges();
+        Map<String, List<CfChange>> applicationChanges = diffResult.getApplicationChanges();
 
         // then
         assertThat(applicationChanges, notNullValue());
@@ -61,10 +60,10 @@ public class DiffWrapperTest {
     @Test
     public void testGetApplicationChangesWithEmptyDataReturnsEmptyMap() {
         // given
-        DiffWrapper diffWrapper = new DiffWrapper(new DiffNode("config"));
+        DiffResult diffResult = new DiffResult(new DiffNode("config"));
 
         // when
-        Map<String, List<CfChange>> applicationChanges = diffWrapper.getApplicationChanges();
+        Map<String, List<CfChange>> applicationChanges = diffResult.getApplicationChanges();
 
         // then
         assertThat(applicationChanges, notNullValue());
@@ -74,10 +73,10 @@ public class DiffWrapperTest {
     @Test
     public void testGetServicesChangesReturnsCorrectMapOfChanges() {
         // given
-        DiffWrapper diffWrapper = new DiffWrapper(createTreeStructure());
+        DiffResult diffResult = new DiffResult(createTreeStructure());
 
         // when
-        Map<String, List<CfChange>> serviceChanges = diffWrapper.getServiceChanges();
+        Map<String, List<CfChange>> serviceChanges = diffResult.getServiceChanges();
 
         // then
         assertThat(serviceChanges, notNullValue());
@@ -96,10 +95,10 @@ public class DiffWrapperTest {
     @Test
     public void testGetServiceChangesWithEmptyDataReturnsEmptyMap() {
         // given
-        DiffWrapper diffWrapper = new DiffWrapper(new DiffNode("config"));
+        DiffResult diffResult = new DiffResult(new DiffNode("config"));
 
         // when
-        Map<String, List<CfChange>> serviceChanges = diffWrapper.getServiceChanges();
+        Map<String, List<CfChange>> serviceChanges = diffResult.getServiceChanges();
 
         // then
         assertThat(serviceChanges, notNullValue());
@@ -109,10 +108,10 @@ public class DiffWrapperTest {
     @Test
     public void testGetApiVersionChangeWithDataReturnsCorrectChange() {
         // given
-        DiffWrapper diffWrapper = new DiffWrapper(createTreeStructure());
+        DiffResult diffResult = new DiffResult(createTreeStructure());
 
         // when
-        CfChange apiVersionChange = diffWrapper.getApiVersionChange();
+        CfChange apiVersionChange = diffResult.getApiVersionChange();
 
         // then
         assertThat(apiVersionChange, notNullValue());
@@ -123,10 +122,10 @@ public class DiffWrapperTest {
     @Test
     public void testGetApiVersionChangeWithEmptyDataReturnsNull() {
         // given
-        DiffWrapper diffWrapper = new DiffWrapper(new DiffNode("config"));
+        DiffResult diffResult = new DiffResult(new DiffNode("config"));
 
         // when
-        CfChange apiVersionChange = diffWrapper.getApiVersionChange();
+        CfChange apiVersionChange = diffResult.getApiVersionChange();
 
         // then
         assertThat(apiVersionChange, nullValue());
@@ -135,10 +134,10 @@ public class DiffWrapperTest {
     @Test
     public void testGetSpaceDevelopersChangeWithDataReturnsCorrectChange() {
         // given
-        DiffWrapper diffWrapper = new DiffWrapper(createTreeStructure());
+        DiffResult diffResult = new DiffResult(createTreeStructure());
 
         // when
-        CfChange spaceDevelopersChange = diffWrapper.getSpaceDevelopersChange();
+        CfChange spaceDevelopersChange = diffResult.getSpaceDevelopersChange();
 
         // then
         assertThat(spaceDevelopersChange, notNullValue());
@@ -149,10 +148,10 @@ public class DiffWrapperTest {
     @Test
     public void testGetSpaceDevelopersChangeWithEmptyDataReturnsNull() {
         // given
-        DiffWrapper diffWrapper = new DiffWrapper(new DiffNode("config"));
+        DiffResult diffResult = new DiffResult(new DiffNode("config"));
 
         // when
-        CfChange spaceDevelopersChange = diffWrapper.getSpaceDevelopersChange();
+        CfChange spaceDevelopersChange = diffResult.getSpaceDevelopersChange();
 
         // then
         assertThat(spaceDevelopersChange, nullValue());
@@ -161,10 +160,10 @@ public class DiffWrapperTest {
     @Test
     public void testGetTargetChangesWithDataReturnsListOfChanges() {
         // given
-        DiffWrapper diffWrapper = new DiffWrapper(createTreeStructure());
+        DiffResult diffResult = new DiffResult(createTreeStructure());
 
         // when
-        List<CfChange> targetChanges = diffWrapper.getTargetChanges();
+        List<CfChange> targetChanges = diffResult.getTargetChanges();
 
         // then
         assertThat(targetChanges, notNullValue());
@@ -176,10 +175,10 @@ public class DiffWrapperTest {
     @Test
     public void testGetTargetChangesWithNoDataReturnsEmptyList() {
         // given
-        DiffWrapper diffWrapper = new DiffWrapper(new DiffNode("config"));
+        DiffResult diffResult = new DiffResult(new DiffNode("config"));
 
         // when
-        List<CfChange> targetChanges = diffWrapper.getTargetChanges();
+        List<CfChange> targetChanges = diffResult.getTargetChanges();
 
         // then
         assertThat(targetChanges, notNullValue());
