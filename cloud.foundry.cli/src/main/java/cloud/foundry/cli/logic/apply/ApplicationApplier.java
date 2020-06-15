@@ -39,7 +39,7 @@ public class ApplicationApplier implements CfChangeVisitor {
         if (affectedObject instanceof ApplicationBean) {
             try {
                 doCreateNewApp((ApplicationBean) affectedObject);
-            } catch (CreationException|IllegalArgumentException|NullPointerException|SecurityException e) {
+            } catch (CreationException | IllegalArgumentException | NullPointerException | SecurityException e) {
                 throw new ApplyException(e);
             }
         }
