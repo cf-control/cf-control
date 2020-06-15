@@ -50,7 +50,7 @@ public class ApplyLogic {
             Log.debug("Start applying the changes to the app:", applicationName);
             List<CfChange> applicationChanges = applicationChangesEntry.getValue();
 
-            ApplicationApplier.apply(cfOperations, applicationName, applicationChanges);
+            ApplicationApplier.apply(new ApplicationsOperations(cfOperations), applicationName, applicationChanges);
         }
     }
 

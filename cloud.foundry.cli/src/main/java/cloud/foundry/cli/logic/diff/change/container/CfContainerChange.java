@@ -60,6 +60,10 @@ public class CfContainerChange extends CfChange {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Accept a visitor handling that specific type of change object. Used for the applyLogic
+     * @param visitor the concrete visitor to work on that object.
+     */
     @Override
     public void accept(CfChangeVisitor visitor) {
         visitor.visitContainerChange(this);
