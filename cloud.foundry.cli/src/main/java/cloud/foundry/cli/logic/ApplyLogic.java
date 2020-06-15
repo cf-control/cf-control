@@ -1,5 +1,7 @@
 package cloud.foundry.cli.logic;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
@@ -10,19 +12,25 @@ import cloud.foundry.cli.logic.diff.change.CfChange;
 import cloud.foundry.cli.operations.ApplicationsOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 
+import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
 
 public class ApplyLogic {
 
     private DefaultCloudFoundryOperations cfOperations;
 
-    public ApplyLogic(DefaultCloudFoundryOperations cfOperations) {
+    public ApplyLogic(@Nonnull DefaultCloudFoundryOperations cfOperations) {
+        checkNotNull(cfOperations);
+
         this.cfOperations = cfOperations;
     }
 
-    public void applyApplications(Map<String, ApplicationBean> desiredApplications) {
+    public void applyApplications(@Nonnull Map<String, ApplicationBean> desiredApplications) {
+        checkNotNull(desiredApplications);
+
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
         Map<String, ApplicationBean> liveApplications = applicationsOperations.getAll().block();
 
