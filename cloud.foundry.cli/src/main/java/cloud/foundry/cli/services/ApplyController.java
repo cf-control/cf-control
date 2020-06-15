@@ -2,9 +2,8 @@ package cloud.foundry.cli.services;
 
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
 import cloud.foundry.cli.crosscutting.mapping.YamlMapper;
-import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
 import cloud.foundry.cli.logic.ApplyLogic;
-import cloud.foundry.cli.operations.ApplicationsOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import picocli.CommandLine;
 
@@ -40,12 +39,12 @@ public class ApplyController implements Callable<Integer> {
         @Override
         public Integer call() throws Exception {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
-            ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
-
-            ConfigBean desiredConfig = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), ConfigBean.class);
 
             ApplyLogic applyLogic = new ApplyLogic(cfOperations);
-            applyLogic.applyApplications(desiredConfig);
+
+            SpecBean desiredSpecBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
+
+            applyLogic.applyApplications(desiredSpecBean.getApps());
 
             return 0;
         }
