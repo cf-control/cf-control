@@ -1,0 +1,10 @@
+services:
+  config-server:
+    plan: test
+    service: p-config-server
+  testfree:
+    plan: lol
+    service: p-cloudcache
+  HalloWelt:
+    plan: lemur
+    service: cloudamqp
