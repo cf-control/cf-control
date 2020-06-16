@@ -88,7 +88,9 @@ The loglevel is always configured to the most verbose value the user specified. 
 ```
   applications      Print the differences between the apps given in the yaml file and
                      the configuration of the apps of your cf instance.
-  services          Print the differences between the services given in the yaml file and
+   space-developers  Print the differences between the space-developers given in the yaml file and
+                     the configuration of the space-developers of your cf instance.
+   services          Print the differences between the services given in the yaml file and
                      the configuration of the services of your cf instance.
 ```
 
@@ -101,7 +103,6 @@ The loglevel is always configured to the most verbose value the user specified. 
   update-application      Update applications in the target space.
   remove-application      Remove applications in the target space.
 ```
-
 
 ##### [PARAMS]
 
