@@ -17,6 +17,7 @@ import java.util.List;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import cloud.foundry.cli.crosscutting.exceptions.InvalidOperationException;
 
+import cloud.foundry.cli.crosscutting.exceptions.UpdateException;
 import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperByUsernameRequest;
 import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperByUsernameResponse;
@@ -127,7 +128,7 @@ class SpaceDevelopersOperationsTest {
     }
 
     @Test
-    public void testRemoveSpaceDeveloper() throws InvalidOperationException {
+    public void testRemoveSpaceDeveloper() throws InvalidOperationException, UpdateException {
         // given
         CloudFoundryClient cfClientMock = mock(CloudFoundryClient.class);
         when(cfOperationsMock.getCloudFoundryClient()).thenReturn(cfClientMock);

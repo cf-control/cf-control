@@ -114,12 +114,12 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
         String spaceId = cloudFoundryOperations.getSpaceId().block();
         assertValidSpaceId(spaceId);
 
-        try{
+        try {
         usernameList.stream()
                 .map(username -> doRemoveSpaceDeveloper(spaceId, username))
                 .collect(toList())
-                .forEach(Mono::block);}
-        catch (ClientV2Exception e){
+                .forEach(Mono::block); }
+        catch (ClientV2Exception e) {
             throw new UpdateException(e);
         }
     }
