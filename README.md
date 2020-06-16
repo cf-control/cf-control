@@ -64,6 +64,8 @@ Then you can run the __cf-control.jar__ by using the command line tool like:
                      the configuration of the apps of your cf instance.
    space-developers  Print the differences between the space-developers given in the yaml file and
                      the configuration of the space-developers of your cf instance.
+   services          Print the differences between the services given in the yaml file and
+                     the configuration of the services of your cf instance.
    ```       
         
 ##### [PARAMS]
