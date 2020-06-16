@@ -88,7 +88,7 @@ public class UpdateController implements Callable<Integer> {
                 doRemoveServiceInstance(yamlCommandOptions);
             } else {
                 if (System.console() == null) {
-                    Log.error("The System console is not available.");
+                    Log.error("--force/-f not supplied and not running in terminal, aborting");
                     return 2;
                 }
 
