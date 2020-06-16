@@ -63,7 +63,11 @@ Then you can run the __cf-control.jar__ by using the command line tool like:
    applications      Print the differences between the apps given in the yaml file and
                      the configuration of the apps of your cf instance.
    ```       
-        
+##### apply [SUBCOMMAND]
+   ```
+   applications      Create applications that are present in the given yaml file, but not in your cf instance.
+   ```       
+   
 ##### [PARAMS]
    ```
   -a, --api=<apiHost>                    Your CF instance's API endpoint URL.
