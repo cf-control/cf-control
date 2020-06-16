@@ -1,5 +1,7 @@
 package cloud.foundry.cli.services;
 
+import static picocli.CommandLine.usage;
+
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
@@ -19,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
+
 /**
  * This class realizes the functionality that is needed for the get commands. They provide various information about a
  * cloud foundry instance.
@@ -35,9 +38,9 @@ public class GetController implements Callable<Integer> {
 
     @Override
     public Integer call() throws Exception {
-        // by default, return all information
-        // this is a convenient shortcut
-        return (new GetController.GetAllInformation()).call();
+        //TODO: Make this by default return all information (convenient shortcut)
+        usage(this, System.out);
+        return 0;
     }
 
     @Command(name = "space-developers",
