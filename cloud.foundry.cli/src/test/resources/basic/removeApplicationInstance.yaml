@@ -1,0 +1,16 @@
+apps:
+  hello-world-spring-8:
+    manifest:
+      buildpack: https://github.com/cloudfoundry/java-buildpack.git
+      disk: 512
+      environmentVariables:
+        TEST: somval
+        PROD: someotherval
+      healthCheckHttpEndpoint: /health
+      healthCheckType: PORT
+      instances: 2
+      memory: 512
+      routes:
+        - hello-world-spring-8-spareable-indention.cfapps.io
+      stack: cflinuxfs3
+      timeout: 80
