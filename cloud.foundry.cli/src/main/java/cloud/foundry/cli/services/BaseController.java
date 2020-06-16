@@ -2,8 +2,10 @@ package cloud.foundry.cli.services;
 
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import cloud.foundry.cli.crosscutting.exceptions.CredentialException;
+import cloud.foundry.cli.crosscutting.exceptions.DiffException;
 import cloud.foundry.cli.crosscutting.exceptions.RefResolvingException;
 import cloud.foundry.cli.crosscutting.exceptions.UpdateException;
+import cloud.foundry.cli.crosscutting.exceptions.ApplyException;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.RefResolver;
 import org.yaml.snakeyaml.constructor.ConstructorException;
@@ -25,6 +27,7 @@ import java.util.concurrent.Callable;
         CreateController.class,
         GetController.class,
         DiffController.class,
+        ApplyController.class,
         UpdateController.class})
 public class BaseController implements Callable<Integer> {
 
@@ -63,6 +66,10 @@ public class BaseController implements Callable<Integer> {
                 Log.error("Failed to resolve " + RefResolver.REF_KEY + "-occurrences:", ex.getMessage());
             } else if (ex instanceof ConstructorException) {
                 Log.error("Cannot interpret yaml contents:", ex.getMessage());
+            } else if (ex instanceof DiffException) {
+                Log.error("Unable to perform the diff:", ex.getMessage());
+            } else if (ex instanceof ApplyException) {
+                Log.error("An error occurred during the apply:", ex.getMessage());
             } else if (ex instanceof IllegalStateException) {
                 // a little bit ugly, but it works
                 // the problem is in reactor.core.Exceptions

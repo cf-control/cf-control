@@ -1,5 +1,6 @@
 package cloud.foundry.cli.logic.diff.change.object;
 
+import cloud.foundry.cli.logic.apply.CfChangeVisitor;
 import cloud.foundry.cli.logic.diff.change.CfChange;
 
 import java.util.List;
@@ -18,5 +19,14 @@ public class CfNewObject extends CfChange {
      */
     public CfNewObject(Object affectedObject, String propertyName, List<String> path) {
         super(affectedObject, propertyName, path);
+    }
+
+    /**
+     * Accept a visitor handling that specific type of change object.
+     * @param visitor the concrete visitor to work on that object.
+     */
+    @Override
+    public void accept(CfChangeVisitor visitor) {
+        visitor.visitNewObject(this);
     }
 }
