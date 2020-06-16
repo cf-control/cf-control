@@ -109,6 +109,9 @@ public class LogTest {
         LogRecord lastRecord = popLastRecord();
         assert lastRecord.getLevel() == Log.ERROR_LEVEL;
         assert lastRecord.getMessage().contains(uniqueTestString);
+
+        // now all messages should be handled
+        assertNoMessagesRecorded();
     }
 
     @Test
@@ -118,6 +121,9 @@ public class LogTest {
         LogRecord lastRecord = popLastRecord();
         assert lastRecord.getLevel() == Log.WARNING_LEVEL;
         assert lastRecord.getMessage().contains(uniqueTestString);
+
+        // now all messages should be handled
+        assertNoMessagesRecorded();
     }
 
     @Test
@@ -127,6 +133,9 @@ public class LogTest {
         LogRecord lastRecord = popLastRecord();
         assert lastRecord.getLevel() == Log.INFO_LEVEL;
         assert lastRecord.getMessage().contains(uniqueTestString);
+
+        // now all messages should be handled
+        assertNoMessagesRecorded();
     }
 
     @Test
@@ -144,6 +153,9 @@ public class LogTest {
         LogRecord lastRecord = popLastRecord();
         assert lastRecord.getLevel() == Log.VERBOSE_LEVEL;
         assert lastRecord.getMessage().contains(uniqueTestString);
+
+        // now all messages should be handled
+        assertNoMessagesRecorded();
     }
 
     @Test
@@ -161,6 +173,9 @@ public class LogTest {
         LogRecord lastRecord = popLastRecord();
         assert lastRecord.getLevel() == Log.DEBUG_LEVEL;
         assert lastRecord.getMessage().contains(uniqueTestString);
+
+        // now all messages should be handled
+        assertNoMessagesRecorded();
     }
 
     @Test
@@ -179,6 +194,34 @@ public class LogTest {
         assert lastRecord.getLevel() == Log.ERROR_LEVEL;
         assert lastRecord.getMessage().contains(uniqueTestString);
         assert lastRecord.getThrown() == exception;
+
+        // now all messages should be handled
+        assertNoMessagesRecorded();
+    }
+
+    @Test
+    public void testQuietMode() {
+        // test whether quiet mode works as intended
+        Log.setQuietLogLevel();
+
+        // none of these messages should reach our handler
+        Log.debug(uniqueTestString);
+        Log.verbose(uniqueTestString);
+        Log.info(uniqueTestString);
+        Log.warning(uniqueTestString);
+
+        // debug messages should not be visible by default
+        assertNoMessagesRecorded();
+
+        // errors should be recorded even in quiet mode
+        Log.error(uniqueTestString);
+
+        LogRecord lastRecord = popLastRecord();
+        assert lastRecord.getLevel() == Log.ERROR_LEVEL;
+        assert lastRecord.getMessage().contains(uniqueTestString);
+
+        // now all messages should be handled
+        assertNoMessagesRecorded();
     }
 
 }

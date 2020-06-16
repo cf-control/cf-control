@@ -17,8 +17,9 @@ public class Log {
     private static final Logger logger;
 
     // the name of the environment variable that needs to be set to turn on the debug messages
-    private static final String DEBUG_ENV_VAR_NAME = "DEBUG";
+    private static final String QUIET_ENV_VAR_NAME = "QUIET";
     private static final String VERBOSE_ENV_VAR_NAME = "VERBOSE";
+    private static final String DEBUG_ENV_VAR_NAME = "DEBUG";
 
     public static final Level ERROR_LEVEL = Level.SEVERE;
     public static final Level WARNING_LEVEL = Level.WARNING;
@@ -28,6 +29,8 @@ public class Log {
 
     // by default, we only want to log messages of levels info and greater
     public static final Level DEFAULT_LEVEL = INFO_LEVEL;
+    // in quiet mode, we only want to log errors
+    public static final Level QUIET_LEVEL = ERROR_LEVEL;
 
     /**
      * The name of the CF-Control logger.
@@ -43,6 +46,12 @@ public class Log {
 
         // set default log level
         setDefaultLogLevel();
+
+        // by default, we don't want to log verbose messages
+        // however, the user can opt-in to them by setting the environment variable $VERBOSE
+        if (System.getenv(QUIET_ENV_VAR_NAME) != null) {
+            setQuietLogLevel();
+        }
 
         // by default, we don't want to log verbose messages
         // however, the user can opt-in to them by setting the environment variable $VERBOSE
@@ -138,6 +147,13 @@ public class Log {
      */
     public static void setVerboseLogLevel() {
         setLogLevel(VERBOSE_LEVEL);
+    }
+
+    /**
+     * Configure logger to display verbose messages, too.
+     */
+    public static void setQuietLogLevel() {
+        setLogLevel(QUIET_LEVEL);
     }
 
     /**
