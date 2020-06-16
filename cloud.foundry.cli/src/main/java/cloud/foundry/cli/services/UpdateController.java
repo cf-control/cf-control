@@ -89,9 +89,9 @@ public class UpdateController implements Callable<Integer> {
             } else {
                 if (System.console() == null) {
                     Log.error("The System console is not available.");
-                    
-                    return -1;
+                    return 2;
                 }
+
                 System.out.println("Really delete the services y/n?");
                 Scanner scanner = new Scanner(System.in);
                 String input = scanner.nextLine();
