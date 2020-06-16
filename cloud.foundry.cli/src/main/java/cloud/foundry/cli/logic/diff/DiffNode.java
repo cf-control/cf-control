@@ -60,7 +60,7 @@ public class DiffNode {
     }
 
     /**
-     * @return a collection holding all child nodes of this node
+     * @return an unmodifiable collection holding all child nodes of this node
      */
     public Collection<DiffNode> getChildNodes() {
         return Collections.unmodifiableCollection(childNodes.values());
