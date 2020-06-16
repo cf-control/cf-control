@@ -57,6 +57,7 @@ public class DiffResult {
      * Creates the diff result using the root node of a diff tree. It is assumed that the root node is the result of
      * diffing two {@link ConfigBean config beans}.
      * @param rootNode the root node of the diff tree
+     * @throws NullPointerException if the argument is null
      */
     public DiffResult(@Nonnull DiffNode rootNode) {
         checkNotNull(rootNode);
