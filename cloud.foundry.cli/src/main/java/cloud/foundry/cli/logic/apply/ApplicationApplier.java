@@ -32,6 +32,8 @@ public class ApplicationApplier implements CfChangeVisitor {
     /**
      * Apply logic for CfNewObject
      * @param newObject the CfNewObject to be visited
+     * @throws IllegalArgumentException if the newObject is neither an ApplicationBean or an ApplicationManifestBean
+     * @throws ApplyException that wraps the exceptions that can occur during the creation procedure.
      */
     @Override
     public void visitNewObject(CfNewObject newObject) {
@@ -95,12 +97,14 @@ public class ApplicationApplier implements CfChangeVisitor {
     }
 
     /**
-     * Apply for all changes regarding one application.
+     * Apply for all changes regarding one application. If an error occurs, the applying procedure is
+     * discontinued and the app stops.
      * @param appOperations the ApplicationOperations object used for
      * @param applicationName the name of the application
      * @param applicationChanges a list with all the Changes found during diff for that specific application
-     * @throws ApplyException if an error during the apply logic occurs. May contain another exception inside,
-     * with more details.
+     * @throws ApplyException if an error during the apply logic occurs. May contain another exception inside
+     * with more details
+     * @throws IllegalArgumentException if the newObject is neither an ApplicationBean or an ApplicationManifestBean
      */
     public static void apply(ApplicationsOperations appOperations, String applicationName,
                              List<CfChange> applicationChanges) {

@@ -61,7 +61,7 @@ public class CfContainerChange extends CfChange {
     }
 
     /**
-     * Accept a visitor handling that specific type of change object. Used for the applyLogic
+     * Accept a visitor handling that specific type of change object.
      * @param visitor the concrete visitor to work on that object.
      */
     @Override
