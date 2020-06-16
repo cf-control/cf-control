@@ -50,7 +50,7 @@ public class UpdateController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            Log.info("Removing space developers..." );
+            Log.info("Removing space developers...");
 
             SpaceDevelopersBean spaceDevelopersBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(),
                 SpaceDevelopersBean.class);
@@ -59,7 +59,7 @@ public class UpdateController implements Callable<Integer> {
             SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
 
             spaceDevelopersOperations.removeSpaceDeveloper(spaceDevelopersBean.getSpaceDevelopers());
-            Log.info("Space Developers removed: " , String.valueOf(spaceDevelopersBean.getSpaceDevelopers()));
+            Log.info("Space Developers removed: ", String.valueOf(spaceDevelopersBean.getSpaceDevelopers()));
 
             return 0;
         }
@@ -73,7 +73,7 @@ public class UpdateController implements Callable<Integer> {
 
         @Mixin
         YamlCommandOptions yamlCommandOptions;
-      
+
         @Option(names = { "-f", "--force" }, required = false, description = "Force deletion without confirmation.")
         Boolean force;
 
@@ -82,18 +82,22 @@ public class UpdateController implements Callable<Integer> {
 
             if (force != null) {
                 doRemoveServiceInstance(yamlCommandOptions);
-
             } else {
-                
-                System.out.println("Really delete the service y/n?");
-                String input = new Scanner(System.in).nextLine();
-                
+                if (System.console() == null) {
+                    Log.error("The System console is not available.");
+                    return -1;
+                }
+                System.out.println("Really delete the services y/n?");
+                Scanner scanner = new Scanner(System.in);
+                String input = scanner.nextLine();
+                scanner.close();
                 if (input.equals("y") || input.equals("yes")) {
                     doRemoveServiceInstance(yamlCommandOptions);
                 } else {
                     System.out.println("Delete cancelled");
-                    return 0;
+                    return 1;
                 }
+
             }
             return 0;
         }
@@ -131,14 +135,14 @@ public class UpdateController implements Callable<Integer> {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
 
-            Log.info("Updating services..." );
+            Log.info("Updating services...");
             for (Entry<String, ServiceBean> serviceEntry : serviceBeans.entrySet()) {
                 String serviceName = serviceEntry.getKey();
                 ServiceBean serviceBean = serviceEntry.getValue();
 
                 // "currentName" is currently a placeholder until diff is implemented
                 servicesOperations.renameServiceInstance(serviceName, "currentName");
-                Log.info("Service name changed: " , serviceName);
+                Log.info("Service name changed: ", serviceName);
                 servicesOperations.updateServiceInstance(serviceName, serviceBean);
                 Log.info("Service Plan and Tags haven been updated of service:", serviceName);
             }
