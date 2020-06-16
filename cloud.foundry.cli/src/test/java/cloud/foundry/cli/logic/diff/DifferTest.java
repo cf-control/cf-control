@@ -6,6 +6,7 @@ import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -51,14 +52,14 @@ public class DifferTest {
         //no changes at root
         assertThat(tree.getChanges().size(), is(0));
         assertThat(tree.getChildNodes().size(), is(1));
-        assertTrue(tree.getChildNodes().containsKey("spec"));
+        assertThat(tree.getChild("spec"), notNullValue());
         assertTrue(tree.isRoot());
 
         // only spec, since there are no changes at target
-        DiffNode specNode = tree.getChildNodes().get("spec");
+        DiffNode specNode = tree.getChild("spec");
         assertThat(specNode.getChildNodes().size(), is(2));
-        assertTrue(specNode.getChildNodes().containsKey("services"));
-        assertTrue(specNode.getChildNodes().containsKey("apps"));
+        assertThat(specNode.getChild("services"), notNullValue());
+        assertThat(specNode.getChild("apps"), notNullValue());
         assertThat(specNode.getChanges().size(), is(1));
 
         //spaceDevelopers
@@ -71,12 +72,12 @@ public class DifferTest {
                 hasProperty("changeType", is(ChangeType.REMOVED))));
 
         //services
-        DiffNode services = specNode.getChildNodes().get("services");
+        DiffNode services = specNode.getChild("services");
         assertThat(services.getChanges().size(), is(0));
         //only one since the service (web-service-name) that is not in the desired config gets skipped
         assertThat(services.getChildNodes().size(), is(1));
-        assertTrue(services.getChildNodes().containsKey("sql-service-name"));
-        DiffNode service = services.getChildNodes().get("sql-service-name");
+        assertThat(services.getChild("sql-service-name"), notNullValue());
+        DiffNode service = services.getChild("sql-service-name");
         assertTrue(service.isLeaf());
         assertThat(service.getChanges().size(), is(1));
         assertThat(service.getChanges().get(0).getPropertyName(), is("plan"));
@@ -84,20 +85,20 @@ public class DifferTest {
         assertThat(((CfObjectValueChanged) service.getChanges().get(0)).getValueAfter(), is("secure"));
 
         //apps
-        DiffNode apps = specNode.getChildNodes().get("apps");
+        DiffNode apps = specNode.getChild("apps");
         assertThat(apps.getChanges().size(), is(0));
         //only two since the app (app2) that is not in the desired config gets skipped
         assertThat(apps.getChildNodes().size(), is(2));
-        assertTrue(apps.getChildNodes().containsKey("app1"));
-        assertTrue(apps.getChildNodes().containsKey("app3"));
+        assertThat(apps.getChild("app1"), notNullValue());
+        assertThat(apps.getChild("app3"), notNullValue());
 
         //app1
-        DiffNode app1 = apps.getChildNodes().get("app1");
+        DiffNode app1 = apps.getChild("app1");
         assertThat(app1.getChanges().size(), is(0));
         assertThat(app1.getChildNodes().size(), is(1));
-        assertTrue(app1.getChildNodes().containsKey("manifest"));
+        assertThat(app1.getChild("manifest"), notNullValue());
 
-        DiffNode app1Manifest = app1.getChildNodes().get("manifest");
+        DiffNode app1Manifest = app1.getChild("manifest");
         assertTrue(app1Manifest.isLeaf());
         assertThat(app1Manifest.getChanges().size(), is(1));
         assertThat(app1Manifest.getChanges(), contains(instanceOf(CfMapChange.class)));
@@ -109,12 +110,12 @@ public class DifferTest {
         assertThat(environmentVariablesChange.getPropertyName(), is("environmentVariables"));
 
         //app3
-        DiffNode app3 = apps.getChildNodes().get("app3");
+        DiffNode app3 = apps.getChild("app3");
         assertTrue(app3.isNewObject());
         assertThat(app3.getChildNodes().size(), is(1));
-        assertTrue(app3.getChildNodes().containsKey("manifest"));
+        assertThat(app3.getChild("manifest"), notNullValue());
         //new app manifest object also
-        DiffNode app3Manifest = app3.getChildNodes().get("manifest");
+        DiffNode app3Manifest = app3.getChild("manifest");
         assertTrue(app3Manifest.isNewObject());
         assertTrue(app3Manifest.isLeaf());
     }

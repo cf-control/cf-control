@@ -44,6 +44,7 @@ Then you can run the __cf-control.jar__ by using the command line tool like:
   create          Create a new app, service instance or add a new space developer.
   get             Get the current configuration of your cf instance.
   diff            Print the differences between the given yaml file and the configuration of your cf instance.
+  apply           Apply the configuration from a given yaml file to your cf instance.
   update          Update/Remove apps, service instances or space developers.
 ```
   
@@ -68,7 +69,11 @@ Then you can run the __cf-control.jar__ by using the command line tool like:
                      the configuration of the apps of your cf instance.
   services          Print the differences between the services given in the yaml file and
                      the configuration of the services of your cf instance.
+```       
+##### apply [SUBCOMMAND]
 ```
+   applications      Create applications that are present in the given yaml file, but not in your cf instance.
+```       
 
 ##### update [SUBCOMMAND]
 ```
@@ -78,8 +83,7 @@ Then you can run the __cf-control.jar__ by using the command line tool like:
   update-application      Update applications in the target space.
   remove-application      Remove applications in the target space.
 ```
-      
-        
+
 ##### [PARAMS]
    ```
   -a, --api=<apiHost>                    Your CF instance's API endpoint URL.

@@ -1,5 +1,7 @@
 package cloud.foundry.cli.crosscutting.mapping.beans;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.List;
 
 /**
@@ -27,7 +29,7 @@ public class SpaceDevelopersBean implements Bean {
     @Override
     public String toString() {
         return "SpaceDevelopersBean{" +
-                "spaceDevelopers=" + String.valueOf(spaceDevelopers) +
+                "spaceDevelopers=" + StringUtils.join(spaceDevelopers) +
                 '}';
     }
 }

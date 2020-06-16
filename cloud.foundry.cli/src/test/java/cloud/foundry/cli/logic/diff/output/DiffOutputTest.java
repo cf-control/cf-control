@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
+import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.TargetBean;
 import cloud.foundry.cli.logic.diff.DiffNode;
 import cloud.foundry.cli.logic.diff.change.ChangeType;
@@ -20,6 +21,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 /**
  * Test for {@link DiffOutput}
@@ -219,5 +221,45 @@ public class DiffOutputTest {
         assertThat(diffString, is(" target:\n" +
                 "+    org: orgNameAfter\n" +
                 "-    org: orgNameBefore"));
+    }
+
+    @Test
+    public void testFromWithObjectValueChangedNullToEmptyShouldShowDifference() {
+        // given
+        DiffOutput diffOutput = new DiffOutput(2);
+        DiffNode config = new DiffNode("config");
+
+        CfObjectValueChanged apiVersionChanged = new CfObjectValueChanged(new ConfigBean(),
+                "apiVersion",
+                Collections.singletonList("config"),
+                null,
+                "");
+        config.addChange(apiVersionChanged);
+
+        // when
+        String diffString = diffOutput.from(config);
+
+        //then
+        assertThat(diffString, is("+apiVersion: ''"));
+    }
+
+    @Test
+    public void testFromWithObjectValueChangedEmptyToNullShouldShowDifference() {
+        // given
+        DiffOutput diffOutput = new DiffOutput(2);
+        DiffNode config = new DiffNode("config");
+
+        CfObjectValueChanged apiVersionChanged = new CfObjectValueChanged(new ConfigBean(),
+                "apiVersion",
+                Collections.singletonList("config"),
+                "",
+                null);
+        config.addChange(apiVersionChanged);
+
+        // when
+        String diffString = diffOutput.from(config);
+
+        //then
+        assertThat(diffString, is("-apiVersion: ''"));
     }
 }

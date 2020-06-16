@@ -94,7 +94,7 @@ public class DiffNodeTest {
 
         assertThat(root.getParentNode(), is(nullValue()));
         assertThat(root.getChildNodes().size(), is(1));
-        assertThat(root.getChildNodes().get("child"), is(child));
+        assertThat(root.getChild("child"), is(child));
         assertThat(root.getPropertyName(), is("root"));
         assertThat(root.getChild("someChild"), is(nullValue()));
         assertThat(root.getChild("child"), is(child));
@@ -146,7 +146,7 @@ public class DiffNodeTest {
 
         assertThat(root.getParentNode(), is(nullValue()));
         assertThat(root.getChildNodes().size(), is(1));
-        assertThat(root.getChildNodes().get("child"), is(child));
+        assertThat(root.getChild("child"), is(child));
 
         assertThat(child.getParentNode(), is(root));
         assertThat(child.getChildNodes().isEmpty(), is(true));
