@@ -54,6 +54,7 @@ public class DiffController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
+            Log.info("Diffing service(s)...");
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
 
@@ -61,14 +62,18 @@ public class DiffController implements Callable<Integer> {
             Map<String, ServiceBean> desiredServices = loadedSpecBean.getServices();
             SpecBean desiredSpecBean = new SpecBean();
             desiredSpecBean.setServices(desiredServices);
+            Log.debug("Services Yaml File:", desiredSpecBean);
 
             Map<String, ServiceBean> servicesLive = servicesOperations.getAll().block();
 
             SpecBean specBeanLive = new SpecBean();
             specBeanLive.setServices(servicesLive);
+            Log.debug("Services current config:", specBeanLive);
 
             DiffLogic diffLogic = new DiffLogic();
             String output = diffLogic.createDiffOutput(specBeanLive, desiredSpecBean);
+            Log.debug("Diff string of services:", output);
+
 
             if (output.isEmpty()) {
                 System.out.println(NO_DIFFERENCES);
@@ -92,6 +97,7 @@ public class DiffController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
+            Log.info("Diffing application(s)...");
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
 
@@ -99,14 +105,18 @@ public class DiffController implements Callable<Integer> {
             Map<String, ApplicationBean> desiredApplications = loadedSpecBean.getApps();
             SpecBean desiredSpecBean = new SpecBean();
             desiredSpecBean.setApps(desiredApplications);
+            Log.debug("Apps Yaml File:", desiredSpecBean);
 
             Map<String, ApplicationBean> appsLive = applicationsOperations.getAll().block();
 
             SpecBean specBeanLive = new SpecBean();
             specBeanLive.setApps(appsLive);
+            Log.debug("Apps current config:", specBeanLive);
+
 
             DiffLogic diffLogic = new DiffLogic();
             String output = diffLogic.createDiffOutput(specBeanLive, desiredSpecBean);
+            Log.debug("Diff string of apps:", output);
 
             if (output.isEmpty()) {
                 System.out.println(NO_DIFFERENCES);
@@ -148,7 +158,7 @@ public class DiffController implements Callable<Integer> {
 
             DiffLogic diffLogic = new DiffLogic();
             String output = diffLogic.createDiffOutput(specBeanLive, desiredSpecBean);
-            Log.debug("Diff string:", output);
+            Log.debug("Diff string of space-devs:", output);
 
             if (output.isEmpty()) {
                 System.out.println(NO_DIFFERENCES);
