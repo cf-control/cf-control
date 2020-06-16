@@ -4,12 +4,14 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
 
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationManifestBean;
@@ -42,6 +44,8 @@ import java.util.function.Predicate;
  * Test for {@link ApplicationsOperations}
  */
 public class ApplicationsOperationsTest {
+
+    private static final String SOME_APPLICATION = "SOME_APPLICATION";
 
     @Test
     public void testGetApplicationsWithEmptyMockData() {
@@ -101,9 +105,9 @@ public class ApplicationsOperationsTest {
     public void testCreateApplicationsPushesAppManifestSucceeds() throws CreationException {
         //given
         ApplicationManifest appManifest = createMockApplicationManifest();
-        DefaultCloudFoundryOperations cfoMock = Mockito.mock(DefaultCloudFoundryOperations.class);
-        Applications applicationsMock = Mockito.mock(Applications.class);
-        Mono<Void> monoMock = Mockito.mock(Mono.class);
+        DefaultCloudFoundryOperations cfoMock = mock(DefaultCloudFoundryOperations.class);
+        Applications applicationsMock = mock(Applications.class);
+        Mono<Void> monoMock = mock(Mono.class);
 
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfoMock);
 
@@ -129,15 +133,15 @@ public class ApplicationsOperationsTest {
     @Test
     public void testCreateApplicationsOnMissingDockerPasswordThrowsCreationException() {
         //given
-        DefaultCloudFoundryOperations cfoMock = Mockito.mock(DefaultCloudFoundryOperations.class);
-        Applications applicationsMock = Mockito.mock(Applications.class);
+        DefaultCloudFoundryOperations cfoMock = mock(DefaultCloudFoundryOperations.class);
+        Applications applicationsMock = mock(Applications.class);
 
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfoMock);
 
         when(cfoMock.applications()).thenReturn(applicationsMock);
         when(cfoMock.applications().get(any(GetApplicationRequest.class)))
                 .thenThrow(new IllegalArgumentException());
-        when(applicationsMock.delete(Mockito.mock(DeleteApplicationRequest.class))).then(Mockito.mock(Answer.class));
+        when(applicationsMock.delete(mock(DeleteApplicationRequest.class))).then(mock(Answer.class));
 
         ApplicationBean applicationsBean = new ApplicationBean();
         ApplicationManifestBean applicationManifestBean = new ApplicationManifestBean();
@@ -156,8 +160,8 @@ public class ApplicationsOperationsTest {
     public void testCreateApplicationsOnFatalCreationErrorThrowsCreationException() {
         //given
         ApplicationManifest appManifest = createMockApplicationManifest();
-        DefaultCloudFoundryOperations cfoMock = Mockito.mock(DefaultCloudFoundryOperations.class);
-        Applications applicationsMock = Mockito.mock(Applications.class);
+        DefaultCloudFoundryOperations cfoMock = mock(DefaultCloudFoundryOperations.class);
+        Applications applicationsMock = mock(Applications.class);
 
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfoMock);
 
@@ -166,7 +170,7 @@ public class ApplicationsOperationsTest {
                 .thenThrow(new IllegalArgumentException());
         when(applicationsMock.pushManifest(any(PushApplicationManifestRequest.class)))
                 .thenThrow(new IllegalArgumentException());
-        when(applicationsMock.delete(Mockito.mock(DeleteApplicationRequest.class))).then(Mockito.mock(Answer.class));
+        when(applicationsMock.delete(mock(DeleteApplicationRequest.class))).then(mock(Answer.class));
         ApplicationBean applicationsBean = new ApplicationBean(appManifest);
 
         //when
@@ -179,14 +183,14 @@ public class ApplicationsOperationsTest {
     public void testCreateApplicationsFailsWhenAlreadyExisting() {
         //given
         ApplicationManifest mockAppManifest = createMockApplicationManifest();
-        DefaultCloudFoundryOperations cfoMock = Mockito.mock(DefaultCloudFoundryOperations.class);
+        DefaultCloudFoundryOperations cfoMock = mock(DefaultCloudFoundryOperations.class);
 
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfoMock);
-        Applications applicationsMock = Mockito.mock(Applications.class);
+        Applications applicationsMock = mock(Applications.class);
 
         when(cfoMock.applications()).thenReturn(applicationsMock);
         when(cfoMock.applications().get(any(GetApplicationRequest.class)))
-                .thenReturn(Mockito.mock(Mono.class));
+                .thenReturn(mock(Mono.class));
 
         ApplicationBean applicationsBean = new ApplicationBean(mockAppManifest);
 
@@ -210,7 +214,7 @@ public class ApplicationsOperationsTest {
     public void testCreateOnNullPathAndNullDockerImageThrowsIllegalArgumentException() throws CreationException {
         //given
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(
-                Mockito.mock(DefaultCloudFoundryOperations.class));
+                mock(DefaultCloudFoundryOperations.class));
 
         ApplicationBean applicationBean = new ApplicationBean();
         ApplicationManifestBean manifestBean = new ApplicationManifestBean();
@@ -226,7 +230,7 @@ public class ApplicationsOperationsTest {
     public void testCreateOnNullPathAndNullManifestThrowsIllegalArgumentException() throws CreationException {
         //given
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(
-                Mockito.mock(DefaultCloudFoundryOperations.class));
+                mock(DefaultCloudFoundryOperations.class));
         ApplicationBean applicationBean = new ApplicationBean();
 
         //when
@@ -238,7 +242,7 @@ public class ApplicationsOperationsTest {
     public void testCreateOnEmptyNameThrowsIllegalArgumentException() {
         //given
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(
-                Mockito.mock(DefaultCloudFoundryOperations.class));
+                mock(DefaultCloudFoundryOperations.class));
 
         ApplicationBean applicationBean = new ApplicationBean();
         applicationBean.setPath("some/path");
@@ -252,12 +256,47 @@ public class ApplicationsOperationsTest {
     public void testCreateOnNullBeanThrowsNullPointerException() {
         //given
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(
-                Mockito.mock(DefaultCloudFoundryOperations.class));
+                mock(DefaultCloudFoundryOperations.class));
 
         //when
         assertThrows(NullPointerException.class, () -> applicationsOperations.create("appName", null, false));
     }
 
+    @Test
+    public void testRemoveApplication() {
+        // given
+        DefaultCloudFoundryOperations cfoMock = mock(DefaultCloudFoundryOperations.class);
+        Applications applicationsMock = mock(Applications.class);
+        when(cfoMock.applications()).thenReturn(applicationsMock);
+
+        Mono<Void> monoMock = mock(Mono.class);
+        when(applicationsMock.delete(any())).thenReturn(monoMock);
+
+        Void voidMock = mock(Void.class);
+        when(monoMock.block()).thenReturn(voidMock);
+
+        // when
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfoMock);
+        applicationsOperations.removeApplication(SOME_APPLICATION);
+
+        // then
+        verify(applicationsMock, times(1)).delete(any(DeleteApplicationRequest.class));
+    }
+
+    @Test
+    public void testRemoveApplicationShouldNotThrowAnIllegalArgumentException() {
+        // given
+        DefaultCloudFoundryOperations cfoMock = mock(DefaultCloudFoundryOperations.class);
+        Applications applicationsMock = mock(Applications.class);
+
+        when(cfoMock.applications()).thenReturn(applicationsMock);
+        when(applicationsMock.delete(any())).thenThrow(IllegalArgumentException.class);
+
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfoMock);
+
+        // when -> then
+        assertDoesNotThrow(() -> applicationsOperations.removeApplication(SOME_APPLICATION));
+    }
 
     /**
      * Creates and configures mock object for CF API client
@@ -273,14 +312,14 @@ public class ApplicationsOperationsTest {
         Flux<ApplicationSummary> flux = Flux.fromIterable(appSummaries);
 
         // then we mock the necessary method calls
-        Mockito.when(cfMock.applications()).thenReturn(applicationsMock);
+        when(cfMock.applications()).thenReturn(applicationsMock);
         // now, let's have the same fun for the manifests, which are queried in a different way
         // luckily, we already have the applicationsMock, which we also need to hook on here
         // unfortunately, the method matches a string on some map, so we have to rebuild something similar
         // the following lambda construct does exactly that: search for the right manifest by name in the list we've
         // been passed, and return that if possible (or otherwise throw some exception)
         // TODO: check which exception to throw
-        Mockito.when(applicationsMock.getApplicationManifest(any(GetApplicationManifestRequest.class)))
+        when(applicationsMock.getApplicationManifest(any(GetApplicationManifestRequest.class)))
                 .thenAnswer((Answer<Mono<ApplicationManifest>>) invocation -> {
                     GetApplicationManifestRequest request = invocation.getArgument(0);
 
@@ -293,7 +332,7 @@ public class ApplicationsOperationsTest {
 
                     throw new RuntimeException("fixme");
                 });
-        Mockito.when(applicationsMock.list()).thenReturn(flux);
+        when(applicationsMock.list()).thenReturn(flux);
 
         return cfMock;
     }
