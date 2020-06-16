@@ -75,7 +75,6 @@ Then you can run the __cf-control.jar__ by using the command line tool like:
    applications      Create applications that are present in the given yaml file, but not in your cf instance.
 ```       
 
-```
 ##### update [SUBCOMMAND]
 ```
   remove-service          Remove service instances in the target space.
