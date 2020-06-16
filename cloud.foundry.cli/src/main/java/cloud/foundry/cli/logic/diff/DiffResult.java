@@ -43,7 +43,7 @@ public class DiffResult {
         checkFieldExists(ConfigBean.class, SPEC_FIELD_NAME, SpecBean.class);
         checkMapExists(SpecBean.class, APPS_FIELD_NAME, String.class, ApplicationBean.class);
         checkMapExists(SpecBean.class, SERVICES_FIELD_NAME, String.class, ServiceBean.class);
-        checkFieldExists(SpecBean.class, SPACE_DEVELOPERS_PROPERTY_NAME, List.class);
+        checkListExists(SpecBean.class, SPACE_DEVELOPERS_PROPERTY_NAME, String.class);
         checkFieldExists(ConfigBean.class, API_VERSION_PROPERTY_NAME, String.class);
     }
 
@@ -57,6 +57,7 @@ public class DiffResult {
      * Creates the diff result using the root node of a diff tree. It is assumed that the root node is the result of
      * diffing two {@link ConfigBean config beans}.
      * @param rootNode the root node of the diff tree
+     * @throws NullPointerException if the argument is null
      */
     public DiffResult(@Nonnull DiffNode rootNode) {
         checkNotNull(rootNode);
@@ -78,6 +79,15 @@ public class DiffResult {
         assert field.getType().equals(fieldType);
 
         return field;
+    }
+
+    private static void checkListExists(Class<?> classWithField, String fieldName, Class<?> elementType) {
+        Field field = checkFieldExists(classWithField, fieldName, List.class);
+        ParameterizedType genericType = (ParameterizedType) field.getGenericType();
+        Type[] genericTypes = genericType.getActualTypeArguments();
+
+        assert genericTypes.length == 1;
+        assert genericTypes[0].equals(elementType);
     }
 
     private static void checkMapExists(Class<?> classWithField, String fieldName,
