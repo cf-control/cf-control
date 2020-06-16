@@ -9,7 +9,9 @@ import static java.util.stream.Collectors.toList;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 
 import cloud.foundry.cli.crosscutting.exceptions.InvalidOperationException;
+import cloud.foundry.cli.crosscutting.exceptions.UpdateException;
 import cloud.foundry.cli.crosscutting.logging.Log;
+import org.cloudfoundry.client.v2.ClientV2Exception;
 import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperByUsernameRequest;
 import org.cloudfoundry.client.v2.spaces.RemoveSpaceDeveloperByUsernameRequest;
 import org.cloudfoundry.client.v2.spaces.RemoveSpaceDeveloperByUsernameResponse;
@@ -103,6 +105,7 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
      *
      * @param usernameList List of users to be removed as a space developer.
      * @throws InvalidOperationException if usernameList is null/empty or spaceId is invalid.
+     * @throws UpdateException if the user is not found.
      */
     public void removeSpaceDeveloper(List<String> usernameList) throws InvalidOperationException {
         Log.debug("Removing space developer(s):", String.valueOf(usernameList));
@@ -111,10 +114,14 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
         String spaceId = cloudFoundryOperations.getSpaceId().block();
         assertValidSpaceId(spaceId);
 
+        try {
         usernameList.stream()
                 .map(username -> doRemoveSpaceDeveloper(spaceId, username))
                 .collect(toList())
-                .forEach(Mono::block);
+                .forEach(Mono::block); }
+        catch (ClientV2Exception e) {
+            throw new UpdateException(e);
+        }
     }
 
     /**
@@ -147,6 +154,7 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
      * @param spaceId  The value for spaceId.
      * @param username The value for username.
      * @return the response from the Disassociate Developer with the Space by Username request.
+     * @throws ClientV2Exception when the user is not found.
      */
     private Mono<RemoveSpaceDeveloperByUsernameResponse> doRemoveSpaceDeveloper(String spaceId, String username) {
         RemoveSpaceDeveloperByUsernameRequest request = RemoveSpaceDeveloperByUsernameRequest

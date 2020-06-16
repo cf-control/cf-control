@@ -6,6 +6,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import cloud.foundry.cli.crosscutting.exceptions.DiffException;
 import cloud.foundry.cli.crosscutting.mapping.beans.Bean;
 import cloud.foundry.cli.logic.diff.DiffNode;
+import cloud.foundry.cli.logic.diff.DiffResult;
 import cloud.foundry.cli.logic.diff.Differ;
 import cloud.foundry.cli.logic.diff.output.DiffOutput;
 
@@ -20,38 +21,38 @@ public class DiffLogic {
      * Compares the two given configurations and creates a tree composed of @DiffNode objects.
      * @param liveConfig the configuration that is currently on the live system
      * @param desiredConfig the configuration state that the live system should change to
-     * @return @DiffNode object which is the root of the tree
+     * @return @DiffResult object that provides access to the found changes
      * @throws NullPointerException when liveConfig or desiredConfig is null
      * @throws IllegalArgumentException when the two beans don't have the same type
      * @throws DiffException in case of any errors during the diff procedure
      */
-    public DiffNode createDiffTree(Bean liveConfig, Bean desiredConfig) throws DiffException {
+    public DiffResult createDiffResult(Bean liveConfig, Bean desiredConfig) {
         checkNotNull(liveConfig);
         checkNotNull(desiredConfig);
         checkArgument(liveConfig.getClass() == desiredConfig.getClass(), BEANS_DONT_MATCH_ERROR);
 
         try {
-            return doCreateDiffTree(liveConfig, desiredConfig);
+            return doCreateDiffResult(liveConfig, desiredConfig);
         } catch (Exception e) {
             throw new DiffException(e.getMessage(), e);
         }
     }
 
-    private DiffNode doCreateDiffTree(Bean liveConfig, Bean desiredConfig) {
+    private DiffResult doCreateDiffResult(Bean liveConfig, Bean desiredConfig) {
         Differ differ = new Differ();
-        return differ.createDiffTree(liveConfig, desiredConfig);
+        return new DiffResult(differ.createDiffTree(liveConfig, desiredConfig));
     }
 
     /**
      * Compares the two given configurations and creates a string representation of the differences.
      * @param liveConfig the configuration that is currently on the live system
      * @param desiredConfig the configuration state that the live system should change to
-     * @return @DiffNode object which is the root of the tree
+     * @return a visually enhanced diff output as string
      * @throws NullPointerException when liveConfig or desiredConfig is null
      * @throws IllegalArgumentException when the two beans don't have the same type
      * @throws DiffException in case of any errors during the diff procedure
      */
-    public String createDiffOutput(Bean liveConfig, Bean desiredConfig) throws DiffException {
+    public String createDiffOutput(Bean liveConfig, Bean desiredConfig) {
         checkNotNull(liveConfig);
         checkNotNull(desiredConfig);
         checkArgument(liveConfig.getClass() == desiredConfig.getClass(), BEANS_DONT_MATCH_ERROR);

@@ -1,0 +1,11 @@
+apps:
+  newApp:
+    path: path/to/python/app
+    manifest:
+      memory : 2048
+      instances : 1
+      randomRoute : true
+      healthCheckType : PORT
+      disk : 2048
+      buildpack: python_buildpack
+      stack: cflinuxfs3

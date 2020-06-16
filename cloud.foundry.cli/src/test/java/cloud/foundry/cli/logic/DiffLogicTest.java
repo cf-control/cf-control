@@ -2,7 +2,6 @@ package cloud.foundry.cli.logic;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import cloud.foundry.cli.crosscutting.exceptions.DiffException;
 import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
 import org.junit.jupiter.api.Test;
@@ -14,8 +13,8 @@ public class DiffLogicTest {
 
     @Test
     public void testCreateDiffTreeOnNullThrowsException() {
-        assertThrows(NullPointerException.class, () -> new DiffLogic().createDiffTree(null, new ConfigBean()));
-        assertThrows(NullPointerException.class, () -> new DiffLogic().createDiffTree(new ConfigBean(), null));
+        assertThrows(NullPointerException.class, () -> new DiffLogic().createDiffResult(null, new ConfigBean()));
+        assertThrows(NullPointerException.class, () -> new DiffLogic().createDiffResult(new ConfigBean(), null));
     }
 
     @Test
@@ -27,7 +26,7 @@ public class DiffLogicTest {
     @Test
     public void testCreateDiffTreeOfDifferentBeanTypesThrowsException() {
         assertThrows(IllegalArgumentException.class,
-                () -> new DiffLogic().createDiffTree(new SpecBean(), new ConfigBean()));
+                () -> new DiffLogic().createDiffResult(new SpecBean(), new ConfigBean()));
     }
 
     @Test
