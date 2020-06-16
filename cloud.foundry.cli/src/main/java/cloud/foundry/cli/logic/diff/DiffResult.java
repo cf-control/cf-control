@@ -54,8 +54,9 @@ public class DiffResult {
     private final DiffNode servicesNode;
 
     /**
-     * @param rootNode root node of the diff tree, requires the ConfigBean diff as root node
-     * @throws NullPointerException when rootNode is null
+     * Creates the diff result using the root node of a diff tree. It is assumed that the root node is the result of
+     * diffing two {@link ConfigBean config beans}.
+     * @param rootNode the root node of the diff tree
      */
     public DiffResult(@Nonnull DiffNode rootNode) {
         checkNotNull(rootNode);
