@@ -37,8 +37,9 @@ public class CfObjectValueChanged extends CfChange {
      * @param path the field names of the object graph that lead to the scalar (with the compared object as root)
      * @param valueBefore the value before the change
      * @param valueAfter the value after the change
-     * @throws NullPointerException if any of the arguments is null
+     * @throws NullPointerException if affectedObject, propertyName or path is null
      * @throws IllegalArgumentException if the path does not contain a root (i.e. if the path is empty)
+     * or if the valueBefore is equal to valueAfter including null
      */
     public CfObjectValueChanged(Object affectedObject,
                                 String propertyName,
