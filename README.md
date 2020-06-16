@@ -83,4 +83,24 @@ You are able to include contents of other YAML files into the one that you pass 
 * The tool supports **Remote References** and **URL References**.
 * **Local References** are not natively supported, but you can achieve the same effect by using **Anchors and Alisases** as they are stated in the YAML specification.
 
+
+###Demo Files
+
+In this [folder](cloud.foundry.cli/src/test/resources/demo/) we provide example YAML files that may help in
+understanding how to use our tool. What can I use the files for?
+
+* [appJava.yml](cloud.foundry.cli/src/test/resources/demo/appJava.yml): Reference for create/update/remove of an 
+application.
+* [appPython.yml](cloud.foundry.cli/src/test/resources/demo/appPython.yml): Reference for create/update/remove of an
+application.
+* [getAll.yml](cloud.foundry.cli/src/test/resources/demo/appJava.yml): Example output of the **get all** command. 
+In this exmaple you can see how you have to structure the yml Files in general.
+* [refDemo.yml](cloud.foundry.cli/src/test/resources/demo/refDemo.yml) & 
+:[referred.yml](cloud.foundry.cli/src/test/resources/demo/referred.yml) Example how you can use the ref syntax in the 
+context of creating services (command: create services)
+* [services.yml](cloud.foundry.cli/src/test/resources/demo/services.yml): Reference for create/remove of 
+services.
+* [spaceDeveloper.yml](cloud.foundry.cli/src/test/resources/demo/spaceDeveloper.yml):  Reference for create/remove of 
+space developers.
+
 __Happy coding!__
