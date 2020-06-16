@@ -5,6 +5,7 @@ import static picocli.CommandLine.Mixin;
 
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Scanner;
 import java.util.concurrent.Callable;
 
 import cloud.foundry.cli.crosscutting.logging.Log;
@@ -13,6 +14,8 @@ import cloud.foundry.cli.crosscutting.mapping.beans.SpaceDevelopersBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
 import cloud.foundry.cli.operations.ApplicationsOperations;
 import cloud.foundry.cli.operations.SpaceDevelopersOperations;
+import picocli.CommandLine.Option;
+
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
@@ -26,11 +29,11 @@ import reactor.core.publisher.Flux;
  * instance such that it matches with a provided configuration file.
  */
 @Command(name = "update", header = "%n@|green Update-Controller|@", subcommands = {
-        UpdateController.RemoveSpaceDeveloperCommand.class,
-        UpdateController.UpdateServiceCommand.class,
-        UpdateController.RemoveServiceInstanceCommand.class,
-        UpdateController.RemoveApplicationCommand.class,
-        UpdateController.UpdateApplicationCommand.class})
+    UpdateController.RemoveSpaceDeveloperCommand.class,
+    UpdateController.UpdateServiceCommand.class,
+    UpdateController.RemoveServiceInstanceCommand.class,
+    UpdateController.RemoveApplicationCommand.class,
+    UpdateController.UpdateApplicationCommand.class })
 public class UpdateController implements Callable<Integer> {
 
     @Override
@@ -54,7 +57,7 @@ public class UpdateController implements Callable<Integer> {
             Log.info("Removing space developers...");
 
             SpaceDevelopersBean spaceDevelopersBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(),
-                    SpaceDevelopersBean.class);
+                SpaceDevelopersBean.class);
 
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
@@ -66,7 +69,7 @@ public class UpdateController implements Callable<Integer> {
         }
     }
 
-    @Command(name = "remove-service-instance", description = "Removes a service instance.")
+    @Command(name = "remove-service", description = "Removes a service instance.")
     static class RemoveServiceInstanceCommand implements Callable<Integer> {
 
         @Mixin
@@ -75,21 +78,48 @@ public class UpdateController implements Callable<Integer> {
         @Mixin
         YamlCommandOptions yamlCommandOptions;
 
+        @Option(names = { "-f", "--force" }, required = false, description = "Force deletion without confirmation.")
+        Boolean force;
+
         @Override
         public Integer call() throws Exception {
+
+            if (force != null) {
+                doRemoveServiceInstance(yamlCommandOptions);
+            } else {
+                if (System.console() == null) {
+                    Log.error("The System console is not available.");
+                    
+                    return -1;
+                }
+                System.out.println("Really delete the services y/n?");
+                Scanner scanner = new Scanner(System.in);
+                String input = scanner.nextLine();
+                scanner.close();
+                if (input.equals("y") || input.equals("yes")) {
+                    doRemoveServiceInstance(yamlCommandOptions);
+                } else {
+                    System.out.println("Delete cancelled");
+                    
+                    return 1;
+                }
+            }
+            
+            return 0;
+        }
+
+        private void doRemoveServiceInstance(YamlCommandOptions yamlCommandOptions) throws Exception {
+            Log.info("Removing services...");
             SpecBean specBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
             Map<String, ServiceBean> serviceBeans = specBean.getServices();
 
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
-
             ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
 
             for (Entry<String, ServiceBean> serviceEntry : serviceBeans.entrySet()) {
                 String serviceName = serviceEntry.getKey();
                 servicesOperations.removeServiceInstance(serviceName);
             }
-
-            return 0;
         }
     }
 
@@ -104,6 +134,7 @@ public class UpdateController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
+            Log.info("Removing applications...");
             SpecBean specBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
             Map<String, ApplicationBean> applicationBeans = specBean.getApps();
 
