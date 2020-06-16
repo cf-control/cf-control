@@ -59,6 +59,7 @@ The loglevel is always configured to the most verbose value the user specified. 
   create          Create a new app, service instance or add a new space developer.
   get             Get the current configuration of your cf instance.
   diff            Print the differences between the given yaml file and the configuration of your cf instance.
+  apply           Apply the configuration from a given yaml file to your cf instance.
   update          Update/Remove apps, service instances or space developers.
 ```
 
@@ -75,10 +76,10 @@ The loglevel is always configured to the most verbose value the user specified. 
 ##### get [SUBCOMMAND]
 
 ```
-   services          List all services in the target space.
-   space-developers  List all space developers in the target space.
-   applications      List all applications in the target space.
-   all               Show all information in the target space.
+  services          List all services in the target space.
+  space-developers  List all space developers in the target space.
+  applications      List all applications in the target space.
+  all               Show all information in the target space.
 ```
 
 

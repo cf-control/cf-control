@@ -3,6 +3,8 @@ package cloud.foundry.cli.logic.diff.change;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import cloud.foundry.cli.logic.apply.CfChangeVisitor;
+
 import java.util.List;
 
 /**
@@ -53,4 +55,9 @@ public abstract class CfChange {
         return path;
     }
 
+    /**
+     * Ensuring that each change object accepts a visitor.
+     * @param visitor the visitor accepted by the change object
+     */
+    public abstract void accept(CfChangeVisitor visitor);
 }

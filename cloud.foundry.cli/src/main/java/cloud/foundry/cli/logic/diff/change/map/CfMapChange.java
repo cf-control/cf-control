@@ -3,6 +3,7 @@ package cloud.foundry.cli.logic.diff.change.map;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import cloud.foundry.cli.logic.apply.CfChangeVisitor;
 import cloud.foundry.cli.logic.diff.change.CfChange;
 import cloud.foundry.cli.logic.diff.change.ChangeType;
 
@@ -57,5 +58,14 @@ public class CfMapChange extends CfChange {
                 .stream()
                 .filter( valueChange -> valueChange.getChangeType().equals(changeType))
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Accept a visitor handling that specific type of change object.
+     * @param visitor the concrete visitor to work on that object.
+     */
+    @Override
+    public void accept(CfChangeVisitor visitor) {
+        visitor.visitMapChange(this);
     }
 }

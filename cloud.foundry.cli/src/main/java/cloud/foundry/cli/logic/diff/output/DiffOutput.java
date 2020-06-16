@@ -95,7 +95,7 @@ public class DiffOutput {
             }
 
             // recursion
-            for (DiffNode childNode : node.getChildNodes().values()) {
+            for (DiffNode childNode : node.getChildNodes()) {
                 diffLines(lines, childNode);
             }
         }
@@ -160,15 +160,15 @@ public class DiffOutput {
     private List<String> handleValueChange(int indentation, CfObjectValueChanged valueChange) {
         List<String> lines = new LinkedList<>();
 
-        if (!valueChange.getValueAfter().isEmpty()) {
+        if (valueChange.getValueAfter() != null) {
             lines.add(asAddedKeyValueEntry(indentation,
                     valueChange.getPropertyName(),
                     valueChange.getValueAfter()));
         }
-         if (!valueChange.getValueBefore().isEmpty()) {
+         if (valueChange.getValueBefore() != null) {
              lines.add(asRemovedKeyValueEntry(indentation,
                   valueChange.getPropertyName(),
-                  valueChange.getValueBefore()));
+                     valueChange.getValueBefore()));
         }
 
         return lines;
@@ -219,14 +219,22 @@ public class DiffOutput {
      * example : asListEntry('+', 4, 'elephantsql') :== '+    - elephantsql'
      */
     private String asListEntry(FlagSymbol flagSymbol, int indentation, String value) {
-        return asKeyValueEntry(flagSymbol, indentation, "", "- " + value);
+        return DiffLineBuilder.builder()
+                .setFlagSymbol(flagSymbol)
+                .setIndentation(indentation)
+                .setValue("- " + value)
+                .build();
     }
 
     /**
      * example : asPropertyEntry('+', 4, 'manifest') :== '+    manifest:'
      */
     private String asPropertyEntry(FlagSymbol flagSymbol, int indentation, String property) {
-        return asKeyValueEntry(flagSymbol, indentation, property, "");
+        return DiffLineBuilder.builder()
+                .setFlagSymbol(flagSymbol)
+                .setIndentation(indentation)
+                .setPropertyName(property)
+                .build();
     }
 
     /**
@@ -237,7 +245,7 @@ public class DiffOutput {
                 .setFlagSymbol(flagSymbol)
                 .setIndentation(indentation)
                 .setPropertyName(property)
-                .setValue(value)
+                .setValue(value.isEmpty() ? "''" : value)
                 .build();
     }
 
