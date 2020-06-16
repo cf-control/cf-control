@@ -1,0 +1,4 @@
+services:
+  test-service:
+    plan: null
+    service: null
