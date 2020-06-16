@@ -12,6 +12,7 @@ import org.yaml.snakeyaml.constructor.ConstructorException;
 import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
 import picocli.CommandLine;
+import picocli.CommandLine.Option;
 
 import java.io.IOException;
 import java.util.concurrent.Callable;
@@ -33,13 +34,13 @@ import java.util.concurrent.Callable;
 public class BaseController implements Callable<Integer> {
 
     private static class LoggingOptions {
-        @CommandLine.Option(names = {"-q", "--quiet"}, description = "Reduce log verbosity and print errors only.")
+        @Option(names = {"-q", "--quiet"}, description = "Reduce log verbosity and print errors only.")
         private boolean quiet;
 
-        @CommandLine.Option(names = {"-v", "--verbose"}, description = "Enable verbose logging.")
+        @Option(names = {"-v", "--verbose"}, description = "Enable verbose logging.")
         private boolean verbose;
 
-        @CommandLine.Option(names = {"-d", "--debug"}, description = "Enable debug logging.")
+        @Option(names = {"-d", "--debug"}, description = "Enable debug logging.")
         private boolean debug;
 
         public boolean isVerbose() {
