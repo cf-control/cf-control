@@ -88,10 +88,10 @@ public class UpdateController implements Callable<Integer> {
                 doRemoveServiceInstance(yamlCommandOptions);
             } else {
                 if (System.console() == null) {
-                    Log.error("The System console is not available.");
-                    
-                    return -1;
+                    Log.error("--force/-f not supplied and not running in terminal, aborting");
+                    return 2;
                 }
+
                 System.out.println("Really delete the services y/n?");
                 Scanner scanner = new Scanner(System.in);
                 String input = scanner.nextLine();
