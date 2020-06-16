@@ -1,0 +1,27 @@
+# This is an example for the usage of $ref in YAML files. It is suited for the create service command.
+#
+# Remote references that use absolute paths and URL References are not contained in the example. They are used like:
+# $ref: 'C:\some\absolute\path\config.yaml'
+# $ref: 'protocol:\\domain.com:8042/some/path/config.yaml'
+services:
+  someServiceName:
+    plan:
+
+      # Since this path is relative, the file is opened relative to the current working directory of cf-control.
+      # The pointer (after the '#') points to an element inside of a sequence. Therefore an according index is specified.
+      # TODO: you may need to change the path to the referred.yml file
+      $ref: 'referred.yml#/plans/0'
+
+    # This specifies an anchor named 'myService'. It can be referenced within this document.
+    service: &myService
+
+      # That entry is overridden as soon as the ref occurrence below it is resolved:
+      # TODO: you may need to change the path to the referred.yml file
+      thisIs: overridden
+      $ref: 'referred.yml#/service'
+
+  someOtherServiceName:
+    plan: lemur
+
+    # That is an alias. It refers to the anchor named 'myService'. The contents at the corresponding anchor are inserted here.
+    service: *myService

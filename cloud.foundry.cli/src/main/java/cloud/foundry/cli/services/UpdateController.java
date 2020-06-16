@@ -21,7 +21,6 @@ import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
 import cloud.foundry.cli.crosscutting.mapping.YamlMapper;
 import cloud.foundry.cli.operations.ServicesOperations;
-import reactor.core.publisher.Flux;
 
 /**
  * This class realizes the functionality that is needed for the update commands.

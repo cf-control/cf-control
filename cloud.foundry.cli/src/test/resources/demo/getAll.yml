@@ -1,0 +1,26 @@
+spec:
+  apps:
+    testApp:
+      manifest:
+        buildpack: python_buildpack
+        disk: 2048
+        healthCheckType: PORT
+        instances: 1
+        memory: 2048
+        routes:
+          - testApp-rayless-jargonization.cfapps.io
+        services:
+          - autoscale-development
+          - config-server
+        stack: cflinuxfs3
+  services:
+    autoscale-example-service:
+      plan: standard
+      service: app-autoscaler
+  spaceDevelopers:
+    - dev1@mail.com
+    - dev2@mail.de
+target:
+  endpoint: api.name.io
+  org: org.name
+  space: spacename

@@ -4,6 +4,7 @@ import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import cloud.foundry.cli.crosscutting.exceptions.CredentialException;
 import cloud.foundry.cli.crosscutting.exceptions.DiffException;
 import cloud.foundry.cli.crosscutting.exceptions.RefResolvingException;
+import cloud.foundry.cli.crosscutting.exceptions.UpdateException;
 import cloud.foundry.cli.crosscutting.exceptions.ApplyException;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.RefResolver;
@@ -53,7 +54,11 @@ public class BaseController implements Callable<Integer> {
                 Log.error("I/O error:", ex.getMessage());
             } else if (ex instanceof CreationException) {
                 Log.error("Failed to create message:" + ex.getMessage());
-            } else if (ex instanceof UnsupportedOperationException) {
+            }
+            else if (ex instanceof UpdateException) {
+                Log.error("Failed to update message:" + ex.getMessage());
+            }
+            else if (ex instanceof UnsupportedOperationException) {
                 Log.error("Operation not supported/implemented:", ex.getMessage());
             } else if (ex instanceof CredentialException) {
                 Log.error("Credentials error:", ex.getMessage());
