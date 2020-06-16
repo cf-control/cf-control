@@ -53,6 +53,10 @@ public class DiffResult {
     private final DiffNode appsNode;
     private final DiffNode servicesNode;
 
+    /**
+     * @param rootNode root node of the diff tree, requires the ConfigBean diff as root node
+     * @throws NullPointerException when rootNode is null
+     */
     public DiffResult(@Nonnull DiffNode rootNode) {
         checkNotNull(rootNode);
         this.rootNode = rootNode;
