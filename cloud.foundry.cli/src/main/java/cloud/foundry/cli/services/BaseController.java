@@ -130,7 +130,15 @@ public class BaseController implements Callable<Integer> {
         });
 
         // parse args now to be able to configure logging before we continue running the rest of the CLI
-        cli.parseArgs(args);
+        // a nice catch of this approach: we can properly handle all sorts of argument parsing errors nicely
+        try {
+            cli.parseArgs(args);
+        } catch (CommandLine.PicocliException e) {
+            // TODO: consider printing this directly to stderr
+            // (we don't necessarily need to use the logger while parsing the args)
+            Log.error(e.getMessage());
+            System.exit(1);
+        }
 
         // now, we can access the logging options in the base controller
         // note: we always enable the most verbose level the user specifies
