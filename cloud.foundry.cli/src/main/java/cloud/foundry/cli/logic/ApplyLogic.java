@@ -5,6 +5,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
 import cloud.foundry.cli.logic.apply.ApplicationApplier;
 import cloud.foundry.cli.logic.diff.DiffResult;
 import cloud.foundry.cli.logic.diff.change.CfChange;
@@ -34,8 +35,8 @@ public class ApplyLogic {
         Map<String, ApplicationBean> liveApplications = applicationsOperations.getAll().block();
 
         // that way only the applications of the live system are compared in the diff
-        ConfigBean desiredApplicationsConfig = new ConfigBean(desiredApplications);
-        ConfigBean liveApplicationsConfig = new ConfigBean(liveApplications);
+        ConfigBean desiredApplicationsConfig = createConfigFromApplications(desiredApplications);
+        ConfigBean liveApplicationsConfig = createConfigFromApplications(liveApplications);
 
         // compare entire configs as the diff wrapper is only suited for diff trees of these
         DiffLogic diffLogic = new DiffLogic();
@@ -50,6 +51,18 @@ public class ApplyLogic {
 
             ApplicationApplier.apply(new ApplicationsOperations(cfOperations), applicationName, applicationChanges);
         }
+    }
+
+    /**
+     * @param applicationBeans the application beans that should be contained in the resulting config bean
+     * @return a config bean only containing the entered application beans
+     */
+    private ConfigBean createConfigFromApplications(Map<String, ApplicationBean> applicationBeans) {
+        SpecBean applicationsSpecBean = new SpecBean();
+        applicationsSpecBean.setApps(applicationBeans);
+        ConfigBean applicationsConfigBean = new ConfigBean();
+        applicationsConfigBean.setSpec(applicationsSpecBean);
+        return applicationsConfigBean;
     }
 
 }

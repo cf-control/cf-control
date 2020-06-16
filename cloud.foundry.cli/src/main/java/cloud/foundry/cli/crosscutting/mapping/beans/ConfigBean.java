@@ -1,7 +1,5 @@
 package cloud.foundry.cli.crosscutting.mapping.beans;
 
-import java.util.Map;
-
 /**
  * Bean holding all data of the state of a live system.
  */
@@ -13,11 +11,6 @@ public class ConfigBean implements Bean {
 
     public ConfigBean() {
 
-    }
-
-    public ConfigBean(Map<String, ApplicationBean> apps) {
-        spec = new SpecBean();
-        spec.setApps(apps);
     }
 
     public String getApiVersion() {
