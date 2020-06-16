@@ -240,7 +240,7 @@ public class DiffOutputTest {
         String diffString = diffOutput.from(config);
 
         //then
-        assertThat(diffString, is("+apiVersion: ''"));
+        assertThat(diffString, is("+ apiVersion: ''"));
     }
 
     @Test
@@ -260,6 +260,6 @@ public class DiffOutputTest {
         String diffString = diffOutput.from(config);
 
         //then
-        assertThat(diffString, is("-apiVersion: ''"));
+        assertThat(diffString, is("- apiVersion: ''"));
     }
 }
