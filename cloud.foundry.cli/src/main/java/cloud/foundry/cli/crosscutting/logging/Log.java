@@ -28,6 +28,8 @@ public class Log {
 
     // by default, we only want to log messages of levels info and greater
     public static final Level DEFAULT_LEVEL = INFO_LEVEL;
+    // in quiet mode, we only want to log errors
+    public static final Level QUIET_LEVEL = ERROR_LEVEL;
 
     /**
      * The name of the CF-Control logger.
@@ -131,6 +133,13 @@ public class Log {
      */
     public static void setVerboseLogLevel() {
         setLogLevel(VERBOSE_LEVEL);
+    }
+
+    /**
+     * Configure logger to display verbose messages, too.
+     */
+    public static void setQuietLogLevel() {
+        setLogLevel(QUIET_LEVEL);
     }
 
     /**
