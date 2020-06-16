@@ -134,7 +134,7 @@ public class BaseController implements Callable<Integer> {
         // a nice catch of this approach: we can properly handle all sorts of argument parsing errors nicely
         try {
             cli.parseArgs(args);
-        } catch (CommandLine.PicocliException e) {
+        } catch (Exception e) {
             // TODO: consider printing this directly to stderr
             // (we don't necessarily need to use the logger while parsing the args)
             Log.error(e.getMessage());
