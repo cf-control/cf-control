@@ -9,6 +9,7 @@ import cloud.foundry.cli.crosscutting.exceptions.ApplyException;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.RefResolver;
 import org.yaml.snakeyaml.constructor.ConstructorException;
+import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
 import picocli.CommandLine;
 
@@ -54,7 +55,7 @@ public class BaseController implements Callable<Integer> {
         }
     }
 
-    @CommandLine.ArgGroup(exclusive = true, multiplicity = "0..1")
+    @ArgGroup(exclusive = true, multiplicity = "0..1")
     LoggingOptions loggingOptions;
 
     @Override
