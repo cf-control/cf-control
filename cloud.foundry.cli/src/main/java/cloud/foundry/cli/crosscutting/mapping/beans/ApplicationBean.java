@@ -37,7 +37,7 @@ public class ApplicationBean implements Bean {
     @Override
     public String toString() {
         return "ApplicationBean{" +
-                "manifest=" + String.valueOf(manifest) +
+                "manifest=" + manifest +
                 ", path='" + path + '\'' +
                 '}';
     }

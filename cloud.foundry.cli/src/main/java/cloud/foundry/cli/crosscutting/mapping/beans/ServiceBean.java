@@ -54,7 +54,7 @@ public class ServiceBean implements Bean {
         return "ServiceBean{" +
                 "service='" + service + '\'' +
                 ", plan='" + plan + '\'' +
-                ", tags=" + String.valueOf(tags) +
+                ", tags=" + tags +
                 '}';
     }
 }

@@ -67,8 +67,8 @@ public class ChangeParser {
         return new CfObjectValueChanged(change.getAffectedObject().get(),
                 change.getPropertyName(),
                 extractPathFrom(change),
-                change.getLeft() == null ? "" : change.getLeft().toString(),
-                change.getRight() == null ? "" : change.getRight().toString()
+                Objects.toString(change.getLeft(), null),
+                Objects.toString(change.getRight(), null)
                 );
     }
 
@@ -135,12 +135,12 @@ public class ChangeParser {
      */
     private static LinkedList<String> extractPathFrom(Change change) {
         String rootSymbol = "#";
-        String pathSeperatorSymbol = "/";
+        String pathSeparatorSymbol = "/";
         LinkedList<String> path = new LinkedList<>(Arrays.asList(change
                 .getAffectedGlobalId()
                 .toString()
                 .replace(rootSymbol, "")
-                .split(pathSeperatorSymbol)));
+                .split(pathSeparatorSymbol)));
         return path;
     }
 }

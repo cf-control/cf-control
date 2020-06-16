@@ -66,7 +66,10 @@ dependencies {
 
     // fix annoying error by including missing dependency
     // see http://www.slf4j.org/codes.html#StaticLoggerBinder
-    compile 'org.slf4j:slf4j-simple:1.7.+'
+    // we previously used org.slf4j:slf4j-simple, but we don't use it directly, only Javers needs it
+    // therefore, we can use the nop implementation, which doesn't generate any output, effectively hiding the Javers
+    // messages
+    compile 'org.slf4j:slf4j-nop:1.7.+'
 }
 
 test {
