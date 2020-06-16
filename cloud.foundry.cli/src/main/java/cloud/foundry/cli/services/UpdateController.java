@@ -109,12 +109,11 @@ public class UpdateController implements Callable<Integer> {
         }
 
         private void doRemoveServiceInstance(YamlCommandOptions yamlCommandOptions) throws Exception {
-
+            Log.info("Removing services...");
             SpecBean specBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
             Map<String, ServiceBean> serviceBeans = specBean.getServices();
 
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
-
             ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
 
             for (Entry<String, ServiceBean> serviceEntry : serviceBeans.entrySet()) {
@@ -135,6 +134,7 @@ public class UpdateController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
+            Log.info("Removing applications...");
             SpecBean specBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
             Map<String, ApplicationBean> applicationBeans = specBean.getApps();
 
