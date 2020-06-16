@@ -26,7 +26,7 @@ import java.util.LinkedList;
 class ApplicationApplierTest {
 
     @Test
-    void applyTest_With1ChangeObject_AcceptMethodCalledOnChangeObject() {
+    void applyTest_WithSingleChangeObject_AcceptMethodCalledOnChangeObject() {
         //given
         ApplicationsOperations appOperations = Mockito.mock(ApplicationsOperations.class);
         String appName = "testApp";
