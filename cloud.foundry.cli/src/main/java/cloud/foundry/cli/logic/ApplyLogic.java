@@ -6,6 +6,7 @@ import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
+import cloud.foundry.cli.crosscutting.exceptions.ApplyException;
 import cloud.foundry.cli.logic.apply.ApplicationApplier;
 import cloud.foundry.cli.logic.diff.DiffResult;
 import cloud.foundry.cli.logic.diff.change.CfChange;
@@ -17,17 +18,32 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-
+/**
+ * This class takes care of applying desired cloud foundry configurations to a live system.
+ */
 public class ApplyLogic {
 
     private DefaultCloudFoundryOperations cfOperations;
 
+    /**
+     * Creates a new instance that will use the provided cf operations internally.
+     * @param cfOperations the cf operations that should be used to communicate with the cf instance
+     * @throws NullPointerException if the argument is null
+     */
     public ApplyLogic(@Nonnull DefaultCloudFoundryOperations cfOperations) {
         checkNotNull(cfOperations);
 
         this.cfOperations = cfOperations;
     }
 
+    //TODO update the documentation as soon as the method does more than just creating applications
+    /**
+     * Creates all provided applications that are not present in the live system. In case of any error, the procedure
+     * is discontinued.
+     * @param desiredApplications the applications that should all be present in the live system after the procedure
+     * @throws ApplyException if an error occurs during the procedure
+     * @throws NullPointerException if the argument is null
+     */
     public void applyApplications(@Nonnull Map<String, ApplicationBean> desiredApplications) {
         checkNotNull(desiredApplications);
 
