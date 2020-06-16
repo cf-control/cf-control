@@ -31,26 +31,31 @@ import java.util.concurrent.Callable;
         UpdateController.class})
 public class BaseController implements Callable<Integer> {
 
-    @CommandLine.Option(names = {"-q", "--quiet"}, description = "Reduce log verbosity and print errors only.")
-    private boolean quiet;
+    private static class LoggingOptions {
+        @CommandLine.Option(names = {"-q", "--quiet"}, description = "Reduce log verbosity and print errors only.")
+        private boolean quiet;
 
-    @CommandLine.Option(names = {"-v", "--verbose"}, description = "Enable verbose logging.")
-    private boolean verbose;
+        @CommandLine.Option(names = {"-v", "--verbose"}, description = "Enable verbose logging.")
+        private boolean verbose;
 
-    @CommandLine.Option(names = {"-d", "--debug"}, description = "Enable debug logging.")
-    private boolean debug;
+        @CommandLine.Option(names = {"-d", "--debug"}, description = "Enable debug logging.")
+        private boolean debug;
 
-    public boolean isVerbose() {
-        return verbose;
+        public boolean isVerbose() {
+            return verbose;
+        }
+
+        public boolean isDebug() {
+            return debug;
+        }
+
+        public boolean isQuiet() {
+            return quiet;
+        }
     }
 
-    public boolean isDebug() {
-        return debug;
-    }
-
-    public boolean isQuiet() {
-        return quiet;
-    }
+    @CommandLine.ArgGroup(exclusive = true, multiplicity = "0..1")
+    LoggingOptions loggingOptions;
 
     @Override
     public Integer call() {
@@ -130,17 +135,16 @@ public class BaseController implements Callable<Integer> {
         // now, we can access the logging options in the base controller
         // note: we always enable the most verbose level the user specifies
         // for that reason we can't use an if-else, but must use a chain of plain if clauses
-        // TODO: check if mutually exclusive argument group provides a better UX
-        if (controller.isQuiet()) {
+        if (controller.loggingOptions.isQuiet()) {
             // wouldn't make sense to log that we enabled the quiet mode, right?
             // the whole idea is to reduce the amount of log messages
             Log.setQuietLogLevel();
         }
-        if (controller.isVerbose()) {
+        if (controller.loggingOptions.isVerbose()) {
             Log.setVerboseLogLevel();
             Log.verbose("enabling verbose logging");
         }
-        if (controller.isDebug()) {
+        if (controller.loggingOptions.isDebug()) {
             Log.setDebugLogLevel();
             Log.debug("enabling debug logging");
         }
