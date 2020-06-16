@@ -84,7 +84,7 @@ You are able to include contents of other YAML files into the one that you pass 
 * **Local References** are not natively supported, but you can achieve the same effect by using **Anchors and Alisases** as they are stated in the YAML specification.
 
 
-###Demo Files
+### Demo Files
 
 In this [folder](cloud.foundry.cli/src/test/resources/demo/) we provide example YAML files that may help in
 understanding how to use our tool. What can I use the files for?
