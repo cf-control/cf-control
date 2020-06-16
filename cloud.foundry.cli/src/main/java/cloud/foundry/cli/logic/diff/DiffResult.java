@@ -53,6 +53,11 @@ public class DiffResult {
     private final DiffNode appsNode;
     private final DiffNode servicesNode;
 
+    /**
+     * Creates the diff result using the root node of a diff tree. It is assumed that the root node is the result of
+     * diffing two {@link ConfigBean config beans}.
+     * @param rootNode the root node of the diff tree
+     */
     public DiffResult(@Nonnull DiffNode rootNode) {
         checkNotNull(rootNode);
         this.rootNode = rootNode;
