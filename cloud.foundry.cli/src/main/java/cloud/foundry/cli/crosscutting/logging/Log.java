@@ -115,8 +115,15 @@ public class Log {
      * @param level messages of this or any higher level will be shown by the logger
      */
     public static void setLogLevel(Level level) {
+        // configure own logger
         logger.setLevel(level);
         Arrays.stream(logger.getHandlers()).forEach(h -> h.setLevel(level));
+
+        // our "nearest parent" _should_ be the root logger
+        // we need to configure its handlers to output the messages < INFO as well
+        // note: do not configure its log level -- this will cause all other loggers' level too, and generate a lot of
+        // noise on the CLI
+        Arrays.stream(logger.getParent().getHandlers()).forEach(h -> h.setLevel(level));
     }
 
     /**
