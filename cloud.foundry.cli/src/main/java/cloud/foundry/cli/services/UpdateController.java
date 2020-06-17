@@ -3,6 +3,7 @@ package cloud.foundry.cli.services;
 import static picocli.CommandLine.Command;
 import static picocli.CommandLine.Mixin;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Scanner;
@@ -80,26 +81,42 @@ public class UpdateController implements Callable<Integer> {
         @Option(names = { "-f", "--force" }, required = false, description = "Force deletion without confirmation.")
         Boolean force;
 
+        private Map<String, ServiceBean> readServicesFromYAMLFile() throws IOException {
+            SpecBean specBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
+            return specBean.getServices();
+        }
+
         @Override
         public Integer call() throws Exception {
+            Map<String, ServiceBean> services = readServicesFromYAMLFile();
 
             if (force != null) {
-                doRemoveServiceInstance(yamlCommandOptions);
+                doRemoveServiceInstance(services);
             } else {
                 if (System.console() == null) {
                     Log.error("--force/-f not supplied and not running in terminal, aborting");
                     return 2;
                 }
 
-                System.out.println("Really delete the services y/n?");
+                System.out.print("Requested removal of the following services: ");
+                for (String serviceName : services.keySet()) {
+                    System.out.print("\"" + serviceName + "\" ");
+                }
+                System.out.println();
+
+                System.out.print("Are you sure you want to permanently delete those? [y|N] ");
+
                 Scanner scanner = new Scanner(System.in);
                 String input = scanner.nextLine();
                 scanner.close();
+
+                // turn into lower case, we would accept an upper case response, too
+                input = input.toLowerCase();
+
                 if (input.equals("y") || input.equals("yes")) {
-                    doRemoveServiceInstance(yamlCommandOptions);
+                    doRemoveServiceInstance(services);
                 } else {
-                    System.out.println("Delete cancelled");
-                    
+                    System.out.println("Cancelled by user");
                     return 1;
                 }
             }
@@ -107,15 +124,12 @@ public class UpdateController implements Callable<Integer> {
             return 0;
         }
 
-        private void doRemoveServiceInstance(YamlCommandOptions yamlCommandOptions) throws Exception {
+        private void doRemoveServiceInstance(Map<String, ServiceBean> services) throws Exception {
             Log.info("Removing services...");
-            SpecBean specBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
-            Map<String, ServiceBean> serviceBeans = specBean.getServices();
-
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
 
-            for (Entry<String, ServiceBean> serviceEntry : serviceBeans.entrySet()) {
+            for (Entry<String, ServiceBean> serviceEntry : services.entrySet()) {
                 String serviceName = serviceEntry.getKey();
                 servicesOperations.removeServiceInstance(serviceName);
             }
