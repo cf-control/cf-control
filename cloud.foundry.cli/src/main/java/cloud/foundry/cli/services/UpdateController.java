@@ -90,9 +90,9 @@ public class UpdateController implements Callable<Integer> {
         public Integer call() throws Exception {
             Map<String, ServiceBean> services = readServicesFromYAMLFile();
 
-            if (force != null) {
-                doRemoveServiceInstance(services);
-            } else {
+            // in case the --force flag is not specified, we shall prompt the user to prevent the removal of services
+            // as that might remove valuable data a swell
+            if (force == null) {
                 if (System.console() == null) {
                     Log.error("--force/-f not supplied and not running in terminal, aborting");
                     return 2;
@@ -113,13 +113,13 @@ public class UpdateController implements Callable<Integer> {
                 // turn into lower case, we would accept an upper case response, too
                 input = input.toLowerCase();
 
-                if (input.equals("y") || input.equals("yes")) {
-                    doRemoveServiceInstance(services);
-                } else {
+                if (!(input.equals("y") || input.equals("yes"))) {
                     System.out.println("Cancelled by user");
                     return 1;
                 }
             }
+
+            doRemoveServiceInstance(services);
             
             return 0;
         }
