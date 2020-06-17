@@ -142,21 +142,24 @@ public class BaseController implements Callable<Integer> {
             System.exit(1);
         }
 
-        // now, we can access the logging options in the base controller
-        // note: we always enable the most verbose level the user specifies
-        // for that reason we can't use an if-else, but must use a chain of plain if clauses
-        if (controller.loggingOptions.isQuiet()) {
-            // wouldn't make sense to log that we enabled the quiet mode, right?
-            // the whole idea is to reduce the amount of log messages
-            Log.setQuietLogLevel();
-        }
-        if (controller.loggingOptions.isVerbose()) {
-            Log.setVerboseLogLevel();
-            Log.verbose("enabling verbose logging");
-        }
-        if (controller.loggingOptions.isDebug()) {
-            Log.setDebugLogLevel();
-            Log.debug("enabling debug logging");
+        // seems like picocli doesn't populate the logging options unless either of them is passed
+        if (controller.loggingOptions != null) {
+            // now, we can access the logging options in the base controller
+            // note: we always enable the most verbose level the user specifies
+            // for that reason we can't use an if-else, but must use a chain of plain if clauses
+            if (controller.loggingOptions.isQuiet()) {
+                // wouldn't make sense to log that we enabled the quiet mode, right?
+                // the whole idea is to reduce the amount of log messages
+                Log.setQuietLogLevel();
+            }
+            if (controller.loggingOptions.isVerbose()) {
+                Log.setVerboseLogLevel();
+                Log.verbose("enabling verbose logging");
+            }
+            if (controller.loggingOptions.isDebug()) {
+                Log.setDebugLogLevel();
+                Log.debug("enabling debug logging");
+            }
         }
 
         // okay, logging is configured, now let's run the rest of the CLI
