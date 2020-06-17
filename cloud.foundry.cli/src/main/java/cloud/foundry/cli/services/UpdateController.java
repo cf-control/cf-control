@@ -119,7 +119,13 @@ public class UpdateController implements Callable<Integer> {
                 }
             }
 
-            doRemoveServiceInstance(services);
+            // in case the service doesn't exist on the server, it'll throw that exception
+            // we can recognize that and log it nicely
+            try {
+                doRemoveServiceInstance(services);
+            } catch (IllegalArgumentException e) {
+                Log.error(e);
+            }
             
             return 0;
         }
