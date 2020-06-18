@@ -99,11 +99,11 @@ public class UpdateController implements Callable<Integer> {
                     doRemoveServiceInstance(yamlCommandOptions);
                 } else {
                     System.out.println("Delete cancelled");
-                    
+
                     return 1;
                 }
             }
-            
+
             return 0;
         }
 
@@ -139,7 +139,7 @@ public class UpdateController implements Callable<Integer> {
 
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
-            applicationBeans.keySet().forEach(applicationsOperations::removeApplication);
+            applicationBeans.keySet().forEach(applicationsOperations::remove);
 
             return 0;
         }

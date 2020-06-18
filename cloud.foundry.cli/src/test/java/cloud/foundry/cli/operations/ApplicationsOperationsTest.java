@@ -4,7 +4,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -23,7 +23,6 @@ import org.cloudfoundry.operations.applications.ApplicationSummary;
 import org.cloudfoundry.operations.applications.Applications;
 import org.cloudfoundry.operations.applications.DeleteApplicationRequest;
 import org.cloudfoundry.operations.applications.GetApplicationManifestRequest;
-import org.cloudfoundry.operations.applications.GetApplicationRequest;
 import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
 import org.cloudfoundry.operations.applications.Route;
 import org.junit.jupiter.api.Test;
@@ -112,36 +111,30 @@ public class ApplicationsOperationsTest {
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfoMock);
 
         when(cfoMock.applications()).thenReturn(applicationsMock);
-        when(cfoMock.applications().get(any(GetApplicationRequest.class)))
-                .thenThrow(new IllegalArgumentException());
         when(applicationsMock.pushManifest(any(PushApplicationManifestRequest.class)))
                 .thenReturn(monoMock);
-        when(monoMock.onErrorContinue( any(Predicate.class), any())).thenReturn(monoMock);
+        when(monoMock.onErrorContinue(any(Predicate.class), any())).thenReturn(monoMock);
+        when(monoMock.doOnSubscribe(any())).thenReturn(monoMock);
         when(monoMock.block()).thenReturn(null);
 
         ApplicationBean applicationsBean = new ApplicationBean(appManifest);
+        applicationsBean.setPath("some/path");
 
         //when
-        applicationsOperations.create("appName", applicationsBean, false);
+        Mono<Void> request = applicationsOperations.create("appName", applicationsBean, false);
 
         //then
+        assertThat(request, notNullValue());
         verify(applicationsMock, times(1)).pushManifest(any(PushApplicationManifestRequest.class));
-        verify(monoMock, times(2)).onErrorContinue( any(Predicate.class), any());
-        verify(monoMock, times(1)).block();
+        verify(monoMock, times(1)).onErrorContinue( any(Predicate.class), any());
+        verify(monoMock, times(1)).doOnSubscribe(any());
     }
 
     @Test
     public void testCreateApplicationsOnMissingDockerPasswordThrowsCreationException() {
         //given
         DefaultCloudFoundryOperations cfoMock = mock(DefaultCloudFoundryOperations.class);
-        Applications applicationsMock = mock(Applications.class);
-
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfoMock);
-
-        when(cfoMock.applications()).thenReturn(applicationsMock);
-        when(cfoMock.applications().get(any(GetApplicationRequest.class)))
-                .thenThrow(new IllegalArgumentException());
-        when(applicationsMock.delete(mock(DeleteApplicationRequest.class))).then(mock(Answer.class));
 
         ApplicationBean applicationsBean = new ApplicationBean();
         ApplicationManifestBean applicationManifestBean = new ApplicationManifestBean();
@@ -157,49 +150,6 @@ public class ApplicationsOperationsTest {
     }
 
     @Test
-    public void testCreateApplicationsOnFatalCreationErrorThrowsCreationException() {
-        //given
-        ApplicationManifest appManifest = createMockApplicationManifest();
-        DefaultCloudFoundryOperations cfoMock = mock(DefaultCloudFoundryOperations.class);
-        Applications applicationsMock = mock(Applications.class);
-
-        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfoMock);
-
-        when(cfoMock.applications()).thenReturn(applicationsMock);
-        when(cfoMock.applications().get(any(GetApplicationRequest.class)))
-                .thenThrow(new IllegalArgumentException());
-        when(applicationsMock.pushManifest(any(PushApplicationManifestRequest.class)))
-                .thenThrow(new IllegalArgumentException());
-        when(applicationsMock.delete(mock(DeleteApplicationRequest.class))).then(mock(Answer.class));
-        ApplicationBean applicationsBean = new ApplicationBean(appManifest);
-
-        //when
-        assertThrows(CreationException.class, () -> applicationsOperations.create("appName", applicationsBean, false));
-        verify(applicationsMock, times(1)).pushManifest(any());
-        verify(applicationsMock, times(1)).delete(any());
-    }
-
-    @Test
-    public void testCreateApplicationsFailsWhenAlreadyExisting() {
-        //given
-        ApplicationManifest mockAppManifest = createMockApplicationManifest();
-        DefaultCloudFoundryOperations cfoMock = mock(DefaultCloudFoundryOperations.class);
-
-        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfoMock);
-        Applications applicationsMock = mock(Applications.class);
-
-        when(cfoMock.applications()).thenReturn(applicationsMock);
-        when(cfoMock.applications().get(any(GetApplicationRequest.class)))
-                .thenReturn(mock(Mono.class));
-
-        ApplicationBean applicationsBean = new ApplicationBean(mockAppManifest);
-
-        //then
-        assertThrows(CreationException.class,
-                () -> applicationsOperations.create("appName", applicationsBean, false));
-    }
-
-    @Test
     public void testCreateOnNullNameThrowsNullPointerException() throws CreationException {
         //given
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(
@@ -211,7 +161,7 @@ public class ApplicationsOperationsTest {
     }
 
     @Test
-    public void testCreateOnNullPathAndNullDockerImageThrowsIllegalArgumentException() throws CreationException {
+    public void testCreateOnNullPathAndNullDockerImageThrowsIllegalArgumentException() {
         //given
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(
                 mock(DefaultCloudFoundryOperations.class));
@@ -222,20 +172,9 @@ public class ApplicationsOperationsTest {
         applicationBean.setManifest(manifestBean);
 
         //when
-        assertThrows(IllegalArgumentException.class,
-                () -> applicationsOperations.create("appName", applicationBean, false));
-    }
-
-    @Test
-    public void testCreateOnNullPathAndNullManifestThrowsIllegalArgumentException() throws CreationException {
-        //given
-        ApplicationsOperations applicationsOperations = new ApplicationsOperations(
-                mock(DefaultCloudFoundryOperations.class));
-        ApplicationBean applicationBean = new ApplicationBean();
-
-        //when
-        assertThrows(IllegalArgumentException.class,
-                () -> applicationsOperations.create("appName", applicationBean, false));
+        assertThrows(CreationException.class,
+                () -> applicationsOperations.create("appName", applicationBean, false),
+                "One of application or dockerImage must be supplied");
     }
 
     @Test
@@ -269,33 +208,28 @@ public class ApplicationsOperationsTest {
         Applications applicationsMock = mock(Applications.class);
         when(cfoMock.applications()).thenReturn(applicationsMock);
 
-        Mono<Void> monoMock = mock(Mono.class);
-        when(applicationsMock.delete(any())).thenReturn(monoMock);
+        Mono<Void> monoVoid = mock(Mono.class);
+        when(applicationsMock.delete(any())).thenReturn(monoVoid);
+        when(monoVoid.doOnSuccess(any())).thenReturn(monoVoid);
 
-        Void voidMock = mock(Void.class);
-        when(monoMock.block()).thenReturn(voidMock);
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfoMock);
 
         // when
-        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfoMock);
-        applicationsOperations.removeApplication(SOME_APPLICATION);
+        Mono<Void> request = applicationsOperations.remove(SOME_APPLICATION);
 
         // then
+        assertThat(request, notNullValue());
         verify(applicationsMock, times(1)).delete(any(DeleteApplicationRequest.class));
     }
 
     @Test
-    public void testRemoveApplicationShouldNotThrowAnIllegalArgumentException() {
+    public void testRemoveApplicationShouldThrowNullPointerExceptionWhenApplicationNameIsNull() {
         // given
         DefaultCloudFoundryOperations cfoMock = mock(DefaultCloudFoundryOperations.class);
-        Applications applicationsMock = mock(Applications.class);
-
-        when(cfoMock.applications()).thenReturn(applicationsMock);
-        when(applicationsMock.delete(any())).thenThrow(IllegalArgumentException.class);
-
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfoMock);
 
         // when -> then
-        assertDoesNotThrow(() -> applicationsOperations.removeApplication(SOME_APPLICATION));
+        assertThrows(NullPointerException.class, () -> applicationsOperations.remove(null));
     }
 
     /**

@@ -28,7 +28,7 @@ public class ExceptionCollector {
     }
 
     /**
-     * TODO determine method parameter
+     * TODO determine method return type
      */
     public List<?> getErrors() {
         return null;
