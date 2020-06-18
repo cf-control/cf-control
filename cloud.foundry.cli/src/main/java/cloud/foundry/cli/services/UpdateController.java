@@ -81,14 +81,14 @@ public class UpdateController implements Callable<Integer> {
         @Option(names = { "-f", "--force" }, required = false, description = "Force deletion without confirmation.")
         Boolean force;
 
-        private Map<String, ServiceBean> readServicesFromYAMLFile() throws IOException {
+        private Map<String, ServiceBean> readServicesFromYamlFile() throws IOException {
             SpecBean specBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
             return specBean.getServices();
         }
 
         @Override
         public Integer call() throws Exception {
-            Map<String, ServiceBean> services = readServicesFromYAMLFile();
+            Map<String, ServiceBean> services = readServicesFromYamlFile();
 
             // in case the --force flag is not specified, we shall prompt the user to prevent the removal of services
             // as that might remove valuable data a swell
