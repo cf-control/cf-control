@@ -3,7 +3,7 @@ package cloud.foundry.cli.operations;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.is;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -12,8 +12,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
-import cloud.foundry.cli.crosscutting.exceptions.CreationException;
-import org.cloudfoundry.client.v2.ClientV2Exception;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.routes.ListRoutesRequest;
 import org.cloudfoundry.operations.routes.Route;
@@ -105,7 +103,7 @@ public class ServicesOperationsTest {
     }
 
     @Test
-    public void testCreateExceptionWhenCreatingService() {
+    public void testCreate() {
         // given
         String serviceInstanceName = "serviceInstanceName";
         ServiceBean serviceBean = mockServiceBean();
@@ -115,40 +113,14 @@ public class ServicesOperationsTest {
         Mockito.when(cfMock.services()).thenReturn(servicesMock);
         Mockito.when(servicesMock.createInstance(any(CreateServiceInstanceRequest.class)))
             .thenReturn(monoCreated);
-        Mockito.when(monoCreated.block()).thenThrow(new ClientV2Exception(400,
-            60002, "The service instance name is taken: Elephant", "CF-ServiceInstanceNameTaken"));
         // when + then
         ServicesOperations servicesOperations = new ServicesOperations(cfMock);
-        assertThrows(CreationException.class, () -> {
-            servicesOperations.create(serviceInstanceName, serviceBean);
-        });
+        Mono<Void> toCreate = servicesOperations.create(serviceInstanceName, serviceBean);
+        assertEquals(toCreate, monoCreated);
     }
 
     @Test
-    public void testUpdateService_ThrowException() throws CreationException {
-        // given
-        String serviceInstanceName = "serviceInstanceName";
-        ServiceBean serviceBeanMock = mockServiceBean();
-        DefaultCloudFoundryOperations cfMock = Mockito.mock(DefaultCloudFoundryOperations.class);
-
-        Services servicesMock = Mockito.mock(Services.class);
-        when(cfMock.services()).thenReturn(servicesMock);
-        when(servicesMock.renameInstance(any(RenameServiceInstanceRequest.class))).thenReturn(null);
-
-        Mono<Void> monoUpdatedService = mock(Mono.class);
-        when(servicesMock.updateInstance(any(UpdateServiceInstanceRequest.class))).thenReturn(null);
-        Mockito.when(monoUpdatedService.block())
-            .thenThrow(new NullPointerException("Service Instance can not update"));
-
-        // when + then
-        ServicesOperations servicesOperations = new ServicesOperations(cfMock);
-        assertThrows(CreationException.class, () -> {
-            servicesOperations.create(serviceInstanceName, serviceBeanMock);
-        });
-    }
-
-    @Test
-    public void testUpdateServiceInstance() throws CreationException {
+    public void testUpdate() {
         // given
         ServiceBean serviceBeanMock = mockServiceBean();
         String serviceInstanceName = "serviceInstanceName";
@@ -161,16 +133,14 @@ public class ServicesOperationsTest {
 
         // when
         ServicesOperations servicesOperations = new ServicesOperations(cfMock);
-        servicesOperations.updateServiceInstance(serviceInstanceName, serviceBeanMock);
+        Mono<Void> voidMono = servicesOperations.updateServiceInstance(serviceInstanceName, serviceBeanMock);
 
         // then
-        verify(servicesMock, times(1)).updateInstance(any(UpdateServiceInstanceRequest.class));
-        verify(monoUpdatedService, times(1)).block();
-
+        assertEquals(monoUpdatedService, voidMono);
     }
 
     @Test
-    public void testRenameServiceInstance() throws CreationException {
+    public void testRename() {
         // given
         DefaultCloudFoundryOperations cfMock = Mockito.mock(DefaultCloudFoundryOperations.class);
         Services servicesMock = Mockito.mock(Services.class);
@@ -181,15 +151,14 @@ public class ServicesOperationsTest {
 
         // when
         ServicesOperations servicesOperations = new ServicesOperations(cfMock);
-        servicesOperations.renameServiceInstance("newname", "currentname");
+        Mono<Void> actualMono = servicesOperations.renameServiceInstance("newname", "currentname");
 
         // then
-        verify(servicesMock, times(1)).renameInstance(any(RenameServiceInstanceRequest.class));
-        verify(monoRenamed, times(1)).block();
+        assertEquals(monoRenamed, actualMono);
     }
 
     @Test
-    public void testRemoveServiceInstance() throws CreationException {
+    public void testRemoveServiceInstance() {
         // given
         String serviceInstanceName = "serviceInstanceName";
         boolean isValid = true;

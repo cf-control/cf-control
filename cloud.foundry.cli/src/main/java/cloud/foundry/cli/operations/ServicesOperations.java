@@ -66,9 +66,9 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      * the creation- and binding-process is discontinued.
      *
      * @param serviceBean serves as template for the service to create
-     * @throws CreationException when the creation or the binding was not successful
+     * @return Mono which can be subscribed on to trigger the request to the cf instance
      */
-    public void create(String serviceInstanceName, ServiceBean serviceBean) throws CreationException {
+    public Mono<Void> create(String serviceInstanceName, ServiceBean serviceBean) {
         Log.debug("Create service:", serviceInstanceName);
         Log.debug("Bean of the service:", serviceBean);
 
@@ -79,24 +79,17 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
             .tags(serviceBean.getTags())
             .build();
 
-        Mono<Void> created = this.cloudFoundryOperations.services().createInstance(createServiceRequest);
-
-        try {
-            created.block();
-        } catch (RuntimeException e) {
-            throw new CreationException(e.getMessage());
-        }
-
+        return this.cloudFoundryOperations.services().createInstance(createServiceRequest);
     }
 
     /**
      * Rename a service instance
      *
-     * @param currentName Current Name of the Service Instance
      * @param newName     New Name of the Service Instance
-     * @throws CreationException when the creation or the binding was not successful
+     * @param currentName Current Name of the Service Instance
+     * @return Mono which can be subscribed on to trigger the request to the cf instance
      */
-    public void renameServiceInstance(String newName, String currentName) throws CreationException {
+    public Mono<Void> renameServiceInstance(String newName, String currentName) {
         Log.debug("Rename service:", currentName);
         Log.debug("With new name:", newName);
 
@@ -105,13 +98,8 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
             .newName(newName)
             .build();
 
-        try {
-            this.cloudFoundryOperations.services()
-                .renameInstance(renameServiceInstanceRequest)
-                .block();
-        } catch (RuntimeException e) {
-            throw new CreationException(e.getMessage());
-        }
+        return this.cloudFoundryOperations.services()
+                .renameInstance(renameServiceInstanceRequest);
     }
 
     /**
@@ -119,9 +107,9 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      *
      * @param serviceInstanceName Name of a service instance
      * @param serviceBean         serves as template for the service to update
-     * @throws CreationException when the creation or the binding was not successful
+     * @return Mono which can be subscribed on to trigger the request to the cf instance
      */
-    public void updateServiceInstance(String serviceInstanceName, ServiceBean serviceBean) throws CreationException {
+    public Mono<Void> updateServiceInstance(String serviceInstanceName, ServiceBean serviceBean) {
         Log.debug("Update service Instance:", serviceInstanceName);
         Log.debug("With the bean:", serviceBean);
 
@@ -130,16 +118,8 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
             .tags(serviceBean.getTags())
             .planName(serviceBean.getPlan())
             .build();
-
-        try {
-            this.cloudFoundryOperations.services()
-                    .updateInstance(updateServiceInstanceRequest)
-                    .block();
-
-            Log.info("Service Plan and Tags haven been updated");
-        } catch (RuntimeException e) {
-            throw new CreationException(e.getMessage());
-        }
+            return this.cloudFoundryOperations.services()
+                    .updateInstance(updateServiceInstanceRequest);
     }
 
     /**

@@ -8,6 +8,7 @@ import java.util.Map.Entry;
 import java.util.Scanner;
 import java.util.concurrent.Callable;
 
+import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.SpaceDevelopersBean;
@@ -21,6 +22,7 @@ import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
 import cloud.foundry.cli.crosscutting.mapping.YamlMapper;
 import cloud.foundry.cli.operations.ServicesOperations;
+import reactor.core.publisher.Mono;
 
 /**
  * This class realizes the functionality that is needed for the update commands.
@@ -168,9 +170,20 @@ public class UpdateController implements Callable<Integer> {
                 ServiceBean serviceBean = serviceEntry.getValue();
 
                 // "currentName" is currently a placeholder until diff is implemented
-                servicesOperations.renameServiceInstance(serviceName, "currentName");
+                Mono<Void> toRename = servicesOperations.renameServiceInstance(serviceName, "currentName");
+                try {
+                    toRename.block();
+                } catch (RuntimeException e) {
+                    throw new CreationException(e.getMessage());
+                }
                 Log.info("Service name changed: ", serviceName);
-                servicesOperations.updateServiceInstance(serviceName, serviceBean);
+                Mono<Void> toUpdate = servicesOperations.updateServiceInstance(serviceName, serviceBean);
+                try {
+                    toUpdate.block();
+                    Log.info("Service Plan and Tags haven been updated");
+                } catch (RuntimeException e) {
+                    throw new CreationException(e.getMessage());
+                }
                 Log.info("Service Plan and Tags haven been updated of service:", serviceName);
             }
 

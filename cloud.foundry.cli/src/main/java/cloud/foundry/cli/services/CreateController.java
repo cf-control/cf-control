@@ -4,6 +4,7 @@ import static picocli.CommandLine.Command;
 import static picocli.CommandLine.Mixin;
 import static picocli.CommandLine.usage;
 
+import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.SpaceDevelopersBean;
@@ -15,6 +16,7 @@ import cloud.foundry.cli.operations.ApplicationsOperations;
 import cloud.foundry.cli.operations.ServicesOperations;
 import cloud.foundry.cli.operations.SpaceDevelopersOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
+import reactor.core.publisher.Mono;
 
 import java.util.Map;
 import java.util.Map.Entry;
@@ -89,8 +91,13 @@ public class CreateController implements Callable<Integer> {
             for (Entry<String, ServiceBean> serviceEntry : serviceBeans.entrySet()) {
                 String serviceName = serviceEntry.getKey();
                 ServiceBean serviceBean = serviceEntry.getValue();
-                servicesOperations.create(serviceName, serviceBean);
-                Log.info("Service created:" , serviceName);
+                Mono<Void> toCreate = servicesOperations.create(serviceName, serviceBean);
+                try {
+                    toCreate.block();
+                    Log.info("Service created:" , serviceName);
+                } catch (RuntimeException e) {
+                    throw new CreationException(e.getMessage());
+                }
             }
 
             return 0;
