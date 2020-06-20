@@ -91,7 +91,7 @@ public class UpdateController implements Callable<Integer> {
             Map<String, ServiceBean> services = readServicesFromYamlFile();
 
             // in case the --force flag is not specified, we shall prompt the user to prevent the removal of services
-            // as that might remove valuable data a swell
+            // as that might remove valuable data as well
             if (force == null) {
                 if (System.console() == null) {
                     Log.error("--force/-f not supplied and not running in terminal, aborting");
