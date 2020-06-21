@@ -119,26 +119,49 @@ public class UpdateController implements Callable<Integer> {
                 }
             }
 
-            // in case the service doesn't exist on the server, it'll throw that exception
-            // we can recognize that and log it nicely
-            try {
-                doRemoveServiceInstance(services);
-            } catch (IllegalArgumentException e) {
-                Log.error(e);
-            }
+            // try to remove all services on a best-effort basis
+            // the method should handle errors and log them appropriately
+            doRemoveServiceInstance(services);
             
             return 0;
         }
 
-        private void doRemoveServiceInstance(Map<String, ServiceBean> services) throws Exception {
+        /**
+         * Try to remove service instances. This method handles potential errors internally by logging them.
+         * In case it fails, it returns false. The caller can opt to use this to perform additional error handling.
+         * @param services services to remove
+         * @return true on success, false if there were errors
+         */
+        private boolean doRemoveServiceInstance(Map<String, ServiceBean> services) {
             Log.info("Removing services...");
-            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+
+            DefaultCloudFoundryOperations cfOperations;
+
+            try {
+                cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+            } catch (Exception e) {
+                Log.error("Failed to create CF operations: ", e.getMessage());
+                return false;
+            }
+
             ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
+
+            // I'm optimistic at the beginning of this loop
+            // prove me wrong!
+            boolean success = true;
 
             for (Entry<String, ServiceBean> serviceEntry : services.entrySet()) {
                 String serviceName = serviceEntry.getKey();
-                servicesOperations.removeServiceInstance(serviceName);
+
+                try {
+                    servicesOperations.removeServiceInstance(serviceName);
+                } catch (Exception e) {
+                    Log.error("Failed to remove service ", serviceName, ": ", e.getMessage());
+                    success = false;
+                }
             }
+
+            return success;
         }
     }
 
