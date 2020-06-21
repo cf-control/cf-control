@@ -81,11 +81,6 @@ public class UpdateController implements Callable<Integer> {
         @Option(names = { "-f", "--force" }, required = false, description = "Force deletion without confirmation.")
         Boolean force;
 
-        private Map<String, ServiceBean> readServicesFromYamlFile() throws IOException {
-            SpecBean specBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
-            return specBean.getServices();
-        }
-
         @Override
         public Integer call() throws Exception {
             Map<String, ServiceBean> services = readServicesFromYamlFile();
@@ -124,6 +119,11 @@ public class UpdateController implements Callable<Integer> {
             doRemoveServiceInstance(services);
             
             return 0;
+        }
+
+        private Map<String, ServiceBean> readServicesFromYamlFile() throws IOException {
+            SpecBean specBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
+            return specBean.getServices();
         }
 
         /**
