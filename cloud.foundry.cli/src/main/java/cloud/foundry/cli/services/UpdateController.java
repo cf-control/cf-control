@@ -12,6 +12,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
+import cloud.foundry.cli.crosscutting.exceptions.UpdateException;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.SpaceDevelopersBean;
@@ -170,8 +171,12 @@ public class UpdateController implements Callable<Integer> {
             for (Entry<String, ServiceBean> serviceEntry : serviceBeans.entrySet()) {
                 String serviceName = serviceEntry.getKey();
                 Flux<Object> toRemove = servicesOperations.removeServiceInstance(serviceName);
-                toRemove.blockLast();
-                Log.info("Removed Service:", serviceName);
+                try {
+                    toRemove.blockLast();
+                    Log.info("Removed Service:", serviceName);
+                } catch (RuntimeException e) {
+                    throw new UpdateException(e);
+                }
             }
         }
     }
