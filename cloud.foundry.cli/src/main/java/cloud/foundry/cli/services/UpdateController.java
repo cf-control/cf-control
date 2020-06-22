@@ -3,10 +3,13 @@ package cloud.foundry.cli.services;
 import static picocli.CommandLine.Command;
 import static picocli.CommandLine.Mixin;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Scanner;
 import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
@@ -14,6 +17,8 @@ import cloud.foundry.cli.crosscutting.mapping.beans.SpaceDevelopersBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
 import cloud.foundry.cli.operations.ApplicationsOperations;
 import cloud.foundry.cli.operations.SpaceDevelopersOperations;
+import org.cloudfoundry.client.v2.ClientV2Exception;
+import org.cloudfoundry.client.v2.spaces.RemoveSpaceDeveloperByUsernameResponse;
 import picocli.CommandLine.Option;
 
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
@@ -21,6 +26,8 @@ import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
 import cloud.foundry.cli.crosscutting.mapping.YamlMapper;
 import cloud.foundry.cli.operations.ServicesOperations;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 /**
  * This class realizes the functionality that is needed for the update commands.
@@ -53,18 +60,62 @@ public class UpdateController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            Log.info("Removing space developers...");
-
+            Log.info("Interpreting YAML file...");
             SpaceDevelopersBean spaceDevelopersBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(),
-                SpaceDevelopersBean.class);
+                    SpaceDevelopersBean.class);
+            Log.info("Loading YAML file...");
 
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
 
-            spaceDevelopersOperations.removeSpaceDeveloper(spaceDevelopersBean.getSpaceDevelopers());
-            Log.info("Space Developers removed: ", String.valueOf(spaceDevelopersBean.getSpaceDevelopers()));
+            List<String> spaceDevelopers = spaceDevelopersBean.getSpaceDevelopers();
+            if (spaceDevelopers == null || spaceDevelopers.isEmpty()) {
+                Log.info("There are no space developers to remove.");
+                return 0;
+            }
+            if (spaceDevelopers.contains(null)) {
+                Log.error("The space developers must not contain null.");
+                return 1;
+            }
 
-            return 0;
+            Log.info("Fetching space id...");
+            String spaceId = spaceDevelopersOperations.getSpaceId().block();
+            Log.info("Space id fetched.");
+
+            assert (spaceId != null);
+
+            Log.info("Removing space developers...");
+
+            // signals if any error occurred during the removal of the space developers
+            AtomicReference<Boolean> errorOccurred = new AtomicReference<>(false);
+
+            List<Mono<RemoveSpaceDeveloperByUsernameResponse>> assignRequests = spaceDevelopers.stream()
+                .map(spaceDeveloper ->
+                    spaceDevelopersOperations.remove(spaceDeveloper, spaceId)
+                        .doOnSuccess(response -> onSuccessfulRemoval(spaceDeveloper))
+                        .onErrorContinue(this::whenClientException,
+                                (throwable, o) -> onErrorDuringRemoval(throwable, spaceDeveloper, errorOccurred))
+                )
+                .collect(Collectors.toList());
+
+            Flux.merge(assignRequests).blockLast();
+            return errorOccurred.get() ? 1 : 0;
+        }
+
+        private boolean whenClientException(Throwable throwable) {
+            return (throwable instanceof ClientV2Exception);
+        }
+
+        private void onSuccessfulRemoval(String spaceDeveloper) {
+            Log.verbose(spaceDeveloper, "successfully removed.");
+        }
+
+        private void onErrorDuringRemoval(Throwable exception, String spaceDeveloper,
+                                          AtomicReference<Boolean> errorOccurred) {
+            Log.error("An error occurred when trying to remove " + spaceDeveloper + ":", exception.getMessage());
+
+            // marks that at least a single error has occurred
+            errorOccurred.set(true);
         }
     }
 

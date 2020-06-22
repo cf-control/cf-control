@@ -1,220 +1,274 @@
 package cloud.foundry.cli.operations;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.mock;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
-import cloud.foundry.cli.crosscutting.exceptions.CreationException;
-import cloud.foundry.cli.crosscutting.exceptions.InvalidOperationException;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperByUsernameRequest;
 import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperByUsernameResponse;
+import org.cloudfoundry.client.v2.spaces.RemoveSpaceDeveloperByUsernameRequest;
 import org.cloudfoundry.client.v2.spaces.RemoveSpaceDeveloperByUsernameResponse;
 import org.cloudfoundry.client.v2.spaces.Spaces;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.useradmin.ListSpaceUsersRequest;
 import org.cloudfoundry.operations.useradmin.SpaceUsers;
 import org.cloudfoundry.operations.useradmin.UserAdmin;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import reactor.core.publisher.Mono;
 
 class SpaceDevelopersOperationsTest {
+
+    /**
+     * This is the mock of cf operations for every test case.
+     * It is updated by the method calls to the SpaceDeveloperMocks class.
+     */
     private static DefaultCloudFoundryOperations cfOperationsMock;
     private static SpaceDevelopersOperations spaceDevelopersOperations;
+    private static SpaceDeveloperMocks mocks;
 
-    @BeforeAll
-    public static void setupMock() {
-        cfOperationsMock = mockDefaultCloudFoundryOperations();
+    @BeforeEach
+    public void reinitializeFields() {
+        cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
         spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperationsMock);
+        mocks = new SpaceDeveloperMocks();
     }
 
     @Test
     public void testGetSpaceDevelopers() {
         // given
-        List<String> withDevelopers = Arrays.asList("one", "two", "three");
-        mockGetAllMethod(withDevelopers);
+        String space = "someSpace";
+        String org = "someOrg";
+        List<String> expectedSpaceDevelopers = Arrays.asList("one", "two", "three");
+        AtomicReference<ListSpaceUsersRequest> requestReference = mocks
+                .mockForGetAllSpaceDevelopers(space, org, expectedSpaceDevelopers);
 
         // when
-        List<String> spaceDevelopers = spaceDevelopersOperations.getAll().block();
+        Mono<List<String>> resultingMono = spaceDevelopersOperations.getAll();
 
         // then
-        assertThat(spaceDevelopers.size(), is(3));
-        assertThat(spaceDevelopers, contains("one", "two", "three"));
+        mocks.checkCalledMethodsForSpaceDeveloperListing();
+        assertThat(resultingMono.block(), is(expectedSpaceDevelopers));
+
+        ListSpaceUsersRequest request = requestReference.get();
+        assertThat(request, notNullValue());
+        assertThat(request.getSpaceName(), is(space));
+        assertThat(request.getOrganizationName(), is(org));
     }
 
     @Test
     public void testGetSpaceDevelopers_WithEmptyList() {
         // given
-        List<String> withoutDevelopers = Collections.emptyList();
-        mockGetAllMethod(withoutDevelopers);
+        String space = "someSpace";
+        String org = "someOrg";
+        List<String> expectedSpaceDevelopers = Collections.emptyList();
+        AtomicReference<ListSpaceUsersRequest> requestReference = mocks
+                .mockForGetAllSpaceDevelopers(space, org, expectedSpaceDevelopers);
 
         // when
-        List<String> spaceDevelopers = spaceDevelopersOperations.getAll().block();
+        Mono<List<String>> result = spaceDevelopersOperations.getAll();
 
         // then
-        assertThat(spaceDevelopers.size(), is(0));
+        mocks.checkCalledMethodsForSpaceDeveloperListing();
+        assertThat(result.block(), is(expectedSpaceDevelopers));
+
+        ListSpaceUsersRequest request = requestReference.get();
+        assertThat(request, notNullValue());
+        assertThat(request.getSpaceName(), is(space));
+        assertThat(request.getOrganizationName(), is(org));
     }
 
     @Test
-    public void testAssignSpaceDeveloper_WithExistingUser() throws CreationException {
-        // when
-        SpaceUsers spaceUsersMock = mockSpaceUsers(cfOperationsMock);
-        when(spaceUsersMock.getDevelopers()).thenReturn(Arrays.asList("one", "two", "three"));
-        Mono<AssociateSpaceDeveloperByUsernameResponse> monoMock = mock(Mono.class);
-        // call
-        spaceDevelopersOperations.assignSpaceDeveloper("two");
-        // then
-        verify(spaceUsersMock, times(1)).getDevelopers();
-        verify(monoMock, times(0)).block();
-    }
-
-    @Test
-    public void testAssignSpaceDeveloper() throws CreationException {
-        SpaceUsers spaceUsersMock = mockSpaceUsers(cfOperationsMock);
-        when(spaceUsersMock.getDevelopers()).thenReturn(Arrays.asList("one", "two", "three"));
-        CloudFoundryClient cfClientMock = mock(CloudFoundryClient.class);
-        when(cfOperationsMock.getCloudFoundryClient()).thenReturn(cfClientMock);
-        Spaces spacesMock = mock(Spaces.class);
-        when(cfClientMock.spaces()).thenReturn(spacesMock);
-        Mono<AssociateSpaceDeveloperByUsernameResponse> monoMock = mock(Mono.class);
-        when(spacesMock.associateDeveloperByUsername(any()))
-                .thenReturn(monoMock);
-        AssociateSpaceDeveloperByUsernameResponse associateSpaceDeveloperByUsernameReponsetMock = mock(
-                AssociateSpaceDeveloperByUsernameResponse.class);
-        when(monoMock.block()).thenReturn(associateSpaceDeveloperByUsernameReponsetMock);
-        // call
-        spaceDevelopersOperations.assignSpaceDeveloper("six");
-        // then
-        verify(spaceUsersMock, times(1)).getDevelopers();
-        verify(cfClientMock, times(1)).spaces();
-        verify(spacesMock, times(1)).associateDeveloperByUsername(any());
-        verify(monoMock, times(1)).block();
-    }
-
-    @Test
-    public void testAssignSpaceDeveloper_ThrowException() {
-        SpaceUsers spaceUsersMock = mockSpaceUsers(cfOperationsMock);
-        when(spaceUsersMock.getDevelopers()).thenReturn(Arrays.asList("one", "two", "three"));
-        CloudFoundryClient cfClientMock = mock(CloudFoundryClient.class);
-        when(cfOperationsMock.getCloudFoundryClient()).thenReturn(cfClientMock);
-        Spaces spacesMock = mock(Spaces.class);
-        when(cfClientMock.spaces()).thenReturn(spacesMock);
-        AssociateSpaceDeveloperByUsernameRequest associateSpaceDeveloperByUsernameRequest = mock(
-            AssociateSpaceDeveloperByUsernameRequest.class);
-        Mono<AssociateSpaceDeveloperByUsernameResponse> monoMock = mock(Mono.class);
-        when(spacesMock.associateDeveloperByUsername(associateSpaceDeveloperByUsernameRequest))
-            .thenReturn(monoMock);
-        AssociateSpaceDeveloperByUsernameResponse associateSpaceDeveloperByUsernameReponsetMock = mock(
-            AssociateSpaceDeveloperByUsernameResponse.class);
-        when(monoMock.block()).thenReturn(associateSpaceDeveloperByUsernameReponsetMock);
-        // then
-        assertThrows(CreationException.class, () -> {
-            spaceDevelopersOperations.assignSpaceDeveloper("four");
-        });
-    }
-
-    @Test
-    public void testRemoveSpaceDeveloper() throws InvalidOperationException {
+    public void testAssignSpaceDeveloper() {
         // given
-        CloudFoundryClient cfClientMock = mock(CloudFoundryClient.class);
-        when(cfOperationsMock.getCloudFoundryClient()).thenReturn(cfClientMock);
-
-        Spaces spacesMock = mock(Spaces.class);
-        when(cfClientMock.spaces()).thenReturn(spacesMock);
-
-        Mono<RemoveSpaceDeveloperByUsernameResponse> monoMock = mock(Mono.class);
-        when(spacesMock.removeDeveloperByUsername(any())).thenReturn(monoMock);
-        when(cfOperationsMock.getCloudFoundryClient().spaces().removeDeveloperByUsername(any())).thenReturn(monoMock);
-
-        RemoveSpaceDeveloperByUsernameResponse removeSpaceDeveloperByUsernameResponseMock =
-                mock(RemoveSpaceDeveloperByUsernameResponse.class);
-        when(monoMock.block()).thenReturn(removeSpaceDeveloperByUsernameResponseMock);
+        String spaceDeveloperToAssign = "someDev";
+        String spaceId = "someSpaceId";
+        AtomicReference<AssociateSpaceDeveloperByUsernameRequest> requestReference = mocks
+                .mockForSpaceDeveloperAssignment();
 
         // when
-        spaceDevelopersOperations.removeSpaceDeveloper(Arrays.asList("one", "two"));
+        Mono<AssociateSpaceDeveloperByUsernameResponse> result = spaceDevelopersOperations
+                .assign(spaceDeveloperToAssign, spaceId);
 
         // then
-        verify(spacesMock, times(2)).removeDeveloperByUsername(any());
-        verify(monoMock, times(2)).block();
+        mocks.checkCalledMethodsForSpaceDeveloperAssignment();
+        assertThat(result, notNullValue());
+
+        AssociateSpaceDeveloperByUsernameRequest request = requestReference.get();
+        assertThat(request, notNullValue());
+        assertThat(request.getUsername(), is(spaceDeveloperToAssign));
+        assertThat(request.getSpaceId(), is(spaceId));
     }
 
     @Test
-    public void testRemoveSpaceDeveloperShouldThrowAnInvalidOperationExceptionWhenSpaceIdIsBlank() {
+    public void testAssignSpaceDeveloper_WithNull() {
+        assertThrows(NullPointerException.class, () ->
+                spaceDevelopersOperations.assign(null, "someSpaceId"));
+
+        assertThrows(NullPointerException.class, () ->
+                spaceDevelopersOperations.assign("someDev", null));
+    }
+
+    @Test
+    public void testRemoveSpaceDeveloper() {
         // given
-        when(cfOperationsMock.getSpaceId()).thenReturn(Mono.just(""));
+        String spaceDeveloperToRemove = "someDev";
+        String spaceId = "someSpaceId";
+        AtomicReference<RemoveSpaceDeveloperByUsernameRequest> requestReference = mocks
+                .mockForSpaceDeveloperRemoval();
+
+        // when
+        Mono<RemoveSpaceDeveloperByUsernameResponse> result = spaceDevelopersOperations
+                .remove(spaceDeveloperToRemove, spaceId);
 
         // then
-        assertThrows(InvalidOperationException.class, () -> {
-            // when
-            spaceDevelopersOperations.removeSpaceDeveloper(Arrays.asList("one", "two"));
-        });
+        mocks.checkCalledMethodsForSpaceDeveloperRemoval();
+        assertThat(result, notNullValue());
+
+        RemoveSpaceDeveloperByUsernameRequest request = requestReference.get();
+        assertThat(request, notNullValue());
+        assertThat(request.getUsername(), is(spaceDeveloperToRemove));
+        assertThat(request.getSpaceId(), is(spaceId));
     }
 
     @Test
-    public void testRemoveSpaceDeveloperShouldThrowAnInvalidOperationExceptionWhenArgumentIsEmpty() {
+    public void testRemoveSpaceDeveloper_WithNull() {
+        assertThrows(NullPointerException.class, () ->
+                spaceDevelopersOperations.remove(null, "someSpaceId"));
+
+        assertThrows(NullPointerException.class, () ->
+                spaceDevelopersOperations.remove("someDev", null));
+    }
+
+    @Test
+    public void testGetSpaceId() {
+        // given
+        String spaceId = "someSpaceId";
+        when(cfOperationsMock.getSpaceId()).thenReturn(Mono.just(spaceId));
+
+        // when
+        Mono<String> result = spaceDevelopersOperations.getSpaceId();
+
         // then
-        assertThrows(InvalidOperationException.class, () -> {
-            // given - when
-            spaceDevelopersOperations.removeSpaceDeveloper(Collections.emptyList());
-        });
+        verify(cfOperationsMock).getSpaceId();
+        assertThat(result, notNullValue());
+        assertThat(result.block(), is(spaceId));
     }
 
     /**
-     * Mock the DefaultCloudFoundryOperations
-     *
-     * @return DefaultCloudFoundryOperations
+     * Contains all relevant objects that were instantiated during mocking for space developer operations.
      */
-    private static DefaultCloudFoundryOperations mockDefaultCloudFoundryOperations() {
-        DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
+    private static class SpaceDeveloperMocks {
 
-        when(cfOperationsMock.getSpace()).thenReturn("development");
-        when(cfOperationsMock.getOrganization()).thenReturn("cloud.foundry.cli");
-        when(cfOperationsMock.getSpaceId()).thenReturn(Mono.just("1"));
+        private UserAdmin userAdminMock;
+        private CloudFoundryClient cfClientMock;
+        private Spaces spacesMock;
 
-        return cfOperationsMock;
-    }
+        /**
+         * Prepares necessary mocks for getting space developers. As soon as the listing request is passed to the
+         * cf operations, the returned reference will point to the request, otherwise the reference points to null.
+         * @return a reference to the future passed listing request
+         */
+        public AtomicReference<ListSpaceUsersRequest> mockForGetAllSpaceDevelopers(String space, String organization,
+                List<String> spaceDevelopersInCf) {
 
-    /**
-     * Mock the SpaceUsers
-     *
-     * @param cfOperationsMock
-     * @return SpaceUsers
-     */
-    private SpaceUsers mockSpaceUsers(DefaultCloudFoundryOperations cfOperationsMock) {
-        UserAdmin userAdminMock = mock(UserAdmin.class);
-        Mono<SpaceUsers> monoMock = mock(Mono.class);
-        SpaceUsers spaceUsersMock = mock(SpaceUsers.class);
+            when(cfOperationsMock.getSpace()).thenReturn(space);
+            when(cfOperationsMock.getOrganization()).thenReturn(organization);
 
-        when(cfOperationsMock.userAdmin()).thenReturn(userAdminMock);
-        when(userAdminMock.listSpaceUsers(any())).thenReturn(monoMock);
-        when(monoMock.block()).thenReturn(spaceUsersMock);
+            userAdminMock = mock(UserAdmin.class);
+            when(cfOperationsMock.userAdmin()).thenReturn(userAdminMock);
 
-        return spaceUsersMock;
-    }
+            AtomicReference<ListSpaceUsersRequest> listingRequest = new AtomicReference<>(null);
+            when(userAdminMock.listSpaceUsers(any(ListSpaceUsersRequest.class)))
+                    .then(invocation -> {
+                        listingRequest.set(invocation.getArgument(0));
+                        return Mono.just(spaceDevelopersInCf)
+                               .map(list -> SpaceUsers.builder().addAllDevelopers(list).build());
+                    });
 
-    private UserAdmin mockGetAllMethod(List<String> developers) {
-        UserAdmin userAdminMock = mock(UserAdmin.class);
+            return listingRequest;
+        }
 
-        when(cfOperationsMock.userAdmin()).thenReturn(userAdminMock);
-        when(userAdminMock.listSpaceUsers(any(ListSpaceUsersRequest.class)))
-                .thenReturn(Mono.just(SpaceUsers
-                        .builder()
-                        .addAllDevelopers(developers)
-                        .build()));
+        /**
+         * Prepares necessary mocks for assigning space developers. As soon as the assignment request is passed to the
+         * cf operations, the returned reference will point to the request, otherwise the reference points to null.
+         * @return a reference to the future passed assignment request
+         */
+        public AtomicReference<AssociateSpaceDeveloperByUsernameRequest> mockForSpaceDeveloperAssignment() {
+            mockForSpaces();
 
-        return userAdminMock;
+            AtomicReference<AssociateSpaceDeveloperByUsernameRequest> assignmentRequest = new AtomicReference<>(null);
+            when(spacesMock.associateDeveloperByUsername(any(AssociateSpaceDeveloperByUsernameRequest.class)))
+                    .then(invocation -> {
+                        assignmentRequest.set(invocation.getArgument(0));
+                        return mock(Mono.class);
+                    });
+
+            return assignmentRequest;
+        }
+
+        /**
+         * Prepares necessary mocks for removing space developers. As soon as the removal request is passed to the cf
+         * operations, the returned reference will point to the request, otherwise the reference points to null.
+         * @return a reference to the future passed removal request
+         */
+        private AtomicReference<RemoveSpaceDeveloperByUsernameRequest> mockForSpaceDeveloperRemoval() {
+            mockForSpaces();
+
+            AtomicReference<RemoveSpaceDeveloperByUsernameRequest> removalRequest = new AtomicReference<>(null);
+            when(spacesMock.removeDeveloperByUsername(any(RemoveSpaceDeveloperByUsernameRequest.class)))
+                    .then(invocation -> {
+                        removalRequest.set(invocation.getArgument(0));
+                        return mock(Mono.class);
+                    });
+
+            return removalRequest;
+        }
+
+        private void mockForSpaces() {
+            cfClientMock = mock(CloudFoundryClient.class);
+            when(cfOperationsMock.getCloudFoundryClient()).thenReturn(cfClientMock);
+
+            spacesMock = mock(Spaces.class);
+            when(cfClientMock.spaces()).thenReturn(spacesMock);
+        }
+
+        /**
+         * Checks if the methods for space developer listing have been called as expected.
+         */
+        public void checkCalledMethodsForSpaceDeveloperListing() {
+            verify(cfOperationsMock).userAdmin();
+            verify(userAdminMock).listSpaceUsers(any(ListSpaceUsersRequest.class));
+        }
+
+        /**
+         * Checks if the methods for space developer assignment have been called as expected.
+         */
+        public void checkCalledMethodsForSpaceDeveloperAssignment() {
+            verify(cfOperationsMock).getCloudFoundryClient();
+            verify(cfClientMock).spaces();
+            verify(spacesMock).associateDeveloperByUsername(any(AssociateSpaceDeveloperByUsernameRequest.class));
+        }
+
+        /**
+         * Checks if the methods for space developer removal have been called as expected.
+         */
+        public void checkCalledMethodsForSpaceDeveloperRemoval() {
+            verify(cfOperationsMock).getCloudFoundryClient();
+            verify(cfClientMock).spaces();
+            verify(spacesMock).removeDeveloperByUsername(any(RemoveSpaceDeveloperByUsernameRequest.class));
+        }
     }
 }

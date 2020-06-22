@@ -1,18 +1,9 @@
 package cloud.foundry.cli.operations;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static java.util.stream.Collectors.toList;
-
-import cloud.foundry.cli.crosscutting.exceptions.CreationException;
-
-import cloud.foundry.cli.crosscutting.exceptions.InvalidOperationException;
-import cloud.foundry.cli.crosscutting.exceptions.UpdateException;
-import cloud.foundry.cli.crosscutting.logging.Log;
-import org.cloudfoundry.client.v2.ClientV2Exception;
 import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperByUsernameRequest;
+import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperByUsernameResponse;
 import org.cloudfoundry.client.v2.spaces.RemoveSpaceDeveloperByUsernameRequest;
 import org.cloudfoundry.client.v2.spaces.RemoveSpaceDeveloperByUsernameResponse;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
@@ -20,6 +11,7 @@ import org.cloudfoundry.operations.useradmin.ListSpaceUsersRequest;
 import org.cloudfoundry.operations.useradmin.SpaceUsers;
 import reactor.core.publisher.Mono;
 
+import javax.annotation.Nonnull;
 import java.util.List;
 
 
@@ -28,12 +20,6 @@ import java.util.List;
  * instance.
  */
 public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFoundryOperations> {
-
-    private static final String REMOVE_USER_AS_SPACE_DEVELOPER = "Remove user as space developer";
-
-    private static final String INVALID_VALUE_OF_SPACE_ID = "The value of 'SpaceId' should not be null or empty!";
-    public static final String USERNAME_LIST_MUST_BE_NOT_NULL_OR_EMPTY =
-            "The 'usernameList' must be not null or empty!";
 
     public SpaceDevelopersOperations(DefaultCloudFoundryOperations cfOperations) {
         super(cfOperations);
@@ -45,7 +31,7 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
      * by the reactor library.
      * For more details on how to work with Mono's visit:
      * https://projectreactor.io/docs/core/release/reference/index.html#core-features
-     * @return Mono object of SpaceDeveloperBean which contains the space developers
+     * @return Mono object which yields the space developers upon subscription
      */
     public Mono<List<String>> getAll() {
         ListSpaceUsersRequest request = ListSpaceUsersRequest.builder()
@@ -60,110 +46,53 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
     }
 
     /**
-     * Assign a user as a space developer
+     * Prepares a request for the space id to the cf instance.
+     * The space id is needed for assigning/removing space developers.
+     * @return Mono object which yields the space id upon subscription
+     */
+    public Mono<String> getSpaceId() {
+        return cloudFoundryOperations.getSpaceId();
+    }
+
+    /**
+     * Prepares a request for assigning a space developer to the cf instance.
      *
      * @param username email of user to assign as space developer
-     * @throws CreationException when assignation was not successful
-     * @throws NullPointerException when username is null
-     * @throws IllegalArgumentException when username is empty
+     * @param spaceId the id of the space
+     * @return Mono object which yields the response upon subscription
+     * @throws NullPointerException if any of the arguments are null
      */
-    public void assignSpaceDeveloper(String username) throws CreationException {
-        Log.debug("Assigning a space developer:", username);
-
+    public Mono<AssociateSpaceDeveloperByUsernameResponse> assign(@Nonnull String username, @Nonnull String spaceId) {
         checkNotNull(username);
-        checkArgument(!username.isEmpty(), "Username must not be empty.");
+        checkNotNull(spaceId);
 
-        String spaceId = cloudFoundryOperations.getSpaceId().block();
-        String organization = cloudFoundryOperations.getOrganization();
-        String space = cloudFoundryOperations.getSpace();
-        ListSpaceUsersRequest spaceUsersRequest = ListSpaceUsersRequest.builder()
-            .spaceName(space)
-            .organizationName(organization)
-            .build();
-        SpaceUsers spaceUsers = cloudFoundryOperations
-            .userAdmin()
-            .listSpaceUsers(spaceUsersRequest)
-            .block();
-        if (!spaceUsers.getDevelopers().contains(username)) {
-            AssociateSpaceDeveloperByUsernameRequest request = AssociateSpaceDeveloperByUsernameRequest.builder()
+        AssociateSpaceDeveloperByUsernameRequest request = AssociateSpaceDeveloperByUsernameRequest.builder()
                 .username(username)
                 .spaceId(spaceId)
                 .build();
-            try {
-                cloudFoundryOperations.getCloudFoundryClient()
-                    .spaces()
-                    .associateDeveloperByUsername(request)
-                    .block();
-            } catch (Exception e) {
-                throw new CreationException(e);
-            }
-        }
+
+        return cloudFoundryOperations.getCloudFoundryClient()
+                .spaces()
+                .associateDeveloperByUsername(request);
     }
 
     /**
-     * Removes users as space developer.
+     * Prepares a request for removing a space developer of the cf instance.
      *
-     * @param usernameList List of users to be removed as a space developer.
-     * @throws InvalidOperationException if usernameList is null/empty or spaceId is invalid.
-     * @throws UpdateException if the user is not found.
+     * @param username email of user to remove as space developer
+     * @param spaceId the id of the space
+     * @return Mono object which yields the response upon subscription
+     * @throws NullPointerException if any of the arguments are null
      */
-    public void removeSpaceDeveloper(List<String> usernameList) throws InvalidOperationException {
-        Log.debug("Removing space developer(s):", String.valueOf(usernameList));
+    public Mono<RemoveSpaceDeveloperByUsernameResponse> remove(String username, String spaceId) {
+        checkNotNull(username);
+        checkNotNull(spaceId);
 
-        assertValidUsernameList(usernameList);
-        String spaceId = cloudFoundryOperations.getSpaceId().block();
-        assertValidSpaceId(spaceId);
-
-        try {
-        usernameList.stream()
-                .map(username -> doRemoveSpaceDeveloper(spaceId, username))
-                .collect(toList())
-                .forEach(Mono::block); }
-        catch (ClientV2Exception e) {
-            throw new UpdateException(e);
-        }
-    }
-
-    /**
-     * Checks if <code>usernameList</code> is not null or empty.
-     *
-     * @param usernameList List of space developer users.
-     * @throws InvalidOperationException if usernameList is invalid.
-     */
-    private void assertValidUsernameList(List<String> usernameList) throws InvalidOperationException {
-        if (usernameList == null || usernameList.isEmpty()) {
-            throw new InvalidOperationException(USERNAME_LIST_MUST_BE_NOT_NULL_OR_EMPTY);
-        }
-    }
-
-    /**
-     * Checks if <code>spaceId</code> is not null or empty.
-     *
-     * @param spaceId The value for spaceId.
-     * @throws InvalidOperationException if spaceId is invalid.
-     */
-    private void assertValidSpaceId(String spaceId) throws InvalidOperationException {
-        if (isBlank(spaceId)) {
-            throw new InvalidOperationException(INVALID_VALUE_OF_SPACE_ID);
-        }
-    }
-
-    /**
-     * Remove a particular user as space developer.
-     *
-     * @param spaceId  The value for spaceId.
-     * @param username The value for username.
-     * @return the response from the Disassociate Developer with the Space by Username request.
-     * @throws ClientV2Exception when the user is not found.
-     */
-    private Mono<RemoveSpaceDeveloperByUsernameResponse> doRemoveSpaceDeveloper(String spaceId, String username) {
         RemoveSpaceDeveloperByUsernameRequest request = RemoveSpaceDeveloperByUsernameRequest
                 .builder()
                 .spaceId(spaceId)
                 .username(username)
                 .build();
-
-        Log.info(REMOVE_USER_AS_SPACE_DEVELOPER, username);
 
         return cloudFoundryOperations.getCloudFoundryClient()
                 .spaces()

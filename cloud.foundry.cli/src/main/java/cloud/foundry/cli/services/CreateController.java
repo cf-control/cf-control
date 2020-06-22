@@ -14,11 +14,18 @@ import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
 import cloud.foundry.cli.operations.ApplicationsOperations;
 import cloud.foundry.cli.operations.ServicesOperations;
 import cloud.foundry.cli.operations.SpaceDevelopersOperations;
+import org.cloudfoundry.client.v2.ClientV2Exception;
+import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperByUsernameResponse;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 /**
  * This class realizes the functionality that is needed for the create commands.
@@ -49,21 +56,62 @@ public class CreateController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            Log.info("Assigning space-developer(s)...");
+            Log.info("Interpreting YAML file...");
             SpaceDevelopersBean spaceDevelopersBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(),
                     SpaceDevelopersBean.class);
+            Log.info("Loading YAML file...");
 
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
 
-            for (String username : spaceDevelopersBean.getSpaceDevelopers()) {
-                spaceDevelopersOperations.assignSpaceDeveloper(username);
-                Log.info("Assigned new SpaceDeveloper:", username,
-                        "in org:", cfOperations.getOrganization(),
-                        "/ to the space:", cfOperations.getSpace());
+            List<String> spaceDevelopers = spaceDevelopersBean.getSpaceDevelopers();
+            if (spaceDevelopers == null || spaceDevelopers.isEmpty()) {
+                Log.info("There are no space developers to assign.");
+                return 0;
+            }
+            if (spaceDevelopers.contains(null)) {
+                Log.error("The space developers must not contain null.");
+                return 1;
             }
 
-            return 0;
+            Log.info("Fetching space id...");
+            String spaceId = spaceDevelopersOperations.getSpaceId().block();
+            Log.info("Space id fetched.");
+
+            assert (spaceId != null);
+
+            Log.info("Assigning space developers...");
+
+            // signals if any error occurred during the assignment of the space developers
+            AtomicReference<Boolean> errorOccurred = new AtomicReference<>(false);
+
+            List<Mono<AssociateSpaceDeveloperByUsernameResponse>> assignRequests = spaceDevelopers.stream()
+                .map(spaceDeveloper ->
+                    spaceDevelopersOperations.assign(spaceDeveloper, spaceId)
+                        .doOnSuccess(response -> onSuccessfulAssignment(spaceDeveloper))
+                        .onErrorContinue(this::whenClientException,
+                            (throwable, o) -> onErrorDuringAssignment(throwable, spaceDeveloper, errorOccurred))
+                )
+                .collect(Collectors.toList());
+
+            Flux.merge(assignRequests).blockLast();
+            return errorOccurred.get() ? 1 : 0;
+        }
+
+        private boolean whenClientException(Throwable throwable) {
+            return (throwable instanceof ClientV2Exception);
+        }
+
+        private void onSuccessfulAssignment(String spaceDeveloper) {
+            Log.verbose(spaceDeveloper, "successfully assigned.");
+        }
+
+        private void onErrorDuringAssignment(Throwable exception, String spaceDeveloper,
+                                          AtomicReference<Boolean> errorOccurred) {
+            Log.error("An error occurred during space developer assignment:", exception.getMessage());
+
+            // marks that at least a single error has occurred
+            errorOccurred.set(true);
         }
     }
 
