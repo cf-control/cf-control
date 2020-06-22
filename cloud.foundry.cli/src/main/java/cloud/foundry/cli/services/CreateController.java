@@ -21,6 +21,7 @@ import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Flux;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -135,16 +136,19 @@ public class CreateController implements Callable<Integer> {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
 
+            LinkedList<Mono<Void>> serviceMonos = new LinkedList<>();
+
             for (Entry<String, ServiceBean> serviceEntry : serviceBeans.entrySet()) {
                 String serviceName = serviceEntry.getKey();
                 ServiceBean serviceBean = serviceEntry.getValue();
                 Mono<Void> toCreate = servicesOperations.create(serviceName, serviceBean);
-                try {
-                    toCreate.block();
-                    Log.info("Service created:" , serviceName);
-                } catch (RuntimeException e) {
-                    throw new CreationException(e.getMessage());
-                }
+                serviceMonos.add(toCreate);
+            }
+
+            try {
+                Flux.fromIterable(serviceMonos).blockLast();
+            } catch (RuntimeException e) {
+                throw new CreationException(e.getMessage());
             }
 
             return 0;

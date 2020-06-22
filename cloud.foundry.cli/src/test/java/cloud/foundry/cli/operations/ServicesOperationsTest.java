@@ -114,6 +114,7 @@ public class ServicesOperationsTest {
         Mockito.when(servicesMock.createInstance(any(CreateServiceInstanceRequest.class)))
             .thenReturn(monoCreated);
         Mockito.when(monoCreated.doOnSubscribe(any())).thenReturn(monoCreated);
+        Mockito.when(monoCreated.doOnSuccess(any())).thenReturn(monoCreated);
         // when + then
         ServicesOperations servicesOperations = new ServicesOperations(cfMock);
         Mono<Void> toCreate = servicesOperations.create(serviceInstanceName, serviceBean);

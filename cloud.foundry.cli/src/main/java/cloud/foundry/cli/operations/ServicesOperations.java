@@ -80,7 +80,8 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
                 .doOnSubscribe(aVoid -> {
                     Log.debug("Create service:", serviceInstanceName);
                     Log.debug("Bean of the service:", serviceBean);
-                });
+                })
+                .doOnSuccess(aVoid -> Log.info("Service created:", serviceInstanceName));
     }
 
     /**
