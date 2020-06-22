@@ -169,7 +169,9 @@ public class UpdateController implements Callable<Integer> {
 
             for (Entry<String, ServiceBean> serviceEntry : serviceBeans.entrySet()) {
                 String serviceName = serviceEntry.getKey();
-                servicesOperations.removeServiceInstance(serviceName);
+                Flux<Object> toRemove = servicesOperations.removeServiceInstance(serviceName);
+                toRemove.blockLast();
+                Log.info("Removed Service:", serviceName);
             }
         }
     }
