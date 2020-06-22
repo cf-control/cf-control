@@ -20,8 +20,8 @@ import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperByUsernameRespon
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Flux;
+import reactor.core.scheduler.Schedulers;
 
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -136,18 +136,15 @@ public class CreateController implements Callable<Integer> {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
 
-            LinkedList<Mono<Void>> serviceMonos = new LinkedList<>();
-
-            for (Entry<String, ServiceBean> serviceEntry : serviceBeans.entrySet()) {
-                String serviceName = serviceEntry.getKey();
-                ServiceBean serviceBean = serviceEntry.getValue();
-                Mono<Void> toCreate = servicesOperations.create(serviceName, serviceBean);
-                serviceMonos.add(toCreate);
-            }
-
             try {
-                Flux.fromIterable(serviceMonos).blockLast();
-            } catch (RuntimeException e) {
+                Flux.merge(serviceBeans.entrySet().stream()
+                        .map(serviceEntry ->
+                                servicesOperations.create(serviceEntry.getKey(), serviceEntry.getValue())
+                        .subscribeOn(Schedulers.parallel()))
+                        .collect(Collectors.toList())
+                ).blockLast();
+            }
+           catch (RuntimeException e) {
                 throw new CreationException(e.getMessage());
             }
 
