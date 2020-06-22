@@ -69,8 +69,6 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      * @return Mono which can be subscribed on to trigger the request to the cf instance
      */
     public Mono<Void> create(String serviceInstanceName, ServiceBean serviceBean) {
-        Log.debug("Create service:", serviceInstanceName);
-        Log.debug("Bean of the service:", serviceBean);
 
         CreateServiceInstanceRequest createServiceRequest = CreateServiceInstanceRequest.builder()
             .serviceName(serviceBean.getService())
@@ -79,7 +77,11 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
             .tags(serviceBean.getTags())
             .build();
 
-        return this.cloudFoundryOperations.services().createInstance(createServiceRequest);
+        return this.cloudFoundryOperations.services().createInstance(createServiceRequest)
+                .doOnSubscribe(aVoid -> {
+                    Log.debug("Create service:", serviceInstanceName);
+                    Log.debug("Bean of the service:", serviceBean);
+                });
     }
 
     /**
@@ -98,6 +100,7 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
             .newName(newName)
             .build();
 
+        //TODO: moove logs
         return this.cloudFoundryOperations.services()
                 .renameInstance(renameServiceInstanceRequest);
     }
@@ -113,6 +116,7 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
         Log.debug("Update service Instance:", serviceInstanceName);
         Log.debug("With the bean:", serviceBean);
 
+        //TODO:move logs
         UpdateServiceInstanceRequest updateServiceInstanceRequest = UpdateServiceInstanceRequest.builder()
             .serviceInstanceName(serviceInstanceName)
             .tags(serviceBean.getTags())
