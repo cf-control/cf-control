@@ -137,12 +137,22 @@ public class CreateController implements Callable<Integer> {
             ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
 
             try {
-                Flux.merge(serviceBeans.entrySet().stream()
-                        .map(serviceEntry ->
-                                servicesOperations.create(serviceEntry.getKey(), serviceEntry.getValue())
-                        .subscribeOn(Schedulers.parallel()))
-                        .collect(Collectors.toList())
-                ).blockLast();
+                Flux.fromIterable(serviceBeans.entrySet())
+                        .parallel()
+                        .runOn(Schedulers.boundedElastic())
+                        .flatMap(serviceEntry ->
+                                        servicesOperations.create(serviceEntry.getKey(), serviceEntry.getValue())
+//                                                .subscribeOn(Schedulers.parallel())
+                                                .doOnSubscribe(aVoid-> System.out.println(Thread.currentThread().getName())))
+                        .sequential()
+                        .blockLast();
+//
+//                Flux.merge(serviceBeans.entrySet().stream()
+//                        .map(serviceEntry ->
+//                                servicesOperations.create(serviceEntry.getKey(), serviceEntry.getValue())
+//                        .subscribeOn(Schedulers.parallel()))
+//                        .collect(Collectors.toList())
+//                ).blockLast();
             }
            catch (RuntimeException e) {
                 throw new CreationException(e.getMessage());
