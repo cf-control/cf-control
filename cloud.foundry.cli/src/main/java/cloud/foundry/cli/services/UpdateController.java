@@ -239,7 +239,7 @@ public class UpdateController implements Callable<Integer> {
                     toUpdate.block();
                     Log.info("Service Plan and Tags haven been updated");
                 } catch (RuntimeException e) {
-                    throw new CreationException(e.getMessage());
+                    throw new UpdateException(e);
                 }
                 Log.info("Service Plan and Tags haven been updated of service:", serviceName);
             }
