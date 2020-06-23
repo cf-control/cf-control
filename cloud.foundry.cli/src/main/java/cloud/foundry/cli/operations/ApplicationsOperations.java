@@ -152,7 +152,9 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                 .command(bean.getManifest().getCommand())
                 .disk(bean.getManifest().getDisk())
                 .docker(Docker.builder()
-                        .image(bean.getPath() == null && bean.getManifest().getDockerImage() == null ? "" :bean.getManifest().getDockerImage())
+                        .image(bean.getPath() == null && bean.getManifest().getDockerImage() == null
+                                ? ""
+                                : bean.getManifest().getDockerImage())
                         .username( bean.getManifest().getDockerUsername())
                         .password(getDockerPassword(bean.getManifest()))
                         .build())

@@ -7,7 +7,7 @@ import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
 import cloud.foundry.cli.crosscutting.exceptions.ApplyException;
-import cloud.foundry.cli.logic.apply.ApplyApplicationsPlaner;
+import cloud.foundry.cli.logic.apply.ApplicationRequestsPlaner;
 import cloud.foundry.cli.logic.diff.DiffResult;
 import cloud.foundry.cli.logic.diff.change.CfChange;
 import cloud.foundry.cli.operations.ApplicationsOperations;
@@ -67,7 +67,8 @@ public class ApplyLogic {
         ApplicationsOperations appOperations = new ApplicationsOperations(cfOperations);
 
         Flux.fromIterable(allApplicationChanges.entrySet())
-                .flatMap( appChangeEntry -> ApplyApplicationsPlaner.create(appOperations, appChangeEntry.getKey(), appChangeEntry.getValue()))
+                .flatMap( appChangeEntry -> ApplicationRequestsPlaner.create(appOperations, appChangeEntry.getKey(),
+                        appChangeEntry.getValue()))
                 .doOnSubscribe(subscription -> System.out.println(Thread.currentThread().getName()))
                 .onErrorContinue((throwable, o) -> throwable.printStackTrace())
                 .blockLast();

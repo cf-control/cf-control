@@ -137,7 +137,6 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      */
     public Mono<Void> remove(String serviceInstanceName) {
         try {
-                    // get service instance
             return Flux.from(getServiceInstance(serviceInstanceName))
                     // with the result trigger app binding and key binding deletions
                     .flatMap(serviceInstance -> mergeUnbindAppsAndDeleteKeys(serviceInstanceName, serviceInstance))
@@ -219,7 +218,8 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
         } else {
                 return Flux.fromIterable(serviceInstance.getApplications())
                         .flatMap(appName -> doUnbindApp(serviceInstanceName, appName))
-                        .doOnComplete(() -> Log.info("All applications of service instance " + serviceInstanceName + " have been unbound."));
+                        .doOnComplete(() -> Log.info("All applications of service instance "
+                                + serviceInstanceName + " have been unbound."));
         }
         return null;
     }
@@ -228,8 +228,10 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
             return this.cloudFoundryOperations
                     .services()
                     .unbind(createUnbindServiceInstanceRequest(serviceInstanceName, applicationName))
-                    .doOnSubscribe(subscription -> Log.info("Unbind app " + applicationName + " for " + serviceInstanceName))
-                    .doOnSuccess(subscription -> Log.info("Unbound app " + applicationName + " for " + serviceInstanceName));
+                    .doOnSubscribe(subscription -> Log.info("Unbind app " + applicationName +
+                            " for " + serviceInstanceName))
+                    .doOnSuccess(subscription -> Log.info("Unbound app " + applicationName +
+                            " for " + serviceInstanceName));
     }
 
     private UnbindServiceInstanceRequest createUnbindServiceInstanceRequest(String serviceInstanceName,

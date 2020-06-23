@@ -90,7 +90,7 @@ public class CreateController implements Callable<Integer> {
                     .flatMap(spaceDeveloper -> spaceDevelopersOperations.assign(spaceDeveloper, spaceId)
                             .doOnSuccess(response -> onSuccessfulAssignment(spaceDeveloper))
                             .onErrorContinue(this::whenClientException,
-                                    (throwable, o) -> onErrorDuringAssignment(throwable, spaceDeveloper, errorOccurred)))
+                                    (throwable, o) -> onErrorDuringAssignment(throwable, errorOccurred)))
            .blockLast();
             return errorOccurred.get() ? 1 : 0;
         }
@@ -103,8 +103,7 @@ public class CreateController implements Callable<Integer> {
             Log.verbose(spaceDeveloper, "successfully assigned.");
         }
 
-        private void onErrorDuringAssignment(Throwable exception, String spaceDeveloper,
-                                          AtomicReference<Boolean> errorOccurred) {
+        private void onErrorDuringAssignment(Throwable exception, AtomicReference<Boolean> errorOccurred) {
             Log.error("An error occurred during space developer assignment:", exception.getMessage());
 
             // marks that at least a single error has occurred
@@ -136,7 +135,8 @@ public class CreateController implements Callable<Integer> {
                 // TODO: find better solution
                 cfOperations.getOrganizationId().block();
                 Flux.fromIterable(serviceBeans.entrySet())
-                        // delay that tries to avoid race conditions and not deterministic errors on the cloud foundry side
+                        // delay that's used to to avoid race conditions and not deterministic errors
+                        // on the cloud foundry side
                         // TODO: find better solution if possible
                         .delayElements(Duration.ofSeconds(1))
                         .flatMap(serviceEntry ->
