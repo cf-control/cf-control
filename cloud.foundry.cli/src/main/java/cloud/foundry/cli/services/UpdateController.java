@@ -36,6 +36,8 @@ import cloud.foundry.cli.operations.ServicesOperations;
     UpdateController.UpdateApplicationCommand.class })
 public class UpdateController implements Callable<Integer> {
 
+    private static final Log log = Log.getLog(UpdateController.class);
+
     @Override
     public Integer call() {
         // this code is executed if the user runs the create command without specifying
@@ -54,7 +56,7 @@ public class UpdateController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            Log.info("Removing space developers...");
+            log.info("Removing space developers...");
 
             SpaceDevelopersBean spaceDevelopersBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(),
                 SpaceDevelopersBean.class);
@@ -63,7 +65,7 @@ public class UpdateController implements Callable<Integer> {
             SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
 
             spaceDevelopersOperations.removeSpaceDeveloper(spaceDevelopersBean.getSpaceDevelopers());
-            Log.info("Space Developers removed: ", String.valueOf(spaceDevelopersBean.getSpaceDevelopers()));
+            log.info("Space Developers removed: ", String.valueOf(spaceDevelopersBean.getSpaceDevelopers()));
 
             return 0;
         }
@@ -89,7 +91,7 @@ public class UpdateController implements Callable<Integer> {
             // as that might remove valuable data as well
             if (force == null) {
                 if (System.console() == null) {
-                    Log.error("--force/-f not supplied and not running in terminal, aborting");
+                    log.error("--force/-f not supplied and not running in terminal, aborting");
                     return 2;
                 }
 
@@ -133,14 +135,14 @@ public class UpdateController implements Callable<Integer> {
          * @return true on success, false if there were errors
          */
         private boolean doRemoveServiceInstance(Map<String, ServiceBean> services) {
-            Log.info("Removing services...");
+            log.info("Removing services...");
 
             DefaultCloudFoundryOperations cfOperations;
 
             try {
                 cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             } catch (Exception e) {
-                Log.error("Failed to create CF operations: ", e.getMessage());
+                log.error("Failed to create CF operations: ", e.getMessage());
                 return false;
             }
 
@@ -156,7 +158,7 @@ public class UpdateController implements Callable<Integer> {
                 try {
                     servicesOperations.removeServiceInstance(serviceName);
                 } catch (Exception e) {
-                    Log.error("Failed to remove service ", serviceName, ": ", e.getMessage());
+                    log.error("Failed to remove service ", serviceName, ": ", e.getMessage());
                     success = false;
                 }
             }
@@ -176,7 +178,7 @@ public class UpdateController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            Log.info("Removing applications...");
+            log.info("Removing applications...");
             SpecBean specBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
             Map<String, ApplicationBean> applicationBeans = specBean.getApps();
 
@@ -205,16 +207,16 @@ public class UpdateController implements Callable<Integer> {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
 
-            Log.info("Updating services...");
+            log.info("Updating services...");
             for (Entry<String, ServiceBean> serviceEntry : serviceBeans.entrySet()) {
                 String serviceName = serviceEntry.getKey();
                 ServiceBean serviceBean = serviceEntry.getValue();
 
                 // "currentName" is currently a placeholder until diff is implemented
                 servicesOperations.renameServiceInstance(serviceName, "currentName");
-                Log.info("Service name changed: ", serviceName);
+                log.info("Service name changed: ", serviceName);
                 servicesOperations.updateServiceInstance(serviceName, serviceBean);
-                Log.info("Service Plan and Tags haven been updated of service:", serviceName);
+                log.info("Service Plan and Tags haven been updated of service:", serviceName);
             }
 
             return 0;

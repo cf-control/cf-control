@@ -5,6 +5,7 @@ import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
 import cloud.foundry.cli.crosscutting.mapping.YamlMapper;
 import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
 import cloud.foundry.cli.logic.ApplyLogic;
+import cloud.foundry.cli.operations.ApplicationsOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import picocli.CommandLine;
 
@@ -19,6 +20,8 @@ import java.util.concurrent.Callable;
         mixinStandardHelpOptions = true,
         subcommands = {ApplyController.ApplyApplicationCommand.class})
 public class ApplyController implements Callable<Integer> {
+
+    private static final Log log = Log.getLog(ApplyController.class);
 
     @Override
     public Integer call() {
@@ -43,9 +46,9 @@ public class ApplyController implements Callable<Integer> {
 
             ApplyLogic applyLogic = new ApplyLogic(cfOperations);
 
-            Log.info("Interpreting YAML file...");
+            log.info("Interpreting YAML file...");
             SpecBean desiredSpecBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
-            Log.info("YAML file interpreted.");
+            log.info("YAML file interpreted.");
 
             applyLogic.applyApplications(desiredSpecBean.getApps());
 
