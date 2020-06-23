@@ -22,7 +22,10 @@ import org.cloudfoundry.operations.services.UpdateServiceInstanceRequest;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.Collections;
 import java.util.Map;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Handles the operations for manipulating services on a cloud foundry instance.
@@ -54,10 +57,14 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
     private Mono<ServiceInstance> getServiceInstance(String serviceName) {
         return this.cloudFoundryOperations
                 .services()
-                .getInstance(GetServiceInstanceRequest
-                    .builder()
-                    .name(serviceName)
-                    .build());
+                .getInstance(createGetServiceInstanceRequest(serviceName));
+    }
+
+    private GetServiceInstanceRequest createGetServiceInstanceRequest(String serviceName) {
+        return GetServiceInstanceRequest
+            .builder()
+            .name(serviceName)
+            .build();
     }
 
     /**
@@ -137,9 +144,9 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      */
     public Mono<Void> remove(String serviceInstanceName) {
         try {
-            return Flux.from(getServiceInstance(serviceInstanceName))
+            return getServiceInstance(serviceInstanceName)
                     // with the result trigger app binding and key binding deletions
-                    .flatMap(serviceInstance -> mergeUnbindAppsAndDeleteKeys(serviceInstanceName, serviceInstance))
+                    .flatMapMany(serviceInstance -> mergeUnbindAppsAndDeleteKeys(serviceInstance.getName()))
                     // also unbind routes
                     .mergeWith(unbindRoutes(serviceInstanceName))
                     // after previous operations are done delete the actual service
@@ -162,26 +169,27 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
                 .build();
     }
 
-    private Flux<Void> mergeUnbindAppsAndDeleteKeys(String serviceInstanceName, ServiceInstance servInstance) {
-        return Flux.merge(unbindApps(serviceInstanceName, servInstance), deleteKeys(serviceInstanceName, servInstance));
+    private Flux<Void> mergeUnbindAppsAndDeleteKeys(String serviceInstanceName) {
+        return Flux.merge(unbindApps(serviceInstanceName), deleteKeys(serviceInstanceName));
     }
 
     /**
      * Delete service keys.
      * @param serviceInstanceName serviceInstanceName Name of a service instance.
-     * @param serviceInstance A service instance.
      * @return Flux which can be subscribed on, to delete the keys
      */
-    private Flux<Void> deleteKeys(String serviceInstanceName, ServiceInstance serviceInstance) {
-        if (!serviceInstance.getType().getValue().equals(USER_PROVIDED_SERVICE_INSTANCE)) {
-            return this.cloudFoundryOperations
-                    .services()
-                    .listServiceKeys(createListServiceKeysRequest(serviceInstanceName))
-                    .flatMap(key -> doDeleteKey(serviceInstanceName, key))
-                    .doOnComplete(() -> Log.info("All service keys of service instance "
-                        + serviceInstanceName + " have been deleted."));
-        }
-        return Flux.empty();
+    public Flux<Void> deleteKeys(String serviceInstanceName) {
+        return getServiceInstance(serviceInstanceName)
+                .filter( serviceInstance -> !serviceInstance.getType().getValue().equals(USER_PROVIDED_SERVICE_INSTANCE))
+                .hasElement()
+                .flatMapMany(aBoolean -> aBoolean
+                        ? cloudFoundryOperations
+                                .services()
+                                .listServiceKeys(createListServiceKeysRequest(serviceInstanceName))
+                                .doOnComplete(() -> Log.info("All service keys of service instance "
+                                        + serviceInstanceName + " have been deleted."))
+                        : Flux.empty()).doOnComplete(() -> Log.info("There were no keys to delete."))
+                .flatMap(key -> doDeleteKey(serviceInstanceName, key));
     }
 
     private ListServiceKeysRequest createListServiceKeysRequest(String serviceInstanceName) {
@@ -209,29 +217,33 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
     /**
      * Unbind a service instance from all applications.
      * @param serviceInstanceName serviceInstanceName Name of a service instance.
-     * @param serviceInstance     A service instance.
      * @return Flux which can be subscribed on, to unbind the apps
      */
-    private Flux<Void> unbindApps(String serviceInstanceName, ServiceInstance serviceInstance) {
-        if (serviceInstance.getApplications() == null || serviceInstance.getApplications().isEmpty()) {
-            Log.info("There is no application to unbind!");
-        } else {
-                return Flux.fromIterable(serviceInstance.getApplications())
-                        .flatMap(appName -> doUnbindApp(serviceInstanceName, appName))
-                        .doOnComplete(() -> Log.info("All applications of service instance "
-                                + serviceInstanceName + " have been unbound."));
-        }
-        return null;
+    public Flux<Void> unbindApps(String serviceInstanceName) {
+        checkNotNull(serviceInstanceName);
+
+        return getServiceInstance(serviceInstanceName)
+                .flatMapIterable(serviceInstance -> {
+                    if(serviceInstance.getApplications() == null || serviceInstance.getApplications().isEmpty()) {
+                        Log.info("There is no application to unbind!");
+                        return Collections.emptyList();
+                    } else {
+                        return serviceInstance.getApplications();
+                    }
+                })
+                .flatMap(appName -> doUnbindApp(serviceInstanceName, appName))
+                .doOnComplete(() -> Log.info("All applications of service instance "
+                        + serviceInstanceName + " have been unbound."));
     }
 
     private Mono<Void> doUnbindApp(String serviceInstanceName, String applicationName) {
-            return this.cloudFoundryOperations
-                    .services()
-                    .unbind(createUnbindServiceInstanceRequest(serviceInstanceName, applicationName))
-                    .doOnSubscribe(subscription -> Log.info("Unbind app " + applicationName +
-                            " for " + serviceInstanceName))
-                    .doOnSuccess(subscription -> Log.info("Unbound app " + applicationName +
-                            " for " + serviceInstanceName));
+        return this.cloudFoundryOperations
+                .services()
+                .unbind(createUnbindServiceInstanceRequest(serviceInstanceName, applicationName))
+                .doOnSubscribe(subscription -> Log.info("Unbind app " + applicationName +
+                        " for " + serviceInstanceName))
+                .doOnSuccess(subscription -> Log.info("Unbound app " + applicationName +
+                        " for " + serviceInstanceName));
     }
 
     private UnbindServiceInstanceRequest createUnbindServiceInstanceRequest(String serviceInstanceName,
@@ -246,16 +258,18 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      * Unbinds a service instance <code>serviceInstanceName</code> from all routes.
      *
      * @param serviceInstanceName serviceInstanceName Name of a service instance.
+     * @throws NullPointerException when serviceInstanceName is null
      * @return Flux which can be subscribed on, to unbind the routes
      */
-    private Flux<Void> unbindRoutes(String serviceInstanceName) {
-        ListRoutesRequest listRoutesRequest = ListRoutesRequest.builder().build();
-            return this.cloudFoundryOperations.routes()
-                    .list(listRoutesRequest)
-                    .filter(route -> route.getService() != null && route.getService().equals(serviceInstanceName))
-                    .flatMap(this::doUnbindRoute)
-                    .doOnComplete(() -> Log.info("All routes to service instance "
-                            + serviceInstanceName + " have been unbound."));
+    public Flux<Void> unbindRoutes(String serviceInstanceName) {
+        checkNotNull(serviceInstanceName);
+
+        return this.cloudFoundryOperations.routes()
+                .list(ListRoutesRequest.builder().build())
+                .filter(route -> route.getService() != null && route.getService().equals(serviceInstanceName))
+                .flatMap(this::doUnbindRoute)
+                .doOnComplete(() -> Log.info("All routes to service instance "
+                        + serviceInstanceName + " have been unbound."));
     }
 
     private Mono<Void> doUnbindRoute(Route route) {
