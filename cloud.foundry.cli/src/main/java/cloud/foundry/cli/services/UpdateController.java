@@ -3,6 +3,7 @@ package cloud.foundry.cli.services;
 import static picocli.CommandLine.Command;
 import static picocli.CommandLine.Mixin;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Scanner;
@@ -82,43 +83,85 @@ public class UpdateController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
+            Map<String, ServiceBean> services = readServicesFromYamlFile();
 
-            if (force != null) {
-                doRemoveServiceInstance(yamlCommandOptions);
-            } else {
+            // in case the --force flag is not specified, we shall prompt the user to prevent the removal of services
+            // as that might remove valuable data as well
+            if (force == null) {
                 if (System.console() == null) {
                     Log.error("--force/-f not supplied and not running in terminal, aborting");
                     return 2;
                 }
 
-                System.out.println("Really delete the services y/n?");
+                System.out.print("Requested removal of the following services: ");
+                for (String serviceName : services.keySet()) {
+                    System.out.print("\"" + serviceName + "\" ");
+                }
+                System.out.println();
+
+                System.out.print("Are you sure you want to permanently delete those? [y|N] ");
+
                 Scanner scanner = new Scanner(System.in);
                 String input = scanner.nextLine();
                 scanner.close();
-                if (input.equals("y") || input.equals("yes")) {
-                    doRemoveServiceInstance(yamlCommandOptions);
-                } else {
-                    System.out.println("Delete cancelled");
-                    
+
+                // turn into lower case, we would accept an upper case response, too
+                input = input.toLowerCase();
+
+                if (!(input.equals("y") || input.equals("yes"))) {
+                    System.out.println("Cancelled by user");
                     return 1;
                 }
             }
+
+            // try to remove all services on a best-effort basis
+            // the method should handle errors and log them appropriately
+            doRemoveServiceInstance(services);
             
             return 0;
         }
 
-        private void doRemoveServiceInstance(YamlCommandOptions yamlCommandOptions) throws Exception {
-            Log.info("Removing services...");
+        private Map<String, ServiceBean> readServicesFromYamlFile() throws IOException {
             SpecBean specBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
-            Map<String, ServiceBean> serviceBeans = specBean.getServices();
+            return specBean.getServices();
+        }
 
-            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+        /**
+         * Try to remove service instances. This method handles potential errors internally by logging them.
+         * In case it fails, it returns false. The caller can opt to use this to perform additional error handling.
+         * @param services services to remove
+         * @return true on success, false if there were errors
+         */
+        private boolean doRemoveServiceInstance(Map<String, ServiceBean> services) {
+            Log.info("Removing services...");
+
+            DefaultCloudFoundryOperations cfOperations;
+
+            try {
+                cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+            } catch (Exception e) {
+                Log.error("Failed to create CF operations: ", e.getMessage());
+                return false;
+            }
+
             ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
 
-            for (Entry<String, ServiceBean> serviceEntry : serviceBeans.entrySet()) {
+            // I'm optimistic at the beginning of this loop
+            // prove me wrong!
+            boolean success = true;
+
+            for (Entry<String, ServiceBean> serviceEntry : services.entrySet()) {
                 String serviceName = serviceEntry.getKey();
-                servicesOperations.removeServiceInstance(serviceName);
+
+                try {
+                    servicesOperations.removeServiceInstance(serviceName);
+                } catch (Exception e) {
+                    Log.error("Failed to remove service ", serviceName, ": ", e.getMessage());
+                    success = false;
+                }
             }
+
+            return success;
         }
     }
 

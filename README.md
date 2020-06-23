@@ -59,7 +59,7 @@ The application also supports a quiet mode, which can be enabled by setting the 
 
 ```
   create          Create a new app, service instance or add a new space developer.
-  get             Get the current configuration of your cf instance.
+  get             Show all information of your cf instance.
   diff            Print the differences between the given yaml file and the configuration of your cf instance.
   apply           Apply the configuration from a given yaml file to your cf instance.
   update          Update/Remove apps, service instances or space developers.
@@ -81,7 +81,6 @@ The application also supports a quiet mode, which can be enabled by setting the 
   services          List all services in the target space.
   space-developers  List all space developers in the target space.
   applications      List all applications in the target space.
-  all               Show all information in the target space.
 ```
 
 
@@ -94,6 +93,8 @@ The application also supports a quiet mode, which can be enabled by setting the 
                      the configuration of the space-developers of your cf instance.
    services          Print the differences between the services given in the yaml file and
                      the configuration of the services of your cf instance.
+    all              Print the differences between the configuration in the yaml file and
+                     the configuration of your cf instance.
 ```
 
 ##### update [SUBCOMMAND]

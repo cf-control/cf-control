@@ -8,9 +8,11 @@ import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
 import cloud.foundry.cli.crosscutting.mapping.YamlMapper;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
 import cloud.foundry.cli.logic.DiffLogic;
+import cloud.foundry.cli.logic.GetLogic;
 import cloud.foundry.cli.operations.ApplicationsOperations;
 import cloud.foundry.cli.operations.SpaceDevelopersOperations;
 import cloud.foundry.cli.operations.ServicesOperations;
@@ -31,7 +33,8 @@ import java.util.concurrent.Callable;
         subcommands = {
                 DiffController.DiffApplicationCommand.class,
                 DiffController.DiffSpaceDevelopersCommand.class,
-                DiffController.DiffServiceCommand.class})
+                DiffController.DiffServiceCommand.class,
+                DiffController.DiffAllCommand.class})
 public class DiffController implements Callable<Integer> {
 
     private static final String NO_DIFFERENCES = "There are no differences.";
@@ -159,6 +162,43 @@ public class DiffController implements Callable<Integer> {
             DiffLogic diffLogic = new DiffLogic();
             String output = diffLogic.createDiffOutput(specBeanLive, desiredSpecBean);
             Log.debug("Diff string of space-devs:", output);
+
+            if (output.isEmpty()) {
+                System.out.println(NO_DIFFERENCES);
+            } else {
+                System.out.println(output);
+            }
+
+            return 0;
+        }
+    }
+
+
+    @Command(name = "all", description = "Print the differences between " +
+            "the config given in the yaml file and the current config of your cf instance.")
+    static class DiffAllCommand implements Callable<Integer> {
+
+        @Mixin
+        LoginCommandOptions loginOptions;
+
+        @Mixin
+        YamlCommandOptions yamlCommandOptions;
+
+        @Override
+        public Integer call() throws Exception {
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+            ConfigBean desiredConfigBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), ConfigBean.class);
+            Log.debug("Desired config:", desiredConfigBean);
+
+            Log.info("Fetching all information for target space...");
+            GetLogic getLogic = new GetLogic(cfOperations);
+            ConfigBean currentConfigBean = getLogic.getAll();
+            Log.debug("Current Config:", currentConfigBean);
+
+            Log.info("Diffing ...");
+            DiffLogic diffLogic = new DiffLogic();
+            String output = diffLogic.createDiffOutput(currentConfigBean, desiredConfigBean);
+            Log.debug("Diff string of config:", output);
 
             if (output.isEmpty()) {
                 System.out.println(NO_DIFFERENCES);
