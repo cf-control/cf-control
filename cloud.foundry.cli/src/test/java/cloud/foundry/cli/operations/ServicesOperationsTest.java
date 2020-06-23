@@ -132,10 +132,11 @@ public class ServicesOperationsTest {
 
         Mono<Void> monoUpdatedService = mock(Mono.class);
         when(servicesMock.updateInstance(any(UpdateServiceInstanceRequest.class))).thenReturn(monoUpdatedService);
+        when(monoUpdatedService.doOnSubscribe(any())).thenReturn(monoUpdatedService);
 
         // when
         ServicesOperations servicesOperations = new ServicesOperations(cfMock);
-        Mono<Void> voidMono = servicesOperations.updateServiceInstance(serviceInstanceName, serviceBeanMock);
+        Mono<Void> voidMono = servicesOperations.update(serviceInstanceName, serviceBeanMock);
 
         // then
         assertEquals(monoUpdatedService, voidMono);
@@ -150,10 +151,11 @@ public class ServicesOperationsTest {
 
         Mono<Void> monoRenamed = mock(Mono.class);
         when(servicesMock.renameInstance(any(RenameServiceInstanceRequest.class))).thenReturn(monoRenamed);
+        when(monoRenamed.doOnSubscribe(any())).thenReturn(monoRenamed);
 
         // when
         ServicesOperations servicesOperations = new ServicesOperations(cfMock);
-        Mono<Void> actualMono = servicesOperations.renameServiceInstance("newname", "currentname");
+        Mono<Void> actualMono = servicesOperations.rename("newname", "currentname");
 
         // then
         assertEquals(monoRenamed, actualMono);
@@ -181,7 +183,7 @@ public class ServicesOperationsTest {
 
         // when
         ServicesOperations servicesOperations = new ServicesOperations(cfMock);
-        servicesOperations.removeServiceInstance(serviceInstanceName);
+        servicesOperations.remove(serviceInstanceName);
 
         // then
         verify(servicesMock, times(1)).deleteInstance(any(DeleteServiceInstanceRequest.class));
@@ -213,7 +215,7 @@ public class ServicesOperationsTest {
 
         // when
         ServicesOperations servicesOperations = new ServicesOperations(cfMock);
-        servicesOperations.removeServiceInstance(serviceInstanceName);
+        servicesOperations.remove(serviceInstanceName);
 
         // then
         verify(servicesMock, times(1)).deleteInstance(any(DeleteServiceInstanceRequest.class));
