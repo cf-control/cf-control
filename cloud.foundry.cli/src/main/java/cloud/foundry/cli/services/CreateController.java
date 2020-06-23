@@ -20,11 +20,10 @@ import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperByUsernameRespon
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Flux;
-import reactor.core.scheduler.Schedulers;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -181,12 +180,11 @@ public class CreateController implements Callable<Integer> {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
 
-            for (Entry<String, ApplicationBean> applicationEntry : applicationBeans.entrySet()) {
-                String applicationName = applicationEntry.getKey();
-                ApplicationBean applicationBean = applicationEntry.getValue();
-                applicationsOperations.create(applicationName, applicationBean, false);
-                Log.info("App created:", applicationName);
-            }
+            cfOperations.getOrganizationId().block();
+            Flux.fromIterable(applicationBeans.entrySet())
+                    .doOnSubscribe(subscription -> System.out.println(Thread.currentThread().getName()))
+                    .flatMap(appEntry -> applicationsOperations.create(appEntry.getKey(), appEntry.getValue(), false))
+                    .blockLast();
 
             return 0;
         }
