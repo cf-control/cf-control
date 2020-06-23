@@ -86,16 +86,12 @@ public class CreateController implements Callable<Integer> {
             // signals if any error occurred during the assignment of the space developers
             AtomicReference<Boolean> errorOccurred = new AtomicReference<>(false);
 
-            List<Mono<AssociateSpaceDeveloperByUsernameResponse>> assignRequests = spaceDevelopers.stream()
-                .map(spaceDeveloper ->
-                    spaceDevelopersOperations.assign(spaceDeveloper, spaceId)
-                        .doOnSuccess(response -> onSuccessfulAssignment(spaceDeveloper))
-                        .onErrorContinue(this::whenClientException,
-                            (throwable, o) -> onErrorDuringAssignment(throwable, spaceDeveloper, errorOccurred))
-                )
-                .collect(Collectors.toList());
-
-            Flux.merge(assignRequests).blockLast();
+            Flux.fromIterable(spaceDevelopers)
+                    .flatMap(spaceDeveloper -> spaceDevelopersOperations.assign(spaceDeveloper, spaceId)
+                            .doOnSuccess(response -> onSuccessfulAssignment(spaceDeveloper))
+                            .onErrorContinue(this::whenClientException,
+                                    (throwable, o) -> onErrorDuringAssignment(throwable, spaceDeveloper, errorOccurred)))
+           .blockLast();
             return errorOccurred.get() ? 1 : 0;
         }
 
@@ -136,8 +132,12 @@ public class CreateController implements Callable<Integer> {
             ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
 
             try {
+                // so that authorization has taken place. else leads to authorization problems
+                // TODO: find better solution
                 cfOperations.getOrganizationId().block();
                 Flux.fromIterable(serviceBeans.entrySet())
+                        // delay that tries to avoid race conditions and not deterministic errors on the cloud foundry side
+                        // TODO: find better solution if possible
                         .delayElements(Duration.ofSeconds(1))
                         .flatMap(serviceEntry ->
                             servicesOperations.create(serviceEntry.getKey(), serviceEntry.getValue()))
