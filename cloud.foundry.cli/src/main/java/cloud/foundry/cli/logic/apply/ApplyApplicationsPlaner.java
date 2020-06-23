@@ -12,21 +12,26 @@ import cloud.foundry.cli.logic.diff.change.object.CfNewObject;
 import cloud.foundry.cli.logic.diff.change.object.CfObjectValueChanged;
 import cloud.foundry.cli.logic.diff.change.object.CfRemovedObject;
 import cloud.foundry.cli.operations.ApplicationsOperations;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
+import java.util.LinkedList;
 import java.util.List;
 
 /**
  * This class is responsible to apply in the context of applications according to the CfChanges.
  * The class performs the apply task by implementing the {@link CfChangeVisitor} interface.
  */
-public class ApplicationApplier implements CfChangeVisitor {
+public class ApplyApplicationsPlaner implements CfChangeVisitor {
 
     private final ApplicationsOperations appOperations;
     private final String applicationName;
+    private final List<Mono<Void>> requests;
 
-    private ApplicationApplier(ApplicationsOperations appOperations, String applicationName) {
+    private ApplyApplicationsPlaner(ApplicationsOperations appOperations, String applicationName) {
         this.appOperations = appOperations;
         this.applicationName = applicationName;
+        this.requests = new LinkedList<>();
     }
 
     /**
@@ -40,7 +45,7 @@ public class ApplicationApplier implements CfChangeVisitor {
         Object affectedObject = newObject.getAffectedObject();
         if (affectedObject instanceof ApplicationBean) {
             try {
-                doCreateNewApp((ApplicationBean) affectedObject);
+                addCreateAppRequest((ApplicationBean) affectedObject);
             } catch (CreationException | IllegalArgumentException | NullPointerException | SecurityException e) {
                 throw new ApplyException(e);
             }
@@ -51,9 +56,8 @@ public class ApplicationApplier implements CfChangeVisitor {
         return;
     }
 
-    private void doCreateNewApp(ApplicationBean affectedObject) throws CreationException {
-        this.appOperations.create(this.applicationName, affectedObject, false);
-        Log.info("App created:", applicationName);
+    private void addCreateAppRequest(ApplicationBean affectedObject) throws CreationException {
+        this.requests.add(this.appOperations.create(this.applicationName, affectedObject, false));
     }
 
     /**
@@ -106,11 +110,13 @@ public class ApplicationApplier implements CfChangeVisitor {
      * with more details
      * @throws IllegalArgumentException if the newObject is neither an ApplicationBean or an ApplicationManifestBean
      */
-    public static void apply(ApplicationsOperations appOperations, String applicationName,
-                             List<CfChange> applicationChanges) {
-        ApplicationApplier applicationApplier = new ApplicationApplier(appOperations, applicationName);
+    public static Flux<Void> create(ApplicationsOperations appOperations, String applicationName,
+                                    List<CfChange> applicationChanges) {
+        ApplyApplicationsPlaner applyApplicationsPlaner = new ApplyApplicationsPlaner(appOperations, applicationName);
         for (CfChange applicationChange : applicationChanges) {
-            applicationChange.accept(applicationApplier);
+            applicationChange.accept(applyApplicationsPlaner);
         }
+
+        return Flux.merge(applyApplicationsPlaner.requests);
     }
 }
