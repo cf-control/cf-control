@@ -72,7 +72,7 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
      *
      * @param applicationName applicationName Name of an application.
      * @throws NullPointerException when the applicationName is null
-     * @return Mono which can be subscribed on to trigger the request to the cf instance
+     * @return Mono which can be subscribed on to trigger the removal of the app
      */
     public Mono<Void> remove(String applicationName) {
         checkNotNull(applicationName);
@@ -103,7 +103,7 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
      * @throws IllegalArgumentException    when neither a path nor a docker image were specified, or app name empty
      * @throws CreationException        when any fatal error occurs during creation of the app
      * @throws SecurityException        when there is no permission to access environment variable CF_DOCKER_PASSWORD
-     * @return Mono which can be subscribed on to trigger the request to the cf instance
+     * @return Mono which can be subscribed on to trigger the creation of the app
      */
     public Mono<Void> create(String appName, ApplicationBean bean, boolean shouldStart) {
         checkNotNull(appName);
