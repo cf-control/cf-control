@@ -131,7 +131,7 @@ public class CreateController implements Callable<Integer> {
             ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
 
             try {
-                // so that authorization has taken place. else leads to authorization problems
+                // do so that authorization has taken place. else leads to authorization problems
                 // TODO: find better solution
                 cfOperations.getOrganizationId().block();
                 Flux.fromIterable(serviceBeans.entrySet())
@@ -141,7 +141,7 @@ public class CreateController implements Callable<Integer> {
                         .delayElements(Duration.ofSeconds(1))
                         .flatMap(serviceEntry ->
                             servicesOperations.create(serviceEntry.getKey(), serviceEntry.getValue()))
-                        .onErrorContinue((throwable, o) -> System.out.println(throwable.getLocalizedMessage()))
+                        .onErrorContinue(Log::warning)
                         .blockLast();
             } catch (RuntimeException e) {
                 throw new CreationException(e.getMessage());
@@ -170,10 +170,12 @@ public class CreateController implements Callable<Integer> {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
 
+            // do so that authorization has taken place. else leads to authorization problems
+            // TODO: find better solution
             cfOperations.getOrganizationId().block();
             Flux.fromIterable(applicationBeans.entrySet())
-                    .doOnSubscribe(subscription -> System.out.println(Thread.currentThread().getName()))
                     .flatMap(appEntry -> applicationsOperations.create(appEntry.getKey(), appEntry.getValue(), false))
+                    .onErrorContinue(Log::warning)
                     .blockLast();
 
             return 0;
