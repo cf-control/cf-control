@@ -203,7 +203,7 @@ public class ServicesOperationsTest {
         request.block();
 
         // then
-        verify(serivcesMock, times(3)).getInstance(any());
+        verify(serivcesMock, times(2)).getInstance(any());
         verify(routesMock,times(1)).list(any());
         verify(serivcesMock,times(2)).unbindRoute(any());
         verify(serivcesMock,times(2)).unbind(any());
@@ -244,7 +244,7 @@ public class ServicesOperationsTest {
         request.block();
 
         // then
-        verify(servicesMock, times(3)).getInstance(any(GetServiceInstanceRequest.class));
+        verify(servicesMock, times(2)).getInstance(any(GetServiceInstanceRequest.class));
         verify(servicesMock, times(1)).deleteInstance(any(DeleteServiceInstanceRequest.class));
         verify(servicesMock, times(1)).listServiceKeys(any(ListServiceKeysRequest.class));
         verify(routesMock, times(1)).list(any(ListRoutesRequest.class));

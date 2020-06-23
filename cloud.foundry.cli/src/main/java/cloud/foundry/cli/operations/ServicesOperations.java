@@ -144,9 +144,9 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      */
     public Mono<Void> remove(String serviceInstanceName) {
         try {
-            return getServiceInstance(serviceInstanceName)
-                    // with the result trigger app binding and key binding deletions
-                    .flatMapMany(serviceInstance -> mergeUnbindAppsAndDeleteKeys(serviceInstance.getName()))
+            return unbindApps(serviceInstanceName)
+                    // and unbind keys
+                    .mergeWith(deleteKeys(serviceInstanceName))
                     // also unbind routes
                     .mergeWith(unbindRoutes(serviceInstanceName))
                     // after previous operations are done delete the actual service
@@ -167,10 +167,6 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
                 .builder()
                 .name(serviceInstanceName)
                 .build();
-    }
-
-    private Flux<Void> mergeUnbindAppsAndDeleteKeys(String serviceInstanceName) {
-        return Flux.merge(unbindApps(serviceInstanceName), deleteKeys(serviceInstanceName));
     }
 
     /**
