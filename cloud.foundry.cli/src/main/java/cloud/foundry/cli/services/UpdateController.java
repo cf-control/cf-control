@@ -170,9 +170,8 @@ public class UpdateController implements Callable<Integer> {
 
             cfOperations.getOrganizationId().block();
             Flux.fromIterable(serviceBeans.entrySet())
-                    .flatMap(entry -> servicesOperations.removeServiceInstance(entry.getKey()))
-                    .doOnSubscribe(subscription -> System.out.println(Thread.currentThread().getName()))
-                    .onErrorContinue((throwable, o) -> System.out.println(throwable.getLocalizedMessage()))
+                    .flatMap(entry -> servicesOperations.remove(entry.getKey()))
+                    .onErrorContinue(Log::warning)
                     .blockLast();
         }
     }
@@ -198,7 +197,7 @@ public class UpdateController implements Callable<Integer> {
             cfOperations.getOrganizationId().block();
             Flux.fromIterable(applicationBeans.keySet())
                     .flatMap(applicationsOperations::remove)
-                    .onErrorContinue((throwable, o) -> throwable.printStackTrace())
+                    .onErrorContinue(Log::warning)
                     .blockLast();
 
             return 0;
@@ -228,14 +227,14 @@ public class UpdateController implements Callable<Integer> {
                 ServiceBean serviceBean = serviceEntry.getValue();
 
                 // "currentName" is currently a placeholder until diff is implemented
-                Mono<Void> toRename = servicesOperations.renameServiceInstance(serviceName, "currentName");
+                Mono<Void> toRename = servicesOperations.rename(serviceName, "currentName");
                 try {
                     toRename.block();
                 } catch (RuntimeException e) {
                     throw new CreationException(e.getMessage());
                 }
                 Log.info("Service name changed: ", serviceName);
-                Mono<Void> toUpdate = servicesOperations.updateServiceInstance(serviceName, serviceBean);
+                Mono<Void> toUpdate = servicesOperations.update(serviceName, serviceBean);
                 try {
                     toUpdate.block();
                     Log.info("Service Plan and Tags haven been updated");
