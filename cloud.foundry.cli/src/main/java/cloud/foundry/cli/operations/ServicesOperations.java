@@ -91,7 +91,7 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      * @param currentName Current Name of the Service Instance
      * @return Mono which can be subscribed on to trigger the request to the cf instance
      */
-    public Mono<Void> renameServiceInstance(String newName, String currentName) {
+    public Mono<Void> rename(String newName, String currentName) {
         RenameServiceInstanceRequest renameServiceInstanceRequest = RenameServiceInstanceRequest.builder()
                 .name(currentName)
                 .newName(newName)
@@ -113,7 +113,7 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      * @param serviceBean         serves as template for the service to update
      * @return Mono which can be subscribed on to trigger the request to the cf instance
      */
-    public Mono<Void> updateServiceInstance(String serviceInstanceName, ServiceBean serviceBean) {
+    public Mono<Void> update(String serviceInstanceName, ServiceBean serviceBean) {
         //TODO:move logs
         UpdateServiceInstanceRequest updateServiceInstanceRequest = UpdateServiceInstanceRequest.builder()
                 .serviceInstanceName(serviceInstanceName)
@@ -130,12 +130,12 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
 
     /**
      * Deletes all keys and unbinds all routes and applications associated with the
-     * <code>serviceInstanceName</code>.
+     * <code>serviceInstanceName</code> and then deletes the service instance.
      *
      * @param serviceInstanceName serviceInstanceName Name of a service instance.
-     * @return
+     * @return Mono which can be subscribed on to trigger the service deletion
      */
-    public Mono<Void> removeServiceInstance(String serviceInstanceName) {
+    public Mono<Void> remove(String serviceInstanceName) {
         try {
                     // get service instance
             return Flux.from(getServiceInstance(serviceInstanceName))
@@ -169,9 +169,9 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
 
     /**
      * Delete service keys.
-     *  @param serviceInstanceName serviceInstanceName Name of a service instance.
+     * @param serviceInstanceName serviceInstanceName Name of a service instance.
      * @param serviceInstance A service instance.
-     * @return
+     * @return Flux which can be subscribed on, to delete the keys
      */
     private Flux<Void> deleteKeys(String serviceInstanceName, ServiceInstance serviceInstance) {
         if (!serviceInstance.getType().getValue().equals(USER_PROVIDED_SERVICE_INSTANCE)) {
@@ -209,7 +209,7 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
 
     /**
      * Unbind a service instance from all applications.
-     *  @param serviceInstanceName serviceInstanceName Name of a service instance.
+     * @param serviceInstanceName serviceInstanceName Name of a service instance.
      * @param serviceInstance     A service instance.
      * @return Flux which can be subscribed on, to unbind the apps
      */
@@ -232,7 +232,8 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
                     .doOnSuccess(subscription -> Log.info("Unbound app " + applicationName + " for " + serviceInstanceName));
     }
 
-    private UnbindServiceInstanceRequest createUnbindServiceInstanceRequest(String serviceInstanceName, String applicationName) {
+    private UnbindServiceInstanceRequest createUnbindServiceInstanceRequest(String serviceInstanceName,
+                                                                            String applicationName) {
         return UnbindServiceInstanceRequest.builder()
                 .serviceInstanceName(serviceInstanceName)
                 .applicationName(applicationName)
@@ -243,7 +244,7 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      * Unbinds a service instance <code>serviceInstanceName</code> from all routes.
      *
      * @param serviceInstanceName serviceInstanceName Name of a service instance.
-     * @return
+     * @return Flux which can be subscribed on, to unbind the routes
      */
     private Flux<Void> unbindRoutes(String serviceInstanceName) {
         ListRoutesRequest listRoutesRequest = ListRoutesRequest.builder().build();
