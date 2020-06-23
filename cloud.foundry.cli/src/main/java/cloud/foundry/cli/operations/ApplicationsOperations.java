@@ -100,12 +100,12 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
      * @throws NullPointerException     when bean or app name is null
      *                                  or docker password was not set in environment variables when creating app via
      *                                  dockerImage and docker credentials
-     * @throws IllegalStateException    when neither a path nor a docker image were specified, or app name empty
+     * @throws IllegalArgumentException    when neither a path nor a docker image were specified, or app name empty
      * @throws CreationException        when any fatal error occurs during creation of the app
      * @throws SecurityException        when there is no permission to access environment variable CF_DOCKER_PASSWORD
      * @return Mono which can be subscribed on to trigger the request to the cf instance
      */
-    public Mono<Void> create(String appName, ApplicationBean bean, boolean shouldStart) throws CreationException {
+    public Mono<Void> create(String appName, ApplicationBean bean, boolean shouldStart) {
         checkNotNull(appName);
         checkArgument(!appName.isEmpty(), "empty name");
         checkNotNull(bean);
@@ -130,7 +130,8 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                     Log.debug("Create app:", appName);
                     Log.debug("Bean of the app:", bean);
                     Log.debug("Should the app start:", shouldStart);
-                });
+                })
+                .doOnSuccess(aVoid -> Log.info("App created:", appName));
     }
 
     private boolean whenServiceNotFound(Throwable throwable) {
@@ -151,8 +152,8 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                 .command(bean.getManifest().getCommand())
                 .disk(bean.getManifest().getDisk())
                 .docker(Docker.builder()
-                        .image(bean.getManifest().getDockerImage())
-                        .username(bean.getManifest().getDockerUsername())
+                        .image(bean.getPath() == null && bean.getManifest().getDockerImage() == null ? "" :bean.getManifest().getDockerImage())
+                        .username( bean.getManifest().getDockerUsername())
                         .password(getDockerPassword(bean.getManifest()))
                         .build())
                 .healthCheckHttpEndpoint(bean.getManifest().getHealthCheckHttpEndpoint())
