@@ -16,13 +16,13 @@ public class LoginCommandOptions {
     @Option(names = {"-p", "--password"}, required = false, description = "Your password of your cf account.")
     String password;
 
-    @Option(names = {"-a", "--api"}, required = true, description = "Your CF instance's API endpoint URL.")
+    @Option(names = {"-a", "--api"}, required = false, description = "Your CF instance's API endpoint URL.")
     String apiHost;
 
-    @Option(names = {"-o", "--organization"}, required = true, description = "Your CF organization's name.")
+    @Option(names = {"-o", "--organization"}, required = false, description = "Your CF organization's name.")
     String organization;
 
-    @Option(names = {"-s", "--space"}, required = true, description = "Your CF space name.")
+    @Option(names = {"-s", "--space"}, required = false, description = "Your CF space name.")
     String space;
 
     public String getUserName() {

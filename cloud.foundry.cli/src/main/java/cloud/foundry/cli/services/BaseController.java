@@ -8,6 +8,7 @@ import cloud.foundry.cli.crosscutting.exceptions.UpdateException;
 import cloud.foundry.cli.crosscutting.exceptions.ApplyException;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.RefResolver;
+import cloud.foundry.cli.crosscutting.mapping.CfArgumentsCreator;
 import org.yaml.snakeyaml.constructor.ConstructorException;
 import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
@@ -15,6 +16,7 @@ import picocli.CommandLine;
 import picocli.CommandLine.Option;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.concurrent.Callable;
 
 /**
@@ -26,11 +28,11 @@ import java.util.concurrent.Callable;
         mixinStandardHelpOptions = true,
         version = "1.0",
         subcommands = {
-        CreateController.class,
-        GetController.class,
-        DiffController.class,
-        ApplyController.class,
-        UpdateController.class})
+                CreateController.class,
+                GetController.class,
+                DiffController.class,
+                ApplyController.class,
+                UpdateController.class})
 public class BaseController implements Callable<Integer> {
 
     private static class LoggingOptions {
@@ -76,6 +78,7 @@ public class BaseController implements Callable<Integer> {
         BaseController controller = new BaseController();
 
         CommandLine cli = new CommandLine(controller);
+        args = CfArgumentsCreator.determineCommandLine(cli, args);
 
         // picocli has a nice hidden feature: one can register a special exception handler and thus deal with
         // exceptions occurring during the execution of a Callable, Runnable etc.
@@ -90,11 +93,9 @@ public class BaseController implements Callable<Integer> {
                 Log.error("I/O error:", ex.getMessage());
             } else if (ex instanceof CreationException) {
                 Log.error("Failed to create message:" + ex.getMessage());
-            }
-            else if (ex instanceof UpdateException) {
+            } else if (ex instanceof UpdateException) {
                 Log.error("Failed to update message:" + ex.getMessage());
-            }
-            else if (ex instanceof UnsupportedOperationException) {
+            } else if (ex instanceof UnsupportedOperationException) {
                 Log.error("Operation not supported/implemented:", ex.getMessage());
             } else if (ex instanceof CredentialException) {
                 Log.error("Credentials error:", ex.getMessage());
