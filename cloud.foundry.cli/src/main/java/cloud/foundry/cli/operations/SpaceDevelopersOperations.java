@@ -29,6 +29,8 @@ import java.util.List;
  */
 public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFoundryOperations> {
 
+    private static final Log log = Log.getLog(SpaceDevelopersOperations.class);
+
     private static final String REMOVE_USER_AS_SPACE_DEVELOPER = "Remove user as space developer";
 
     private static final String INVALID_VALUE_OF_SPACE_ID = "The value of 'SpaceId' should not be null or empty!";
@@ -68,7 +70,7 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
      * @throws IllegalArgumentException when username is empty
      */
     public void assignSpaceDeveloper(String username) throws CreationException {
-        Log.debug("Assigning a space developer:", username);
+        log.debug("Assigning a space developer:", username);
 
         checkNotNull(username);
         checkArgument(!username.isEmpty(), "Username must not be empty.");
@@ -108,7 +110,7 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
      * @throws UpdateException if the user is not found.
      */
     public void removeSpaceDeveloper(List<String> usernameList) throws InvalidOperationException {
-        Log.debug("Removing space developer(s):", String.valueOf(usernameList));
+        log.debug("Removing space developer(s):", String.valueOf(usernameList));
 
         assertValidUsernameList(usernameList);
         String spaceId = cloudFoundryOperations.getSpaceId().block();
@@ -163,7 +165,7 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
                 .username(username)
                 .build();
 
-        Log.info(REMOVE_USER_AS_SPACE_DEVELOPER, username);
+        log.info(REMOVE_USER_AS_SPACE_DEVELOPER, username);
 
         return cloudFoundryOperations.getCloudFoundryClient()
                 .spaces()
