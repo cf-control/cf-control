@@ -1,5 +1,6 @@
 package cloud.foundry.cli.operations;
 
+import cloud.foundry.cli.crosscutting.exceptions.UpdateException;
 import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.logging.Log;
 
@@ -44,20 +45,19 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      * @return Mono object of all services as list of ServiceBeans
      */
     public Mono<Map<String, ServiceBean>> getAll() {
-
         return  this.cloudFoundryOperations.services()
-            .listInstances()
-            .flatMap(serviceInstanceSummary -> doGetServiceInstance(serviceInstanceSummary.getName()))
-            .collectMap(ServiceInstance::getName, ServiceBean::new);
+                .listInstances()
+                .flatMap(serviceInstanceSummary -> getServiceInstance(serviceInstanceSummary.getName()))
+                .collectMap(ServiceInstance::getName, ServiceBean::new);
     }
 
-    private Mono<ServiceInstance> doGetServiceInstance(String serviceName) {
+    private Mono<ServiceInstance> getServiceInstance(String serviceName) {
         return this.cloudFoundryOperations
-            .services()
-            .getInstance(GetServiceInstanceRequest
-                .builder()
-                .name(serviceName)
-                .build());
+                .services()
+                .getInstance(GetServiceInstanceRequest
+                    .builder()
+                    .name(serviceName)
+                    .build());
     }
 
     /**
@@ -70,11 +70,11 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
     public Mono<Void> create(String serviceInstanceName, ServiceBean serviceBean) {
 
         CreateServiceInstanceRequest createServiceRequest = CreateServiceInstanceRequest.builder()
-            .serviceName(serviceBean.getService())
-            .serviceInstanceName(serviceInstanceName)
-            .planName(serviceBean.getPlan())
-            .tags(serviceBean.getTags())
-            .build();
+                .serviceName(serviceBean.getService())
+                .serviceInstanceName(serviceInstanceName)
+                .planName(serviceBean.getPlan())
+                .tags(serviceBean.getTags())
+                .build();
 
         return this.cloudFoundryOperations.services().createInstance(createServiceRequest)
                 .doOnSubscribe(aVoid -> {
@@ -92,17 +92,18 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      * @return Mono which can be subscribed on to trigger the request to the cf instance
      */
     public Mono<Void> renameServiceInstance(String newName, String currentName) {
-        Log.debug("Rename service:", currentName);
-        Log.debug("With new name:", newName);
-
         RenameServiceInstanceRequest renameServiceInstanceRequest = RenameServiceInstanceRequest.builder()
-            .name(currentName)
-            .newName(newName)
-            .build();
+                .name(currentName)
+                .newName(newName)
+                .build();
 
         //TODO: moove logs
         return this.cloudFoundryOperations.services()
-                .renameInstance(renameServiceInstanceRequest);
+                .renameInstance(renameServiceInstanceRequest)
+                .doOnSubscribe(aVoid -> {
+                    Log.debug("Rename service:", currentName);
+                    Log.debug("With new name:", newName);
+                });
     }
 
     /**
@@ -113,17 +114,18 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      * @return Mono which can be subscribed on to trigger the request to the cf instance
      */
     public Mono<Void> updateServiceInstance(String serviceInstanceName, ServiceBean serviceBean) {
-        Log.debug("Update service Instance:", serviceInstanceName);
-        Log.debug("With the bean:", serviceBean);
-
         //TODO:move logs
         UpdateServiceInstanceRequest updateServiceInstanceRequest = UpdateServiceInstanceRequest.builder()
-            .serviceInstanceName(serviceInstanceName)
-            .tags(serviceBean.getTags())
-            .planName(serviceBean.getPlan())
-            .build();
-            return this.cloudFoundryOperations.services()
-                    .updateInstance(updateServiceInstanceRequest);
+                .serviceInstanceName(serviceInstanceName)
+                .tags(serviceBean.getTags())
+                .planName(serviceBean.getPlan())
+                .build();
+                return this.cloudFoundryOperations.services()
+                        .updateInstance(updateServiceInstanceRequest)
+                        .doOnSubscribe(subscription -> {
+                            Log.debug("Update service Instance:", serviceInstanceName);
+                            Log.debug("With the bean:", serviceBean);
+                        });
     }
 
     /**
@@ -133,37 +135,36 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      * @param serviceInstanceName serviceInstanceName Name of a service instance.
      * @return
      */
-    public Flux<Object> removeServiceInstance(String serviceInstanceName) {
+    public Mono<Void> removeServiceInstance(String serviceInstanceName) {
         try {
-
-            // prepare delete service instance Mono
-            DeleteServiceInstanceRequest deleteServiceInstanceRequest = DeleteServiceInstanceRequest
-                    .builder()
-                    .name(serviceInstanceName)
-                    .build();
-
-            Mono<Void> deleteInstance = this.cloudFoundryOperations.services()
-                    .deleteInstance(deleteServiceInstanceRequest)
-                    .doOnSuccess(aVoid -> Log.info("Service " + serviceInstanceName + " has been removed."));
-
-            // merge unbindAppsAndDelete keys with unbind Route
-            Flux<Object> unbindAndDeleteDependencies = Flux.merge(
-                    doGetServiceInstance(serviceInstanceName)
-                            .map(servInstance -> mergeUnbindAppsAndDeleteKeys(serviceInstanceName, servInstance)),
-                    unbindRoute(serviceInstanceName));
-
-            // concatenate unbindAndDeleteDependencies with deleteInstance
-            return Flux.concat(
-                    unbindAndDeleteDependencies,
-                    deleteInstance);
+                    // get service instance
+            return Flux.from(getServiceInstance(serviceInstanceName))
+                    // with the result trigger app binding and key binding deletions
+                    .flatMap(serviceInstance -> mergeUnbindAppsAndDeleteKeys(serviceInstanceName, serviceInstance))
+                    // also unbind routes
+                    .mergeWith(unbindRoutes(serviceInstanceName))
+                    // after previous operations are done delete the actual service
+                    .then(deleteServiceInstance(serviceInstanceName));
         } catch (RuntimeException e) {
-            throw new IllegalArgumentException(e.getMessage());
+            throw new UpdateException(e);
         }
     }
 
+    private Mono<Void> deleteServiceInstance(String serviceInstanceName) {
+        return this.cloudFoundryOperations.services()
+                .deleteInstance(createDeleteServiceInstanceRequest(serviceInstanceName))
+                .doOnSuccess(aVoid -> Log.info("Service " + serviceInstanceName + " has been removed."));
+    }
+
+    private DeleteServiceInstanceRequest createDeleteServiceInstanceRequest(String serviceInstanceName) {
+        return DeleteServiceInstanceRequest
+                .builder()
+                .name(serviceInstanceName)
+                .build();
+    }
+
     private Flux<Void> mergeUnbindAppsAndDeleteKeys(String serviceInstanceName, ServiceInstance servInstance) {
-        return Flux.merge(unbindApps(serviceInstanceName, servInstance),
-                deleteKeys(serviceInstanceName, servInstance));
+        return Flux.merge(unbindApps(serviceInstanceName, servInstance), deleteKeys(serviceInstanceName, servInstance));
     }
 
     /**
@@ -174,28 +175,36 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      */
     private Flux<Void> deleteKeys(String serviceInstanceName, ServiceInstance serviceInstance) {
         if (!serviceInstance.getType().getValue().equals(USER_PROVIDED_SERVICE_INSTANCE)) {
-            ListServiceKeysRequest listServiceKeysRequest = ListServiceKeysRequest
+            return this.cloudFoundryOperations
+                    .services()
+                    .listServiceKeys(createListServiceKeysRequest(serviceInstanceName))
+                    .flatMap(key -> doDeleteKey(serviceInstanceName, key))
+                    .doOnComplete(() -> Log.info("All service keys of service instance "
+                        + serviceInstanceName + " have been deleted."));
+        }
+        return Flux.empty();
+    }
+
+    private ListServiceKeysRequest createListServiceKeysRequest(String serviceInstanceName) {
+        return ListServiceKeysRequest
                 .builder()
                 .serviceInstanceName(serviceInstanceName)
                 .build();
-
-                return this.cloudFoundryOperations
-                    .services()
-                    .listServiceKeys(listServiceKeysRequest)
-                    .flatMap(key -> doDeleteKey(serviceInstanceName, key))
-                    .doOnComplete(() -> Log.info("All service keys of service instance "
-                            + serviceInstanceName + " have been deleted."));
-        }
-        return null;
     }
 
     private Mono<Void> doDeleteKey(String serviceInstanceName, ServiceKey key) {
         return this.cloudFoundryOperations
-            .services()
-            .deleteServiceKey(DeleteServiceKeyRequest.builder()
+                .services()
+                .deleteServiceKey(createDeleteServiceKeyRequest(serviceInstanceName, key))
+                .doOnSubscribe(subscription -> Log.info("Deleting key " + key + " for " + serviceInstanceName))
+                .doOnSuccess(aVoid -> Log.info("Deleted key " + key + " for service " + serviceInstanceName));
+    }
+
+    private DeleteServiceKeyRequest createDeleteServiceKeyRequest(String serviceInstanceName, ServiceKey key) {
+        return DeleteServiceKeyRequest.builder()
                 .serviceInstanceName(serviceInstanceName)
                 .serviceKeyName(key.getName())
-                .build());
+                .build();
     }
 
     /**
@@ -208,21 +217,26 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
         if (serviceInstance.getApplications() == null || serviceInstance.getApplications().isEmpty()) {
             Log.info("There is no application to unbind!");
         } else {
-                Log.info("All applications of service instance " + serviceInstanceName + " have been unbound.");
                 return Flux.fromIterable(serviceInstance.getApplications())
-                    .flatMap(appName -> doUnbindApp(serviceInstanceName, appName));
+                        .flatMap(appName -> doUnbindApp(serviceInstanceName, appName))
+                        .doOnComplete(() -> Log.info("All applications of service instance " + serviceInstanceName + " have been unbound."));
         }
         return null;
     }
 
     private Mono<Void> doUnbindApp(String serviceInstanceName, String applicationName) {
             return this.cloudFoundryOperations
-                .services()
-                .unbind(
-                    UnbindServiceInstanceRequest.builder()
-                        .serviceInstanceName(serviceInstanceName)
-                        .applicationName(applicationName)
-                        .build());
+                    .services()
+                    .unbind(createUnbindServiceInstanceRequest(serviceInstanceName, applicationName))
+                    .doOnSubscribe(subscription -> Log.info("Unbind app " + applicationName + " for " + serviceInstanceName))
+                    .doOnSuccess(subscription -> Log.info("Unbound app " + applicationName + " for " + serviceInstanceName));
+    }
+
+    private UnbindServiceInstanceRequest createUnbindServiceInstanceRequest(String serviceInstanceName, String applicationName) {
+        return UnbindServiceInstanceRequest.builder()
+                .serviceInstanceName(serviceInstanceName)
+                .applicationName(applicationName)
+                .build();
     }
 
     /**
@@ -231,25 +245,29 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      * @param serviceInstanceName serviceInstanceName Name of a service instance.
      * @return
      */
-    private Flux<Void> unbindRoute(String serviceInstanceName) {
+    private Flux<Void> unbindRoutes(String serviceInstanceName) {
         ListRoutesRequest listRoutesRequest = ListRoutesRequest.builder().build();
-            return this.cloudFoundryOperations.routes().list(listRoutesRequest)
-                .filter(route -> route.getService() != null && route.getService().equals(serviceInstanceName))
-                .flatMap(this::doUnbindRoute)
+            return this.cloudFoundryOperations.routes()
+                    .list(listRoutesRequest)
+                    .filter(route -> route.getService() != null && route.getService().equals(serviceInstanceName))
+                    .flatMap(this::doUnbindRoute)
                     .doOnComplete(() -> Log.info("All routes to service instance "
                             + serviceInstanceName + " have been unbound."));
-
     }
 
     private Mono<Void> doUnbindRoute(Route route) {
         return this.cloudFoundryOperations
-            .services()
-            .unbindRoute(
-                UnbindRouteServiceInstanceRequest
-                    .builder()
-                    .serviceInstanceName(route.getService())
-                    .domainName(route.getDomain())
-                    .hostname(route.getHost())
-                    .build());
+                .services()
+                .unbindRoute(createRouteServiceInstanceRequest(route))
+                .doOnSubscribe(subscription -> Log.info("unbind route " + route));
+    }
+
+    private UnbindRouteServiceInstanceRequest createRouteServiceInstanceRequest(Route route) {
+        return UnbindRouteServiceInstanceRequest
+                .builder()
+                .serviceInstanceName(route.getService())
+                .domainName(route.getDomain())
+                .hostname(route.getHost())
+                .build();
     }
 }
