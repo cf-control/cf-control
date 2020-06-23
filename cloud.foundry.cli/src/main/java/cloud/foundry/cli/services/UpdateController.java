@@ -168,16 +168,12 @@ public class UpdateController implements Callable<Integer> {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
 
-            for (Entry<String, ServiceBean> serviceEntry : serviceBeans.entrySet()) {
-                String serviceName = serviceEntry.getKey();
-                Flux<Object> toRemove = servicesOperations.removeServiceInstance(serviceName);
-                try {
-                    toRemove.blockLast();
-                    Log.info("Removed Service:", serviceName);
-                } catch (RuntimeException e) {
-                    throw new UpdateException(e);
-                }
-            }
+            cfOperations.getOrganizationId().block();
+            Flux.fromIterable(serviceBeans.entrySet())
+                    .flatMap(entry -> servicesOperations.removeServiceInstance(entry.getKey()))
+                    .doOnSubscribe(subscription -> System.out.println(Thread.currentThread().getName()))
+                    .onErrorContinue((throwable, o) -> System.out.println(throwable.getLocalizedMessage()))
+                    .blockLast();
         }
     }
 
@@ -198,7 +194,12 @@ public class UpdateController implements Callable<Integer> {
 
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
-            applicationBeans.keySet().forEach(applicationsOperations::remove);
+
+            cfOperations.getOrganizationId().block();
+            Flux.fromIterable(applicationBeans.keySet())
+                    .flatMap(applicationsOperations::remove)
+                    .onErrorContinue((throwable, o) -> throwable.printStackTrace())
+                    .blockLast();
 
             return 0;
         }
