@@ -7,16 +7,16 @@ import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
 import cloud.foundry.cli.crosscutting.exceptions.ApplyException;
-import cloud.foundry.cli.logic.apply.ApplicationApplier;
+import cloud.foundry.cli.logic.apply.ApplyApplicationsPlaner;
 import cloud.foundry.cli.logic.diff.DiffResult;
 import cloud.foundry.cli.logic.diff.change.CfChange;
 import cloud.foundry.cli.operations.ApplicationsOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
+import reactor.core.publisher.Flux;
 
 import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 /**
  * This class takes care of applying desired cloud foundry configurations to a live system.
@@ -60,18 +60,19 @@ public class ApplyLogic {
         DiffLogic diffLogic = new DiffLogic();
         Log.info("Comparing the applications...");
         DiffResult wrappedDiff = diffLogic.createDiffResult(liveApplicationsConfig, desiredApplicationsConfig);
+        System.out.println(diffLogic.createDiffOutput(liveApplicationsConfig, desiredApplicationsConfig));
         Log.info("Applications compared.");
 
         Map<String, List<CfChange>> allApplicationChanges = wrappedDiff.getApplicationChanges();
+        ApplicationsOperations appOperations = new ApplicationsOperations(cfOperations);
+
+        Flux.fromIterable(allApplicationChanges.entrySet())
+                .flatMap( appChangeEntry -> ApplyApplicationsPlaner.create(appOperations, appChangeEntry.getKey(), appChangeEntry.getValue()))
+                .doOnSubscribe(subscription -> System.out.println(Thread.currentThread().getName()))
+                .onErrorContinue((throwable, o) -> throwable.printStackTrace())
+                .blockLast();
 
         Log.info("Applying changes to applications...");
-        for (Entry<String, List<CfChange>> applicationChangesEntry : allApplicationChanges.entrySet()) {
-            String applicationName = applicationChangesEntry.getKey();
-            Log.debug("Start applying the changes to the app:", applicationName);
-            List<CfChange> applicationChanges = applicationChangesEntry.getValue();
-
-            ApplicationApplier.apply(new ApplicationsOperations(cfOperations), applicationName, applicationChanges);
-        }
     }
 
     /**
