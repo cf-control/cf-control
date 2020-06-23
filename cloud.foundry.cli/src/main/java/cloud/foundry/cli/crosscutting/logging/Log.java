@@ -1,7 +1,6 @@
 package cloud.foundry.cli.crosscutting.logging;
 
-import java.util.Arrays;
-import java.util.Locale;
+import java.util.*;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -13,9 +12,6 @@ import java.util.logging.Logger;
  * The interface is similar to Python's logging module, which provides a simple-to-use yet powerful API.
  */
 public class Log {
-    // we can internally use the Java logging facilities
-    private static final Logger logger;
-
     // the name of the environment variable that needs to be set to turn on the debug messages
     private static final String QUIET_ENV_VAR_NAME = "QUIET";
     private static final String VERBOSE_ENV_VAR_NAME = "VERBOSE";
@@ -32,17 +28,34 @@ public class Log {
     // in quiet mode, we only want to log errors
     public static final Level QUIET_LEVEL = ERROR_LEVEL;
 
-    /**
-     * The name of the CF-Control logger.
-     */
-    public static final String LOGGER_NAME = "cfctl";
+    // base package logger
+    // Java's logging is hierarchical, i.e., it should be sufficient to e.g., add custom handlers to this one, or set
+    // its log level
+    private static final Logger baseLogger;
+
+    // we store all loggers we've created so far by their name
+    private static final Map<String, Log> logInstances;
+
+    // every logger instance maintains its own Logger object, and forwards its own logs to this instance
+    private final Logger logger;
 
     static {
         // enforce English log output format (especially important for log levels)
         System.setProperty("user.language", "en");
         Locale.setDefault(new Locale("en", "EN"));
 
-        logger = java.util.logging.Logger.getLogger(LOGGER_NAME);
+        // this code will have to be touched the day someone changes the location of this class in relation to the
+        // root package
+        // note: an ArrayList doesn't support remove by index
+        List<String> packageParts = new LinkedList<>(Arrays.asList(Log.class.getPackage().getName().split("\\.")));
+        // delete the two parent packages
+        for (int i = 0; i < 2; ++i) {
+            packageParts.remove(packageParts.size() - 1);
+        }
+        String rootPackageName = String.join(".", packageParts);
+        baseLogger = Logger.getLogger(rootPackageName);
+
+        logInstances = new HashMap<>();
 
         // set default log level
         setDefaultLogLevel();
@@ -66,12 +79,50 @@ public class Log {
         }
     }
 
+    private Log(String name) {
+        logger = Logger.getLogger(name);
+
+        // we want to enable really fine logs on this logger by default
+        // log level filtering is done in the baseLogger
+        logger.setLevel(DEBUG_LEVEL);
+    }
+
+    /**
+     * Factory method. Returns log object for a given name. New log objects will be created on demand.
+     */
+    public static Log getLog(String name) {
+        final String baseLoggerName = baseLogger.getName();
+
+        // if we permitted such loggers, the handler registration etc. wouldn't work
+        // they all expect a constant prefix
+        if (!name.startsWith(baseLoggerName)) {
+            throw new RuntimeException("logger name does not start with global prefix " + baseLoggerName);
+        }
+
+        Log instance = logInstances.get(name);
+
+        if (instance == null) {
+            instance = new Log(name);
+            logInstances.put(name, instance);
+        }
+
+        return instance;
+    }
+
+    /**
+     * Factory method. Returns log object for a given class. New log objects will be created on demand.
+     */
+    public static Log getLog(Class<?> cls) {
+        final String logName = cls.getPackage().getName() + "." + cls.getName();
+        return getLog(logName);
+    }
+
     /**
      * Add a handler to the internal logger.
      * @param handler handler to add
      */
     public static void addHandler(Handler handler) {
-        logger.addHandler(handler);
+        baseLogger.addHandler(handler);
     }
 
     /**
@@ -79,7 +130,7 @@ public class Log {
      * @param handler handler to remove
      */
     public static void removeHandler(Handler handler) {
-        logger.removeHandler(handler);
+        baseLogger.removeHandler(handler);
     }
 
     /**
@@ -114,7 +165,7 @@ public class Log {
      * @param arg0 mandatory log argument
      * @param args optional additional arguments
      */
-    private static void log(Level level, Object arg0, Object... args) {
+    private void log(Level level, Object arg0, Object... args) {
         String message = buildString(arg0, args);
         logger.log(level, message);
     }
@@ -125,14 +176,14 @@ public class Log {
      */
     public static void setLogLevel(Level level) {
         // configure own logger
-        logger.setLevel(level);
-        Arrays.stream(logger.getHandlers()).forEach(h -> h.setLevel(level));
+        baseLogger.setLevel(level);
+        Arrays.stream(baseLogger.getHandlers()).forEach(h -> h.setLevel(level));
 
         // our "nearest parent" _should_ be the root logger
         // we need to configure its handlers to output the messages < INFO as well
         // note: do not configure its log level -- this will cause all other loggers' level too, and generate a lot of
         // noise on the CLI
-        Arrays.stream(logger.getParent().getHandlers()).forEach(h -> h.setLevel(level));
+        Arrays.stream(baseLogger.getParent().getHandlers()).forEach(h -> h.setLevel(level));
     }
 
     /**
@@ -168,8 +219,8 @@ public class Log {
      * @param arg0 mandatory log argument
      * @param args optional additional arguments
      */
-    public static void debug(Object arg0, Object... args) {
-        Log.log(DEBUG_LEVEL, arg0, args);
+    public void debug(Object arg0, Object... args) {
+        this.log(DEBUG_LEVEL, arg0, args);
     }
 
     /**
@@ -177,8 +228,8 @@ public class Log {
      * @param arg0 mandatory log argument
      * @param args optional additional arguments
      */
-    public static void verbose(Object arg0, Object... args) {
-        Log.log(VERBOSE_LEVEL, arg0, args);
+    public void verbose(Object arg0, Object... args) {
+        this.log(VERBOSE_LEVEL, arg0, args);
     }
 
     /**
@@ -187,8 +238,8 @@ public class Log {
      * @param arg0 mandatory log argument
      * @param args optional additional arguments
      */
-    public static void info(Object arg0,Object... args) {
-        Log.log(INFO_LEVEL, arg0, args);
+    public void info(Object arg0,Object... args) {
+        this.log(INFO_LEVEL, arg0, args);
     }
 
     /**
@@ -196,8 +247,8 @@ public class Log {
      * @param arg0 mandatory log argument
      * @param args optional additional arguments
      */
-    public static void warning(Object arg0, Object... args) {
-        Log.log(WARNING_LEVEL, arg0, args);
+    public void warning(Object arg0, Object... args) {
+        this.log(WARNING_LEVEL, arg0, args);
     }
 
     /**
@@ -207,8 +258,8 @@ public class Log {
      * @param arg0 mandatory log argument
      * @param args optional additional arguments
      */
-    public static void error(Object arg0, Object... args) {
-        Log.log(ERROR_LEVEL, arg0, args);
+    public void error(Object arg0, Object... args) {
+        this.log(ERROR_LEVEL, arg0, args);
     }
 
     /**
@@ -219,7 +270,7 @@ public class Log {
      * @param arg0 mandatory log argument
      * @param args optional additional arguments
      */
-    public static void exception(Throwable thrown, Object arg0, Object... args) {
+    public void exception(Throwable thrown, Object arg0, Object... args) {
         String message = buildString(arg0, args);
         logger.log(ERROR_LEVEL, message, thrown);
     }
