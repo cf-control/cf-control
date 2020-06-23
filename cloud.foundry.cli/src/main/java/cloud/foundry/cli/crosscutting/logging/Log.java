@@ -125,7 +125,7 @@ public class Log {
      * Factory method. Returns log object for a given class. New log objects will be created on demand.
      */
     public static Log getLog(Class<?> cls) {
-        final String logName = cls.getPackage().getName() + "." + cls.getName();
+        final String logName = cls.getName();
         return getLog(logName);
     }
 
