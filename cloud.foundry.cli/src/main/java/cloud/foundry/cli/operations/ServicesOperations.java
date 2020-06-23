@@ -1,5 +1,7 @@
 package cloud.foundry.cli.operations;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import cloud.foundry.cli.crosscutting.exceptions.UpdateException;
 import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.logging.Log;
@@ -24,8 +26,6 @@ import reactor.core.publisher.Mono;
 
 import java.util.Collections;
 import java.util.Map;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Handles the operations for manipulating services on a cloud foundry instance.
@@ -180,7 +180,9 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      */
     public Flux<Void> deleteKeys(String serviceInstanceName) {
         return getServiceInstance(serviceInstanceName)
-                .filter( serviceInstance -> !serviceInstance.getType().getValue().equals(USER_PROVIDED_SERVICE_INSTANCE))
+                .filter( serviceInstance -> !serviceInstance.getType()
+                        .getValue()
+                        .equals(USER_PROVIDED_SERVICE_INSTANCE))
                 .hasElement()
                 .flatMapMany(aBoolean -> aBoolean
                         ? cloudFoundryOperations
@@ -224,7 +226,7 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
 
         return getServiceInstance(serviceInstanceName)
                 .flatMapIterable(serviceInstance -> {
-                    if(serviceInstance.getApplications() == null || serviceInstance.getApplications().isEmpty()) {
+                    if (serviceInstance.getApplications() == null || serviceInstance.getApplications().isEmpty()) {
                         Log.info("There is no application to unbind!");
                         return Collections.emptyList();
                     } else {

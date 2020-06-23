@@ -3,7 +3,9 @@ package cloud.foundry.cli.operations;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.contains;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -15,7 +17,20 @@ import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.routes.ListRoutesRequest;
 import org.cloudfoundry.operations.routes.Route;
 import org.cloudfoundry.operations.routes.Routes;
-import org.cloudfoundry.operations.services.*;
+import org.cloudfoundry.operations.services.CreateServiceInstanceRequest;
+import org.cloudfoundry.operations.services.DeleteServiceInstanceRequest;
+import org.cloudfoundry.operations.services.DeleteServiceKeyRequest;
+import org.cloudfoundry.operations.services.GetServiceInstanceRequest;
+import org.cloudfoundry.operations.services.ListServiceKeysRequest;
+import org.cloudfoundry.operations.services.RenameServiceInstanceRequest;
+import org.cloudfoundry.operations.services.ServiceInstance;
+import org.cloudfoundry.operations.services.ServiceInstanceSummary;
+import org.cloudfoundry.operations.services.ServiceInstanceType;
+import org.cloudfoundry.operations.services.ServiceKey;
+import org.cloudfoundry.operations.services.Services;
+import org.cloudfoundry.operations.services.UnbindRouteServiceInstanceRequest;
+import org.cloudfoundry.operations.services.UnbindServiceInstanceRequest;
+import org.cloudfoundry.operations.services.UpdateServiceInstanceRequest;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
@@ -151,9 +166,12 @@ public class ServicesOperationsTest {
     @Test
     public void testRemoveServiceInstance() {
         // given
-        Route route1 = Route.builder().service("someservice").domain("domain").host("host").id("id").space("space").build();
-        Route route2 = Route.builder().service("someservice2").domain("domain").host("host").id("id").space("space").build();
-        Route route3 = Route.builder().service("someservice").domain("otherdomain").host("host").id("id").space("space").build();
+        Route route1 = Route.builder().service("someservice").domain("domain")
+                .host("host").id("id").space("space").build();
+        Route route2 = Route.builder().service("someservice2").domain("domain")
+                .host("host").id("id").space("space").build();
+        Route route3 = Route.builder().service("someservice").domain("otherdomain")
+                .host("host").id("id").space("space").build();
 
         ServiceInstance serviceInstance = ServiceInstance.builder()
                 .service("someservice")
@@ -243,9 +261,12 @@ public class ServicesOperationsTest {
     @Test
     public void testUnbindRoutesSucceeds() {
         // given
-        Route route1 = Route.builder().service("someservice").domain("domain").host("host").id("id").space("space").build();
-        Route route2 = Route.builder().service("someservice2").domain("domain").host("host").id("id").space("space").build();
-        Route route3 = Route.builder().service("someservice").domain("otherdomain").host("host").id("id").space("space").build();
+        Route route1 = Route.builder().service("someservice").domain("domain")
+                .host("host").id("id").space("space").build();
+        Route route2 = Route.builder().service("someservice2").domain("domain")
+                .host("host").id("id").space("space").build();
+        Route route3 = Route.builder().service("someservice").domain("otherdomain")
+                .host("host").id("id").space("space").build();
 
         DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
         Routes routesMock = mock(Routes.class);
@@ -497,7 +518,9 @@ public class ServicesOperationsTest {
                 .thenReturn(Mono.empty());
     }
 
-    private void mockGetServiceInstance(DefaultCloudFoundryOperations cfOperationsMock, Services servicesMock, ServiceInstance serviceInstance) {
+    private void mockGetServiceInstance(DefaultCloudFoundryOperations cfOperationsMock,
+                                        Services servicesMock,
+                                        ServiceInstance serviceInstance) {
         when(cfOperationsMock.services())
                 .thenReturn(servicesMock);
 
@@ -513,7 +536,9 @@ public class ServicesOperationsTest {
                 .thenReturn(Mono.empty());
     }
 
-    private void mockListServiceKeys(DefaultCloudFoundryOperations cfOperationsMock, Services servicesMock, List<ServiceKey> serviceKeys) {
+    private void mockListServiceKeys(DefaultCloudFoundryOperations cfOperationsMock,
+                                     Services servicesMock,
+                                     List<ServiceKey> serviceKeys) {
         when(cfOperationsMock.services())
                 .thenReturn(servicesMock);
 
