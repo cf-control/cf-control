@@ -101,8 +101,15 @@ public class Log {
 
         Log instance = logInstances.get(name);
 
+        // in case we have no instance stored yet...
         if (instance == null) {
+            // ... we create a new one...
             instance = new Log(name);
+
+            // ... and make sure its log level is set to the right value
+            instance.logger.setLevel(baseLogger.getLevel());
+
+            // then, we store it in the "cache"
             logInstances.put(name, instance);
         }
 
@@ -177,6 +184,15 @@ public class Log {
     public static void setLogLevel(Level level) {
         // configure own logger
         baseLogger.setLevel(level);
+
+        // configure child loggers' loglevel
+        // otherwise, they won't emit the log records correctly
+        for (String logName : logInstances.keySet()) {
+            Logger logger = logInstances.get(logName).logger;
+            logger.setLevel(level);
+        }
+
+        // configure handlers of base logger to show messages of this log level
         Arrays.stream(baseLogger.getHandlers()).forEach(h -> h.setLevel(level));
 
         // our "nearest parent" _should_ be the root logger
