@@ -21,6 +21,8 @@ import java.util.List;
  */
 public class ApplicationApplier implements CfChangeVisitor {
 
+    private static final Log log = Log.getLog(ApplicationApplier.class);
+
     private final ApplicationsOperations appOperations;
     private final String applicationName;
 
@@ -53,7 +55,7 @@ public class ApplicationApplier implements CfChangeVisitor {
 
     private void doCreateNewApp(ApplicationBean affectedObject) throws CreationException {
         this.appOperations.create(this.applicationName, affectedObject, false);
-        Log.info("App created:", applicationName);
+        log.info("App created:", applicationName);
     }
 
     /**
