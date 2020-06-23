@@ -115,7 +115,7 @@ public class ApplicationsOperationsTest {
                 .thenReturn(monoMock);
         when(monoMock.onErrorContinue(any(Predicate.class), any())).thenReturn(monoMock);
         when(monoMock.doOnSubscribe(any())).thenReturn(monoMock);
-        when(monoMock.block()).thenReturn(null);
+        when(monoMock.doOnSuccess(any())).thenReturn(monoMock);
 
         ApplicationBean applicationsBean = new ApplicationBean(appManifest);
         applicationsBean.setPath("some/path");
@@ -128,6 +128,7 @@ public class ApplicationsOperationsTest {
         verify(applicationsMock, times(1)).pushManifest(any(PushApplicationManifestRequest.class));
         verify(monoMock, times(1)).onErrorContinue( any(Predicate.class), any());
         verify(monoMock, times(1)).doOnSubscribe(any());
+        verify(monoMock, times(1)).doOnSuccess(any());
     }
 
     @Test

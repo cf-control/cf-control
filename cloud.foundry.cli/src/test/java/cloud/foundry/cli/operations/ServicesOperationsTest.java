@@ -211,7 +211,9 @@ public class ServicesOperationsTest {
         doDeleteKey(cfMock, serviceInstanceName, serviceKeyMock);
         when(servicesMock.unbind(any(UnbindServiceInstanceRequest.class)))
             .thenReturn((Mono<Void>) mock(Mono.class));
-        when(servicesMock.deleteInstance(any(DeleteServiceInstanceRequest.class))).thenReturn(mock(Mono.class));
+        Mono<Void> monoMock = mock(Mono.class);
+        when(servicesMock.deleteInstance(any(DeleteServiceInstanceRequest.class))).thenReturn(monoMock);
+        when(monoMock.doOnSuccess(any())).thenReturn(monoMock);
 
         // when
         ServicesOperations servicesOperations = new ServicesOperations(cfMock);
