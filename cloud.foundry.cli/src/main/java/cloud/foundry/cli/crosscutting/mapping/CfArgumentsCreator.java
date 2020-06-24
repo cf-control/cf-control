@@ -33,7 +33,7 @@ public class CfArgumentsCreator {
      * sets a default value for this, which has been configured in a property file.
      * <p>
      * For example, it converts the command
-     * "command -s space value -a api value"
+     * "command -s spaceValue -a apiValue"
      * into
      * "command -s spaceValue -a apiValue -o DefaultValueForOrganization"
      * by appending the -o with its default value.
