@@ -13,6 +13,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
+import java.nio.file.Paths;
 import java.security.Permission;
 import java.util.ArrayList;
 import java.util.List;
@@ -83,7 +84,7 @@ public class LogFileTest {
         final List<String> args = new ArrayList<>();
 
         // we expect the application to write to this log file
-        final File logFile = new File(tempDir + "/test.log");
+        final File logFile = Paths.get(tempDir.toString(), "test.log").toFile();
 
         args.add("--log-file");
         args.add(logFile.getAbsolutePath());
