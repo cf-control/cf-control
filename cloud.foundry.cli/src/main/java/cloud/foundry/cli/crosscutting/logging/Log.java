@@ -49,6 +49,13 @@ public class Log {
         System.setProperty("user.language", "en");
         Locale.setDefault(new Locale("en", "EN"));
 
+        // change global stdout log format
+        // desired output format: <date> <time> <logger name> [<loglevel>]: <message>
+        System.setProperty(
+                "java.util.logging.SimpleFormatter.format",
+                "%1$tY-%1$tm-%1$td %1$tH:%1$tM:%1$tS %3$s [%4$-5s] %5$s%6$s%n"
+        );
+
         // this code will have to be touched the day someone changes the location of this class in relation to the
         // root package
         // note: an ArrayList doesn't support remove by index
