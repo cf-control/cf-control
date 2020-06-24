@@ -146,12 +146,15 @@ public class BaseController implements Callable<Integer> {
             System.exit(1);
         }
 
+        // will be registered as a handler in the log in case the user enables it
+        FileHandler fileHandler = null;
+
         // seems like picocli doesn't populate the logging options unless either of them is passed
         if (controller.loggingOptions != null) {
             // in case a log file path has been passed, all we have to do is add a file handler for this path
             if (controller.logFile != null) {
                 try {
-                    Log.addHandler(new FileHandler(controller.logFile));
+                    fileHandler = new FileHandler(controller.logFile);
                 } catch (IOException e) {
                     Log.error("Could not open log file", controller.logFile);
                     System.exit(1);
@@ -176,8 +179,19 @@ public class BaseController implements Callable<Integer> {
             }
         }
 
+        // register in the log if available
+        if (fileHandler != null) {
+            Log.addHandler(fileHandler);
+        }
+
         // okay, logging is configured, now let's run the rest of the CLI
         int exitCode = cli.execute(args);
+
+        // make sure to close the file handler to make sure it writes valid XML including all closing tags
+        if (fileHandler != null) {
+            Log.removeHandler(fileHandler);
+            fileHandler.close();
+        }
 
         System.exit(exitCode);
     }

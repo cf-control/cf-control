@@ -130,13 +130,7 @@ public class LogFileTest {
 
         // possibly due to System.exit calls, the log file ends without its closing </log> tag
         // since the issue is known, we can ignore it for now
-        try {
-            documentBuilder.parse(logFile);
-        } catch (SAXParseException e) {
-            // rethrow unless it's the one we expect
-            if (!e.getMessage().contains("XML document structures must start and end within the same entity"))
-                throw e;
-        }
+        documentBuilder.parse(logFile);
     }
 
 }
