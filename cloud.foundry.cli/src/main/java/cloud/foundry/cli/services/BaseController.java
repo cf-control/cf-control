@@ -153,7 +153,7 @@ public class BaseController implements Callable<Integer> {
                 try {
                     Log.addHandler(new FileHandler(controller.logFile));
                 } catch (IOException e) {
-                    log.error("Could not open log file", controller.logFile);
+                    Log.error("Could not open log file", controller.logFile);
                     System.exit(1);
                 }
             }
