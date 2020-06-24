@@ -8,7 +8,6 @@ import cloud.foundry.cli.crosscutting.exceptions.UpdateException;
 import cloud.foundry.cli.crosscutting.exceptions.ApplyException;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.RefResolver;
-import cloud.foundry.cli.operations.ApplicationsOperations;
 import org.yaml.snakeyaml.constructor.ConstructorException;
 import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
@@ -36,7 +35,7 @@ public class BaseController implements Callable<Integer> {
 
     private static final Log log = Log.getLog(BaseController.class);
 
-    private static class loggingOptions {
+    private static class LoggingOptions {
         @Option(names = {"-q", "--quiet"}, description = "Reduce log verbosity and print errors only.")
         private boolean quiet;
 
@@ -60,7 +59,7 @@ public class BaseController implements Callable<Integer> {
     }
 
     @ArgGroup(exclusive = true, multiplicity = "0..1")
-    loggingOptions loggingOptions;
+    LoggingOptions loggingOptions;
 
     @Override
     public Integer call() {

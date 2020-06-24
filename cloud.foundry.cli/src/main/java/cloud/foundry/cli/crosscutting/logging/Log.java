@@ -1,9 +1,14 @@
 package cloud.foundry.cli.crosscutting.logging;
 
-import java.util.*;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.List;
+import java.util.LinkedList;
+import java.util.Arrays;
+import java.util.Locale;
 
 /**
  * The central logging module, providing a standardized interface for all logging activities in the project.
