@@ -10,8 +10,6 @@ import cloud.foundry.cli.logic.diff.change.map.CfMapValueChanged;
 import cloud.foundry.cli.logic.diff.change.object.CfNewObject;
 import cloud.foundry.cli.logic.diff.change.object.CfRemovedObject;
 import cloud.foundry.cli.logic.diff.change.object.CfObjectValueChanged;
-import cloud.foundry.cli.operations.ApplicationsOperations;
-import org.cloudfoundry.uaa.users.ChangeUserPasswordRequest;
 import org.javers.core.diff.Change;
 import org.javers.core.diff.changetype.NewObject;
 import org.javers.core.diff.changetype.ObjectRemoved;
