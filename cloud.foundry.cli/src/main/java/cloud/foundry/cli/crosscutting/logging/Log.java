@@ -94,7 +94,7 @@ public class Log {
 
     /**
      * Factory method. Returns log object for a given name. New log objects will be created on demand.
-     * @throws RuntimeException if logger name does not start with root package name as prefix
+     * @throws IllegalArgumentException if logger name does not start with root package name as prefix
      */
     public static Log getLog(String name) {
         final String baseLoggerName = baseLogger.getName();
@@ -102,7 +102,7 @@ public class Log {
         // if we permitted such loggers, the handler registration etc. wouldn't work
         // they all expect a constant prefix
         if (!name.startsWith(baseLoggerName)) {
-            throw new RuntimeException("logger name does not start with global prefix " + baseLoggerName);
+            throw new IllegalArgumentException("logger name does not start with global prefix " + baseLoggerName);
         }
 
         Log instance = logInstances.get(name);
@@ -124,7 +124,7 @@ public class Log {
 
     /**
      * Factory method. Returns log object for a given class. New log objects will be created on demand.
-     * @throws RuntimeException if used with classes outside this tool's root Java package
+     * @throws IllegalArgumentException if used with classes outside this tool's root Java package
      */
     public static Log getLog(Class<?> cls) {
         final String logName = cls.getName();
