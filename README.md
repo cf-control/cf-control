@@ -121,8 +121,28 @@ You can have the tool create a machine-readable log file by specifying the `--lo
   -y, --yaml=<yamlFile>                  The path to the yaml file. (Not needed for the get commands)
 ```
 
+##### [HINT - DEFAULT VALUES FOR SOME PARAMS]
 
-  for example, you can run the command: \
+Since the parameters `api`, `organization` and `space` are rarely changed, there is a property file 
+in the directory that defines default values   
+(see `cloud.foundry.cli/src/main/resources/cf_control.properties`).
+
+So the default values are:
+```
+  -a=api.run.pivotal.io
+  -o=cloud.foundry.cli
+  -s=development
+```
+
+This reduces the number of program parameters to be called.
+However, if a value other than the default value is required, 
+this corresponding parameter can be set with its value in the program call.
+
+*The specification is:*  
+Passed value -> overwrites default value  
+No value -> default value is used 
+
+  for example, you can run the command:   
   ```java -jar cf-control.jar get services -a api.run.pivotal.io -o cloud.foundry.cli -s development -u mustermann@test.com -p somePassword;)```
 
 

@@ -2,7 +2,6 @@ package cloud.foundry.cli.crosscutting.mapping;
 
 import cloud.foundry.cli.crosscutting.exceptions.CredentialException;
 import cloud.foundry.cli.crosscutting.logging.Log;
-import cloud.foundry.cli.operations.ApplicationsOperations;
 import cloud.foundry.cli.services.LoginCommandOptions;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.reactor.DefaultConnectionContext;

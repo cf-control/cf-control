@@ -9,6 +9,7 @@ import cloud.foundry.cli.crosscutting.exceptions.UpdateException;
 import cloud.foundry.cli.crosscutting.exceptions.ApplyException;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.RefResolver;
+import cloud.foundry.cli.crosscutting.mapping.CfArgumentsCreator;
 import org.yaml.snakeyaml.constructor.ConstructorException;
 import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
@@ -83,6 +84,7 @@ public class BaseController implements Callable<Integer> {
         BaseController controller = new BaseController();
 
         CommandLine cli = new CommandLine(controller);
+        args = CfArgumentsCreator.determineCommandLine(cli, args);
 
         // picocli has a nice hidden feature: one can register a special exception handler and thus deal with
         // exceptions occurring during the execution of a Callable, Runnable etc.
