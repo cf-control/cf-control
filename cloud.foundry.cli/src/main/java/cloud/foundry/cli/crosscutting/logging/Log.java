@@ -94,6 +94,7 @@ public class Log {
 
     /**
      * Factory method. Returns log object for a given name. New log objects will be created on demand.
+     * @throws RuntimeException if logger name does not start with root package name as prefix
      */
     public static Log getLog(String name) {
         final String baseLoggerName = baseLogger.getName();
@@ -123,6 +124,7 @@ public class Log {
 
     /**
      * Factory method. Returns log object for a given class. New log objects will be created on demand.
+     * @throws RuntimeException if used with classes outside this tool's root Java package
      */
     public static Log getLog(Class<?> cls) {
         final String logName = cls.getName();
