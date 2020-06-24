@@ -14,13 +14,9 @@ import cloud.foundry.cli.operations.AbstractOperations;
 import cloud.foundry.cli.operations.ApplicationsOperations;
 import cloud.foundry.cli.operations.ServicesOperations;
 import cloud.foundry.cli.operations.SpaceDevelopersOperations;
-import org.cloudfoundry.client.CloudFoundryClient;
-import org.cloudfoundry.client.v2.info.GetInfoRequest;
-import org.cloudfoundry.client.v2.info.GetInfoResponse;
-import org.cloudfoundry.client.v2.info.Info;
+import cloud.foundry.cli.operations.ClientOperations;
+import cloud.foundry.cli.services.LoginCommandOptions;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
-import org.cloudfoundry.reactor.DefaultConnectionContext;
-import org.cloudfoundry.reactor.client.ReactorCloudFoundryClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -29,6 +25,7 @@ import reactor.core.publisher.Mono;
  * foundry instance.
  */
 public class GetLogic extends AbstractOperations<DefaultCloudFoundryOperations> {
+
     public GetLogic(DefaultCloudFoundryOperations cloudFoundryOperations) {
         super(cloudFoundryOperations);
     }
@@ -41,9 +38,11 @@ public class GetLogic extends AbstractOperations<DefaultCloudFoundryOperations> 
      */
     public ConfigBean getAll(SpaceDevelopersOperations spaceDevelopersOperations,
                              ServicesOperations servicesOperations,
-                             ApplicationsOperations applicationsOperations) {
+                             ApplicationsOperations applicationsOperations,
+                             ClientOperations clientOperations,
+                             LoginCommandOptions loginOptions) {
 
-        Mono<String> apiVersion = determineApiVersion();
+        Mono<String> apiVersion = clientOperations.determineApiVersion();
         Mono<List<String>> spaceDevelopers = spaceDevelopersOperations.getAll();
         Mono<Map<String, ServiceBean>> services = servicesOperations.getAll();
         Mono<Map<String, ApplicationBean>> apps = applicationsOperations.getAll();
@@ -58,7 +57,7 @@ public class GetLogic extends AbstractOperations<DefaultCloudFoundryOperations> 
                 .blockLast();
 
         configBean.setSpec(specBean);
-        configBean.setTarget(determineTarget());
+        configBean.setTarget(determineTarget(loginOptions));
         return configBean;
     }
 
@@ -90,30 +89,17 @@ public class GetLogic extends AbstractOperations<DefaultCloudFoundryOperations> 
     }
 
     /**
-     * Determines the API-Version from a cloud foundry instance.
-     *
-     * @return API-Version
-     */
-    private Mono<String> determineApiVersion() {
-        CloudFoundryClient cfClient = cloudFoundryOperations.getCloudFoundryClient();
-        GetInfoRequest infoRequest = GetInfoRequest.builder().build();
-        Info cfClientInfo = cfClient.info();
-        return cfClientInfo.get(infoRequest).map(GetInfoResponse::getApiVersion);
-    }
-
-    /**
      * Determines the Target-Node configuration-information from a cloud foundry
      * instance.
      *
+     * @param loginOptions LoginCommandOptions
      * @return TargetBean
      */
-    private TargetBean determineTarget() {
-        ReactorCloudFoundryClient rcl = (ReactorCloudFoundryClient) cloudFoundryOperations.getCloudFoundryClient();
-        DefaultConnectionContext cc = (DefaultConnectionContext) rcl.getConnectionContext();
+    private TargetBean determineTarget(LoginCommandOptions loginOptions) {
         TargetBean target = new TargetBean();
-        target.setEndpoint(cc.getApiHost());
-        target.setOrg(cloudFoundryOperations.getOrganization());
-        target.setSpace(cloudFoundryOperations.getSpace());
+        target.setEndpoint(loginOptions.getApiHost());
+        target.setOrg(loginOptions.getOrganization());
+        target.setSpace(loginOptions.getSpace());
         return target;
     }
 
