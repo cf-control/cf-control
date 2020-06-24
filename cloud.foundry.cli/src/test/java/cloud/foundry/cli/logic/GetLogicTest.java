@@ -4,10 +4,12 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import cloud.foundry.cli.crosscutting.exceptions.GetException;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationManifestBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
@@ -138,6 +140,24 @@ public class GetLogicTest {
     }
 
     @Test
+    public void testGetSpaceDevelopersThrowsException() {
+        // given
+        SpaceDevelopersOperations spaceDevelopersMock = mock(SpaceDevelopersOperations.class);
+
+        Mono spaceDevelopersMonoMock = mock(Mono.class);
+        RuntimeException thrownException = new RuntimeException();
+        when(spaceDevelopersMonoMock.block()).thenThrow(thrownException);
+        when(spaceDevelopersMock.getAll()).thenReturn(spaceDevelopersMonoMock);
+
+        GetLogic getLogic = new GetLogic();
+
+        // when then
+        GetException getException = assertThrows(GetException.class,
+                () -> getLogic.getSpaceDevelopers(spaceDevelopersMock));
+        assertThat(getException.getCause(), is(thrownException));
+    }
+
+    @Test
     public void testGetServices() {
         // given
         ServicesOperations mockServices = mockServicesOperations();
@@ -152,6 +172,23 @@ public class GetLogicTest {
         assertThat(services.containsKey("appdyn"), is(true));
         assertThat(services.get("appdyn").getService(), is("appdynamics"));
         assertThat(services.get("appdyn").getPlan(), is("apm"));
+    }
+
+    @Test
+    public void testGetServicesThrowsException() {
+        // given
+        ServicesOperations servicesMock = mock(ServicesOperations.class);
+
+        Mono servicesMonoMock = mock(Mono.class);
+        RuntimeException thrownException = new RuntimeException();
+        when(servicesMonoMock.block()).thenThrow(thrownException);
+        when(servicesMock.getAll()).thenReturn(servicesMonoMock);
+
+        GetLogic getLogic = new GetLogic();
+
+        // when then
+        GetException getException = assertThrows(GetException.class, () -> getLogic.getServices(servicesMock));
+        assertThat(getException.getCause(), is(thrownException));
     }
 
     @Test
@@ -180,6 +217,23 @@ public class GetLogicTest {
         assertThat(appManifest.getRandomRoute(), is(true));
         assertThat(appManifest.getServices().size(), is(1));
         assertThat(appManifest.getServices().get(0), is("appdynamics"));
+    }
+
+    @Test
+    public void testGetApplicationsThrowsException() {
+        // given
+        ApplicationsOperations applicationsMock = mock(ApplicationsOperations.class);
+
+        Mono applicationsMonoMock = mock(Mono.class);
+        RuntimeException thrownException = new RuntimeException();
+        when(applicationsMonoMock.block()).thenThrow(thrownException);
+        when(applicationsMock.getAll()).thenReturn(applicationsMonoMock);
+
+        GetLogic getLogic = new GetLogic();
+
+        // when then
+        GetException getException = assertThrows(GetException.class, () -> getLogic.getApplications(applicationsMock));
+        assertThat(getException.getCause(), is(thrownException));
     }
 
     private SpaceDevelopersOperations mockSpaceDevelopersOperations() {
