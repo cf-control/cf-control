@@ -32,6 +32,8 @@ import java.util.concurrent.Callable;
 })
 public class GetController implements Callable<Integer> {
 
+    private static final Log log = Log.getLog(GetController.class);
+
     @Mixin
     private static LoginCommandOptions loginOptions;
 
@@ -39,7 +41,7 @@ public class GetController implements Callable<Integer> {
     public Integer call() throws Exception {
         DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
         GetLogic getLogic = new GetLogic(cfOperations);
-        Log.info("Fetching all information for target space...");
+        log.info("Fetching all information for target space...");
         ConfigBean allInformation = getLogic.getAll();
 
         System.out.println(YamlMapper.dump(allInformation));
@@ -50,11 +52,13 @@ public class GetController implements Callable<Integer> {
         mixinStandardHelpOptions = true)
     static class GetSpaceDevelopersCommand implements Callable<Integer> {
 
+        private static final Log log = Log.getLog(GetSpaceDevelopersCommand.class);
+
         @Override
         public Integer call() throws Exception {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
-            Log.info("Fetching information of space developers...");
+            log.info("Fetching information of space developers...");
             Mono<List<String>> spaceDevelopers = spaceDevelopersOperations.getAll();
 
             System.out.println(YamlMapper.dump(spaceDevelopers.block()));
@@ -66,11 +70,13 @@ public class GetController implements Callable<Integer> {
         mixinStandardHelpOptions = true)
     static class GetServicesCommand implements Callable<Integer> {
 
+        private static final Log log = Log.getLog(GetServicesCommand.class);
+
         @Override
         public Integer call() throws Exception {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
-            Log.info("Fetching information for services...");
+            log.info("Fetching information for services...");
             Mono<Map<String, ServiceBean>> services = servicesOperations.getAll();
 
             System.out.println(YamlMapper.dump(services.block()));
@@ -82,11 +88,13 @@ public class GetController implements Callable<Integer> {
         mixinStandardHelpOptions = true)
     static class GetApplicationsCommand implements Callable<Integer> {
 
+        private static final Log log = Log.getLog(GetApplicationsCommand.class);
+
         @Override
         public Integer call() throws Exception {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
-            Log.info("Fetching information for apps...");
+            log.info("Fetching information for apps...");
             Mono<Map<String, ApplicationBean>> applications = applicationsOperations.getAll();
 
             System.out.println(YamlMapper.dump(applications.block()));
