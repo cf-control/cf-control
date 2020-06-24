@@ -100,8 +100,7 @@ public class ApplicationRequestsPlaner implements CfChangeVisitor {
     }
 
     /**
-     * Creates the requests for one application. If an error occurs, the applying procedure is
-     * discontinued and the app stops.
+     * Creates the requests for one application.
      * @param appOperations the ApplicationOperations object used for
      * @param applicationName the name of the application
      * @param applicationChanges a list with all the Changes found during diff for that specific application
