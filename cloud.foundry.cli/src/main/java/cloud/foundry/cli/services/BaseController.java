@@ -34,6 +34,8 @@ import java.util.logging.FileHandler;
         UpdateController.class})
 public class BaseController implements Callable<Integer> {
 
+    private static final Log log = Log.getLog(BaseController.class);
+
     private static class LoggingOptions {
         @Option(names = {"-q", "--quiet"}, description = "Reduce log verbosity and print errors only.")
         private boolean quiet;
@@ -91,25 +93,25 @@ public class BaseController implements Callable<Integer> {
         cli.setExecutionExceptionHandler((ex, commandLine, parseResult) -> {
             // TODO: different handling for different exceptions
             if (ex instanceof IOException) {
-                Log.error("I/O error:", ex.getMessage());
+                log.error("I/O error:", ex.getMessage());
             } else if (ex instanceof CreationException) {
-                Log.error("Failed to create message:" + ex.getMessage());
+                log.error("Failed to create message:" + ex.getMessage());
             }
             else if (ex instanceof UpdateException) {
-                Log.error("Failed to update message:" + ex.getMessage());
+                log.error("Failed to update message:" + ex.getMessage());
             }
             else if (ex instanceof UnsupportedOperationException) {
-                Log.error("Operation not supported/implemented:", ex.getMessage());
+                log.error("Operation not supported/implemented:", ex.getMessage());
             } else if (ex instanceof CredentialException) {
-                Log.error("Credentials error:", ex.getMessage());
+                log.error("Credentials error:", ex.getMessage());
             } else if (ex instanceof RefResolvingException) {
-                Log.error("Failed to resolve " + RefResolver.REF_KEY + "-occurrences:", ex.getMessage());
+                log.error("Failed to resolve " + RefResolver.REF_KEY + "-occurrences:", ex.getMessage());
             } else if (ex instanceof ConstructorException) {
-                Log.error("Cannot interpret yaml contents:", ex.getMessage());
+                log.error("Cannot interpret yaml contents:", ex.getMessage());
             } else if (ex instanceof DiffException) {
-                Log.error("Unable to perform the diff:", ex.getMessage());
+                log.error("Unable to perform the diff:", ex.getMessage());
             } else if (ex instanceof ApplyException) {
-                Log.error("An error occurred during the apply:", ex.getMessage());
+                log.error("An error occurred during the apply:", ex.getMessage());
             } else if (ex instanceof IllegalStateException) {
                 // a little bit ugly, but it works
                 // the problem is in reactor.core.Exceptions
@@ -119,15 +121,15 @@ public class BaseController implements Callable<Integer> {
                     // that it's likely a password issue
                     if (ex.getCause() != null &&
                             ex.getCause().toString().toLowerCase().contains("invalidtokenexception")) {
-                        Log.error("Request to CF API failed: invalid token error (is the password correct?)");
+                        log.error("Request to CF API failed: invalid token error (is the password correct?)");
                     } else {
-                        Log.exception(ex, "Request to CF API failed:");
+                        log.exception(ex, "Request to CF API failed:");
                     }
                 } else {
-                    Log.exception(ex, "Unexpected illegal state error");
+                    log.exception(ex, "Unexpected illegal state error");
                 }
             } else {
-                Log.exception(ex, "Unexpected error occurred");
+                log.exception(ex, "Unexpected error occurred");
             }
 
             // no need for returning different exit codes for different exceptions, but that's also possible in the
@@ -142,7 +144,7 @@ public class BaseController implements Callable<Integer> {
         } catch (Exception e) {
             // TODO: consider printing this directly to stderr
             // (we don't necessarily need to use the logger while parsing the args)
-            Log.error(e.getMessage());
+            log.error(e.getMessage());
             System.exit(1);
         }
 
@@ -171,11 +173,11 @@ public class BaseController implements Callable<Integer> {
             }
             if (controller.loggingOptions.isVerbose()) {
                 Log.setVerboseLogLevel();
-                Log.verbose("enabling verbose logging");
+                log.verbose("enabling verbose logging");
             }
             if (controller.loggingOptions.isDebug()) {
                 Log.setDebugLogLevel();
-                Log.debug("enabling debug logging");
+                log.debug("enabling debug logging");
             }
         }
 

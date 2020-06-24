@@ -30,6 +30,8 @@ import reactor.core.publisher.Mono;
  */
 public class GetLogic extends AbstractOperations<DefaultCloudFoundryOperations> {
 
+    private static final Log log = Log.getLog(GetLogic.class);
+
     public GetLogic(DefaultCloudFoundryOperations cloudFoundryOperations) {
         super(cloudFoundryOperations);
     }
@@ -53,7 +55,7 @@ public class GetLogic extends AbstractOperations<DefaultCloudFoundryOperations> 
         SpecBean specBean = new SpecBean();
 
         // start async querying of config data from the cloud foundry instance
-        Log.debug("Start async querying of apps, services and space developers...");
+        log.debug("Start async querying of apps, services and space developers...");
         Flux.merge(apiVersion.doOnSuccess(configBean::setApiVersion),
                 spaceDevelopers.doOnSuccess(specBean::setSpaceDevelopers),
                 services.doOnSuccess(specBean::setServices),

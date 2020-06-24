@@ -34,6 +34,8 @@ import java.util.stream.Collectors;
  */
 public class ApplicationsOperations extends AbstractOperations<DefaultCloudFoundryOperations> {
 
+    private static final Log log = Log.getLog(ApplicationsOperations.class);
+
     /**
      * Name of the environment variable that hold the docker password.
      */
@@ -81,9 +83,9 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                 .build();
         try {
             this.cloudFoundryOperations.applications().delete(request).block();
-            Log.info("Application " + applicationName + " has been successfully removed.");
+            log.info("Application " + applicationName + " has been successfully removed.");
         } catch (Exception e) {
-            Log.error(e.getMessage());
+            log.error(e.getMessage());
         }
     }
 
@@ -119,13 +121,13 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
         }
 
         try {
-            Log.debug("Create app:", appName);
-            Log.debug("Bean of the app:", bean);
-            Log.debug("Should the app start:", shouldStart);
+            log.debug("Create app:", appName);
+            log.debug("Bean of the app:", bean);
+            log.debug("Should the app start:", shouldStart);
 
             doCreate(appName, bean, shouldStart);
         } catch (RuntimeException e) {
-            Log.debug("Clean up the app you tried to create");
+            log.debug("Clean up the app you tried to create");
             removeApplication(appName);
             throw new CreationException(e);
         }
@@ -145,10 +147,10 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                                 //Fatal errors, exclude them.
                                 && !throwable.getMessage().contains("Application")
                                 && !throwable.getMessage().contains("Stack"),
-                        (throwable, o) -> Log.warning(throwable.getMessage()))
+                        (throwable, o) -> log.warning(throwable.getMessage()))
                 //Error when staging or starting. So don't throw error, only log error.
                 .onErrorContinue(throwable -> throwable instanceof IllegalStateException,
-                        (throwable, o) -> Log.warning(throwable.getMessage()))
+                        (throwable, o) -> log.warning(throwable.getMessage()))
                 .block();
     }
 

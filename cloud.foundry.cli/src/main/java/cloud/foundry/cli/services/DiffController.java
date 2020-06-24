@@ -49,6 +49,8 @@ public class DiffController implements Callable<Integer> {
             "the services given in the yaml file and the configuration of the services of your cf instance.")
     static class DiffServiceCommand implements Callable<Integer> {
 
+        private static final Log log = Log.getLog(DiffServiceCommand.class);
+
         @Mixin
         LoginCommandOptions loginOptions;
 
@@ -57,7 +59,7 @@ public class DiffController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            Log.info("Diffing service(s)...");
+            log.info("Diffing service(s)...");
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
 
@@ -65,17 +67,17 @@ public class DiffController implements Callable<Integer> {
             Map<String, ServiceBean> desiredServices = loadedSpecBean.getServices();
             SpecBean desiredSpecBean = new SpecBean();
             desiredSpecBean.setServices(desiredServices);
-            Log.debug("Services Yaml File:", desiredSpecBean);
+            log.debug("Services Yaml File:", desiredSpecBean);
 
             Map<String, ServiceBean> servicesLive = servicesOperations.getAll().block();
 
             SpecBean specBeanLive = new SpecBean();
             specBeanLive.setServices(servicesLive);
-            Log.debug("Services current config:", specBeanLive);
+            log.debug("Services current config:", specBeanLive);
 
             DiffLogic diffLogic = new DiffLogic();
             String output = diffLogic.createDiffOutput(specBeanLive, desiredSpecBean);
-            Log.debug("Diff string of services:", output);
+            log.debug("Diff string of services:", output);
 
 
             if (output.isEmpty()) {
@@ -92,6 +94,8 @@ public class DiffController implements Callable<Integer> {
             "the apps given in the yaml file and the configuration of the apps of your cf instance.")
     static class DiffApplicationCommand implements Callable<Integer> {
 
+        private static final Log log = Log.getLog(DiffApplicationCommand.class);
+
         @Mixin
         LoginCommandOptions loginOptions;
 
@@ -100,7 +104,7 @@ public class DiffController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            Log.info("Diffing application(s)...");
+            log.info("Diffing application(s)...");
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
 
@@ -108,18 +112,18 @@ public class DiffController implements Callable<Integer> {
             Map<String, ApplicationBean> desiredApplications = loadedSpecBean.getApps();
             SpecBean desiredSpecBean = new SpecBean();
             desiredSpecBean.setApps(desiredApplications);
-            Log.debug("Apps Yaml File:", desiredSpecBean);
+            log.debug("Apps Yaml File:", desiredSpecBean);
 
             Map<String, ApplicationBean> appsLive = applicationsOperations.getAll().block();
 
             SpecBean specBeanLive = new SpecBean();
             specBeanLive.setApps(appsLive);
-            Log.debug("Apps current config:", specBeanLive);
+            log.debug("Apps current config:", specBeanLive);
 
 
             DiffLogic diffLogic = new DiffLogic();
             String output = diffLogic.createDiffOutput(specBeanLive, desiredSpecBean);
-            Log.debug("Diff string of apps:", output);
+            log.debug("Diff string of apps:", output);
 
             if (output.isEmpty()) {
                 System.out.println(NO_DIFFERENCES);
@@ -135,6 +139,8 @@ public class DiffController implements Callable<Integer> {
             "the space developers given in the yaml file and the space developers of your cf instance.")
     static class DiffSpaceDevelopersCommand implements Callable<Integer> {
 
+        private static final Log log = Log.getLog(DiffSpaceDevelopersCommand.class);
+
         @Mixin
         LoginCommandOptions loginOptions;
 
@@ -143,7 +149,7 @@ public class DiffController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            Log.info("Diffing space-developer(s)...");
+            log.info("Diffing space-developer(s)...");
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             SpaceDevelopersOperations spaceDevOperations = new SpaceDevelopersOperations(cfOperations);
 
@@ -152,16 +158,16 @@ public class DiffController implements Callable<Integer> {
             SpecBean desiredSpecBean = new SpecBean();
             desiredSpecBean.setSpaceDevelopers(desiredSpaceDevelopers);
 
-            Log.debug("Space Devs Yaml File:", desiredSpecBean);
+            log.debug("Space Devs Yaml File:", desiredSpecBean);
 
             List<String> spaceDevs = spaceDevOperations.getAll().block();
             SpecBean specBeanLive = new SpecBean();
             specBeanLive.setSpaceDevelopers(spaceDevs);
-            Log.debug("Space Devs current config:", specBeanLive);
+            log.debug("Space Devs current config:", specBeanLive);
 
             DiffLogic diffLogic = new DiffLogic();
             String output = diffLogic.createDiffOutput(specBeanLive, desiredSpecBean);
-            Log.debug("Diff string of space-devs:", output);
+            log.debug("Diff string of space-devs:", output);
 
             if (output.isEmpty()) {
                 System.out.println(NO_DIFFERENCES);
@@ -178,6 +184,8 @@ public class DiffController implements Callable<Integer> {
             "the config given in the yaml file and the current config of your cf instance.")
     static class DiffAllCommand implements Callable<Integer> {
 
+        private static final Log log = Log.getLog(DiffAllCommand.class);
+
         @Mixin
         LoginCommandOptions loginOptions;
 
@@ -188,17 +196,17 @@ public class DiffController implements Callable<Integer> {
         public Integer call() throws Exception {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             ConfigBean desiredConfigBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), ConfigBean.class);
-            Log.debug("Desired config:", desiredConfigBean);
+            log.debug("Desired config:", desiredConfigBean);
 
-            Log.info("Fetching all information for target space...");
+            log.info("Fetching all information for target space...");
             GetLogic getLogic = new GetLogic(cfOperations);
             ConfigBean currentConfigBean = getLogic.getAll();
-            Log.debug("Current Config:", currentConfigBean);
+            log.debug("Current Config:", currentConfigBean);
 
-            Log.info("Diffing ...");
+            log.info("Diffing ...");
             DiffLogic diffLogic = new DiffLogic();
             String output = diffLogic.createDiffOutput(currentConfigBean, desiredConfigBean);
-            Log.debug("Diff string of config:", output);
+            log.debug("Diff string of config:", output);
 
             if (output.isEmpty()) {
                 System.out.println(NO_DIFFERENCES);

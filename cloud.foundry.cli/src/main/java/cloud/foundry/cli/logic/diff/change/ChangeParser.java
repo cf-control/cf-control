@@ -35,6 +35,8 @@ import java.util.stream.Collectors;
  */
 public class ChangeParser {
 
+    private static final Log log = Log.getLog(ChangeParser.class);
+
     /**
      * Parse the JaVers change object to a more appropriate custom change object.
      * @param change the JaVers change object
@@ -59,7 +61,7 @@ public class ChangeParser {
                     "",
                     extractPathFrom(change));
         }
-        Log.debug("Change type " + change.getClass() + " is not supported for parsing. Ignoring it.");
+        log.debug("Change type " + change.getClass() + " is not supported for parsing. Ignoring it.");
         return null;
     }
 
@@ -124,7 +126,7 @@ public class ChangeParser {
             return new CfContainerValueChanged(((ValueRemoved) elementChange).getRemovedValue().toString(),
                     ChangeType.REMOVED);
         }
-        Log.debug("List change type not supported: " + elementChange.getClass());
+        log.debug("List change type not supported: " + elementChange.getClass());
         return null;
     }
 

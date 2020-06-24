@@ -5,6 +5,7 @@ import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
 import cloud.foundry.cli.crosscutting.mapping.YamlMapper;
 import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
 import cloud.foundry.cli.logic.ApplyLogic;
+import cloud.foundry.cli.operations.ApplicationsOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import picocli.CommandLine;
 
@@ -31,6 +32,8 @@ public class ApplyController implements Callable<Integer> {
             " file, but not in your cf instance.")
     static class ApplyApplicationCommand implements Callable<Integer> {
 
+        private static final Log log = Log.getLog(ApplyApplicationCommand.class);
+
         @CommandLine.Mixin
         private LoginCommandOptions loginOptions;
 
@@ -43,9 +46,9 @@ public class ApplyController implements Callable<Integer> {
 
             ApplyLogic applyLogic = new ApplyLogic(cfOperations);
 
-            Log.info("Interpreting YAML file...");
+            log.info("Interpreting YAML file...");
             SpecBean desiredSpecBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
-            Log.info("YAML file interpreted.");
+            log.info("YAML file interpreted.");
 
             applyLogic.applyApplications(desiredSpecBean.getApps());
 
