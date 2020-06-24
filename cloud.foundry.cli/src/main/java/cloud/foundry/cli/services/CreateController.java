@@ -31,8 +31,6 @@ import java.util.concurrent.Callable;
                 CreateController.AssignSpaceDeveloperCommand.class,
                 CreateController.CreateApplicationCommand.class})
 public class CreateController implements Callable<Integer> {
-    
-    private static final Log log = Log.getLog(CreateController.class);
 
     @Override
     public Integer call() {
@@ -42,6 +40,8 @@ public class CreateController implements Callable<Integer> {
 
     @Command(name = "space-developer", description = "Assign users as space developers.")
     static class AssignSpaceDeveloperCommand implements Callable<Integer> {
+
+        private static final Log log = Log.getLog(AssignSpaceDeveloperCommand.class);
 
         @Mixin
         LoginCommandOptions loginOptions;
@@ -72,6 +72,8 @@ public class CreateController implements Callable<Integer> {
     @Command(name = "service", description = "Create services in the target space.")
     static class CreateServiceCommand implements Callable<Integer> {
 
+        private static final Log log = Log.getLog(CreateServiceCommand.class);
+
         @Mixin
         LoginCommandOptions loginOptions;
 
@@ -101,6 +103,8 @@ public class CreateController implements Callable<Integer> {
 
     @Command(name = "application", description = "Create applications in the target space.")
     static class CreateApplicationCommand implements Callable<Integer> {
+
+        private static final Log log = Log.getLog(CreateApplicationCommand.class);
 
         @Mixin
         LoginCommandOptions loginOptions;

@@ -21,8 +21,6 @@ import java.util.concurrent.Callable;
         subcommands = {ApplyController.ApplyApplicationCommand.class})
 public class ApplyController implements Callable<Integer> {
 
-    private static final Log log = Log.getLog(ApplyController.class);
-
     @Override
     public Integer call() {
         CommandLine.usage(this, System.out);
@@ -33,6 +31,8 @@ public class ApplyController implements Callable<Integer> {
     @CommandLine.Command(name = "applications", description = "Create applications that are present in the given yaml" +
             " file, but not in your cf instance.")
     static class ApplyApplicationCommand implements Callable<Integer> {
+
+        private static final Log log = Log.getLog(ApplyApplicationCommand.class);
 
         @CommandLine.Mixin
         private LoginCommandOptions loginOptions;

@@ -36,8 +36,6 @@ import cloud.foundry.cli.operations.ServicesOperations;
     UpdateController.UpdateApplicationCommand.class })
 public class UpdateController implements Callable<Integer> {
 
-    private static final Log log = Log.getLog(UpdateController.class);
-
     @Override
     public Integer call() {
         // this code is executed if the user runs the create command without specifying
@@ -47,6 +45,8 @@ public class UpdateController implements Callable<Integer> {
 
     @Command(name = "remove-space-developer", description = "Removes space developers.")
     static class RemoveSpaceDeveloperCommand implements Callable<Integer> {
+
+        private static final Log log = Log.getLog(RemoveSpaceDeveloperCommand.class);
 
         @Mixin
         LoginCommandOptions loginOptions;
@@ -73,6 +73,8 @@ public class UpdateController implements Callable<Integer> {
 
     @Command(name = "remove-service", description = "Removes a service instance.")
     static class RemoveServiceInstanceCommand implements Callable<Integer> {
+
+        private static final Log log = Log.getLog(RemoveServiceInstanceCommand.class);
 
         @Mixin
         LoginCommandOptions loginOptions;
@@ -170,6 +172,8 @@ public class UpdateController implements Callable<Integer> {
     @Command(name = "remove-application", description = "Removes an application.")
     static class RemoveApplicationCommand implements Callable<Integer> {
 
+        private static final Log log = Log.getLog(RemoveApplicationCommand.class);
+
         @Mixin
         LoginCommandOptions loginOptions;
 
@@ -192,6 +196,8 @@ public class UpdateController implements Callable<Integer> {
 
     @Command(name = "update-service", description = "Updates service instances.")
     static class UpdateServiceCommand implements Callable<Integer> {
+
+        private static final Log log = Log.getLog(UpdateServiceCommand.class);
 
         @Mixin
         LoginCommandOptions loginOptions;

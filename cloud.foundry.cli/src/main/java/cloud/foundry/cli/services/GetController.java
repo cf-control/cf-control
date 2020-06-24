@@ -52,6 +52,8 @@ public class GetController implements Callable<Integer> {
         mixinStandardHelpOptions = true)
     static class GetSpaceDevelopersCommand implements Callable<Integer> {
 
+        private static final Log log = Log.getLog(GetSpaceDevelopersCommand.class);
+
         @Override
         public Integer call() throws Exception {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
@@ -68,6 +70,8 @@ public class GetController implements Callable<Integer> {
         mixinStandardHelpOptions = true)
     static class GetServicesCommand implements Callable<Integer> {
 
+        private static final Log log = Log.getLog(GetServicesCommand.class);
+
         @Override
         public Integer call() throws Exception {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
@@ -83,6 +87,8 @@ public class GetController implements Callable<Integer> {
     @Command(name = "applications", description = "List all applications in the target space.",
         mixinStandardHelpOptions = true)
     static class GetApplicationsCommand implements Callable<Integer> {
+
+        private static final Log log = Log.getLog(GetApplicationsCommand.class);
 
         @Override
         public Integer call() throws Exception {
