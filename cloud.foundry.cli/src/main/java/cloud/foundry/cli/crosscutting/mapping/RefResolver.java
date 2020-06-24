@@ -17,7 +17,7 @@ import java.util.Map;
  */
 public class RefResolver implements YamlTreeVisitor {
     
-    private static final Log log = Log.getLog(YamlTreeVisitor.class);
+    private static final Log log = Log.getLog(RefResolver.class);
 
     /**
      * This key describes ref-occurrences in mappings.
