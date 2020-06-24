@@ -42,6 +42,13 @@ public class Log {
         System.setProperty("user.language", "en");
         Locale.setDefault(new Locale("en", "EN"));
 
+        // change global stdout log format
+        // desired output format: <date> <time> <logger name> [<loglevel>]: <message>
+        System.setProperty(
+                "java.util.logging.SimpleFormatter.format",
+                "%1$tY-%1$tm-%1$td %1$tH:%1$tM:%1$tS %3$s [%4$-5s] %5$s%6$s%n"
+        );
+
         logger = java.util.logging.Logger.getLogger(LOGGER_NAME);
 
         // set default log level
