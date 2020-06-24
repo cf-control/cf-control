@@ -8,7 +8,11 @@ import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import reactor.core.publisher.Mono;
 
 /**
- *
+ * Handles the operations to determine meta-information from a cloud foundry instance.
+ * <p>
+ * To retrieve the data from resulting Mono or Flux objects you can use subscription methods (block, subscribe, etc.)
+ * provided by the reactor library. For more details on how to work with Mono's visit:
+ * https://projectreactor.io/docs/core/release/reference/index.html#core-features
  */
 public class ClientOperations extends AbstractOperations<DefaultCloudFoundryOperations> {
 
