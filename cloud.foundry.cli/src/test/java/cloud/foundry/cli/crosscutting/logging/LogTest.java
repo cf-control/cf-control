@@ -230,4 +230,78 @@ public class LogTest {
         assertNoMessagesRecorded();
     }
 
+    @Test
+    public void testErrorWithMultipleArguments() {
+        testLog.error("aaa", "bbb", "ccc", "ddd");
+
+        LogRecord lastRecord = popLastRecord();
+        assert lastRecord.getMessage().contains("aaa");
+        assert lastRecord.getMessage().contains("bbb");
+        assert lastRecord.getMessage().contains("ccc");
+        assert lastRecord.getMessage().contains("ddd");
+
+        // now all messages should be handled
+        assertNoMessagesRecorded();
+    }
+
+    @Test
+    public void testWarningWithMultipleArguments() {
+        testLog.warning("aaa", "bbb", "ccc", "ddd");
+
+        LogRecord lastRecord = popLastRecord();
+        assert lastRecord.getMessage().contains("aaa");
+        assert lastRecord.getMessage().contains("bbb");
+        assert lastRecord.getMessage().contains("ccc");
+        assert lastRecord.getMessage().contains("ddd");
+
+        // now all messages should be handled
+        assertNoMessagesRecorded();
+    }
+
+    @Test
+    public void testInfoWithMultipleArguments() {
+        testLog.info("aaa", "bbb", "ccc", "ddd");
+
+        LogRecord lastRecord = popLastRecord();
+        assert lastRecord.getMessage().contains("aaa");
+        assert lastRecord.getMessage().contains("bbb");
+        assert lastRecord.getMessage().contains("ccc");
+        assert lastRecord.getMessage().contains("ddd");
+
+        // now all messages should be handled
+        assertNoMessagesRecorded();
+    }
+
+    @Test
+    public void testVerboseWithMultipleArguments() {
+        Log.setVerboseLogLevel();
+
+        testLog.verbose("aaa", "bbb", "ccc", "ddd");
+
+        LogRecord lastRecord = popLastRecord();
+        assert lastRecord.getMessage().contains("aaa");
+        assert lastRecord.getMessage().contains("bbb");
+        assert lastRecord.getMessage().contains("ccc");
+        assert lastRecord.getMessage().contains("ddd");
+
+        // now all messages should be handled
+        assertNoMessagesRecorded();
+    }
+
+    @Test
+    public void testDebugWithMultipleArguments() {
+        Log.setDebugLogLevel();
+
+        testLog.debug("aaa", "bbb", "ccc", "ddd");
+
+        LogRecord lastRecord = popLastRecord();
+        assert lastRecord.getMessage().contains("aaa");
+        assert lastRecord.getMessage().contains("bbb");
+        assert lastRecord.getMessage().contains("ccc");
+        assert lastRecord.getMessage().contains("ddd");
+
+        // now all messages should be handled
+        assertNoMessagesRecorded();
+    }
+
 }
