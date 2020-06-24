@@ -191,8 +191,14 @@ public class DiffController implements Callable<Integer> {
             Log.debug("Desired config:", desiredConfigBean);
 
             Log.info("Fetching all information for target space...");
+
+            SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
+            ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
+            ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
+
             GetLogic getLogic = new GetLogic(cfOperations);
-            ConfigBean currentConfigBean = getLogic.getAll();
+            ConfigBean currentConfigBean = getLogic.getAll(
+                    spaceDevelopersOperations, servicesOperations, applicationsOperations);
             Log.debug("Current Config:", currentConfigBean);
 
             Log.info("Diffing ...");

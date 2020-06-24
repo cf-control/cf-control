@@ -7,6 +7,9 @@ import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
 import cloud.foundry.cli.crosscutting.mapping.YamlMapper;
 import cloud.foundry.cli.logic.GetLogic;
+import cloud.foundry.cli.operations.ApplicationsOperations;
+import cloud.foundry.cli.operations.ServicesOperations;
+import cloud.foundry.cli.operations.SpaceDevelopersOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
@@ -37,7 +40,12 @@ public class GetController implements Callable<Integer> {
         GetLogic getLogic = new GetLogic(cfOperations);
         Log.info("Fetching all information for target space...");
 
-        ConfigBean allInformation = getLogic.getAll();
+        SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
+        ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
+
+        ConfigBean allInformation = getLogic.getAll(
+                spaceDevelopersOperations, servicesOperations, applicationsOperations);
         System.out.println(YamlMapper.dump(allInformation));
         return 0;
     }
@@ -52,8 +60,9 @@ public class GetController implements Callable<Integer> {
             GetLogic getLogic = new GetLogic(cfOperations);
             Log.info("Fetching information of space developers...");
 
-            Mono<List<String>> spaceDevelopers = getLogic.getSpaceDevelopers();
-            System.out.println(YamlMapper.dump(spaceDevelopers.block()));
+            SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
+            List<String> spaceDevelopers = getLogic.getSpaceDevelopers(spaceDevelopersOperations);
+            System.out.println(YamlMapper.dump(spaceDevelopers));
 
             return 0;
         }
@@ -67,8 +76,9 @@ public class GetController implements Callable<Integer> {
             GetLogic getLogic = new GetLogic(cfOperations);
             Log.info("Fetching information for services...");
 
-            Mono<Map<String, ServiceBean>> services = getLogic.getServices();
-            System.out.println(YamlMapper.dump(services.block()));
+            ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
+            Map<String, ServiceBean> services = getLogic.getServices(servicesOperations);
+            System.out.println(YamlMapper.dump(services));
 
             return 0;
         }
@@ -84,8 +94,9 @@ public class GetController implements Callable<Integer> {
             GetLogic getLogic = new GetLogic(cfOperations);
             Log.info("Fetching information for apps...");
 
-            Mono<Map<String, ApplicationBean>> applications = getLogic.getApplications();
-            System.out.println(YamlMapper.dump(applications.block()));
+            ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
+            Map<String, ApplicationBean> applications = getLogic.getApplications(applicationsOperations);
+            System.out.println(YamlMapper.dump(applications));
 
             return 0;
         }

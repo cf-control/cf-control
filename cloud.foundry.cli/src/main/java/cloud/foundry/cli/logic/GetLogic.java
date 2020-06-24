@@ -39,11 +39,14 @@ public class GetLogic extends AbstractOperations<DefaultCloudFoundryOperations> 
      *
      * @return ConfigBean
      */
-    public ConfigBean getAll() {
+    public ConfigBean getAll(SpaceDevelopersOperations spaceDevelopersOperations,
+                             ServicesOperations servicesOperations,
+                             ApplicationsOperations applicationsOperations) {
+
         Mono<String> apiVersion = determineApiVersion();
-        Mono<List<String>> spaceDevelopers = getSpaceDevelopers();
-        Mono<Map<String, ServiceBean>> services = getServices();
-        Mono<Map<String, ApplicationBean>> apps = getApplications();
+        Mono<List<String>> spaceDevelopers = spaceDevelopersOperations.getAll();
+        Mono<Map<String, ServiceBean>> services = servicesOperations.getAll();
+        Mono<Map<String, ApplicationBean>> apps = applicationsOperations.getAll();
         ConfigBean configBean = new ConfigBean();
         SpecBean specBean = new SpecBean();
         // start async querying of config data from the cloud foundry instance
@@ -64,9 +67,8 @@ public class GetLogic extends AbstractOperations<DefaultCloudFoundryOperations> 
      *
      * @return List of space-developers.
      */
-    public Mono<List<String>> getSpaceDevelopers() {
-        SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cloudFoundryOperations);
-        return spaceDevelopersOperations.getAll();
+    public List<String> getSpaceDevelopers(SpaceDevelopersOperations spaceDevelopersOperations) {
+        return spaceDevelopersOperations.getAll().block();
     }
 
     /**
@@ -74,9 +76,8 @@ public class GetLogic extends AbstractOperations<DefaultCloudFoundryOperations> 
      *
      * @return Map of services.
      */
-    public Mono<Map<String, ServiceBean>> getServices() {
-        ServicesOperations servicesOperations = new ServicesOperations(cloudFoundryOperations);
-        return servicesOperations.getAll();
+    public Map<String, ServiceBean> getServices(ServicesOperations servicesOperations) {
+        return servicesOperations.getAll().block();
     }
 
     /**
@@ -84,9 +85,8 @@ public class GetLogic extends AbstractOperations<DefaultCloudFoundryOperations> 
      *
      * @return Map of applications.
      */
-    public Mono<Map<String, ApplicationBean>> getApplications() {
-        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cloudFoundryOperations);
-        return applicationsOperations.getAll();
+    public Map<String, ApplicationBean> getApplications(ApplicationsOperations applicationsOperations) {
+        return applicationsOperations.getAll().block();
     }
 
     /**
