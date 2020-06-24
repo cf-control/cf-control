@@ -16,6 +16,7 @@ import picocli.CommandLine.Option;
 
 import java.io.IOException;
 import java.util.concurrent.Callable;
+import java.util.logging.FileHandler;
 
 /**
  * This class works as the entry point for the command line application.
@@ -60,6 +61,9 @@ public class BaseController implements Callable<Integer> {
 
     @ArgGroup(exclusive = true, multiplicity = "0..1")
     LoggingOptions loggingOptions;
+
+    @Option(names = {"--log-file"}, description = "Write logs to file.")
+    private String logFile;
 
     @Override
     public Integer call() {
@@ -144,8 +148,21 @@ public class BaseController implements Callable<Integer> {
             System.exit(1);
         }
 
+        // will be registered as a handler in the log in case the user enables it
+        FileHandler fileHandler = null;
+
         // seems like picocli doesn't populate the logging options unless either of them is passed
         if (controller.loggingOptions != null) {
+            // in case a log file path has been passed, all we have to do is add a file handler for this path
+            if (controller.logFile != null) {
+                try {
+                    fileHandler = new FileHandler(controller.logFile);
+                } catch (IOException e) {
+                    log.error("Could not open log file", controller.logFile);
+                    System.exit(1);
+                }
+            }
+
             // now, we can access the logging options in the base controller
             // note: we always enable the most verbose level the user specifies
             // for that reason we can't use an if-else, but must use a chain of plain if clauses
@@ -164,8 +181,19 @@ public class BaseController implements Callable<Integer> {
             }
         }
 
+        // register in the log if available
+        if (fileHandler != null) {
+            Log.addHandler(fileHandler);
+        }
+
         // okay, logging is configured, now let's run the rest of the CLI
         int exitCode = cli.execute(args);
+
+        // make sure to close the file handler to make sure it writes valid XML including all closing tags
+        if (fileHandler != null) {
+            Log.removeHandler(fileHandler);
+            fileHandler.close();
+        }
 
         System.exit(exitCode);
     }
