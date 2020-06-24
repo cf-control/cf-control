@@ -125,7 +125,7 @@ Since the parameters `api`, `organization` and `space` are rarely changed, there
 in the directory that defines default values \
 (see `cloud.foundry.cli/src/main/resources/cf_control.properties`).
 
-So the default-values are:
+So the default values are:
 ```
   -a=api.run.pivotal.io
   -o=cloud.foundry.cli
