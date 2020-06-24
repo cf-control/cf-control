@@ -23,6 +23,8 @@ import java.util.Map.Entry;
  */
 public class ApplyLogic {
 
+    private static final Log log = Log.getLog(ApplyLogic.class);
+
     private DefaultCloudFoundryOperations cfOperations;
 
     /**
@@ -48,9 +50,9 @@ public class ApplyLogic {
         checkNotNull(desiredApplications);
 
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
-        Log.info("Fetching information about applications...");
+        log.info("Fetching information about applications...");
         Map<String, ApplicationBean> liveApplications = applicationsOperations.getAll().block();
-        Log.info("Information fetched.");
+        log.info("Information fetched.");
 
         // that way only the applications of the live system are compared in the diff
         ConfigBean desiredApplicationsConfig = createConfigFromApplications(desiredApplications);
@@ -58,16 +60,16 @@ public class ApplyLogic {
 
         // compare entire configs as the diff wrapper is only suited for diff trees of these
         DiffLogic diffLogic = new DiffLogic();
-        Log.info("Comparing the applications...");
+        log.info("Comparing the applications...");
         DiffResult wrappedDiff = diffLogic.createDiffResult(liveApplicationsConfig, desiredApplicationsConfig);
-        Log.info("Applications compared.");
+        log.info("Applications compared.");
 
         Map<String, List<CfChange>> allApplicationChanges = wrappedDiff.getApplicationChanges();
 
-        Log.info("Applying changes to applications...");
+        log.info("Applying changes to applications...");
         for (Entry<String, List<CfChange>> applicationChangesEntry : allApplicationChanges.entrySet()) {
             String applicationName = applicationChangesEntry.getKey();
-            Log.debug("Start applying the changes to the app:", applicationName);
+            log.debug("Start applying the changes to the app:", applicationName);
             List<CfChange> applicationChanges = applicationChangesEntry.getValue();
 
             ApplicationApplier.apply(new ApplicationsOperations(cfOperations), applicationName, applicationChanges);

@@ -19,6 +19,8 @@ import cloud.foundry.cli.crosscutting.logging.Log;
  */
 public class CfArgumentsCreator {
 
+    private static final Log log = Log.getLog(CfArgumentsCreator.class);
+
     /**
      * Name of the property file, which contains default values
      */
@@ -54,7 +56,7 @@ public class CfArgumentsCreator {
             }
         }
 
-        Log.verbose("User has not passed values for arguments ", missingOptions, ", using default values");
+        log.verbose("User has not passed values for arguments ", missingOptions, ", using default values");
 
         return extendCommandLine(missingOptions, new LinkedList<>(Arrays.asList(args)));
     }
@@ -78,11 +80,11 @@ public class CfArgumentsCreator {
                 args.add(key);
                 args.add(prop.getProperty(key));
 
-                Log.info("Extended CommandLine Argument with the Option: " + key +
+                log.info("Extended CommandLine Argument with the Option: " + key +
                         " and value " + "'" + prop.getProperty(key) + "'");
             });
         } catch (IOException ex) {
-            Log.error(ex.getMessage());
+            log.error(ex.getMessage());
             System.exit(1);
         }
 

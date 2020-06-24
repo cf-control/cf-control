@@ -41,6 +41,8 @@ public class CreateController implements Callable<Integer> {
     @Command(name = "space-developer", description = "Assign users as space developers.")
     static class AssignSpaceDeveloperCommand implements Callable<Integer> {
 
+        private static final Log log = Log.getLog(AssignSpaceDeveloperCommand.class);
+
         @Mixin
         LoginCommandOptions loginOptions;
 
@@ -49,7 +51,7 @@ public class CreateController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            Log.info("Assigning space-developer(s)...");
+            log.info("Assigning space-developer(s)...");
             SpaceDevelopersBean spaceDevelopersBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(),
                     SpaceDevelopersBean.class);
 
@@ -58,7 +60,7 @@ public class CreateController implements Callable<Integer> {
 
             for (String username : spaceDevelopersBean.getSpaceDevelopers()) {
                 spaceDevelopersOperations.assignSpaceDeveloper(username);
-                Log.info("Assigned new SpaceDeveloper:", username,
+                log.info("Assigned new SpaceDeveloper:", username,
                         "in org:", cfOperations.getOrganization(),
                         "/ to the space:", cfOperations.getSpace());
             }
@@ -70,6 +72,8 @@ public class CreateController implements Callable<Integer> {
     @Command(name = "service", description = "Create services in the target space.")
     static class CreateServiceCommand implements Callable<Integer> {
 
+        private static final Log log = Log.getLog(CreateServiceCommand.class);
+
         @Mixin
         LoginCommandOptions loginOptions;
 
@@ -78,7 +82,7 @@ public class CreateController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            Log.info("Creating service(s)...");
+            log.info("Creating service(s)...");
             SpecBean specBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
 
             Map<String, ServiceBean> serviceBeans = specBean.getServices();
@@ -90,7 +94,7 @@ public class CreateController implements Callable<Integer> {
                 String serviceName = serviceEntry.getKey();
                 ServiceBean serviceBean = serviceEntry.getValue();
                 servicesOperations.create(serviceName, serviceBean);
-                Log.info("Service created:" , serviceName);
+                log.info("Service created:" , serviceName);
             }
 
             return 0;
@@ -100,6 +104,8 @@ public class CreateController implements Callable<Integer> {
     @Command(name = "application", description = "Create applications in the target space.")
     static class CreateApplicationCommand implements Callable<Integer> {
 
+        private static final Log log = Log.getLog(CreateApplicationCommand.class);
+
         @Mixin
         LoginCommandOptions loginOptions;
 
@@ -108,7 +114,7 @@ public class CreateController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            Log.info("Creating application(s)...");
+            log.info("Creating application(s)...");
             SpecBean specBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
 
             Map<String, ApplicationBean> applicationBeans = specBean.getApps();
@@ -120,7 +126,7 @@ public class CreateController implements Callable<Integer> {
                 String applicationName = applicationEntry.getKey();
                 ApplicationBean applicationBean = applicationEntry.getValue();
                 applicationsOperations.create(applicationName, applicationBean, false);
-                Log.info("App created:", applicationName);
+                log.info("App created:", applicationName);
             }
 
             return 0;

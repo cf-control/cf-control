@@ -29,6 +29,8 @@ import java.util.Map;
  */
 public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOperations> {
 
+    private static final Log log = Log.getLog(ServicesOperations.class);
+
     private static final String USER_PROVIDED_SERVICE_INSTANCE = "user_provided_service_instance";
 
     public ServicesOperations(DefaultCloudFoundryOperations cloudFoundryOperations) {
@@ -69,8 +71,8 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      * @throws CreationException when the creation or the binding was not successful
      */
     public void create(String serviceInstanceName, ServiceBean serviceBean) throws CreationException {
-        Log.debug("Create service:", serviceInstanceName);
-        Log.debug("Bean of the service:", serviceBean);
+        log.debug("Create service:", serviceInstanceName);
+        log.debug("Bean of the service:", serviceBean);
 
         CreateServiceInstanceRequest createServiceRequest = CreateServiceInstanceRequest.builder()
             .serviceName(serviceBean.getService())
@@ -97,8 +99,8 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      * @throws CreationException when the creation or the binding was not successful
      */
     public void renameServiceInstance(String newName, String currentName) throws CreationException {
-        Log.debug("Rename service:", currentName);
-        Log.debug("With new name:", newName);
+        log.debug("Rename service:", currentName);
+        log.debug("With new name:", newName);
 
         RenameServiceInstanceRequest renameServiceInstanceRequest = RenameServiceInstanceRequest.builder()
             .name(currentName)
@@ -122,8 +124,8 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      * @throws CreationException when the creation or the binding was not successful
      */
     public void updateServiceInstance(String serviceInstanceName, ServiceBean serviceBean) throws CreationException {
-        Log.debug("Update service Instance:", serviceInstanceName);
-        Log.debug("With the bean:", serviceBean);
+        log.debug("Update service Instance:", serviceInstanceName);
+        log.debug("With the bean:", serviceBean);
 
         UpdateServiceInstanceRequest updateServiceInstanceRequest = UpdateServiceInstanceRequest.builder()
             .serviceInstanceName(serviceInstanceName)
@@ -136,7 +138,7 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
                     .updateInstance(updateServiceInstanceRequest)
                     .block();
 
-            Log.info("Service Plan and Tags haven been updated");
+            log.info("Service Plan and Tags haven been updated");
         } catch (RuntimeException e) {
             throw new CreationException(e.getMessage());
         }
@@ -179,7 +181,7 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
                 .deleteInstance(deleteServiceInstanceRequest)
                 .block();
 
-            Log.info("Service " + serviceInstanceName + " has been removed.");
+            log.info("Service " + serviceInstanceName + " has been removed.");
       
         } catch (RuntimeException e) {
             throw new IllegalArgumentException(e.getMessage());
@@ -206,10 +208,10 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
                     .flatMap(key -> doDeleteKey(serviceInstanceName, key))
                     .collectList()
                     .block();
-                Log.info("All service keys of service instance " + serviceInstanceName + " have been deleted.");
+                log.info("All service keys of service instance " + serviceInstanceName + " have been deleted.");
           
             } catch (Exception e) {
-                Log.error(e.getMessage());
+                log.error(e.getMessage());
             }
         }
     }
@@ -231,17 +233,17 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      */
     private void unbindApps(String serviceInstanceName, ServiceInstance serviceInstance) {
         if (serviceInstance.getApplications() == null || serviceInstance.getApplications().isEmpty()) {
-            Log.info("There is no application to unbind!");
+            log.info("There is no application to unbind!");
         } else {
             try {
                 serviceInstance.getApplications()
                     .parallelStream()
                     .forEach(applicationName -> doUnbindApp(serviceInstanceName, applicationName));
 
-                Log.info("All applications of service instance " + serviceInstanceName + " have been unbound.");
+                log.info("All applications of service instance " + serviceInstanceName + " have been unbound.");
             
             } catch (Exception e) {
-                Log.error(e.getMessage());
+                log.error(e.getMessage());
             }
         }
     }
@@ -257,7 +259,7 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
                         .build())
                 .block();
         } catch (Exception e) {
-            Log.error(e.getMessage());
+            log.error(e.getMessage());
         }
     }
 
@@ -275,10 +277,10 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
                 .collectList()
                 .block();
 
-            Log.info("All routes to service instance " + serviceInstanceName + " have been unbound.");
+            log.info("All routes to service instance " + serviceInstanceName + " have been unbound.");
 
         } catch (Exception e) {
-            Log.error(e.getMessage());
+            log.error(e.getMessage());
         }
     }
 

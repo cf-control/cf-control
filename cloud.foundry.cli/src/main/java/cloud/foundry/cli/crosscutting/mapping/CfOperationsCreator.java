@@ -12,6 +12,8 @@ import org.cloudfoundry.reactor.uaa.ReactorUaaClient;
 
 public class CfOperationsCreator {
 
+    private static final Log log = Log.getLog(CfOperationsCreator.class);
+
     /**
      * Names of the environment variables that hold the username and the password value for the application.
      */
@@ -32,7 +34,7 @@ public class CfOperationsCreator {
      */
     public static DefaultCloudFoundryOperations createCfOperations(LoginCommandOptions commandOptions)
             throws Exception {
-        Log.debug("Create the cfOperations object with your login command options...");
+        log.debug("Create the cfOperations object with your login command options...");
 
         DefaultConnectionContext connectionContext = createConnectionContext(commandOptions);
         PasswordGrantTokenProvider tokenProvider = createTokenProvider(commandOptions);
