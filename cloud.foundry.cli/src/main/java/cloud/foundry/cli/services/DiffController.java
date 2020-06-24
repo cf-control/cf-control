@@ -14,6 +14,7 @@ import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
 import cloud.foundry.cli.logic.DiffLogic;
 import cloud.foundry.cli.logic.GetLogic;
 import cloud.foundry.cli.operations.ApplicationsOperations;
+import cloud.foundry.cli.operations.ClientOperations;
 import cloud.foundry.cli.operations.SpaceDevelopersOperations;
 import cloud.foundry.cli.operations.ServicesOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
@@ -196,14 +197,22 @@ public class DiffController implements Callable<Integer> {
         public Integer call() throws Exception {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             ConfigBean desiredConfigBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), ConfigBean.class);
+
             log.debug("Desired config:", desiredConfigBean);
-
             log.info("Fetching all information for target space...");
-            GetLogic getLogic = new GetLogic(cfOperations);
-            ConfigBean currentConfigBean = getLogic.getAll();
-            log.debug("Current Config:", currentConfigBean);
 
+            SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
+            ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
+            ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
+            ClientOperations clientOperations = new ClientOperations(cfOperations);
+
+            GetLogic getLogic = new GetLogic();
+            ConfigBean currentConfigBean = getLogic.getAll(spaceDevelopersOperations, servicesOperations,
+                    applicationsOperations, clientOperations, loginOptions);
+
+            log.debug("Current Config:", currentConfigBean);
             log.info("Diffing ...");
+
             DiffLogic diffLogic = new DiffLogic();
             String output = diffLogic.createDiffOutput(currentConfigBean, desiredConfigBean);
             log.debug("Diff string of config:", output);

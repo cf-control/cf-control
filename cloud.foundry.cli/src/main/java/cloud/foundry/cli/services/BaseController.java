@@ -2,6 +2,7 @@ package cloud.foundry.cli.services;
 
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import cloud.foundry.cli.crosscutting.exceptions.CredentialException;
+import cloud.foundry.cli.crosscutting.exceptions.GetException;
 import cloud.foundry.cli.crosscutting.exceptions.DiffException;
 import cloud.foundry.cli.crosscutting.exceptions.RefResolvingException;
 import cloud.foundry.cli.crosscutting.exceptions.UpdateException;
@@ -27,11 +28,11 @@ import java.util.logging.FileHandler;
         mixinStandardHelpOptions = true,
         version = "1.0",
         subcommands = {
-        CreateController.class,
-        GetController.class,
-        DiffController.class,
-        ApplyController.class,
-        UpdateController.class})
+                CreateController.class,
+                GetController.class,
+                DiffController.class,
+                ApplyController.class,
+                UpdateController.class})
 public class BaseController implements Callable<Integer> {
 
     private static final Log log = Log.getLog(BaseController.class);
@@ -96,11 +97,9 @@ public class BaseController implements Callable<Integer> {
                 log.error("I/O error:", ex.getMessage());
             } else if (ex instanceof CreationException) {
                 log.error("Failed to create message:" + ex.getMessage());
-            }
-            else if (ex instanceof UpdateException) {
+            } else if (ex instanceof UpdateException) {
                 log.error("Failed to update message:" + ex.getMessage());
-            }
-            else if (ex instanceof UnsupportedOperationException) {
+            } else if (ex instanceof UnsupportedOperationException) {
                 log.error("Operation not supported/implemented:", ex.getMessage());
             } else if (ex instanceof CredentialException) {
                 log.error("Credentials error:", ex.getMessage());
@@ -112,6 +111,8 @@ public class BaseController implements Callable<Integer> {
                 log.error("Unable to perform the diff:", ex.getMessage());
             } else if (ex instanceof ApplyException) {
                 log.error("An error occurred during the apply:", ex.getMessage());
+            } else if (ex instanceof GetException) {
+                log.error("An error occurred during the get:", ex.getMessage());
             } else if (ex instanceof IllegalStateException) {
                 // a little bit ugly, but it works
                 // the problem is in reactor.core.Exceptions
