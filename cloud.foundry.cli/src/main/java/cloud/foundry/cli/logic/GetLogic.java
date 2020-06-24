@@ -1,5 +1,6 @@
 package cloud.foundry.cli.logic;
 
+import cloud.foundry.cli.crosscutting.exceptions.GetException;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
@@ -34,6 +35,7 @@ public class GetLogic {
      * @param clientOperations ClientOperations
      * @param loginOptions LoginCommandOptions
      * @return ConfigBean
+     * @throws GetException if an error occurs during the information retrieving
      */
     public ConfigBean getAll(SpaceDevelopersOperations spaceDevelopersOperations,
                              ServicesOperations servicesOperations,
@@ -49,11 +51,17 @@ public class GetLogic {
         SpecBean specBean = new SpecBean();
         // start async querying of config data from the cloud foundry instance
         Log.debug("Start async querying of apps, services and space developers...");
-        Flux.merge(apiVersion.doOnSuccess(configBean::setApiVersion),
+
+        Flux<Object> getAllRequests = Flux.merge(apiVersion.doOnSuccess(configBean::setApiVersion),
                 spaceDevelopers.doOnSuccess(specBean::setSpaceDevelopers),
                 services.doOnSuccess(specBean::setServices),
-                apps.doOnSuccess(specBean::setApps))
-                .blockLast();
+                apps.doOnSuccess(specBean::setApps));
+
+        try {
+            getAllRequests.blockLast();
+        } catch (RuntimeException e) {
+            throw new GetException(e);
+        }
 
         configBean.setSpec(specBean);
         configBean.setTarget(determineTarget(loginOptions));
@@ -64,27 +72,48 @@ public class GetLogic {
      * Gets all the necessary space-developer-information from a cloud foundry instance.
      *
      * @return List of space-developers.
+     * @throws GetException if an error occurs during the information retrieving
      */
     public List<String> getSpaceDevelopers(SpaceDevelopersOperations spaceDevelopersOperations) {
-        return spaceDevelopersOperations.getAll().block();
+        Mono<List<String>> getSpaceDevelopersRequest = spaceDevelopersOperations.getAll();
+
+        try {
+            return getSpaceDevelopersRequest.block();
+        } catch (RuntimeException e) {
+            throw new GetException(e);
+        }
     }
 
     /**
      * Gets all the necessary service-information from a cloud foundry instance.
      *
      * @return Map of services.
+     * @throws GetException if an error occurs during the information retrieving
      */
     public Map<String, ServiceBean> getServices(ServicesOperations servicesOperations) {
-        return servicesOperations.getAll().block();
+        Mono<Map<String, ServiceBean>> getServicesRequest = servicesOperations.getAll();
+
+        try {
+            return getServicesRequest.block();
+        } catch (RuntimeException e) {
+            throw new GetException(e);
+        }
     }
 
     /**
      * Gets all the necessary application-information from a cloud foundry instance.
      *
      * @return Map of applications.
+     * @throws GetException if an error occurs during the information retrieving
      */
     public Map<String, ApplicationBean> getApplications(ApplicationsOperations applicationsOperations) {
-        return applicationsOperations.getAll().block();
+        Mono<Map<String, ApplicationBean>> getApplicationsRequest = applicationsOperations.getAll();
+
+        try {
+            return getApplicationsRequest.block();
+        } catch (RuntimeException e) {
+            throw new GetException(e);
+        }
     }
 
     /**
