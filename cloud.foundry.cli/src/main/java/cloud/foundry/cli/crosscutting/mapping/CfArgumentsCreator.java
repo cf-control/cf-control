@@ -35,7 +35,7 @@ public class CfArgumentsCreator {
      * For example, it converts the command
      * "command -s spaceValue -a apiValue"
      * into
-     * "command -s spaceValue -a apiValue -o DefaultValueForOrganization"
+     * "command -s <space name> -a <API endpoint> -o <default organization name>"
      * by appending the -o with its default value.
      *
      * @param cli  CommandLine interpreter
