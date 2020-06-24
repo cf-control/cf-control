@@ -27,7 +27,11 @@ import java.util.stream.Collectors;
 
 
 /**
- * Handles the operations for manipulating applications on a cloud foundry instance.
+ * Handles the operations for querying and manipulating applications on a cloud foundry instance.
+ *
+ * To retrieve the data from resulting Mono or Flux objects you can use subscription methods (block, subscribe, etc.)
+ * provided by the reactor library. For more details on how to work with Mono's visit:
+ * https://projectreactor.io/docs/core/release/reference/index.html#core-features
  */
 public class ApplicationsOperations extends AbstractOperations<DefaultCloudFoundryOperations> {
 
@@ -41,13 +45,10 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
     }
 
     /**
-     * This method fetches applications data from the cloud foundry instance.
-     * To retrieve data given by the Mono object you can use the subscription methods (block, subscribe, etc.) provided
-     * by the reactor library.
-     * For more details on how to work with Mono's visit:
-     * https://projectreactor.io/docs/core/release/reference/index.html#core-features
+     * Prepares a request for fetching applications data from the cloud foundry instance.
+     * The resulting mono will not perform any logging by default.
      *
-     * @return Mono object of all applications as list of ApplicationBeans
+     * @return mono object of all applications as map of the application names as key and the ApplicationBeans as value
      */
     public Mono<Map<String, ApplicationBean>> getAll() {
         return this.cloudFoundryOperations
@@ -68,11 +69,12 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
     }
 
     /**
-     * Deletes a specific application associated with the name <code>applicationName</code>.
+     * Prepares a request for deleting a specific application associated with the provided name.
+     * The resulting mono is preconfigured such that it will perform logging.
      *
      * @param applicationName applicationName Name of an application.
      * @throws NullPointerException when the applicationName is null
-     * @return Mono which can be subscribed on to trigger the removal of the app. The mono also handles
+     * @return mono which can be subscribed on to trigger the removal of the app. The mono also handles
      * the logging.
      */
     public Mono<Void> remove(String applicationName) {
@@ -85,15 +87,15 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
 
         return this.cloudFoundryOperations.applications()
                 .delete(request)
-                .doOnSuccess(aVoid -> {
-                    Log.info("Application " + applicationName + " has been successfully removed.");
-                });
+                .doOnSuccess(aVoid -> Log.info("Application " + applicationName + " has been successfully removed."));
     }
 
 
     /**
-     * Creates a mono that can be used to push an app to the cloud foundry instance
-     * specified within the cloud foundry operations instance.
+     * Prepares a request for pushing an app to the cloud foundry instance specified within the cloud
+     * foundry operations instance.
+     * The resulting mono is preconfigured such that it will perform logging.
+     *
      * @param appName     name of the application
      * @param bean        application bean that holds the configuration settings to deploy the app
      *                    to the cloud foundry instance
@@ -104,7 +106,7 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
      * @throws IllegalArgumentException    when neither a path nor a docker image were specified, or app name empty
      * @throws CreationException        when any fatal error occurs during creation of the app
      * @throws SecurityException        when there is no permission to access environment variable CF_DOCKER_PASSWORD
-     * @return Mono which can be subscribed on to trigger the creation of the app
+     * @return mono which can be subscribed on to trigger the creation of the app
      */
     public Mono<Void> create(String appName, ApplicationBean bean, boolean shouldStart) {
         checkNotNull(appName);

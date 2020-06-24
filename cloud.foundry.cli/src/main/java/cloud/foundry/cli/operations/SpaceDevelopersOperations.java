@@ -16,8 +16,11 @@ import java.util.List;
 
 
 /**
- * Handles the operations for manipulating space developers on a cloud foundry
- * instance.
+ * Handles the operations for manipulating space developers on a cloud foundry instance.
+ *
+ * To retrieve the data from resulting Mono or Flux objects you can use subscription methods (block, subscribe, etc.)
+ * provided by the reactor library. For more details on how to work with Mono's visit:
+ * https://projectreactor.io/docs/core/release/reference/index.html#core-features
  */
 public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFoundryOperations> {
 
@@ -26,12 +29,10 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
     }
 
     /**
-     * This method fetches space developers from the cloud foundry instance.
-     * To retrieve data given by the Mono object you can use the subscription methods (block, subscribe, etc.) provided
-     * by the reactor library.
-     * For more details on how to work with Mono's visit:
-     * https://projectreactor.io/docs/core/release/reference/index.html#core-features
-     * @return Mono object which yields the space developers upon subscription
+     * Prepares a request for fetching space developers from the cloud foundry instance.
+     * The resulting mono will not perform any logging by default.
+     *
+     * @return mono object which yields a list containing the space developers upon subscription
      */
     public Mono<List<String>> getAll() {
         ListSpaceUsersRequest request = ListSpaceUsersRequest.builder()
@@ -46,9 +47,11 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
     }
 
     /**
-     * Prepares a request for the space id to the cf instance.
-     * The space id is needed for assigning/removing space developers.
-     * @return Mono object which yields the space id upon subscription
+     * Prepares a request for fetching the space id to the cf instance. The space id is needed for
+     * assigning/removing space developers.
+     * The resulting mono will not perform any logging by default.
+     *
+     * @return mono object which yields the space id upon subscription
      */
     public Mono<String> getSpaceId() {
         return cloudFoundryOperations.getSpaceId();
@@ -56,10 +59,11 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
 
     /**
      * Prepares a request for assigning a space developer to the cf instance.
+     * The resulting mono will not perform any logging by default.
      *
      * @param username email of user to assign as space developer
      * @param spaceId the id of the space
-     * @return Mono object which yields the response upon subscription
+     * @return mono object which yields the response upon subscription
      * @throws NullPointerException if any of the arguments are null
      */
     public Mono<AssociateSpaceDeveloperByUsernameResponse> assign(@Nonnull String username, @Nonnull String spaceId) {
@@ -78,10 +82,11 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
 
     /**
      * Prepares a request for removing a space developer of the cf instance.
+     * The resulting mono will not perform any logging by default.
      *
      * @param username email of user to remove as space developer
      * @param spaceId the id of the space
-     * @return Mono object which yields the response upon subscription
+     * @return mono object which yields the response upon subscription
      * @throws NullPointerException if any of the arguments are null
      */
     public Mono<RemoveSpaceDeveloperByUsernameResponse> remove(String username, String spaceId) {

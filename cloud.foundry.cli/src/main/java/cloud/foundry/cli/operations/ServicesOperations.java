@@ -28,7 +28,11 @@ import java.util.Collections;
 import java.util.Map;
 
 /**
- * Handles the operations for manipulating services on a cloud foundry instance.
+ * Handles the operations for querying and manipulating services on a cloud foundry instance.
+ *
+ * To retrieve the data from resulting Mono or Flux objects you can use subscription methods (block, subscribe, etc.)
+ * provided by the reactor library. For more details on how to work with Mono's visit:
+ * https://projectreactor.io/docs/core/release/reference/index.html#core-features
  */
 public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOperations> {
 
@@ -39,13 +43,10 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
     }
 
     /**
-     * This method fetches services data from the cloud foundry instance. To
-     * retrieve data given by the Mono object you can use the subscription methods
-     * (block, subscribe, etc.) provided by the reactor library. For more details on
-     * how to work with Mono's visit:
-     * https://projectreactor.io/docs/core/release/reference/index.html#core-features
+     * Prepares a request for fetching services data from the cloud foundry instance.
+     * The resulting mono will not perform any logging by default.
      *
-     * @return Mono object of all services as list of ServiceBeans
+     * @return mono object of all services as map of the service names as key and ServiceBeans as value
      */
     public Mono<Map<String, ServiceBean>> getAll() {
         return  this.cloudFoundryOperations.services()
@@ -68,11 +69,11 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
     }
 
     /**
-     * Creates a new service in the space and binds apps to it. In case of an error,
-     * the creation- and binding-process is discontinued.
+     * Prepares a request for creating a new service in the space and to bind apps to it.
+     * The resulting mono is preconfigured such that it will perform logging.
      *
      * @param serviceBean serves as template for the service to create
-     * @return Mono which can be subscribed on to trigger the request to the cf instance
+     * @return mono which can be subscribed on to trigger the creation request to the cf instance
      */
     public Mono<Void> create(String serviceInstanceName, ServiceBean serviceBean) {
 
@@ -92,11 +93,12 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
     }
 
     /**
-     * Rename a service instance
+     * Prepares a request for renaming a service instance.
+     * The resulting mono is preconfigured such that it will perform logging.
      *
-     * @param newName     New Name of the Service Instance
-     * @param currentName Current Name of the Service Instance
-     * @return Mono which can be subscribed on to trigger the request to the cf instance
+     * @param newName     new name of the service instance
+     * @param currentName current name of the service instance
+     * @return mono which can be subscribed on to trigger the renaming request to the cf instance
      */
     public Mono<Void> rename(String newName, String currentName) {
         RenameServiceInstanceRequest renameServiceInstanceRequest = RenameServiceInstanceRequest.builder()
@@ -110,15 +112,17 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
                 .doOnSubscribe(aVoid -> {
                     Log.debug("Rename service:", currentName);
                     Log.debug("With new name:", newName);
-                });
+                })
+                .doOnSuccess(aVoid -> Log.info("Service renamed from", currentName, "to", newName));
     }
 
     /**
-     * Update Tags, Plan of a Service Instance
+     * Prepares a request for updating tags and the plan of a service instance
+     * The resulting mono is preconfigured such that it will perform logging.
      *
-     * @param serviceInstanceName Name of a service instance
+     * @param serviceInstanceName name of a service instance
      * @param serviceBean         serves as template for the service to update
-     * @return Mono which can be subscribed on to trigger the request to the cf instance
+     * @return mono which can be subscribed on to trigger the update request to the cf instance
      */
     public Mono<Void> update(String serviceInstanceName, ServiceBean serviceBean) {
         //TODO:move logs
@@ -132,15 +136,17 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
                         .doOnSubscribe(subscription -> {
                             Log.debug("Update service Instance:", serviceInstanceName);
                             Log.debug("With the bean:", serviceBean);
-                        });
+                        })
+                        .doOnSuccess(aVoid -> Log.info("Service tags and plan updated:", serviceInstanceName));
     }
 
     /**
-     * Deletes all keys and unbinds all routes and applications associated with the
-     * <code>serviceInstanceName</code> and then deletes the service instance.
+     * Prepares a request for deleting all keys, unbinding all routes and applications of a service
+     * instance and then deleting that service instance.
+     * The resulting mono is preconfigured such that it will perform logging.
      *
-     * @param serviceInstanceName serviceInstanceName Name of a service instance.
-     * @return Mono which can be subscribed on to trigger the service deletion
+     * @param serviceInstanceName name of the service instance to remove
+     * @return mono which can be subscribed on to trigger the service deletion
      */
     public Mono<Void> remove(String serviceInstanceName) {
         try {
@@ -170,9 +176,11 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
     }
 
     /**
-     * Delete service keys.
-     * @param serviceInstanceName serviceInstanceName Name of a service instance.
-     * @return Flux which can be subscribed on, to delete the keys
+     * Prepares a request for deleting keys of a service.
+     * The resulting flux is preconfigured such that it will perform logging.
+     *
+     * @param serviceInstanceName name of the service instance to delete the keys from
+     * @return flux which can be subscribed on to delete the keys
      */
     public Flux<Void> deleteKeys(String serviceInstanceName) {
         return getServiceInstance(serviceInstanceName)
@@ -213,9 +221,11 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
     }
 
     /**
-     * Unbind a service instance from all applications.
-     * @param serviceInstanceName serviceInstanceName Name of a service instance.
-     * @return Flux which can be subscribed on, to unbind the apps
+     * Prepares a request for unbinding a service instance from all its applications.
+     * The resulting flux is preconfigured such that it will perform logging.
+     *
+     * @param serviceInstanceName name of the service instance to unbind the applications from
+     * @return flux which can be subscribed on to unbind the applications
      */
     public Flux<Void> unbindApps(String serviceInstanceName) {
         checkNotNull(serviceInstanceName);
@@ -253,11 +263,12 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
     }
 
     /**
-     * Unbinds a service instance <code>serviceInstanceName</code> from all routes.
+     * Prepares a request for unbinding a service instance from all routes.
+     * The resulting flux is preconfigured such that it will perform logging.
      *
-     * @param serviceInstanceName serviceInstanceName Name of a service instance.
-     * @throws NullPointerException when serviceInstanceName is null
-     * @return Flux which can be subscribed on, to unbind the routes
+     * @param serviceInstanceName name of the service instance to unbind all routes from
+     * @throws NullPointerException if the argument is null
+     * @return flux which can be subscribed on to unbind the routes
      */
     public Flux<Void> unbindRoutes(String serviceInstanceName) {
         checkNotNull(serviceInstanceName);

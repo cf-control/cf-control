@@ -135,6 +135,7 @@ public class ServicesOperationsTest {
         Mono<Void> monoUpdatedService = mock(Mono.class);
         when(servicesMock.updateInstance(any(UpdateServiceInstanceRequest.class))).thenReturn(monoUpdatedService);
         when(monoUpdatedService.doOnSubscribe(any())).thenReturn(monoUpdatedService);
+        when(monoUpdatedService.doOnSuccess(any())).thenReturn(monoUpdatedService);
 
         // when
         ServicesOperations servicesOperations = new ServicesOperations(cfMock);
@@ -154,6 +155,7 @@ public class ServicesOperationsTest {
         Mono<Void> monoRenamed = mock(Mono.class);
         when(servicesMock.renameInstance(any(RenameServiceInstanceRequest.class))).thenReturn(monoRenamed);
         when(monoRenamed.doOnSubscribe(any())).thenReturn(monoRenamed);
+        when(monoRenamed.doOnSuccess(any())).thenReturn(monoRenamed);
 
         // when
         ServicesOperations servicesOperations = new ServicesOperations(cfMock);
