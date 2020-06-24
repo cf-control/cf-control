@@ -52,6 +52,8 @@ The loglevel is always configured to the most verbose value the user specified. 
 
 The application also supports a quiet mode, which can be enabled by setting the environment variable `QUIET` to any value or via the `-q/--quiet` CLI option.
 
+You can have the tool create a machine-readable log file by specifying the `--log-file my.log` parameter. The output format is XML and should be straightforward to read and parse.
+
 
 ## Available commands
 
