@@ -57,7 +57,7 @@ public class CfArgumentsCreator {
             }
         }
 
-        Log.info("Missing-Options: " + missingOptions);
+        Log.verbose("User has not passed values for arguments ", missingOptions, ", using default values");
 
         return extendCommandLine(missingOptions, new LinkedList<>(Arrays.asList(args)));
     }
