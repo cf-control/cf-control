@@ -10,13 +10,11 @@ import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
 import java.util.List;
 import java.util.Map;
 
-import cloud.foundry.cli.operations.AbstractOperations;
 import cloud.foundry.cli.operations.ApplicationsOperations;
 import cloud.foundry.cli.operations.ServicesOperations;
 import cloud.foundry.cli.operations.SpaceDevelopersOperations;
 import cloud.foundry.cli.operations.ClientOperations;
 import cloud.foundry.cli.services.LoginCommandOptions;
-import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -24,16 +22,17 @@ import reactor.core.publisher.Mono;
  * Handles the operations to receive all configuration-information from a cloud
  * foundry instance.
  */
-public class GetLogic extends AbstractOperations<DefaultCloudFoundryOperations> {
-
-    public GetLogic(DefaultCloudFoundryOperations cloudFoundryOperations) {
-        super(cloudFoundryOperations);
-    }
+public class GetLogic {
 
     /**
      * Gets all the necessary configuration-information from a cloud foundry
      * instance.
      *
+     * @param spaceDevelopersOperations SpaceDevelopersOperations
+     * @param servicesOperations ServicesOperations
+     * @param applicationsOperations ApplicationsOperations
+     * @param clientOperations ClientOperations
+     * @param loginOptions LoginCommandOptions
      * @return ConfigBean
      */
     public ConfigBean getAll(SpaceDevelopersOperations spaceDevelopersOperations,

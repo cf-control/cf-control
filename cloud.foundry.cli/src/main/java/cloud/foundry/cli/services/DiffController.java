@@ -14,6 +14,7 @@ import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
 import cloud.foundry.cli.logic.DiffLogic;
 import cloud.foundry.cli.logic.GetLogic;
 import cloud.foundry.cli.operations.ApplicationsOperations;
+import cloud.foundry.cli.operations.ClientOperations;
 import cloud.foundry.cli.operations.SpaceDevelopersOperations;
 import cloud.foundry.cli.operations.ServicesOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
@@ -195,10 +196,11 @@ public class DiffController implements Callable<Integer> {
             SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
             ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
             ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
+            ClientOperations clientOperations = new ClientOperations(cfOperations);
 
-            GetLogic getLogic = new GetLogic(cfOperations);
-            ConfigBean currentConfigBean = getLogic.getAll(
-                    spaceDevelopersOperations, servicesOperations, applicationsOperations);
+            GetLogic getLogic = new GetLogic();
+            ConfigBean currentConfigBean = getLogic.getAll(spaceDevelopersOperations, servicesOperations,
+                    applicationsOperations, clientOperations, loginOptions);
             Log.debug("Current Config:", currentConfigBean);
 
             Log.info("Diffing ...");

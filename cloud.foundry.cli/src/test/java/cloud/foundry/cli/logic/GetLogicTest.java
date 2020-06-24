@@ -5,7 +5,6 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -15,17 +14,14 @@ import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
 
 import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
 import cloud.foundry.cli.operations.ApplicationsOperations;
+import cloud.foundry.cli.operations.ClientOperations;
 import cloud.foundry.cli.operations.ServicesOperations;
 import cloud.foundry.cli.operations.SpaceDevelopersOperations;
-import org.cloudfoundry.client.v2.info.GetInfoResponse;
-import org.cloudfoundry.client.v2.info.Info;
-import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
+import cloud.foundry.cli.services.LoginCommandOptions;
 import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
 import org.cloudfoundry.operations.applications.ApplicationManifest;
 import org.cloudfoundry.operations.services.ServiceInstance;
 import org.cloudfoundry.operations.services.ServiceInstanceType;
-import org.cloudfoundry.reactor.DefaultConnectionContext;
-import org.cloudfoundry.reactor.client.ReactorCloudFoundryClient;
 import org.junit.jupiter.api.Test;
 
 import reactor.core.publisher.Mono;
@@ -46,12 +42,7 @@ public class GetLogicTest {
     @Test
     public void testGetAllWithoutConfigurationData() {
         // given
-        DefaultCloudFoundryOperations cfOperationsMock = mockDefaultCloudFoundryOperations("API VERSION",
-                "SOME API ENDPOINT",
-                "development",
-                "cloud.foundry.cli");
-
-        GetLogic getLogic = new GetLogic(cfOperationsMock);
+        GetLogic getLogic = new GetLogic();
 
         SpaceDevelopersOperations mockSpaceDevelopers = mock(SpaceDevelopersOperations.class);
         when(mockSpaceDevelopers.getAll()).thenReturn(Mono.just(Collections.emptyList()));
@@ -66,8 +57,12 @@ public class GetLogicTest {
         ApplicationsOperations mockApplications = mock(ApplicationsOperations.class);
         when(mockApplications.getAll()).thenReturn(monoApplications);
 
+        ClientOperations mockClientOperations = mockClientOperations();
+        LoginCommandOptions mockLoginCommandOptions = mockLoginCommandOptions();
+
         // when
-        ConfigBean configBean = getLogic.getAll(mockSpaceDevelopers, mockServices, mockApplications);
+        ConfigBean configBean = getLogic.getAll(mockSpaceDevelopers, mockServices, mockApplications,
+                mockClientOperations, mockLoginCommandOptions);
 
         // then
         assertThat(configBean.getApiVersion(), is("API VERSION"));
@@ -84,19 +79,17 @@ public class GetLogicTest {
     @Test
     public void testGetAllWithConfigurationData() {
         // given
-        DefaultCloudFoundryOperations cfOperationsMock = mockDefaultCloudFoundryOperations("API VERSION",
-                "SOME API ENDPOINT",
-                "development",
-                "cloud.foundry.cli");
-
         SpaceDevelopersOperations mockSpaceDevelopers = mockSpaceDevelopersOperations();
         ServicesOperations mockServices = mockServicesOperations();
         ApplicationsOperations mockApplications = mockApplicationOperations();
+        ClientOperations mockClientOperations = mockClientOperations();
+        LoginCommandOptions mockLoginCommandOptions = mockLoginCommandOptions();
 
-        GetLogic getLogic = new GetLogic(cfOperationsMock);
+        GetLogic getLogic = new GetLogic();
 
         // when
-        ConfigBean configBean = getLogic.getAll(mockSpaceDevelopers, mockServices, mockApplications);
+        ConfigBean configBean = getLogic.getAll(mockSpaceDevelopers, mockServices,
+                mockApplications, mockClientOperations, mockLoginCommandOptions);
 
         // then
         assertThat(configBean.getApiVersion(), is("API VERSION"));
@@ -133,7 +126,7 @@ public class GetLogicTest {
     public void testGetSpaceDevelopers() {
         // given
         SpaceDevelopersOperations mockSpaceDevelopers = mockSpaceDevelopersOperations();
-        GetLogic getLogic = new GetLogic(null);
+        GetLogic getLogic = new GetLogic();
 
         // when
         List<String> spaceDevelopers = getLogic.getSpaceDevelopers(mockSpaceDevelopers);
@@ -147,13 +140,8 @@ public class GetLogicTest {
     @Test
     public void testGetServices() {
         // given
-        DefaultCloudFoundryOperations cfOperationsMock = mockDefaultCloudFoundryOperations("API VERSION",
-                "SOME API ENDPOINT",
-                "development",
-                "cloud.foundry.cli");
-
         ServicesOperations mockServices = mockServicesOperations();
-        GetLogic getLogic = new GetLogic(cfOperationsMock);
+        GetLogic getLogic = new GetLogic();
 
         // when
         Map<String, ServiceBean> services = getLogic.getServices(mockServices);
@@ -169,13 +157,8 @@ public class GetLogicTest {
     @Test
     public void testGetApplications() {
         // given
-        DefaultCloudFoundryOperations cfOperationsMock = mockDefaultCloudFoundryOperations("API VERSION",
-                "SOME API ENDPOINT",
-                "development",
-                "cloud.foundry.cli");
-
         ApplicationsOperations mockApplications = mockApplicationOperations();
-        GetLogic getLogic = new GetLogic(cfOperationsMock);
+        GetLogic getLogic = new GetLogic();
 
         // when
         Map<String, ApplicationBean> applications = getLogic.getApplications(mockApplications);
@@ -197,41 +180,6 @@ public class GetLogicTest {
         assertThat(appManifest.getRandomRoute(), is(true));
         assertThat(appManifest.getServices().size(), is(1));
         assertThat(appManifest.getServices().get(0), is("appdynamics"));
-    }
-
-    private DefaultCloudFoundryOperations mockDefaultCloudFoundryOperations(String apiVersion,
-                                                                            String apiHost,
-                                                                            String space,
-                                                                            String org) {
-        DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
-        when(cfOperationsMock.getSpace()).thenReturn(space);
-        when(cfOperationsMock.getOrganization()).thenReturn(org);
-        ReactorCloudFoundryClient rclMock = mock(ReactorCloudFoundryClient.class);
-
-        mockDetermineTarget(apiHost, cfOperationsMock, rclMock);
-        mockDetermineApiVersion(apiVersion, rclMock);
-
-        return cfOperationsMock;
-    }
-
-    private void mockDetermineApiVersion(String apiVersion, ReactorCloudFoundryClient rclMock) {
-        Info cfClientInfoMock = mock(Info.class);
-
-        when(rclMock.info()).thenReturn(cfClientInfoMock);
-        when(cfClientInfoMock.get(any()))
-                .thenReturn(Mono.just(GetInfoResponse
-                        .builder()
-                        .apiVersion(apiVersion)
-                        .build()));
-    }
-
-    private void mockDetermineTarget(String apiHost, DefaultCloudFoundryOperations cfOperationsMock,
-                                     ReactorCloudFoundryClient rclMock) {
-        DefaultConnectionContext ccMock = mock(DefaultConnectionContext.class);
-
-        when(cfOperationsMock.getCloudFoundryClient()).thenReturn(rclMock);
-        when(rclMock.getConnectionContext()).thenReturn(ccMock);
-        when(ccMock.getApiHost()).thenReturn(apiHost);
     }
 
     private SpaceDevelopersOperations mockSpaceDevelopersOperations() {
@@ -292,4 +240,21 @@ public class GetLogicTest {
 
         return mockApplications;
     }
+
+    private ClientOperations mockClientOperations() {
+        ClientOperations mockClientOperations = mock(ClientOperations.class);
+        when(mockClientOperations.determineApiVersion()).thenReturn(Mono.just("API VERSION"));
+
+        return mockClientOperations;
+    }
+
+    private LoginCommandOptions mockLoginCommandOptions() {
+        LoginCommandOptions mockLoginCommandOptions = mock(LoginCommandOptions.class);
+        when(mockLoginCommandOptions.getApiHost()).thenReturn("SOME API ENDPOINT");
+        when(mockLoginCommandOptions.getSpace()).thenReturn("development");
+        when(mockLoginCommandOptions.getOrganization()).thenReturn("cloud.foundry.cli");
+
+        return mockLoginCommandOptions;
+    }
+
 }

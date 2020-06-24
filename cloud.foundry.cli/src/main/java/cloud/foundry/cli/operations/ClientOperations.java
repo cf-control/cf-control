@@ -27,5 +27,5 @@ public class ClientOperations extends AbstractOperations<DefaultCloudFoundryOper
         Info cfClientInfo = cfClient.info();
         return cfClientInfo.get(infoRequest).map(GetInfoResponse::getApiVersion);
     }
-    
+
 }

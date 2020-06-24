@@ -8,12 +8,12 @@ import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
 import cloud.foundry.cli.crosscutting.mapping.YamlMapper;
 import cloud.foundry.cli.logic.GetLogic;
 import cloud.foundry.cli.operations.ApplicationsOperations;
+import cloud.foundry.cli.operations.ClientOperations;
 import cloud.foundry.cli.operations.ServicesOperations;
 import cloud.foundry.cli.operations.SpaceDevelopersOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
-import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Map;
@@ -37,15 +37,17 @@ public class GetController implements Callable<Integer> {
     @Override
     public Integer call() throws Exception {
         DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
-        GetLogic getLogic = new GetLogic(cfOperations);
+        GetLogic getLogic = new GetLogic();
         Log.info("Fetching all information for target space...");
 
         SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
         ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
+        ClientOperations clientOperations = new ClientOperations(cfOperations);
 
-        ConfigBean allInformation = getLogic.getAll(
-                spaceDevelopersOperations, servicesOperations, applicationsOperations);
+        ConfigBean allInformation = getLogic.getAll(spaceDevelopersOperations, servicesOperations,
+                applicationsOperations, clientOperations, loginOptions);
+
         System.out.println(YamlMapper.dump(allInformation));
         return 0;
     }
@@ -57,7 +59,7 @@ public class GetController implements Callable<Integer> {
         @Override
         public Integer call() throws Exception {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
-            GetLogic getLogic = new GetLogic(cfOperations);
+            GetLogic getLogic = new GetLogic();
             Log.info("Fetching information of space developers...");
 
             SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
@@ -73,7 +75,7 @@ public class GetController implements Callable<Integer> {
         @Override
         public Integer call() throws Exception {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
-            GetLogic getLogic = new GetLogic(cfOperations);
+            GetLogic getLogic = new GetLogic();
             Log.info("Fetching information for services...");
 
             ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
@@ -91,7 +93,7 @@ public class GetController implements Callable<Integer> {
         @Override
         public Integer call() throws Exception {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
-            GetLogic getLogic = new GetLogic(cfOperations);
+            GetLogic getLogic = new GetLogic();
             Log.info("Fetching information for apps...");
 
             ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
