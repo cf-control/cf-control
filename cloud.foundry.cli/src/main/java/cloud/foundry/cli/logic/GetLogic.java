@@ -29,41 +29,64 @@ import reactor.core.publisher.Mono;
  * foundry instance.
  */
 public class GetLogic extends AbstractOperations<DefaultCloudFoundryOperations> {
-
     public GetLogic(DefaultCloudFoundryOperations cloudFoundryOperations) {
         super(cloudFoundryOperations);
     }
 
     /**
-     * Gets all the necessary configuration-information from a cloud foundry instance.
+     * Gets all the necessary configuration-information from a cloud foundry
+     * instance.
      *
      * @return ConfigBean
      */
     public ConfigBean getAll() {
-        SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cloudFoundryOperations);
-        ServicesOperations servicesOperations = new ServicesOperations(cloudFoundryOperations);
-        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cloudFoundryOperations);
-
         Mono<String> apiVersion = determineApiVersion();
-        Mono<List<String>> spaceDevelopers = spaceDevelopersOperations.getAll();
-        Mono<Map<String, ServiceBean>> services = servicesOperations.getAll();
-        Mono<Map<String, ApplicationBean>> apps = applicationsOperations.getAll();
-
+        Mono<List<String>> spaceDevelopers = getSpaceDevelopers();
+        Mono<Map<String, ServiceBean>> services = getServices();
+        Mono<Map<String, ApplicationBean>> apps = getApplications();
         ConfigBean configBean = new ConfigBean();
         SpecBean specBean = new SpecBean();
-
         // start async querying of config data from the cloud foundry instance
         Log.debug("Start async querying of apps, services and space developers...");
         Flux.merge(apiVersion.doOnSuccess(configBean::setApiVersion),
                 spaceDevelopers.doOnSuccess(specBean::setSpaceDevelopers),
                 services.doOnSuccess(specBean::setServices),
                 apps.doOnSuccess(specBean::setApps))
-            .blockLast();
+                .blockLast();
 
         configBean.setSpec(specBean);
         configBean.setTarget(determineTarget());
-
         return configBean;
+    }
+
+    /**
+     * Gets all the necessary space-developer-information from a cloud foundry instance.
+     *
+     * @return List of space-developers.
+     */
+    public Mono<List<String>> getSpaceDevelopers() {
+        SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cloudFoundryOperations);
+        return spaceDevelopersOperations.getAll();
+    }
+
+    /**
+     * Gets all the necessary service-information from a cloud foundry instance.
+     *
+     * @return Map of services.
+     */
+    public Mono<Map<String, ServiceBean>> getServices() {
+        ServicesOperations servicesOperations = new ServicesOperations(cloudFoundryOperations);
+        return servicesOperations.getAll();
+    }
+
+    /**
+     * Gets all the necessary application-information from a cloud foundry instance.
+     *
+     * @return Map of applications.
+     */
+    public Mono<Map<String, ApplicationBean>> getApplications() {
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cloudFoundryOperations);
+        return applicationsOperations.getAll();
     }
 
     /**
@@ -75,24 +98,23 @@ public class GetLogic extends AbstractOperations<DefaultCloudFoundryOperations> 
         CloudFoundryClient cfClient = cloudFoundryOperations.getCloudFoundryClient();
         GetInfoRequest infoRequest = GetInfoRequest.builder().build();
         Info cfClientInfo = cfClient.info();
-
         return cfClientInfo.get(infoRequest).map(GetInfoResponse::getApiVersion);
     }
 
     /**
-     * Determines the Target-Node configuration-information from a cloud foundry instance.
+     * Determines the Target-Node configuration-information from a cloud foundry
+     * instance.
      *
      * @return TargetBean
      */
     private TargetBean determineTarget() {
         ReactorCloudFoundryClient rcl = (ReactorCloudFoundryClient) cloudFoundryOperations.getCloudFoundryClient();
         DefaultConnectionContext cc = (DefaultConnectionContext) rcl.getConnectionContext();
-
         TargetBean target = new TargetBean();
         target.setEndpoint(cc.getApiHost());
         target.setOrg(cloudFoundryOperations.getOrganization());
         target.setSpace(cloudFoundryOperations.getSpace());
-
         return target;
     }
+
 }

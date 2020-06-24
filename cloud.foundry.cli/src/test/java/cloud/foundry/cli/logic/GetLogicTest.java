@@ -3,13 +3,16 @@ package cloud.foundry.cli.logic;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationManifestBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
 import org.cloudfoundry.client.v2.info.GetInfoResponse;
 import org.cloudfoundry.client.v2.info.Info;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
@@ -35,6 +38,7 @@ import java.util.Arrays;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Test for {@link GetLogic}
@@ -138,6 +142,117 @@ public class GetLogicTest {
         assertThat(configBean.getSpec().getApps().containsKey("testApp"), is(true));
         assertThat(configBean.getSpec().getApps().get("testApp").getPath(), is(Paths.get("some/path").toString()));
         ApplicationManifestBean appManifest = configBean.getSpec().getApps().get("testApp").getManifest();
+        assertThat(appManifest.getBuildpack(), is("buildpack"));
+        assertThat(appManifest.getDisk(), is(1024));
+        assertThat(appManifest.getEnvironmentVariables().size(), is(1));
+        assertThat(appManifest.getEnvironmentVariables().get("key"), is("value"));
+        assertThat(appManifest.getHealthCheckType(), is(ApplicationHealthCheck.HTTP));
+        assertThat(appManifest.getInstances(), is(3));
+        assertThat(appManifest.getMemory(), is(1024));
+        assertThat(appManifest.getRandomRoute(), is(true));
+        assertThat(appManifest.getServices().size(), is(1));
+        assertThat(appManifest.getServices().get(0), is("appdynamics"));
+    }
+
+    @Test
+    public void testGetSpaceDevelopers() {
+        // given
+        DefaultCloudFoundryOperations cfOperationsMock = mockDefaultCloudFoundryOperations(
+                "API VERSION",
+                "SOME API ENDPOINT",
+                "development",
+                "cloud.foundry.cli");
+
+        mockSpaceDevelopersOperations(Arrays.asList("spaceDeveloper1", "spaceDeveloper2"), cfOperationsMock);
+
+        GetLogic getLogic = new GetLogic(cfOperationsMock);
+
+        // when
+        List<String> spaceDevelopers = getLogic.getSpaceDevelopers().block();
+
+        // then
+        assertThat(spaceDevelopers, is(notNullValue()));
+        assertThat(spaceDevelopers.size(), is(2));
+        assertThat(spaceDevelopers, contains("spaceDeveloper1", "spaceDeveloper2"));
+    }
+
+    @Test
+    public void testGetServices() {
+        // given
+        DefaultCloudFoundryOperations cfOperationsMock = mockDefaultCloudFoundryOperations("API VERSION",
+                "SOME API ENDPOINT",
+                "development",
+                "cloud.foundry.cli");
+
+        ServiceInstance serviceInstanceMock = ServiceInstance.builder()
+                .service("appdynamics")
+                .id("some-id")
+                .type(ServiceInstanceType.MANAGED)
+                .plan("apm")
+                .name("appdyn")
+                .tags(Arrays.asList("tag"))
+                .build();
+
+        ServiceInstanceSummary serviceInstanceSummary = ServiceInstanceSummary.builder()
+                .service("appdynamics")
+                .id("some-id")
+                .type(ServiceInstanceType.MANAGED)
+                .plan("apm")
+                .name("appdyn")
+                .tags(Arrays.asList("tag"))
+                .build();
+
+        mockServicesOperations(Arrays.asList(serviceInstanceSummary), Arrays.asList(serviceInstanceMock),
+                cfOperationsMock);
+
+        GetLogic getLogic = new GetLogic(cfOperationsMock);
+
+        // when
+        Map<String, ServiceBean> services = getLogic.getServices().block();
+
+        // then
+        assertThat(services, is(notNullValue()));
+        assertThat(services.size(), is(1));
+        assertThat(services.containsKey("appdyn"), is(true));
+        assertThat(services.get("appdyn").getService(), is("appdynamics"));
+        assertThat(services.get("appdyn").getPlan(), is("apm"));
+    }
+
+    @Test
+    public void testGetApplications() {
+        // given
+        DefaultCloudFoundryOperations cfOperationsMock = mockDefaultCloudFoundryOperations("API VERSION",
+                "SOME API ENDPOINT",
+                "development",
+                "cloud.foundry.cli");
+
+        ApplicationManifest applicationManifestMock = ApplicationManifest.builder()
+                .name("testApp")
+                .buildpack("buildpack")
+                .disk(1024)
+                .environmentVariable("key", "value")
+                .healthCheckType(ApplicationHealthCheck.HTTP)
+                .instances(3)
+                .memory(1024)
+                .path(Paths.get("some/path"))
+                .randomRoute(true)
+                .services("appdynamics")
+                .build();
+
+        mockApplicationOperations(Arrays.asList(applicationManifestMock), cfOperationsMock);
+
+        GetLogic getLogic = new GetLogic(cfOperationsMock);
+
+        // when
+        Map<String, ApplicationBean> applications = getLogic.getApplications().block();
+
+        // then
+        assertThat(applications, is(notNullValue()));
+        assertThat(applications.size(), is(1));
+        assertThat(applications.containsKey("testApp"), is(true));
+        assertThat(applications.get("testApp").getPath(), is(Paths.get("some/path").toString()));
+
+        ApplicationManifestBean appManifest = applications.get("testApp").getManifest();
         assertThat(appManifest.getBuildpack(), is("buildpack"));
         assertThat(appManifest.getDisk(), is(1024));
         assertThat(appManifest.getEnvironmentVariables().size(), is(1));
