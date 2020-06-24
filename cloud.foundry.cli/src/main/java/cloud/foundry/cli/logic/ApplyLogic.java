@@ -60,7 +60,6 @@ public class ApplyLogic {
         DiffLogic diffLogic = new DiffLogic();
         Log.info("Comparing the applications...");
         DiffResult wrappedDiff = diffLogic.createDiffResult(liveApplicationsConfig, desiredApplicationsConfig);
-        System.out.println(diffLogic.createDiffOutput(liveApplicationsConfig, desiredApplicationsConfig));
         Log.info("Applications compared.");
 
         Map<String, List<CfChange>> allApplicationChanges = wrappedDiff.getApplicationChanges();

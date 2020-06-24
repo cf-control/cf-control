@@ -72,7 +72,8 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
      *
      * @param applicationName applicationName Name of an application.
      * @throws NullPointerException when the applicationName is null
-     * @return Mono which can be subscribed on to trigger the removal of the app
+     * @return Mono which can be subscribed on to trigger the removal of the app. The mono also handles
+     * the logging.
      */
     public Mono<Void> remove(String applicationName) {
         checkNotNull(applicationName);
@@ -91,8 +92,8 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
 
 
     /**
-     * Pushes the app to the cloud foundry instance specified within the cloud foundry operations instance
-     *
+     * Creates a mono that can be used to push an app to the cloud foundry instance
+     * specified within the cloud foundry operations instance.
      * @param appName     name of the application
      * @param bean        application bean that holds the configuration settings to deploy the app
      *                    to the cloud foundry instance

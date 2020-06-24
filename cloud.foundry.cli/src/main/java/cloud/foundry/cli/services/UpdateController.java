@@ -231,7 +231,7 @@ public class UpdateController implements Callable<Integer> {
                 try {
                     toRename.block();
                 } catch (RuntimeException e) {
-                    throw new CreationException(e.getMessage());
+                    throw new UpdateException(e);
                 }
                 Log.info("Service name changed: ", serviceName);
                 Mono<Void> toUpdate = servicesOperations.update(serviceName, serviceBean);
