@@ -135,7 +135,7 @@ public class CreateController implements Callable<Integer> {
                 // TODO: find better solution
                 cfOperations.getOrganizationId().block();
                 Flux.fromIterable(serviceBeans.entrySet())
-                        // delay that's used to to avoid race conditions and not deterministic errors
+                        // delay that's used to to avoid race conditions and non-deterministic errors
                         // on the cloud foundry side
                         // TODO: find better solution if possible
                         .delayElements(Duration.ofSeconds(1))
