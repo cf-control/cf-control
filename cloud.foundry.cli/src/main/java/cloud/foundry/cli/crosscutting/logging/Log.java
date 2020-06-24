@@ -192,9 +192,8 @@ public class Log {
 
         // configure child loggers' loglevel
         // otherwise, they won't emit the log records correctly
-        for (String logName : logInstances.keySet()) {
-            Logger logger = logInstances.get(logName).logger;
-            logger.setLevel(level);
+        for (Log log : logInstances.values()) {
+            log.logger.setLevel(level);
         }
 
         // configure handlers of base logger to show messages of this log level
