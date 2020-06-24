@@ -66,12 +66,12 @@ public class ApplyLogic {
         Map<String, List<CfChange>> allApplicationChanges = wrappedDiff.getApplicationChanges();
         ApplicationsOperations appOperations = new ApplicationsOperations(cfOperations);
 
-        Flux.fromIterable(allApplicationChanges.entrySet())
+        Flux<Void> applicationRequests = Flux.fromIterable(allApplicationChanges.entrySet())
                 .flatMap( appChangeEntry -> ApplicationRequestsPlaner.create(appOperations, appChangeEntry.getKey(),
                         appChangeEntry.getValue()))
                 .doOnSubscribe(subscription -> System.out.println(Thread.currentThread().getName()))
-                .onErrorContinue((throwable, o) -> throwable.printStackTrace())
-                .blockLast();
+                .onErrorContinue((throwable, o) -> throwable.printStackTrace());
+        applicationRequests.blockLast();
 
         Log.info("Applying changes to applications...");
     }
