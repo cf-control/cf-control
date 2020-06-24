@@ -22,7 +22,7 @@ public class CfArgumentsCreator {
     /**
      * Name of the property file, which contains default values
      */
-    private static final String CF_CONTROL_PROPERTIES = "cf_control.properties";
+    private static final String CF_CONTROL_PROPERTIES = "cf-control.properties";
 
     /**
      * This method reads in arguments passed on the command line.

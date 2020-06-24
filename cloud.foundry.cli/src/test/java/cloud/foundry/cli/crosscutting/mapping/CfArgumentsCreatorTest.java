@@ -28,6 +28,21 @@ public class CfArgumentsCreatorTest {
     }
 
     @Test
+    public void determineCommandLineShouldExtendTheCommandLineArgumentsIfOneRelevantOptionIsMissing() {
+        // given
+        BaseController controller = new BaseController();
+        CommandLine cli = new CommandLine(controller);
+
+        // when
+        String[] result = CfArgumentsCreator.determineCommandLine(cli,
+                new String[]{"diff", "services", "-s", "development", "-y", "somePath"});
+
+        // then
+        assertThat(result, arrayContaining("diff", "services", "-s", "development", "-y", "somePath", "-a",
+                "api.run.pivotal.io", "-o", "cloud.foundry.cli"));
+    }
+
+    @Test
     public void determineCommandLineShouldNotExtendTheCommandLineArgumentsIfAllRelevantOptionsArePassed() {
         // given
         BaseController controller = new BaseController();
