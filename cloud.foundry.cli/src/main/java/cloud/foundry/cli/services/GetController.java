@@ -31,6 +31,8 @@ import java.util.concurrent.Callable;
 })
 public class GetController implements Callable<Integer> {
 
+    private static final Log log = Log.getLog(GetController.class);
+
     @Mixin
     private static LoginCommandOptions loginOptions;
 
@@ -38,7 +40,7 @@ public class GetController implements Callable<Integer> {
     public Integer call() throws Exception {
         DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
         GetLogic getLogic = new GetLogic();
-        Log.info("Fetching all information for target space...");
+        log.info("Fetching all information for target space...");
 
         SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
         ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
@@ -56,11 +58,13 @@ public class GetController implements Callable<Integer> {
             description = "List all space developers in the target space.",
             mixinStandardHelpOptions = true)
     static class GetSpaceDevelopersCommand implements Callable<Integer> {
+        private static final Log log = Log.getLog(GetSpaceDevelopersCommand.class);
+
         @Override
         public Integer call() throws Exception {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             GetLogic getLogic = new GetLogic();
-            Log.info("Fetching information of space developers...");
+            log.info("Fetching information of space developers...");
 
             SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
             List<String> spaceDevelopers = getLogic.getSpaceDevelopers(spaceDevelopersOperations);
@@ -72,11 +76,14 @@ public class GetController implements Callable<Integer> {
 
     @Command(name = "services", description = "List all services in the target space.", mixinStandardHelpOptions = true)
     static class GetServicesCommand implements Callable<Integer> {
+
+        private static final Log log = Log.getLog(GetServicesCommand.class);
+
         @Override
         public Integer call() throws Exception {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             GetLogic getLogic = new GetLogic();
-            Log.info("Fetching information for services...");
+            log.info("Fetching information for services...");
 
             ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
             Map<String, ServiceBean> services = getLogic.getServices(servicesOperations);
@@ -90,11 +97,14 @@ public class GetController implements Callable<Integer> {
             description = "List all applications in the target space.",
             mixinStandardHelpOptions = true)
     static class GetApplicationsCommand implements Callable<Integer> {
+
+        private static final Log log = Log.getLog(GetApplicationsCommand.class);
+
         @Override
         public Integer call() throws Exception {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             GetLogic getLogic = new GetLogic();
-            Log.info("Fetching information for apps...");
+            log.info("Fetching information for apps...");
 
             ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
             Map<String, ApplicationBean> applications = getLogic.getApplications(applicationsOperations);
