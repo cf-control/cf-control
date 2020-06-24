@@ -1,5 +1,7 @@
 package cloud.foundry.cli.crosscutting.logging;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -302,6 +304,14 @@ public class LogTest {
 
         // now all messages should be handled
         assertNoMessagesRecorded();
+    }
+
+    @Test
+    public void testLogFactoryMethodWithClassOutsideNativePackage() {
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> Log.getLog(Test.class)
+        );
     }
 
 }
