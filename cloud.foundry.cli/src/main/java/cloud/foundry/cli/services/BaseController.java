@@ -16,7 +16,6 @@ import picocli.CommandLine;
 import picocli.CommandLine.Option;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.concurrent.Callable;
 
 /**

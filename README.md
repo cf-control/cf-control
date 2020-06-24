@@ -122,10 +122,10 @@ The application also supports a quiet mode, which can be enabled by setting the 
 ##### [HINT - DEFAULT VALUES FOR SOME PARAMS]
 
 Since the parameters `api`, `organization` and `space` are rarely changed, there is a property file 
-in the directory that defines default values \
+in the directory that defines default values   
 (see `cloud.foundry.cli/src/main/resources/cf_control.properties`).
 
-So the default-values are:
+So the default values are:
 ```
   -a=api.run.pivotal.io
   -o=cloud.foundry.cli
@@ -136,11 +136,11 @@ This reduces the number of program parameters to be called.
 However, if a value other than the default value is required, 
 this corresponding parameter can be set with its value in the program call.
 
-*The specification is:*\
-Passed value -> overwrites default value \
+*The specification is:*  
+Passed value -> overwrites default value  
 No value -> default value is used 
 
-  for example, you can run the command: \
+  for example, you can run the command:   
   ```java -jar cf-control.jar get services -a api.run.pivotal.io -o cloud.foundry.cli -s development -u mustermann@test.com -p somePassword;)```
 
 

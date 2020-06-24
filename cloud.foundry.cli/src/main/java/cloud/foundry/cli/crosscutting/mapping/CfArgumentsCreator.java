@@ -25,18 +25,14 @@ public class CfArgumentsCreator {
     private static final String CF_CONTROL_PROPERTIES = "cf_control.properties";
 
     /**
-     * The method determines the commandline arguments.
-     * The following specification applies:
-     * when the command is called and one of the option <code>space</code> or / and <code>api</code>
-     * or / and <code>organization</code> is missing,
-     * the method extends the CommandLine with the corresponding option and
-     * sets a default value for this, which has been configured in a property file.
-     * <p>
-     * For example, it converts the command
-     * "command -s space value -a api value"
-     * into
-     * "command -s spaceValue -a apiValue -o DefaultValueForOrganization"
-     * by appending the -o with its default value.
+     * This method reads in arguments passed on the command line.
+     * The tool uses default values unless the user overwrites them by passing parameters on the CLI.
+     * The default values are defined in a properties file which is compiled into the application.
+     *
+     * Example:
+     * A call "command -s <space name> -a <API endpoint>" would be extended to
+     * "command -s <space name> -a <API endpoint> -o <default organization name>",
+     * where the default organization name is taken from the properties file.
      *
      * @param cli  CommandLine interpreter
      * @param args Commandline arguments
@@ -46,6 +42,7 @@ public class CfArgumentsCreator {
         List<String> optionNames = Arrays.asList("-a", "-o", "-s");
         List<String> missingOptions = new ArrayList<>();
 
+        // to receive the options of the command, you have to go down until the last 'subcommand'
         ParseResult parseResult = cli.parseArgs(args);
         while (parseResult.hasSubcommand()) {
             parseResult = parseResult.subcommand();
@@ -57,7 +54,7 @@ public class CfArgumentsCreator {
             }
         }
 
-        Log.info("Missing-Options: " + missingOptions);
+        Log.verbose("User has not passed values for arguments ", missingOptions, ", using default values");
 
         return extendCommandLine(missingOptions, new LinkedList<>(Arrays.asList(args)));
     }
@@ -86,6 +83,7 @@ public class CfArgumentsCreator {
             });
         } catch (IOException ex) {
             Log.error(ex.getMessage());
+            System.exit(1);
         }
 
         return args.toArray(new String[0]);
