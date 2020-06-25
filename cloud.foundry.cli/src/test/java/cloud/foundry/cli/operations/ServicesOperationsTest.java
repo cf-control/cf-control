@@ -1,9 +1,9 @@
 package cloud.foundry.cli.operations;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.contains;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -111,16 +111,24 @@ public class ServicesOperationsTest {
         ServiceBean serviceBean = mockServiceBean();
         DefaultCloudFoundryOperations cfMock = Mockito.mock(DefaultCloudFoundryOperations.class);
         Services servicesMock = Mockito.mock(Services.class);
-        Mono<Void> monoCreated = mock(Mono.class);
+
+        Mono<Void> mono = Mono.empty();
         Mockito.when(cfMock.services()).thenReturn(servicesMock);
         Mockito.when(servicesMock.createInstance(any(CreateServiceInstanceRequest.class)))
-            .thenReturn(monoCreated);
-        Mockito.when(monoCreated.doOnSubscribe(any())).thenReturn(monoCreated);
-        Mockito.when(monoCreated.doOnSuccess(any())).thenReturn(monoCreated);
-        // when + then
+            .thenReturn(mono);
+
         ServicesOperations servicesOperations = new ServicesOperations(cfMock);
-        Mono<Void> toCreate = servicesOperations.create(serviceInstanceName, serviceBean);
-        assertEquals(toCreate, monoCreated);
+
+        // when
+        Mono<Void> actualMono = servicesOperations.create(serviceInstanceName, serviceBean);
+        actualMono.block();
+
+        // then
+        assertThat(actualMono, notNullValue());
+        verify(servicesMock, times(1)).createInstance(any(CreateServiceInstanceRequest.class));
+        StepVerifier.create(actualMono)
+                .expectComplete()
+                .verify();
     }
 
     @Test
@@ -132,17 +140,19 @@ public class ServicesOperationsTest {
         Services servicesMock = Mockito.mock(Services.class);
         when(cfMock.services()).thenReturn(servicesMock);
 
-        Mono<Void> monoUpdatedService = mock(Mono.class);
-        when(servicesMock.updateInstance(any(UpdateServiceInstanceRequest.class))).thenReturn(monoUpdatedService);
-        when(monoUpdatedService.doOnSubscribe(any())).thenReturn(monoUpdatedService);
-        when(monoUpdatedService.doOnSuccess(any())).thenReturn(monoUpdatedService);
+        Mono<Void> mono = Mono.empty();
+        when(servicesMock.updateInstance(any(UpdateServiceInstanceRequest.class))).thenReturn(mono);
 
         // when
         ServicesOperations servicesOperations = new ServicesOperations(cfMock);
-        Mono<Void> voidMono = servicesOperations.update(serviceInstanceName, serviceBeanMock);
+        Mono<Void> actualMono = servicesOperations.update(serviceInstanceName, serviceBeanMock);
 
         // then
-        assertEquals(monoUpdatedService, voidMono);
+        assertThat(mono, notNullValue());
+        verify(servicesMock, times(1)).updateInstance(any(UpdateServiceInstanceRequest.class));
+        StepVerifier.create(actualMono)
+                .expectComplete()
+                .verify();
     }
 
     @Test
@@ -152,17 +162,20 @@ public class ServicesOperationsTest {
         Services servicesMock = Mockito.mock(Services.class);
         when(cfMock.services()).thenReturn(servicesMock);
 
-        Mono<Void> monoRenamed = mock(Mono.class);
-        when(servicesMock.renameInstance(any(RenameServiceInstanceRequest.class))).thenReturn(monoRenamed);
-        when(monoRenamed.doOnSubscribe(any())).thenReturn(monoRenamed);
-        when(monoRenamed.doOnSuccess(any())).thenReturn(monoRenamed);
+        Mono<Void> mono = Mono.empty();
+        when(servicesMock.renameInstance(any(RenameServiceInstanceRequest.class))).thenReturn(mono);
 
         // when
         ServicesOperations servicesOperations = new ServicesOperations(cfMock);
         Mono<Void> actualMono = servicesOperations.rename("newname", "currentname");
+        actualMono.block();
 
         // then
-        assertEquals(monoRenamed, actualMono);
+        assertThat(actualMono, notNullValue());
+        verify(servicesMock, times(1)).renameInstance(any(RenameServiceInstanceRequest.class));
+        StepVerifier.create(actualMono)
+                .expectComplete()
+                .verify();
     }
 
     @Test
@@ -187,16 +200,16 @@ public class ServicesOperationsTest {
         ServiceKey serviceKey2 = ServiceKey.builder().id("someid").name("name2").build();
 
         DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
-        Services serivcesMock = mock(Services.class);
+        Services servicesMock = mock(Services.class);
         Routes routesMock = mock(Routes.class);
 
-        mockGetServiceInstance(cfOperationsMock, serivcesMock, serviceInstance);
+        mockGetServiceInstance(cfOperationsMock, servicesMock, serviceInstance);
         mockListRoutes(cfOperationsMock, routesMock, Arrays.asList(route1, route2, route3));
-        mockUnbindRoute(cfOperationsMock, serivcesMock);
-        mockUnbindApp(cfOperationsMock, serivcesMock);
-        mockListServiceKeys(cfOperationsMock, serivcesMock, Arrays.asList(serviceKey, serviceKey2));
-        mockDeleteServiceKey(cfOperationsMock, serivcesMock);
-        mockDeleteServiceInstance(cfOperationsMock, serivcesMock);
+        mockUnbindRoute(cfOperationsMock, servicesMock);
+        mockUnbindApp(cfOperationsMock, servicesMock);
+        mockListServiceKeys(cfOperationsMock, servicesMock, Arrays.asList(serviceKey, serviceKey2));
+        mockDeleteServiceKey(cfOperationsMock, servicesMock);
+        mockDeleteServiceInstance(cfOperationsMock, servicesMock);
 
         ServicesOperations servicesOperations = new ServicesOperations(cfOperationsMock);
 
@@ -205,12 +218,12 @@ public class ServicesOperationsTest {
         request.block();
 
         // then
-        verify(serivcesMock, times(2)).getInstance(any());
+        verify(servicesMock, times(2)).getInstance(any());
         verify(routesMock,times(1)).list(any());
-        verify(serivcesMock,times(2)).unbindRoute(any());
-        verify(serivcesMock,times(2)).unbind(any());
-        verify(serivcesMock,times(1)).listServiceKeys(any());
-        verify(serivcesMock,times(2)).deleteServiceKey(any());
+        verify(servicesMock,times(2)).unbindRoute(any());
+        verify(servicesMock,times(2)).unbind(any());
+        verify(servicesMock,times(1)).listServiceKeys(any());
+        verify(servicesMock,times(2)).deleteServiceKey(any());
         StepVerifier.create(request)
                 .expectNext()
                 .expectComplete()
@@ -255,7 +268,6 @@ public class ServicesOperationsTest {
         verify(servicesMock, times(0)).unbindRoute(any(UnbindRouteServiceInstanceRequest.class));
         StepVerifier
                 .create(request)
-                .expectNext()
                 .expectComplete()
                 .verify();
     }
@@ -287,8 +299,6 @@ public class ServicesOperationsTest {
         verify(routesMock, times(1)).list(any());
         verify(servicesMock, times(2)).unbindRoute(any());
         StepVerifier.create(requests)
-                .expectNext()
-                .expectNext()
                 .expectComplete()
                 .verify();
     }
@@ -353,8 +363,6 @@ public class ServicesOperationsTest {
         verify(servicesMock, times(1)).getInstance(any());
         verify(servicesMock, times(2)).unbind(any());
         StepVerifier.create(requests)
-                .expectNext()
-                .expectNext()
                 .expectComplete()
                 .verify();
     }
@@ -428,8 +436,6 @@ public class ServicesOperationsTest {
         verify(servicesMock, times(1)).listServiceKeys(any());
         verify(servicesMock, times(2)).deleteServiceKey(any());
         StepVerifier.create(requests)
-                .expectNext()
-                .expectNext()
                 .expectComplete()
                 .verify();
     }
