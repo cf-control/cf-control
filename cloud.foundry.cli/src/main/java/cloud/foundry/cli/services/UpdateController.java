@@ -3,18 +3,25 @@ package cloud.foundry.cli.services;
 import static picocli.CommandLine.Command;
 import static picocli.CommandLine.Mixin;
 
+import java.util.List;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Scanner;
 import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
+import cloud.foundry.cli.crosscutting.exceptions.CreationException;
+import cloud.foundry.cli.crosscutting.exceptions.UpdateException;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.SpaceDevelopersBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
 import cloud.foundry.cli.operations.ApplicationsOperations;
 import cloud.foundry.cli.operations.SpaceDevelopersOperations;
+import org.cloudfoundry.client.v2.ClientV2Exception;
+import org.cloudfoundry.client.v2.spaces.RemoveSpaceDeveloperByUsernameResponse;
 import picocli.CommandLine.Option;
 
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
@@ -22,6 +29,8 @@ import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
 import cloud.foundry.cli.crosscutting.mapping.YamlMapper;
 import cloud.foundry.cli.operations.ServicesOperations;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 /**
  * This class realizes the functionality that is needed for the update commands.
@@ -56,18 +65,62 @@ public class UpdateController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            log.info("Removing space developers...");
-
+            log.info("Interpreting YAML file...");
             SpaceDevelopersBean spaceDevelopersBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(),
-                SpaceDevelopersBean.class);
+                    SpaceDevelopersBean.class);
+            log.info("Loading YAML file...");
 
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
 
-            spaceDevelopersOperations.removeSpaceDeveloper(spaceDevelopersBean.getSpaceDevelopers());
-            log.info("Space Developers removed: ", String.valueOf(spaceDevelopersBean.getSpaceDevelopers()));
+            List<String> spaceDevelopers = spaceDevelopersBean.getSpaceDevelopers();
+            if (spaceDevelopers == null || spaceDevelopers.isEmpty()) {
+                log.info("There are no space developers to remove.");
+                return 0;
+            }
+            if (spaceDevelopers.contains(null)) {
+                log.error("The space developers must not contain null.");
+                return 1;
+            }
 
-            return 0;
+            log.info("Fetching space id...");
+            String spaceId = spaceDevelopersOperations.getSpaceId().block();
+            log.info("Space id fetched.");
+
+            assert (spaceId != null);
+
+            log.info("Removing space developers...");
+
+            // signals if any error occurred during the removal of the space developers
+            AtomicReference<Boolean> errorOccurred = new AtomicReference<>(false);
+
+            List<Mono<RemoveSpaceDeveloperByUsernameResponse>> assignRequests = spaceDevelopers.stream()
+                .map(spaceDeveloper ->
+                    spaceDevelopersOperations.remove(spaceDeveloper, spaceId)
+                        .doOnSuccess(response -> onSuccessfulRemoval(spaceDeveloper))
+                        .onErrorContinue(this::whenClientException,
+                                (throwable, o) -> onErrorDuringRemoval(throwable, spaceDeveloper, errorOccurred))
+                )
+                .collect(Collectors.toList());
+
+            Flux.merge(assignRequests).blockLast();
+            return errorOccurred.get() ? 1 : 0;
+        }
+
+        private boolean whenClientException(Throwable throwable) {
+            return (throwable instanceof ClientV2Exception);
+        }
+
+        private void onSuccessfulRemoval(String spaceDeveloper) {
+            log.verbose(spaceDeveloper, "successfully removed.");
+        }
+
+        private void onErrorDuringRemoval(Throwable exception, String spaceDeveloper,
+                                          AtomicReference<Boolean> errorOccurred) {
+            log.error("An error occurred when trying to remove " + spaceDeveloper + ":", exception.getMessage());
+
+            // marks that at least a single error has occurred
+            errorOccurred.set(true);
         }
     }
 
@@ -120,9 +173,7 @@ public class UpdateController implements Callable<Integer> {
 
             // try to remove all services on a best-effort basis
             // the method should handle errors and log them appropriately
-            doRemoveServiceInstance(services);
-            
-            return 0;
+            return doRemoveServiceInstance(services);
         }
 
         private Map<String, ServiceBean> readServicesFromYamlFile() throws IOException {
@@ -136,7 +187,7 @@ public class UpdateController implements Callable<Integer> {
          * @param services services to remove
          * @return true on success, false if there were errors
          */
-        private boolean doRemoveServiceInstance(Map<String, ServiceBean> services) {
+        private int doRemoveServiceInstance(Map<String, ServiceBean> services) {
             log.info("Removing services...");
 
             DefaultCloudFoundryOperations cfOperations;
@@ -145,27 +196,28 @@ public class UpdateController implements Callable<Integer> {
                 cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             } catch (Exception e) {
                 log.error("Failed to create CF operations: ", e.getMessage());
-                return false;
+                return 1;
             }
 
             ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
 
-            // I'm optimistic at the beginning of this loop
-            // prove me wrong!
-            boolean success = true;
+            // signals if any error occurred during the removal of the services
+            AtomicReference<Boolean> errorOccurred = new AtomicReference<>(false);
 
-            for (Entry<String, ServiceBean> serviceEntry : services.entrySet()) {
-                String serviceName = serviceEntry.getKey();
+            cfOperations.getOrganizationId().block();
+            Flux.fromIterable(services.entrySet())
+                    .flatMap(entry -> servicesOperations.remove(entry.getKey()))
+                    .onErrorContinue((throwable, o) -> setFlagAndLogError(throwable, errorOccurred))
+                    .blockLast();
 
-                try {
-                    servicesOperations.removeServiceInstance(serviceName);
-                } catch (Exception e) {
-                    log.error("Failed to remove service ", serviceName, ": ", e.getMessage());
-                    success = false;
-                }
-            }
+            return errorOccurred.get() ? 1 : 0;
+        }
 
-            return success;
+        private void setFlagAndLogError(Throwable throwable, AtomicReference<Boolean> errorOccurred) {
+            log.error(throwable);
+
+            // marks that at least a single error has occurred
+            errorOccurred.set(true);
         }
     }
 
@@ -188,9 +240,24 @@ public class UpdateController implements Callable<Integer> {
 
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
-            applicationBeans.keySet().forEach(applicationsOperations::removeApplication);
 
-            return 0;
+            // signals if any error occurred during the removal of the applications
+            AtomicReference<Boolean> errorOccurred = new AtomicReference<>(false);
+
+            cfOperations.getOrganizationId().block();
+            Flux.fromIterable(applicationBeans.keySet())
+                    .flatMap(applicationsOperations::remove)
+                    .onErrorContinue((throwable, o) -> setFlagAndLogError(throwable, errorOccurred))
+                    .blockLast();
+
+            return errorOccurred.get() ? 1 : 0;
+        }
+
+        private void setFlagAndLogError(Throwable throwable, AtomicReference<Boolean> errorOccurred) {
+            log.error(throwable);
+
+            // marks that at least a single error has occurred
+            errorOccurred.set(true);
         }
     }
 
@@ -219,9 +286,19 @@ public class UpdateController implements Callable<Integer> {
                 ServiceBean serviceBean = serviceEntry.getValue();
 
                 // "currentName" is currently a placeholder until diff is implemented
-                servicesOperations.renameServiceInstance(serviceName, "currentName");
+                Mono<Void> toRename = servicesOperations.rename(serviceName, "currentName");
+                try {
+                    toRename.block();
+                } catch (RuntimeException e) {
+                    throw new UpdateException(e);
+                }
                 log.info("Service name changed: ", serviceName);
-                servicesOperations.updateServiceInstance(serviceName, serviceBean);
+                Mono<Void> toUpdate = servicesOperations.update(serviceName, serviceBean);
+                try {
+                    toUpdate.block();
+                } catch (RuntimeException e) {
+                    throw new UpdateException(e);
+                }
                 log.info("Service Plan and Tags haven been updated of service:", serviceName);
             }
 

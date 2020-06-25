@@ -17,6 +17,8 @@ repositories {
     // Use jcenter for resolving dependencies.
     // You can declare any Maven/Ivy/file repository here.
     jcenter()
+    maven { url 'https://repo.spring.io/snapshot' }
+    mavenCentral()
 }
 
 //https://medium.com/@raveensr/how-to-add-checkstyle-and-findbugs-plugins-in-a-gradle-based-project-51759aa843be
@@ -47,6 +49,7 @@ dependencies {
     compile 'org.javers:javers-core:5.9.0'
 
     testCompile "com.github.tomakehurst:wiremock-jre8:2.26.3"
+    testCompile "io.projectreactor:reactor-test:3.4.0-SNAPSHOT"
 
     // Use JUnit test framework
     testRuntime("org.junit.jupiter:junit-jupiter-engine:5.5.2")

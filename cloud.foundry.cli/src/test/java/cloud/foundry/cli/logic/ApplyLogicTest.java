@@ -78,7 +78,7 @@ public class ApplyLogicTest {
         applicationBean.setManifest(manifestBean);
         manifestBean.setBuildpack("someBuildpack");
         applicationsToApply.put(applicationName, applicationBean);
-        
+
         ApplyLogic applyLogic = new ApplyLogic(cfOperationsMock);
 
         // when
@@ -86,7 +86,6 @@ public class ApplyLogicTest {
 
         // then
         verify(applicationsMock).list();
-        verify(pushManifestMonoMock).block();
 
         PushApplicationManifestRequest actualReceivedPushRequest = receivedPushRequest.get();
         assertThat(actualReceivedPushRequest, is(notNullValue()));
