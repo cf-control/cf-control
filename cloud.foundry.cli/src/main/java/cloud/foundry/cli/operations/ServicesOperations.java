@@ -194,7 +194,7 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
                                 .listServiceKeys(createListServiceKeysRequest(serviceInstanceName))
                                 .doOnComplete(() -> Log.info("All service keys of service instance "
                                         + serviceInstanceName + " have been deleted."))
-                        : Flux.empty()).doOnComplete(() -> Log.info("There were no keys to delete."))
+                        : Flux.empty()).doOnComplete(() -> Log.verbose("There were no keys to delete."))
                 .flatMap(key -> doDeleteKey(serviceInstanceName, key));
     }
 
@@ -233,7 +233,7 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
         return getServiceInstance(serviceInstanceName)
                 .flatMapIterable(serviceInstance -> {
                     if (serviceInstance.getApplications() == null || serviceInstance.getApplications().isEmpty()) {
-                        Log.info("There is no application to unbind!");
+                        Log.verbose("There is no application to unbind!");
                         return Collections.emptyList();
                     } else {
                         return serviceInstance.getApplications();
