@@ -257,7 +257,6 @@ public class UpdateController implements Callable<Integer> {
                 Mono<Void> toUpdate = servicesOperations.update(serviceName, serviceBean);
                 try {
                     toUpdate.block();
-                    Log.info("Service Plan and Tags haven been updated");
                 } catch (RuntimeException e) {
                     throw new UpdateException(e);
                 }
