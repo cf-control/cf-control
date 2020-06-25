@@ -2,6 +2,7 @@ package cloud.foundry.cli.operations;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import cloud.foundry.cli.crosscutting.logging.Log;
 import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperByUsernameRequest;
 import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperByUsernameResponse;
 import org.cloudfoundry.client.v2.spaces.RemoveSpaceDeveloperByUsernameRequest;
@@ -59,7 +60,7 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
 
     /**
      * Prepares a request for assigning a space developer to the cf instance.
-     * The resulting mono will not perform any logging by default.
+     * The resulting mono is preconfigured such that it will perform logging.
      *
      * @param username email of user to assign as space developer
      * @param spaceId the id of the space
@@ -77,12 +78,14 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
 
         return cloudFoundryOperations.getCloudFoundryClient()
                 .spaces()
-                .associateDeveloperByUsername(request);
+                .associateDeveloperByUsername(request)
+                .doOnSubscribe(subscription -> Log.debug("Assigning a space developer:", username))
+                .doOnSuccess(subscription -> Log.debug("Space developer: ", username, " was assigned"));
     }
 
     /**
      * Prepares a request for removing a space developer of the cf instance.
-     * The resulting mono will not perform any logging by default.
+     * The resulting mono is preconfigured such that it will perform logging.
      *
      * @param username email of user to remove as space developer
      * @param spaceId the id of the space
@@ -101,6 +104,8 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
 
         return cloudFoundryOperations.getCloudFoundryClient()
                 .spaces()
-                .removeDeveloperByUsername(request);
+                .removeDeveloperByUsername(request)
+                .doOnSubscribe(subscription -> Log.debug("Removing a space developer:", username))
+                .doOnSuccess(subscription -> Log.debug("Space developer: ", username, " was removed"));
     }
 }

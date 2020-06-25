@@ -213,7 +213,7 @@ class SpaceDevelopersOperationsTest {
             when(spacesMock.associateDeveloperByUsername(any(AssociateSpaceDeveloperByUsernameRequest.class)))
                     .then(invocation -> {
                         assignmentRequest.set(invocation.getArgument(0));
-                        return mock(Mono.class);
+                        return Mono.empty();
                     });
 
             return assignmentRequest;
@@ -231,7 +231,7 @@ class SpaceDevelopersOperationsTest {
             when(spacesMock.removeDeveloperByUsername(any(RemoveSpaceDeveloperByUsernameRequest.class)))
                     .then(invocation -> {
                         removalRequest.set(invocation.getArgument(0));
-                        return mock(Mono.class);
+                        return Mono.empty();
                     });
 
             return removalRequest;
