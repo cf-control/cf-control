@@ -128,7 +128,7 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                         .manifest(buildApplicationManifest(appName, bean))
                         .noStart(!shouldStart)
                         .build())
-                .onErrorContinue(this::whenServiceNotFound, (throwable, o) -> Log.warning(throwable.getMessage()))
+                .onErrorContinue(this::whenServiceNotFound, Log::warning)
                 .doOnSubscribe(subscription -> {
                     Log.debug("Create app:", appName);
                     Log.debug("Bean of the app:", bean);

@@ -106,16 +106,12 @@ public class ApplicationsOperationsTest {
         ApplicationManifest appManifest = createMockApplicationManifest();
         DefaultCloudFoundryOperations cfoMock = mock(DefaultCloudFoundryOperations.class);
         Applications applicationsMock = mock(Applications.class);
-        Mono<Void> monoMock = mock(Mono.class);
 
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfoMock);
 
         when(cfoMock.applications()).thenReturn(applicationsMock);
         when(applicationsMock.pushManifest(any(PushApplicationManifestRequest.class)))
-                .thenReturn(monoMock);
-        when(monoMock.onErrorContinue(any(Predicate.class), any())).thenReturn(monoMock);
-        when(monoMock.doOnSubscribe(any())).thenReturn(monoMock);
-        when(monoMock.doOnSuccess(any())).thenReturn(monoMock);
+                .thenReturn(Mono.empty());
 
         ApplicationBean applicationsBean = new ApplicationBean(appManifest);
         applicationsBean.setPath("some/path");
@@ -126,9 +122,6 @@ public class ApplicationsOperationsTest {
         //then
         assertThat(request, notNullValue());
         verify(applicationsMock, times(1)).pushManifest(any(PushApplicationManifestRequest.class));
-        verify(monoMock, times(1)).onErrorContinue( any(Predicate.class), any());
-        verify(monoMock, times(1)).doOnSubscribe(any());
-        verify(monoMock, times(1)).doOnSuccess(any());
     }
 
     @Test
@@ -209,9 +202,7 @@ public class ApplicationsOperationsTest {
         Applications applicationsMock = mock(Applications.class);
         when(cfoMock.applications()).thenReturn(applicationsMock);
 
-        Mono<Void> monoVoid = mock(Mono.class);
-        when(applicationsMock.delete(any())).thenReturn(monoVoid);
-        when(monoVoid.doOnSuccess(any())).thenReturn(monoVoid);
+        when(applicationsMock.delete(any())).thenReturn(Mono.empty());
 
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfoMock);
 
