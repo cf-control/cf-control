@@ -137,7 +137,7 @@ public class UpdateController implements Callable<Integer> {
         public Integer call() throws Exception {
 
             if (force != null) {
-                doRemoveServiceInstance(yamlCommandOptions);
+                return doRemoveServiceInstance(yamlCommandOptions);
             } else {
                 if (System.console() == null) {
                     Log.error("--force/-f not supplied and not running in terminal, aborting");
@@ -149,18 +149,16 @@ public class UpdateController implements Callable<Integer> {
                 String input = scanner.nextLine();
                 scanner.close();
                 if (input.equals("y") || input.equals("yes")) {
-                    doRemoveServiceInstance(yamlCommandOptions);
+                    return doRemoveServiceInstance(yamlCommandOptions);
                 } else {
                     System.out.println("Delete cancelled");
 
                     return 1;
                 }
             }
-
-            return 0;
         }
 
-        private void doRemoveServiceInstance(YamlCommandOptions yamlCommandOptions) throws Exception {
+        private int doRemoveServiceInstance(YamlCommandOptions yamlCommandOptions) throws Exception {
             Log.info("Removing services...");
             SpecBean specBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
             Map<String, ServiceBean> serviceBeans = specBean.getServices();
@@ -168,11 +166,23 @@ public class UpdateController implements Callable<Integer> {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
 
+            // signals if any error occurred during the assignment of the space developers
+            AtomicReference<Boolean> errorOccurred = new AtomicReference<>(false);
+
             cfOperations.getOrganizationId().block();
             Flux.fromIterable(serviceBeans.entrySet())
                     .flatMap(entry -> servicesOperations.remove(entry.getKey()))
-                    .onErrorContinue(Log::warning)
+                    .onErrorContinue((throwable, o) -> setFlagAndLogError(throwable, errorOccurred))
                     .blockLast();
+
+            return errorOccurred.get() ? 1 : 0;
+        }
+
+        private void setFlagAndLogError(Throwable throwable, AtomicReference<Boolean> errorOccurred) {
+            Log.error(throwable);
+
+            // marks that at least a single error has occurred
+            errorOccurred.set(true);
         }
     }
 
