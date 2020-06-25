@@ -70,7 +70,7 @@ public class ApplyLogic {
         Flux<Void> applicationRequests = Flux.fromIterable(allApplicationChanges.entrySet())
                 .flatMap( appChangeEntry -> ApplicationRequestsPlaner.create(appOperations, appChangeEntry.getKey(),
                         appChangeEntry.getValue()))
-                .onErrorContinue(Log::warning);
+                .onErrorContinue(log::warning);
         applicationRequests.blockLast();
 
         log.info("Applying changes to applications...");

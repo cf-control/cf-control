@@ -88,10 +88,10 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
 
         return this.cloudFoundryOperations.services().createInstance(createServiceRequest)
                 .doOnSubscribe(aVoid -> {
-                    Log.debug("Create service:", serviceInstanceName);
-                    Log.debug("Bean of the service:", serviceBean);
+                    log.debug("Create service:", serviceInstanceName);
+                    log.debug("Bean of the service:", serviceBean);
                 })
-                .doOnSuccess(aVoid -> Log.info("Service created:", serviceInstanceName));
+                .doOnSuccess(aVoid -> log.info("Service created:", serviceInstanceName));
     }
 
     /**
@@ -112,10 +112,10 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
         return this.cloudFoundryOperations.services()
                 .renameInstance(renameServiceInstanceRequest)
                 .doOnSubscribe(aVoid -> {
-                    Log.debug("Rename service:", currentName);
-                    Log.debug("With new name:", newName);
+                    log.debug("Rename service:", currentName);
+                    log.debug("With new name:", newName);
                 })
-                .doOnSuccess(aVoid -> Log.info("Service renamed from", currentName, "to", newName));
+                .doOnSuccess(aVoid -> log.info("Service renamed from", currentName, "to", newName));
     }
 
     /**
@@ -136,10 +136,10 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
                 return this.cloudFoundryOperations.services()
                         .updateInstance(updateServiceInstanceRequest)
                         .doOnSubscribe(subscription -> {
-                            Log.debug("Update service Instance:", serviceInstanceName);
-                            Log.debug("With the bean:", serviceBean);
+                            log.debug("Update service Instance:", serviceInstanceName);
+                            log.debug("With the bean:", serviceBean);
                         })
-                        .doOnSuccess(aVoid -> Log.info("Service tags and plan updated:", serviceInstanceName));
+                        .doOnSuccess(aVoid -> log.info("Service tags and plan updated:", serviceInstanceName));
     }
 
     /**
@@ -167,7 +167,7 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
     private Mono<Void> deleteServiceInstance(String serviceInstanceName) {
         return this.cloudFoundryOperations.services()
                 .deleteInstance(createDeleteServiceInstanceRequest(serviceInstanceName))
-                .doOnSuccess(aVoid -> Log.info("Service " + serviceInstanceName + " has been removed."));
+                .doOnSuccess(aVoid -> log.info("Service " + serviceInstanceName + " has been removed."));
     }
 
     private DeleteServiceInstanceRequest createDeleteServiceInstanceRequest(String serviceInstanceName) {
@@ -194,9 +194,9 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
                         ? cloudFoundryOperations
                                 .services()
                                 .listServiceKeys(createListServiceKeysRequest(serviceInstanceName))
-                                .doOnComplete(() -> Log.info("All service keys of service instance "
+                                .doOnComplete(() -> log.info("All service keys of service instance "
                                         + serviceInstanceName + " have been deleted."))
-                        : Flux.empty()).doOnComplete(() -> Log.verbose("There were no keys to delete."))
+                        : Flux.empty()).doOnComplete(() -> log.verbose("There were no keys to delete."))
                 .flatMap(key -> doDeleteKey(serviceInstanceName, key));
     }
 
@@ -211,8 +211,8 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
         return this.cloudFoundryOperations
                 .services()
                 .deleteServiceKey(createDeleteServiceKeyRequest(serviceInstanceName, key))
-                .doOnSubscribe(subscription -> Log.info("Deleting key " + key + " for " + serviceInstanceName))
-                .doOnSuccess(aVoid -> Log.info("Deleted key " + key + " for service " + serviceInstanceName));
+                .doOnSubscribe(subscription -> log.info("Deleting key " + key + " for " + serviceInstanceName))
+                .doOnSuccess(aVoid -> log.info("Deleted key " + key + " for service " + serviceInstanceName));
     }
 
     private DeleteServiceKeyRequest createDeleteServiceKeyRequest(String serviceInstanceName, ServiceKey key) {
@@ -235,14 +235,14 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
         return getServiceInstance(serviceInstanceName)
                 .flatMapIterable(serviceInstance -> {
                     if (serviceInstance.getApplications() == null || serviceInstance.getApplications().isEmpty()) {
-                        Log.verbose("There is no application to unbind!");
+                        log.verbose("There is no application to unbind!");
                         return Collections.emptyList();
                     } else {
                         return serviceInstance.getApplications();
                     }
                 })
                 .flatMap(appName -> doUnbindApp(serviceInstanceName, appName))
-                .doOnComplete(() -> Log.info("All applications of service instance "
+                .doOnComplete(() -> log.info("All applications of service instance "
                         + serviceInstanceName + " have been unbound."));
     }
 
@@ -250,9 +250,9 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
         return this.cloudFoundryOperations
                 .services()
                 .unbind(createUnbindServiceInstanceRequest(serviceInstanceName, applicationName))
-                .doOnSubscribe(subscription -> Log.info("Unbind app " + applicationName +
+                .doOnSubscribe(subscription -> log.info("Unbind app " + applicationName +
                         " for " + serviceInstanceName))
-                .doOnSuccess(subscription -> Log.info("Unbound app " + applicationName +
+                .doOnSuccess(subscription -> log.info("Unbound app " + applicationName +
                         " for " + serviceInstanceName));
     }
 
@@ -279,7 +279,7 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
                 .list(ListRoutesRequest.builder().build())
                 .filter(route -> route.getService() != null && route.getService().equals(serviceInstanceName))
                 .flatMap(this::doUnbindRoute)
-                .doOnComplete(() -> Log.info("All routes to service instance "
+                .doOnComplete(() -> log.info("All routes to service instance "
                         + serviceInstanceName + " have been unbound."));
     }
 
@@ -287,7 +287,7 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
         return this.cloudFoundryOperations
                 .services()
                 .unbindRoute(createRouteServiceInstanceRequest(route))
-                .doOnSubscribe(subscription -> Log.info("unbind route " + route));
+                .doOnSubscribe(subscription -> log.info("unbind route " + route));
     }
 
     private UnbindRouteServiceInstanceRequest createRouteServiceInstanceRequest(Route route) {

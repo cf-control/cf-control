@@ -59,31 +59,31 @@ public class CreateController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            Log.info("Interpreting YAML file...");
+            log.info("Interpreting YAML file...");
             SpaceDevelopersBean spaceDevelopersBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(),
                     SpaceDevelopersBean.class);
-            Log.info("Loading YAML file...");
+            log.info("Loading YAML file...");
 
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
 
             List<String> spaceDevelopers = spaceDevelopersBean.getSpaceDevelopers();
             if (spaceDevelopers == null || spaceDevelopers.isEmpty()) {
-                Log.info("There are no space developers to assign.");
+                log.info("There are no space developers to assign.");
                 return 0;
             }
             if (spaceDevelopers.contains(null)) {
-                Log.error("The space developers must not contain null.");
+                log.error("The space developers must not contain null.");
                 return 1;
             }
 
-            Log.info("Fetching space id...");
+            log.info("Fetching space id...");
             String spaceId = spaceDevelopersOperations.getSpaceId().block();
-            Log.info("Space id fetched.");
+            log.info("Space id fetched.");
 
             assert (spaceId != null);
 
-            Log.info("Assigning space developers...");
+            log.info("Assigning space developers...");
 
             // signals if any error occurred during the assignment of the space developers
             AtomicReference<Boolean> errorOccurred = new AtomicReference<>(false);
@@ -102,11 +102,11 @@ public class CreateController implements Callable<Integer> {
         }
 
         private void onSuccessfulAssignment(String spaceDeveloper) {
-            Log.verbose(spaceDeveloper, "successfully assigned.");
+            log.verbose(spaceDeveloper, "successfully assigned.");
         }
 
         private void onErrorDuringAssignment(Throwable exception, AtomicReference<Boolean> errorOccurred) {
-            Log.error("An error occurred during space developer assignment:", exception.getMessage());
+            log.error("An error occurred during space developer assignment:", exception.getMessage());
 
             // marks that at least a single error has occurred
             errorOccurred.set(true);
@@ -158,7 +158,7 @@ public class CreateController implements Callable<Integer> {
         }
 
         private void setFlagAndLogError(Throwable throwable, AtomicReference<Boolean> errorOccurred) {
-            Log.error(throwable);
+            log.error(throwable);
 
             // marks that at least a single error has occurred
             errorOccurred.set(true);
@@ -201,7 +201,7 @@ public class CreateController implements Callable<Integer> {
         }
 
         private void setFlagAndLogError(Throwable throwable, AtomicReference<Boolean> errorOccurred) {
-            Log.error(throwable);
+            log.error(throwable);
 
             // marks that at least a single error has occurred
             errorOccurred.set(true);

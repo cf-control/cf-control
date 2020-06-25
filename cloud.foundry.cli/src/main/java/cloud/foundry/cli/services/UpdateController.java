@@ -65,31 +65,31 @@ public class UpdateController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            Log.info("Interpreting YAML file...");
+            log.info("Interpreting YAML file...");
             SpaceDevelopersBean spaceDevelopersBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(),
                     SpaceDevelopersBean.class);
-            Log.info("Loading YAML file...");
+            log.info("Loading YAML file...");
 
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
 
             List<String> spaceDevelopers = spaceDevelopersBean.getSpaceDevelopers();
             if (spaceDevelopers == null || spaceDevelopers.isEmpty()) {
-                Log.info("There are no space developers to remove.");
+                log.info("There are no space developers to remove.");
                 return 0;
             }
             if (spaceDevelopers.contains(null)) {
-                Log.error("The space developers must not contain null.");
+                log.error("The space developers must not contain null.");
                 return 1;
             }
 
-            Log.info("Fetching space id...");
+            log.info("Fetching space id...");
             String spaceId = spaceDevelopersOperations.getSpaceId().block();
-            Log.info("Space id fetched.");
+            log.info("Space id fetched.");
 
             assert (spaceId != null);
 
-            Log.info("Removing space developers...");
+            log.info("Removing space developers...");
 
             // signals if any error occurred during the removal of the space developers
             AtomicReference<Boolean> errorOccurred = new AtomicReference<>(false);
@@ -112,12 +112,12 @@ public class UpdateController implements Callable<Integer> {
         }
 
         private void onSuccessfulRemoval(String spaceDeveloper) {
-            Log.verbose(spaceDeveloper, "successfully removed.");
+            log.verbose(spaceDeveloper, "successfully removed.");
         }
 
         private void onErrorDuringRemoval(Throwable exception, String spaceDeveloper,
                                           AtomicReference<Boolean> errorOccurred) {
-            Log.error("An error occurred when trying to remove " + spaceDeveloper + ":", exception.getMessage());
+            log.error("An error occurred when trying to remove " + spaceDeveloper + ":", exception.getMessage());
 
             // marks that at least a single error has occurred
             errorOccurred.set(true);
@@ -126,6 +126,8 @@ public class UpdateController implements Callable<Integer> {
 
     @Command(name = "remove-service", description = "Removes a service instance.")
     static class RemoveServiceInstanceCommand implements Callable<Integer> {
+
+        private static final Log log = Log.getLog(RemoveServiceInstanceCommand.class);
 
         @Mixin
         LoginCommandOptions loginOptions;
@@ -171,9 +173,7 @@ public class UpdateController implements Callable<Integer> {
 
             // try to remove all services on a best-effort basis
             // the method should handle errors and log them appropriately
-            doRemoveServiceInstance(services);
-
-            return 0;
+            return doRemoveServiceInstance(services);
         }
 
         private Map<String, ServiceBean> readServicesFromYamlFile() throws IOException {
@@ -187,7 +187,7 @@ public class UpdateController implements Callable<Integer> {
          * @param services services to remove
          * @return true on success, false if there were errors
          */
-        private boolean doRemoveServiceInstance(Map<String, ServiceBean> services) {
+        private int doRemoveServiceInstance(Map<String, ServiceBean> services) {
             log.info("Removing services...");
 
             DefaultCloudFoundryOperations cfOperations;
@@ -196,7 +196,7 @@ public class UpdateController implements Callable<Integer> {
                 cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             } catch (Exception e) {
                 log.error("Failed to create CF operations: ", e.getMessage());
-                return false;
+                return 1;
             }
 
             ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
@@ -205,7 +205,7 @@ public class UpdateController implements Callable<Integer> {
             AtomicReference<Boolean> errorOccurred = new AtomicReference<>(false);
 
             cfOperations.getOrganizationId().block();
-            Flux.fromIterable(serviceBeans.entrySet())
+            Flux.fromIterable(services.entrySet())
                     .flatMap(entry -> servicesOperations.remove(entry.getKey()))
                     .onErrorContinue((throwable, o) -> setFlagAndLogError(throwable, errorOccurred))
                     .blockLast();
@@ -214,7 +214,7 @@ public class UpdateController implements Callable<Integer> {
         }
 
         private void setFlagAndLogError(Throwable throwable, AtomicReference<Boolean> errorOccurred) {
-            Log.error(throwable);
+            log.error(throwable);
 
             // marks that at least a single error has occurred
             errorOccurred.set(true);
@@ -254,7 +254,7 @@ public class UpdateController implements Callable<Integer> {
         }
 
         private void setFlagAndLogError(Throwable throwable, AtomicReference<Boolean> errorOccurred) {
-            Log.error(throwable);
+            log.error(throwable);
 
             // marks that at least a single error has occurred
             errorOccurred.set(true);
@@ -292,15 +292,15 @@ public class UpdateController implements Callable<Integer> {
                 } catch (RuntimeException e) {
                     throw new UpdateException(e);
                 }
-                Log.info("Service name changed: ", serviceName);
+                log.info("Service name changed: ", serviceName);
                 Mono<Void> toUpdate = servicesOperations.update(serviceName, serviceBean);
                 try {
                     toUpdate.block();
-                    Log.info("Service Plan and Tags haven been updated");
+                    log.info("Service Plan and Tags haven been updated");
                 } catch (RuntimeException e) {
                     throw new UpdateException(e);
                 }
-                Log.info("Service Plan and Tags haven been updated of service:", serviceName);
+                log.info("Service Plan and Tags haven been updated of service:", serviceName);
             }
 
             return 0;

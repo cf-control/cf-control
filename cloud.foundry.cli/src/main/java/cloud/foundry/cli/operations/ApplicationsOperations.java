@@ -89,7 +89,7 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
 
         return this.cloudFoundryOperations.applications()
                 .delete(request)
-                .doOnSuccess(aVoid -> Log.info("Application " + applicationName + " has been successfully removed."));
+                .doOnSuccess(aVoid -> log.info("Application " + applicationName + " has been successfully removed."));
     }
 
 
@@ -130,13 +130,13 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                         .manifest(buildApplicationManifest(appName, bean))
                         .noStart(!shouldStart)
                         .build())
-                .onErrorContinue(this::whenServiceNotFound, Log::warning)
+                .onErrorContinue(this::whenServiceNotFound, log::warning)
                 .doOnSubscribe(subscription -> {
-                    Log.debug("Create app:", appName);
-                    Log.debug("Bean of the app:", bean);
-                    Log.debug("Should the app start:", shouldStart);
+                    log.debug("Create app:", appName);
+                    log.debug("Bean of the app:", bean);
+                    log.debug("Should the app start:", shouldStart);
                 })
-                .doOnSuccess(aVoid -> Log.info("App created:", appName));
+                .doOnSuccess(aVoid -> log.info("App created:", appName));
     }
 
     private boolean whenServiceNotFound(Throwable throwable) {
