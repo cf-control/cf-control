@@ -201,7 +201,7 @@ public class UpdateController implements Callable<Integer> {
 
             ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
 
-            // signals if any error occurred during the assignment of the space developers
+            // signals if any error occurred during the removal of the services
             AtomicReference<Boolean> errorOccurred = new AtomicReference<>(false);
 
             cfOperations.getOrganizationId().block();
@@ -241,7 +241,7 @@ public class UpdateController implements Callable<Integer> {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
 
-            // signals if any error occurred during the assignment of the space developers
+            // signals if any error occurred during the removal of the applications
             AtomicReference<Boolean> errorOccurred = new AtomicReference<>(false);
 
             cfOperations.getOrganizationId().block();

@@ -134,7 +134,7 @@ public class CreateController implements Callable<Integer> {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
 
-            // signals if any error occurred during the assignment of the space developers
+            // signals if any error occurred during the creation of the services
             AtomicReference<Boolean> errorOccurred = new AtomicReference<>(false);
 
             try {
@@ -186,7 +186,7 @@ public class CreateController implements Callable<Integer> {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
 
-            // signals if any error occurred during the assignment of the space developers
+            // signals if any error occurred during the creation of the applications
             AtomicReference<Boolean> errorOccurred = new AtomicReference<>(false);
 
             // do so that authorization has taken place. else leads to authorization problems
