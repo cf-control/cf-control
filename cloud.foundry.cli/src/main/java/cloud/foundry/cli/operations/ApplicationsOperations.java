@@ -35,6 +35,8 @@ import java.util.stream.Collectors;
  */
 public class ApplicationsOperations extends AbstractOperations<DefaultCloudFoundryOperations> {
 
+    private static final Log log = Log.getLog(ApplicationsOperations.class);
+
     /**
      * Name of the environment variable that hold the docker password.
      */

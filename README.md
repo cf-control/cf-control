@@ -52,6 +52,8 @@ The loglevel is always configured to the most verbose value the user specified. 
 
 The application also supports a quiet mode, which can be enabled by setting the environment variable `QUIET` to any value or via the `-q/--quiet` CLI option.
 
+You can have the tool create a machine-readable log file by specifying the `--log-file my.log` parameter. The output format is XML and should be straightforward to read and parse.
+
 
 ## Available commands
 
@@ -59,7 +61,7 @@ The application also supports a quiet mode, which can be enabled by setting the 
 
 ```
   create          Create a new app, service instance or add a new space developer.
-  get             Get the current configuration of your cf instance.
+  get             Show all information of your cf instance.
   diff            Print the differences between the given yaml file and the configuration of your cf instance.
   apply           Apply the configuration from a given yaml file to your cf instance.
   update          Update/Remove apps, service instances or space developers.
@@ -81,7 +83,6 @@ The application also supports a quiet mode, which can be enabled by setting the 
   services          List all services in the target space.
   space-developers  List all space developers in the target space.
   applications      List all applications in the target space.
-  all               Show all information in the target space.
 ```
 
 
@@ -94,6 +95,8 @@ The application also supports a quiet mode, which can be enabled by setting the 
                      the configuration of the space-developers of your cf instance.
    services          Print the differences between the services given in the yaml file and
                      the configuration of the services of your cf instance.
+    all              Print the differences between the configuration in the yaml file and
+                     the configuration of your cf instance.
 ```
 
 ##### update [SUBCOMMAND]
@@ -118,8 +121,28 @@ The application also supports a quiet mode, which can be enabled by setting the 
   -y, --yaml=<yamlFile>                  The path to the yaml file. (Not needed for the get commands)
 ```
 
+##### [HINT - DEFAULT VALUES FOR SOME PARAMS]
 
-  for example, you can run the command: \
+Since the parameters `api`, `organization` and `space` are rarely changed, there is a property file 
+in the directory that defines default values   
+(see `cloud.foundry.cli/src/main/resources/cf_control.properties`).
+
+So the default values are:
+```
+  -a=api.run.pivotal.io
+  -o=cloud.foundry.cli
+  -s=development
+```
+
+This reduces the number of program parameters to be called.
+However, if a value other than the default value is required, 
+this corresponding parameter can be set with its value in the program call.
+
+*The specification is:*  
+Passed value -> overwrites default value  
+No value -> default value is used 
+
+  for example, you can run the command:   
   ```java -jar cf-control.jar get services -a api.run.pivotal.io -o cloud.foundry.cli -s development -u mustermann@test.com -p somePassword;)```
 
 

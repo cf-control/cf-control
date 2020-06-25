@@ -25,6 +25,8 @@ import java.util.List;
  */
 public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFoundryOperations> {
 
+    private static final Log log = Log.getLog(SpaceDevelopersOperations.class);
+
     public SpaceDevelopersOperations(DefaultCloudFoundryOperations cfOperations) {
         super(cfOperations);
     }

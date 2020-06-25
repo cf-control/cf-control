@@ -23,6 +23,8 @@ import java.util.List;
  */
 public class ApplicationRequestsPlaner implements CfChangeVisitor {
 
+    private static final Log log = Log.getLog(ApplicationApplier.class);
+
     private final ApplicationsOperations appOperations;
     private final String applicationName;
     private final List<Mono<Void>> requests;

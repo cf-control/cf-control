@@ -1,5 +1,7 @@
 package cloud.foundry.cli.crosscutting.logging;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -40,8 +42,10 @@ public class LogTest {
     }
 
     private static final TestHandler handler = new TestHandler();
-    
+
     String uniqueTestString = null;
+
+    Log testLog = null;
 
     @BeforeAll
     private static void setUpAll() {
@@ -57,18 +61,22 @@ public class LogTest {
 
     @BeforeEach
     private void setUp() {
+        testLog = Log.getLog("cloud.foundry.cli.LogTest");
+
         assert uniqueTestString == null;
         uniqueTestString = makeRandomTestString();
-        
+
         // make sure logger is reset to default loglevel
         Log.setDefaultLogLevel();
-        
+
         // check common preconditions
         assertNoMessagesRecorded();
     }
 
     @AfterEach
     private void tearDown() {
+        testLog = null;
+
         uniqueTestString = null;
 
         // make sure logger is reset to default loglevel
@@ -104,7 +112,7 @@ public class LogTest {
 
     @Test
     public void testError() {
-        Log.error(uniqueTestString);
+        testLog.error(uniqueTestString);
 
         LogRecord lastRecord = popLastRecord();
         assert lastRecord.getLevel() == Log.ERROR_LEVEL;
@@ -116,7 +124,7 @@ public class LogTest {
 
     @Test
     public void testWarning() {
-        Log.warning(uniqueTestString);
+        testLog.warning(uniqueTestString);
 
         LogRecord lastRecord = popLastRecord();
         assert lastRecord.getLevel() == Log.WARNING_LEVEL;
@@ -128,7 +136,7 @@ public class LogTest {
 
     @Test
     public void testInfo() {
-        Log.info(uniqueTestString);
+        testLog.info(uniqueTestString);
 
         LogRecord lastRecord = popLastRecord();
         assert lastRecord.getLevel() == Log.INFO_LEVEL;
@@ -140,7 +148,7 @@ public class LogTest {
 
     @Test
     public void testVerbose() {
-        Log.verbose(uniqueTestString);
+        testLog.verbose(uniqueTestString);
 
         // verbose messages should not be visible by default
         assertNoMessagesRecorded();
@@ -148,7 +156,7 @@ public class LogTest {
         // but they should be visible in verbose mode
         Log.setVerboseLogLevel();
 
-        Log.verbose(uniqueTestString);
+        testLog.verbose(uniqueTestString);
 
         LogRecord lastRecord = popLastRecord();
         assert lastRecord.getLevel() == Log.VERBOSE_LEVEL;
@@ -160,7 +168,7 @@ public class LogTest {
 
     @Test
     public void testDebug() {
-        Log.debug(uniqueTestString);
+        testLog.debug(uniqueTestString);
 
         // debug messages should not be visible by default
         assertNoMessagesRecorded();
@@ -168,7 +176,7 @@ public class LogTest {
         // but they should be visible in verbose mode
         Log.setDebugLogLevel();
 
-        Log.debug(uniqueTestString);
+        testLog.debug(uniqueTestString);
 
         LogRecord lastRecord = popLastRecord();
         assert lastRecord.getLevel() == Log.DEBUG_LEVEL;
@@ -187,7 +195,7 @@ public class LogTest {
             int i = 1 / 0;
         } catch (ArithmeticException e) {
             exception = e;
-            Log.exception(e, uniqueTestString);
+            testLog.exception(e, uniqueTestString);
         }
 
         LogRecord lastRecord = popLastRecord();
@@ -205,16 +213,16 @@ public class LogTest {
         Log.setQuietLogLevel();
 
         // none of these messages should reach our handler
-        Log.debug(uniqueTestString);
-        Log.verbose(uniqueTestString);
-        Log.info(uniqueTestString);
-        Log.warning(uniqueTestString);
+        testLog.debug(uniqueTestString);
+        testLog.verbose(uniqueTestString);
+        testLog.info(uniqueTestString);
+        testLog.warning(uniqueTestString);
 
         // debug messages should not be visible by default
         assertNoMessagesRecorded();
 
         // errors should be recorded even in quiet mode
-        Log.error(uniqueTestString);
+        testLog.error(uniqueTestString);
 
         LogRecord lastRecord = popLastRecord();
         assert lastRecord.getLevel() == Log.ERROR_LEVEL;
@@ -222,6 +230,88 @@ public class LogTest {
 
         // now all messages should be handled
         assertNoMessagesRecorded();
+    }
+
+    @Test
+    public void testErrorWithMultipleArguments() {
+        testLog.error("aaa", "bbb", "ccc", "ddd");
+
+        LogRecord lastRecord = popLastRecord();
+        assert lastRecord.getMessage().contains("aaa");
+        assert lastRecord.getMessage().contains("bbb");
+        assert lastRecord.getMessage().contains("ccc");
+        assert lastRecord.getMessage().contains("ddd");
+
+        // now all messages should be handled
+        assertNoMessagesRecorded();
+    }
+
+    @Test
+    public void testWarningWithMultipleArguments() {
+        testLog.warning("aaa", "bbb", "ccc", "ddd");
+
+        LogRecord lastRecord = popLastRecord();
+        assert lastRecord.getMessage().contains("aaa");
+        assert lastRecord.getMessage().contains("bbb");
+        assert lastRecord.getMessage().contains("ccc");
+        assert lastRecord.getMessage().contains("ddd");
+
+        // now all messages should be handled
+        assertNoMessagesRecorded();
+    }
+
+    @Test
+    public void testInfoWithMultipleArguments() {
+        testLog.info("aaa", "bbb", "ccc", "ddd");
+
+        LogRecord lastRecord = popLastRecord();
+        assert lastRecord.getMessage().contains("aaa");
+        assert lastRecord.getMessage().contains("bbb");
+        assert lastRecord.getMessage().contains("ccc");
+        assert lastRecord.getMessage().contains("ddd");
+
+        // now all messages should be handled
+        assertNoMessagesRecorded();
+    }
+
+    @Test
+    public void testVerboseWithMultipleArguments() {
+        Log.setVerboseLogLevel();
+
+        testLog.verbose("aaa", "bbb", "ccc", "ddd");
+
+        LogRecord lastRecord = popLastRecord();
+        assert lastRecord.getMessage().contains("aaa");
+        assert lastRecord.getMessage().contains("bbb");
+        assert lastRecord.getMessage().contains("ccc");
+        assert lastRecord.getMessage().contains("ddd");
+
+        // now all messages should be handled
+        assertNoMessagesRecorded();
+    }
+
+    @Test
+    public void testDebugWithMultipleArguments() {
+        Log.setDebugLogLevel();
+
+        testLog.debug("aaa", "bbb", "ccc", "ddd");
+
+        LogRecord lastRecord = popLastRecord();
+        assert lastRecord.getMessage().contains("aaa");
+        assert lastRecord.getMessage().contains("bbb");
+        assert lastRecord.getMessage().contains("ccc");
+        assert lastRecord.getMessage().contains("ddd");
+
+        // now all messages should be handled
+        assertNoMessagesRecorded();
+    }
+
+    @Test
+    public void testLogFactoryMethodWithClassOutsideNativePackage() {
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> Log.getLog(Test.class)
+        );
     }
 
 }

@@ -36,6 +36,8 @@ import java.util.Map;
  */
 public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOperations> {
 
+    private static final Log log = Log.getLog(ServicesOperations.class);
+
     private static final String USER_PROVIDED_SERVICE_INSTANCE = "user_provided_service_instance";
 
     public ServicesOperations(DefaultCloudFoundryOperations cloudFoundryOperations) {

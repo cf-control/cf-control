@@ -4,6 +4,7 @@ import static picocli.CommandLine.Command;
 import static picocli.CommandLine.Mixin;
 
 import java.util.List;
+import java.io.IOException;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Scanner;
@@ -53,6 +54,8 @@ public class UpdateController implements Callable<Integer> {
 
     @Command(name = "remove-space-developer", description = "Removes space developers.")
     static class RemoveSpaceDeveloperCommand implements Callable<Integer> {
+
+        private static final Log log = Log.getLog(RemoveSpaceDeveloperCommand.class);
 
         @Mixin
         LoginCommandOptions loginOptions;
@@ -135,35 +138,67 @@ public class UpdateController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
+            Map<String, ServiceBean> services = readServicesFromYamlFile();
 
-            if (force != null) {
-                return doRemoveServiceInstance(yamlCommandOptions);
-            } else {
+            // in case the --force flag is not specified, we shall prompt the user to prevent the removal of services
+            // as that might remove valuable data as well
+            if (force == null) {
                 if (System.console() == null) {
-                    Log.error("--force/-f not supplied and not running in terminal, aborting");
+                    log.error("--force/-f not supplied and not running in terminal, aborting");
                     return 2;
                 }
 
-                System.out.println("Really delete the services y/n?");
+                System.out.print("Requested removal of the following services: ");
+                for (String serviceName : services.keySet()) {
+                    System.out.print("\"" + serviceName + "\" ");
+                }
+                System.out.println();
+
+                System.out.print("Are you sure you want to permanently delete those? [y|N] ");
+
                 Scanner scanner = new Scanner(System.in);
                 String input = scanner.nextLine();
                 scanner.close();
-                if (input.equals("y") || input.equals("yes")) {
-                    return doRemoveServiceInstance(yamlCommandOptions);
-                } else {
-                    System.out.println("Delete cancelled");
 
+                // turn into lower case, we would accept an upper case response, too
+                input = input.toLowerCase();
+
+                if (!(input.equals("y") || input.equals("yes"))) {
+                    System.out.println("Cancelled by user");
                     return 1;
                 }
             }
+
+            // try to remove all services on a best-effort basis
+            // the method should handle errors and log them appropriately
+            doRemoveServiceInstance(services);
+
+            return 0;
         }
 
-        private int doRemoveServiceInstance(YamlCommandOptions yamlCommandOptions) throws Exception {
-            Log.info("Removing services...");
+        private Map<String, ServiceBean> readServicesFromYamlFile() throws IOException {
             SpecBean specBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
-            Map<String, ServiceBean> serviceBeans = specBean.getServices();
+            return specBean.getServices();
+        }
 
-            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+        /**
+         * Try to remove service instances. This method handles potential errors internally by logging them.
+         * In case it fails, it returns false. The caller can opt to use this to perform additional error handling.
+         * @param services services to remove
+         * @return true on success, false if there were errors
+         */
+        private boolean doRemoveServiceInstance(Map<String, ServiceBean> services) {
+            log.info("Removing services...");
+
+            DefaultCloudFoundryOperations cfOperations;
+
+            try {
+                cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+            } catch (Exception e) {
+                log.error("Failed to create CF operations: ", e.getMessage());
+                return false;
+            }
+
             ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
 
             // signals if any error occurred during the assignment of the space developers
@@ -189,6 +224,8 @@ public class UpdateController implements Callable<Integer> {
     @Command(name = "remove-application", description = "Removes an application.")
     static class RemoveApplicationCommand implements Callable<Integer> {
 
+        private static final Log log = Log.getLog(RemoveApplicationCommand.class);
+
         @Mixin
         LoginCommandOptions loginOptions;
 
@@ -197,7 +234,7 @@ public class UpdateController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            Log.info("Removing applications...");
+            log.info("Removing applications...");
             SpecBean specBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
             Map<String, ApplicationBean> applicationBeans = specBean.getApps();
 
@@ -227,6 +264,8 @@ public class UpdateController implements Callable<Integer> {
     @Command(name = "update-service", description = "Updates service instances.")
     static class UpdateServiceCommand implements Callable<Integer> {
 
+        private static final Log log = Log.getLog(UpdateServiceCommand.class);
+
         @Mixin
         LoginCommandOptions loginOptions;
 
@@ -241,7 +280,7 @@ public class UpdateController implements Callable<Integer> {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
 
-            Log.info("Updating services...");
+            log.info("Updating services...");
             for (Entry<String, ServiceBean> serviceEntry : serviceBeans.entrySet()) {
                 String serviceName = serviceEntry.getKey();
                 ServiceBean serviceBean = serviceEntry.getValue();
