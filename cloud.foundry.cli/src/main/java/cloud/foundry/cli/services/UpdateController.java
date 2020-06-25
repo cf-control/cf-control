@@ -194,13 +194,23 @@ public class UpdateController implements Callable<Integer> {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
 
+            // signals if any error occurred during the assignment of the space developers
+            AtomicReference<Boolean> errorOccurred = new AtomicReference<>(false);
+
             cfOperations.getOrganizationId().block();
             Flux.fromIterable(applicationBeans.keySet())
                     .flatMap(applicationsOperations::remove)
-                    .onErrorContinue(Log::warning)
+                    .onErrorContinue((throwable, o) -> setFlagAndLogError(throwable, errorOccurred))
                     .blockLast();
 
-            return 0;
+            return errorOccurred.get() ? 1 : 0;
+        }
+
+        private void setFlagAndLogError(Throwable throwable, AtomicReference<Boolean> errorOccurred) {
+            Log.error(throwable);
+
+            // marks that at least a single error has occurred
+            errorOccurred.set(true);
         }
     }
 

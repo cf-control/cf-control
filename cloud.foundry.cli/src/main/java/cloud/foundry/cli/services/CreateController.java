@@ -130,6 +130,9 @@ public class CreateController implements Callable<Integer> {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
 
+            // signals if any error occurred during the assignment of the space developers
+            AtomicReference<Boolean> errorOccurred = new AtomicReference<>(false);
+
             try {
                 // do so that authorization has taken place. else leads to authorization problems
                 // TODO: find better solution
@@ -141,13 +144,20 @@ public class CreateController implements Callable<Integer> {
                         .delayElements(Duration.ofSeconds(1))
                         .flatMap(serviceEntry ->
                             servicesOperations.create(serviceEntry.getKey(), serviceEntry.getValue()))
-                        .onErrorContinue(Log::warning)
+                        .onErrorContinue((throwable, o) -> setFlagAndLogError(throwable, errorOccurred))
                         .blockLast();
             } catch (RuntimeException e) {
                 throw new CreationException(e.getMessage());
             }
 
-            return 0;
+            return errorOccurred.get() ? 1 : 0;
+        }
+
+        private void setFlagAndLogError(Throwable throwable, AtomicReference<Boolean> errorOccurred) {
+            Log.error(throwable);
+
+            // marks that at least a single error has occurred
+            errorOccurred.set(true);
         }
     }
 
@@ -170,15 +180,25 @@ public class CreateController implements Callable<Integer> {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
 
+            // signals if any error occurred during the assignment of the space developers
+            AtomicReference<Boolean> errorOccurred = new AtomicReference<>(false);
+
             // do so that authorization has taken place. else leads to authorization problems
             // TODO: find better solution
             cfOperations.getOrganizationId().block();
             Flux.fromIterable(applicationBeans.entrySet())
                     .flatMap(appEntry -> applicationsOperations.create(appEntry.getKey(), appEntry.getValue(), false))
-                    .onErrorContinue(Log::warning)
+                    .onErrorContinue((throwable, o) -> setFlagAndLogError(throwable, errorOccurred))
                     .blockLast();
 
-            return 0;
+            return errorOccurred.get() ? 1 : 0;
+        }
+
+        private void setFlagAndLogError(Throwable throwable, AtomicReference<Boolean> errorOccurred) {
+            Log.error(throwable);
+
+            // marks that at least a single error has occurred
+            errorOccurred.set(true);
         }
     }
 
