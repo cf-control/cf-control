@@ -16,6 +16,8 @@ import java.util.Map;
  * implementation is entirely hidden to the user of this class.
  */
 public class RefResolver implements YamlTreeVisitor {
+    
+    private static final Log log = Log.getLog(RefResolver.class);
 
     /**
      * This key describes ref-occurrences in mappings.
@@ -41,13 +43,12 @@ public class RefResolver implements YamlTreeVisitor {
      * @throws RefResolvingException if an error during the ref-resolution process occurs
      */
     public static Object resolveRefs(Object yamlTreeRoot) {
-
-        Log.debug("Resolve", RefResolver.REF_KEY + "-occurrences");
+        log.debug("Resolve", RefResolver.REF_KEY + "-occurrences");
 
         RefResolver refResolvingYamlTreeVisitor = new RefResolver(yamlTreeRoot);
         Object resolvedYamlTreeRoot = refResolvingYamlTreeVisitor.doResolveRefs();
 
-        Log.debug("Resolving completed");
+        log.debug("Resolving completed");
         return resolvedYamlTreeRoot;
     }
 
@@ -71,7 +72,7 @@ public class RefResolver implements YamlTreeVisitor {
 
     private void visitRefMapping(Map<Object, Object> refMappingNode) {
         Object refValueNode = refMappingNode.get(REF_KEY);
-        Log.debug("Encountered", RefResolver.REF_KEY + "-occurrence with value", String.valueOf(refValueNode));
+        log.debug("Encountered", RefResolver.REF_KEY + "-occurrence with value", String.valueOf(refValueNode));
         if (!(refValueNode instanceof String)) {
             throw new RefResolvingException("Encountered a '" + REF_KEY + "'-occurrence where its value is not of" +
                     " type string");
@@ -80,7 +81,7 @@ public class RefResolver implements YamlTreeVisitor {
         String filePath = extractFilePath(refValue);
         YamlPointer yamlPointer = extractYamlPointer(refValue);
 
-        Log.debug("Reading content of", filePath);
+        log.debug("Reading content of", filePath);
         Object referredYamlTree;
         try {
             referredYamlTree = YamlMapper.loadYamlTree(filePath);

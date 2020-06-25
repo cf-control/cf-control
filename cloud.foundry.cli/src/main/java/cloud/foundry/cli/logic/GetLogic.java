@@ -1,5 +1,6 @@
 package cloud.foundry.cli.logic;
 
+import cloud.foundry.cli.crosscutting.exceptions.GetException;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
@@ -10,17 +11,11 @@ import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
 import java.util.List;
 import java.util.Map;
 
-import cloud.foundry.cli.operations.AbstractOperations;
 import cloud.foundry.cli.operations.ApplicationsOperations;
 import cloud.foundry.cli.operations.ServicesOperations;
 import cloud.foundry.cli.operations.SpaceDevelopersOperations;
-import org.cloudfoundry.client.CloudFoundryClient;
-import org.cloudfoundry.client.v2.info.GetInfoRequest;
-import org.cloudfoundry.client.v2.info.GetInfoResponse;
-import org.cloudfoundry.client.v2.info.Info;
-import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
-import org.cloudfoundry.reactor.DefaultConnectionContext;
-import org.cloudfoundry.reactor.client.ReactorCloudFoundryClient;
+import cloud.foundry.cli.operations.ClientOperations;
+import cloud.foundry.cli.services.LoginCommandOptions;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -28,71 +23,114 @@ import reactor.core.publisher.Mono;
  * Handles the operations to receive all configuration-information from a cloud
  * foundry instance.
  */
-public class GetLogic extends AbstractOperations<DefaultCloudFoundryOperations> {
+public class GetLogic {
 
-    public GetLogic(DefaultCloudFoundryOperations cloudFoundryOperations) {
-        super(cloudFoundryOperations);
-    }
+    private static final Log log = Log.getLog(GetLogic.class);
+
 
     /**
-     * Gets all the necessary configuration-information from a cloud foundry instance.
+     * Gets all the necessary configuration-information from a cloud foundry
+     * instance.
      *
+     * @param spaceDevelopersOperations SpaceDevelopersOperations
+     * @param servicesOperations ServicesOperations
+     * @param applicationsOperations ApplicationsOperations
+     * @param clientOperations ClientOperations
+     * @param loginOptions LoginCommandOptions
      * @return ConfigBean
+     * @throws GetException if an error occurs during the information retrieving
      */
-    public ConfigBean getAll() {
-        SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cloudFoundryOperations);
-        ServicesOperations servicesOperations = new ServicesOperations(cloudFoundryOperations);
-        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cloudFoundryOperations);
+    public ConfigBean getAll(SpaceDevelopersOperations spaceDevelopersOperations,
+                             ServicesOperations servicesOperations,
+                             ApplicationsOperations applicationsOperations,
+                             ClientOperations clientOperations,
+                             LoginCommandOptions loginOptions) {
 
-        Mono<String> apiVersion = determineApiVersion();
+        Mono<String> apiVersion = clientOperations.determineApiVersion();
         Mono<List<String>> spaceDevelopers = spaceDevelopersOperations.getAll();
         Mono<Map<String, ServiceBean>> services = servicesOperations.getAll();
         Mono<Map<String, ApplicationBean>> apps = applicationsOperations.getAll();
-
         ConfigBean configBean = new ConfigBean();
         SpecBean specBean = new SpecBean();
-
         // start async querying of config data from the cloud foundry instance
-        Log.debug("Start async querying of apps, services and space developers...");
-        Flux.merge(apiVersion.doOnSuccess(configBean::setApiVersion),
+        log.debug("Start async querying of apps, services and space developers...");
+        Flux<Object> getAllRequests = Flux.merge(apiVersion.doOnSuccess(configBean::setApiVersion),
                 spaceDevelopers.doOnSuccess(specBean::setSpaceDevelopers),
                 services.doOnSuccess(specBean::setServices),
-                apps.doOnSuccess(specBean::setApps))
-            .blockLast();
+                apps.doOnSuccess(specBean::setApps));
+
+        try {
+            getAllRequests.blockLast();
+        } catch (RuntimeException e) {
+            throw new GetException(e);
+        }
 
         configBean.setSpec(specBean);
-        configBean.setTarget(determineTarget());
-
+        configBean.setTarget(determineTarget(loginOptions));
         return configBean;
     }
 
     /**
-     * Determines the API-Version from a cloud foundry instance.
+     * Gets all the necessary space-developer-information from a cloud foundry instance.
      *
-     * @return API-Version
+     * @return List of space-developers.
+     * @throws GetException if an error occurs during the information retrieving
      */
-    private Mono<String> determineApiVersion() {
-        CloudFoundryClient cfClient = cloudFoundryOperations.getCloudFoundryClient();
-        GetInfoRequest infoRequest = GetInfoRequest.builder().build();
-        Info cfClientInfo = cfClient.info();
+    public List<String> getSpaceDevelopers(SpaceDevelopersOperations spaceDevelopersOperations) {
+        Mono<List<String>> getSpaceDevelopersRequest = spaceDevelopersOperations.getAll();
 
-        return cfClientInfo.get(infoRequest).map(GetInfoResponse::getApiVersion);
+        try {
+            return getSpaceDevelopersRequest.block();
+        } catch (RuntimeException e) {
+            throw new GetException(e);
+        }
     }
 
     /**
-     * Determines the Target-Node configuration-information from a cloud foundry instance.
+     * Gets all the necessary service-information from a cloud foundry instance.
      *
+     * @return Map of services.
+     * @throws GetException if an error occurs during the information retrieving
+     */
+    public Map<String, ServiceBean> getServices(ServicesOperations servicesOperations) {
+        Mono<Map<String, ServiceBean>> getServicesRequest = servicesOperations.getAll();
+
+        try {
+            return getServicesRequest.block();
+        } catch (RuntimeException e) {
+            throw new GetException(e);
+        }
+    }
+
+    /**
+     * Gets all the necessary application-information from a cloud foundry instance.
+     *
+     * @return Map of applications.
+     * @throws GetException if an error occurs during the information retrieving
+     */
+    public Map<String, ApplicationBean> getApplications(ApplicationsOperations applicationsOperations) {
+        Mono<Map<String, ApplicationBean>> getApplicationsRequest = applicationsOperations.getAll();
+
+        try {
+            return getApplicationsRequest.block();
+        } catch (RuntimeException e) {
+            throw new GetException(e);
+        }
+    }
+
+    /**
+     * Determines the Target-Node configuration-information from a cloud foundry
+     * instance.
+     *
+     * @param loginOptions LoginCommandOptions
      * @return TargetBean
      */
-    private TargetBean determineTarget() {
-        ReactorCloudFoundryClient rcl = (ReactorCloudFoundryClient) cloudFoundryOperations.getCloudFoundryClient();
-        DefaultConnectionContext cc = (DefaultConnectionContext) rcl.getConnectionContext();
-
+    private TargetBean determineTarget(LoginCommandOptions loginOptions) {
         TargetBean target = new TargetBean();
-        target.setEndpoint(cc.getApiHost());
-        target.setOrg(cloudFoundryOperations.getOrganization());
-        target.setSpace(cloudFoundryOperations.getSpace());
-
+        target.setEndpoint(loginOptions.getApiHost());
+        target.setOrg(loginOptions.getOrganization());
+        target.setSpace(loginOptions.getSpace());
         return target;
     }
+
 }

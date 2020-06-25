@@ -42,7 +42,7 @@ dependencies {
     // This dependency is used internally, and not exposed to consumers on their own compile classpath.
     implementation 'com.google.guava:guava:28.0-jre'
 
-    compile 'info.picocli:picocli:4.2.0'
+    compile 'info.picocli:picocli:4.3.0'
     compile 'org.yaml:snakeyaml:1.26'
     compile group: 'commons-io', name: 'commons-io', version: '2.6'
     compile 'org.apache.httpcomponents.client5:httpclient5:5.0'

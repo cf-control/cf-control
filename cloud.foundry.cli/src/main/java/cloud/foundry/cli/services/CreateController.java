@@ -49,6 +49,8 @@ public class CreateController implements Callable<Integer> {
     @Command(name = "space-developer", description = "Assign users as space developers.")
     static class AssignSpaceDeveloperCommand implements Callable<Integer> {
 
+        private static final Log log = Log.getLog(AssignSpaceDeveloperCommand.class);
+
         @Mixin
         LoginCommandOptions loginOptions;
 
@@ -57,31 +59,31 @@ public class CreateController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            Log.info("Interpreting YAML file...");
+            log.info("Interpreting YAML file...");
             SpaceDevelopersBean spaceDevelopersBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(),
                     SpaceDevelopersBean.class);
-            Log.info("Loading YAML file...");
+            log.info("Loading YAML file...");
 
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
 
             List<String> spaceDevelopers = spaceDevelopersBean.getSpaceDevelopers();
             if (spaceDevelopers == null || spaceDevelopers.isEmpty()) {
-                Log.info("There are no space developers to assign.");
+                log.info("There are no space developers to assign.");
                 return 0;
             }
             if (spaceDevelopers.contains(null)) {
-                Log.error("The space developers must not contain null.");
+                log.error("The space developers must not contain null.");
                 return 1;
             }
 
-            Log.info("Fetching space id...");
+            log.info("Fetching space id...");
             String spaceId = spaceDevelopersOperations.getSpaceId().block();
-            Log.info("Space id fetched.");
+            log.info("Space id fetched.");
 
             assert (spaceId != null);
 
-            Log.info("Assigning space developers...");
+            log.info("Assigning space developers...");
 
             // signals if any error occurred during the assignment of the space developers
             AtomicReference<Boolean> errorOccurred = new AtomicReference<>(false);
@@ -100,11 +102,11 @@ public class CreateController implements Callable<Integer> {
         }
 
         private void onSuccessfulAssignment(String spaceDeveloper) {
-            Log.verbose(spaceDeveloper, "successfully assigned.");
+            log.verbose(spaceDeveloper, "successfully assigned.");
         }
 
         private void onErrorDuringAssignment(Throwable exception, AtomicReference<Boolean> errorOccurred) {
-            Log.error("An error occurred during space developer assignment:", exception.getMessage());
+            log.error("An error occurred during space developer assignment:", exception.getMessage());
 
             // marks that at least a single error has occurred
             errorOccurred.set(true);
@@ -114,6 +116,8 @@ public class CreateController implements Callable<Integer> {
     @Command(name = "service", description = "Create services in the target space.")
     static class CreateServiceCommand implements Callable<Integer> {
 
+        private static final Log log = Log.getLog(CreateServiceCommand.class);
+
         @Mixin
         LoginCommandOptions loginOptions;
 
@@ -122,7 +126,7 @@ public class CreateController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            Log.info("Creating service(s)...");
+            log.info("Creating service(s)...");
             SpecBean specBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
 
             Map<String, ServiceBean> serviceBeans = specBean.getServices();
@@ -154,7 +158,7 @@ public class CreateController implements Callable<Integer> {
         }
 
         private void setFlagAndLogError(Throwable throwable, AtomicReference<Boolean> errorOccurred) {
-            Log.error(throwable);
+            log.error(throwable);
 
             // marks that at least a single error has occurred
             errorOccurred.set(true);
@@ -164,6 +168,8 @@ public class CreateController implements Callable<Integer> {
     @Command(name = "application", description = "Create applications in the target space.")
     static class CreateApplicationCommand implements Callable<Integer> {
 
+        private static final Log log = Log.getLog(CreateApplicationCommand.class);
+
         @Mixin
         LoginCommandOptions loginOptions;
 
@@ -172,7 +178,7 @@ public class CreateController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            Log.info("Creating application(s)...");
+            log.info("Creating application(s)...");
             SpecBean specBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
 
             Map<String, ApplicationBean> applicationBeans = specBean.getApps();
@@ -195,7 +201,7 @@ public class CreateController implements Callable<Integer> {
         }
 
         private void setFlagAndLogError(Throwable throwable, AtomicReference<Boolean> errorOccurred) {
-            Log.error(throwable);
+            log.error(throwable);
 
             // marks that at least a single error has occurred
             errorOccurred.set(true);

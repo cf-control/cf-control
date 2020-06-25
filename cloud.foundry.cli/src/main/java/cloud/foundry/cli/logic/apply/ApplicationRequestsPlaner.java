@@ -2,6 +2,7 @@ package cloud.foundry.cli.logic.apply;
 
 import cloud.foundry.cli.crosscutting.exceptions.ApplyException;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
+import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationManifestBean;
 import cloud.foundry.cli.logic.diff.change.CfChange;
@@ -22,6 +23,8 @@ import java.util.List;
  * The class does creates the request tasks by implementing the {@link CfChangeVisitor} interface.
  */
 public class ApplicationRequestsPlaner implements CfChangeVisitor {
+
+    private static final Log log = Log.getLog(ApplicationRequestsPlaner.class);
 
     private final ApplicationsOperations appOperations;
     private final String applicationName;

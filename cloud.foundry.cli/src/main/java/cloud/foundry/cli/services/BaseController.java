@@ -2,12 +2,14 @@ package cloud.foundry.cli.services;
 
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import cloud.foundry.cli.crosscutting.exceptions.CredentialException;
+import cloud.foundry.cli.crosscutting.exceptions.GetException;
 import cloud.foundry.cli.crosscutting.exceptions.DiffException;
 import cloud.foundry.cli.crosscutting.exceptions.RefResolvingException;
 import cloud.foundry.cli.crosscutting.exceptions.UpdateException;
 import cloud.foundry.cli.crosscutting.exceptions.ApplyException;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.RefResolver;
+import cloud.foundry.cli.crosscutting.mapping.CfArgumentsCreator;
 import org.yaml.snakeyaml.constructor.ConstructorException;
 import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
@@ -16,6 +18,7 @@ import picocli.CommandLine.Option;
 
 import java.io.IOException;
 import java.util.concurrent.Callable;
+import java.util.logging.FileHandler;
 
 /**
  * This class works as the entry point for the command line application.
@@ -26,12 +29,14 @@ import java.util.concurrent.Callable;
         mixinStandardHelpOptions = true,
         version = "1.0",
         subcommands = {
-        CreateController.class,
-        GetController.class,
-        DiffController.class,
-        ApplyController.class,
-        UpdateController.class})
+                CreateController.class,
+                GetController.class,
+                DiffController.class,
+                ApplyController.class,
+                UpdateController.class})
 public class BaseController implements Callable<Integer> {
+
+    private static final Log log = Log.getLog(BaseController.class);
 
     private static class LoggingOptions {
         @Option(names = {"-q", "--quiet"}, description = "Reduce log verbosity and print errors only.")
@@ -59,6 +64,9 @@ public class BaseController implements Callable<Integer> {
     @ArgGroup(exclusive = true, multiplicity = "0..1")
     LoggingOptions loggingOptions;
 
+    @Option(names = {"--log-file"}, description = "Write logs to file.")
+    private String logFile;
+
     @Override
     public Integer call() {
         // this code is executed if the user just runs the app
@@ -76,6 +84,7 @@ public class BaseController implements Callable<Integer> {
         BaseController controller = new BaseController();
 
         CommandLine cli = new CommandLine(controller);
+        args = CfArgumentsCreator.determineCommandLine(cli, args);
 
         // picocli has a nice hidden feature: one can register a special exception handler and thus deal with
         // exceptions occurring during the execution of a Callable, Runnable etc.
@@ -87,25 +96,25 @@ public class BaseController implements Callable<Integer> {
         cli.setExecutionExceptionHandler((ex, commandLine, parseResult) -> {
             // TODO: different handling for different exceptions
             if (ex instanceof IOException) {
-                Log.error("I/O error:", ex.getMessage());
+                log.error("I/O error:", ex.getMessage());
             } else if (ex instanceof CreationException) {
-                Log.error("Failed to create message:" + ex.getMessage());
-            }
-            else if (ex instanceof UpdateException) {
-                Log.error("Failed to update message:" + ex.getMessage());
-            }
-            else if (ex instanceof UnsupportedOperationException) {
-                Log.error("Operation not supported/implemented:", ex.getMessage());
+                log.error("Failed to create message:" + ex.getMessage());
+            } else if (ex instanceof UpdateException) {
+                log.error("Failed to update message:" + ex.getMessage());
+            } else if (ex instanceof UnsupportedOperationException) {
+                log.error("Operation not supported/implemented:", ex.getMessage());
             } else if (ex instanceof CredentialException) {
-                Log.error("Credentials error:", ex.getMessage());
+                log.error("Credentials error:", ex.getMessage());
             } else if (ex instanceof RefResolvingException) {
-                Log.error("Failed to resolve " + RefResolver.REF_KEY + "-occurrences:", ex.getMessage());
+                log.error("Failed to resolve " + RefResolver.REF_KEY + "-occurrences:", ex.getMessage());
             } else if (ex instanceof ConstructorException) {
-                Log.error("Cannot interpret yaml contents:", ex.getMessage());
+                log.error("Cannot interpret yaml contents:", ex.getMessage());
             } else if (ex instanceof DiffException) {
-                Log.error("Unable to perform the diff:", ex.getMessage());
+                log.error("Unable to perform the diff:", ex.getMessage());
             } else if (ex instanceof ApplyException) {
-                Log.error("An error occurred during the apply:", ex.getMessage());
+                log.error("An error occurred during the apply:", ex.getMessage());
+            } else if (ex instanceof GetException) {
+                log.error("An error occurred during the get:", ex.getMessage());
             } else if (ex instanceof IllegalStateException) {
                 // a little bit ugly, but it works
                 // the problem is in reactor.core.Exceptions
@@ -115,15 +124,15 @@ public class BaseController implements Callable<Integer> {
                     // that it's likely a password issue
                     if (ex.getCause() != null &&
                             ex.getCause().toString().toLowerCase().contains("invalidtokenexception")) {
-                        Log.error("Request to CF API failed: invalid token error (is the password correct?)");
+                        log.error("Request to CF API failed: invalid token error (is the password correct?)");
                     } else {
-                        Log.exception(ex, "Request to CF API failed:");
+                        log.exception(ex, "Request to CF API failed:");
                     }
                 } else {
-                    Log.exception(ex, "Unexpected illegal state error");
+                    log.exception(ex, "Unexpected illegal state error");
                 }
             } else {
-                Log.exception(ex, "Unexpected error occurred");
+                log.exception(ex, "Unexpected error occurred");
             }
 
             // no need for returning different exit codes for different exceptions, but that's also possible in the
@@ -138,12 +147,25 @@ public class BaseController implements Callable<Integer> {
         } catch (Exception e) {
             // TODO: consider printing this directly to stderr
             // (we don't necessarily need to use the logger while parsing the args)
-            Log.error(e.getMessage());
+            log.error(e.getMessage());
             System.exit(1);
         }
 
+        // will be registered as a handler in the log in case the user enables it
+        FileHandler fileHandler = null;
+
         // seems like picocli doesn't populate the logging options unless either of them is passed
         if (controller.loggingOptions != null) {
+            // in case a log file path has been passed, all we have to do is add a file handler for this path
+            if (controller.logFile != null) {
+                try {
+                    fileHandler = new FileHandler(controller.logFile);
+                } catch (IOException e) {
+                    log.error("Could not open log file", controller.logFile);
+                    System.exit(1);
+                }
+            }
+
             // now, we can access the logging options in the base controller
             // note: we always enable the most verbose level the user specifies
             // for that reason we can't use an if-else, but must use a chain of plain if clauses
@@ -154,16 +176,27 @@ public class BaseController implements Callable<Integer> {
             }
             if (controller.loggingOptions.isVerbose()) {
                 Log.setVerboseLogLevel();
-                Log.verbose("enabling verbose logging");
+                log.verbose("enabling verbose logging");
             }
             if (controller.loggingOptions.isDebug()) {
                 Log.setDebugLogLevel();
-                Log.debug("enabling debug logging");
+                log.debug("enabling debug logging");
             }
+        }
+
+        // register in the log if available
+        if (fileHandler != null) {
+            Log.addHandler(fileHandler);
         }
 
         // okay, logging is configured, now let's run the rest of the CLI
         int exitCode = cli.execute(args);
+
+        // make sure to close the file handler to make sure it writes valid XML including all closing tags
+        if (fileHandler != null) {
+            Log.removeHandler(fileHandler);
+            fileHandler.close();
+        }
 
         System.exit(exitCode);
     }

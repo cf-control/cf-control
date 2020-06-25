@@ -25,6 +25,8 @@ import java.util.List;
  */
 public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFoundryOperations> {
 
+    private static final Log log = Log.getLog(SpaceDevelopersOperations.class);
+
     public SpaceDevelopersOperations(DefaultCloudFoundryOperations cfOperations) {
         super(cfOperations);
     }
@@ -79,8 +81,8 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
         return cloudFoundryOperations.getCloudFoundryClient()
                 .spaces()
                 .associateDeveloperByUsername(request)
-                .doOnSubscribe(subscription -> Log.debug("Assigning a space developer:", username))
-                .doOnSuccess(subscription -> Log.debug("Space developer: ", username, " was assigned"));
+                .doOnSubscribe(subscription -> log.debug("Assigning a space developer:", username))
+                .doOnSuccess(subscription -> log.debug("Space developer: ", username, " was assigned"));
     }
 
     /**
@@ -105,7 +107,7 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
         return cloudFoundryOperations.getCloudFoundryClient()
                 .spaces()
                 .removeDeveloperByUsername(request)
-                .doOnSubscribe(subscription -> Log.debug("Removing a space developer:", username))
-                .doOnSuccess(subscription -> Log.debug("Space developer: ", username, " was removed"));
+                .doOnSubscribe(subscription -> log.debug("Removing a space developer:", username))
+                .doOnSuccess(subscription -> log.debug("Space developer: ", username, " was removed"));
     }
 }
