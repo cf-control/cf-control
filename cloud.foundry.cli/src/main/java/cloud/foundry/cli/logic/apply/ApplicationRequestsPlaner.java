@@ -20,7 +20,7 @@ import java.util.List;
 
 /**
  * This class is responsible to build the requests in the context of applications according to the CfChanges.
- * The class does creates the request tasks by implementing the {@link CfChangeVisitor} interface.
+ * The class does create the request tasks by implementing the {@link CfChangeVisitor} interface.
  */
 public class ApplicationRequestsPlaner implements CfChangeVisitor {
 
