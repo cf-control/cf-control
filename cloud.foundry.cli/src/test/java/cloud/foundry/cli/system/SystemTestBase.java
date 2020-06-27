@@ -2,8 +2,14 @@ package cloud.foundry.cli.system;
 
 import cloud.foundry.cli.services.BaseController;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 
+import java.io.ByteArrayOutputStream;
+import java.io.FileDescriptor;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 import java.util.List;
 
 /**
@@ -25,6 +31,29 @@ public class SystemTestBase {
     @AfterAll
     private static void restoreOriginalSecurityManager() {
         System.setSecurityManager(null);
+    }
+
+    private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+    private final ByteArrayOutputStream errContent = new ByteArrayOutputStream();
+
+    @BeforeEach
+    private void installNewStreams() {
+        System.setOut(new PrintStream(outContent));
+        System.setErr(new PrintStream(errContent));
+    }
+
+    @AfterEach
+    private void restoreOldStreams() {
+        System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out)));
+        System.setErr(new PrintStream(new FileOutputStream(FileDescriptor.err)));
+    }
+
+    protected String getStdoutContent() {
+        return outContent.toString();
+    }
+
+    protected String getStderrContent() {
+        return errContent.toString();
     }
 
     /**
