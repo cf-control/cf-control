@@ -55,4 +55,25 @@ public class SystemTestBase {
         RunResult runResult = new RunResult(exitCode, streamContents);
         return runResult;
     }
+
+    /**
+     * Run base controller with provided arguments as well as the credentials/target information for the hosted system
+     * test environment.
+     * The data are fetched from the environment, and need to be set during test runs. Otherwise, an exception
+     * is thrown.
+     * @param argumentsBuilder arguments builder to which the data from the environment are appended
+     * @throws IllegalArgumentException in case any of the environment variables are not set
+     * @returns run result
+     */
+    protected RunResult runBaseControllerWithCredentialsFromEnvironment(ArgumentsBuilder argumentsBuilder) {
+        // these environment variables are supposed to be defined in the test environment, and need to be set to
+        // the correct values (e.g., in the run configuration and on Travis CI)
+        argumentsBuilder.addOptionFromEnvironmentVariable("-u", "CF_USERNAME");
+        argumentsBuilder.addOptionFromEnvironmentVariable("-p", "CF_PASSWORD");
+        argumentsBuilder.addOptionFromEnvironmentVariable("-s", "CF_SPACE");
+        argumentsBuilder.addOptionFromEnvironmentVariable("-o", "CF_ORGANIZATION");
+        argumentsBuilder.addOptionFromEnvironmentVariable("-a", "CF_API_ENDPOINT");
+
+        return runBaseControllerWithArgs(argumentsBuilder.build());
+    }
 }
