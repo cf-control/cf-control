@@ -2,14 +2,8 @@ package cloud.foundry.cli.system;
 
 import cloud.foundry.cli.services.BaseController;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 
-import java.io.ByteArrayOutputStream;
-import java.io.FileDescriptor;
-import java.io.FileOutputStream;
-import java.io.PrintStream;
 import java.util.List;
 
 /**
@@ -33,39 +27,36 @@ public class SystemTestBase {
         System.setSecurityManager(null);
     }
 
-    private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
-    private final ByteArrayOutputStream errContent = new ByteArrayOutputStream();
-
-    @BeforeEach
-    private void installNewStreams() {
-        System.setOut(new PrintStream(outContent));
-        System.setErr(new PrintStream(errContent));
-    }
-
-    @AfterEach
-    private void restoreOldStreams() {
-        System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out)));
-        System.setErr(new PrintStream(new FileOutputStream(FileDescriptor.err)));
-    }
-
-    protected String getStdoutContent() {
-        return outContent.toString();
-    }
-
-    protected String getStderrContent() {
-        return errContent.toString();
-    }
-
     /**
      * Run base controller with provided arguments. Simulates a normal program execution.
      * @param args arguments to run application with
-     * @throws SystemExitException in case System.exit is called
+     * @return run result
      */
-    protected void runBaseControllerWithArgs(List<String> args) {
+    protected RunResult runBaseControllerWithArgs(List<String> args) {
+        // capture stdout/stderr contents
+        StreamManager streamManager = new StreamManager();
+        streamManager.installNewStreams();
+
         // to simulate a main() run, we need a regular String array
         String[] argsArray = new String[args.size()];
         args.toArray(argsArray);
 
-        BaseController.main(argsArray);
+        int exitCode = Integer.MIN_VALUE;
+
+        try {
+            BaseController.main(argsArray);
+        } catch (SystemExitException e) {
+            exitCode = e.getExitCode();
+        }
+
+        assert exitCode != Integer.MIN_VALUE;
+
+        // reset streams and fetch contents
+        streamManager.restoreOldStreams();
+        StreamContents streamContents = streamManager.getContents();
+
+        // return result
+        RunResult runResult = new RunResult(exitCode, streamContents);
+        return runResult;
     }
 }

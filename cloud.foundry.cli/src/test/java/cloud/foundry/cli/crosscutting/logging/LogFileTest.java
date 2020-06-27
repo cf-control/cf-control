@@ -1,7 +1,7 @@
 package cloud.foundry.cli.crosscutting.logging;
 
+import cloud.foundry.cli.system.RunResult;
 import cloud.foundry.cli.system.SystemTestBase;
-import cloud.foundry.cli.system.SystemExitException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.xml.sax.InputSource;
@@ -55,15 +55,9 @@ public class LogFileTest extends SystemTestBase {
         args.add("-s");
         args.add("test");
 
-        int exitCode = -1;
+        RunResult runResult = runBaseControllerWithArgs(args);
 
-        try {
-            runBaseControllerWithArgs(args);
-        } catch (SystemExitException e) {
-            exitCode = e.getExitCode();
-        }
-
-        assert exitCode == 1;
+        assert runResult.getExitCode() == 1;
 
         // let's see if the application wrote something into the log file
         DocumentBuilder documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
