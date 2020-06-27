@@ -1,5 +1,6 @@
 package cloud.foundry.cli.crosscutting.logging;
 
+import cloud.foundry.cli.system.ArgumentsBuilder;
 import cloud.foundry.cli.system.RunResult;
 import cloud.foundry.cli.system.SystemTestBase;
 import org.junit.jupiter.api.Test;
@@ -33,29 +34,25 @@ public class LogFileTest extends SystemTestBase {
         // we expect the application to write to this log file
         final File logFile = Paths.get(tempDir.toString(), "test.log").toFile();
 
-        args.add("--log-file");
-        args.add(logFile.getAbsolutePath());
+        String[] arguments = new ArgumentsBuilder()
+                .addOption("--log-file", logFile.getAbsolutePath())
 
-        // let's be as verbose as possible
-        args.add("-d");
+                // let's be as verbose as possible
+                .addArgument("-d")
 
-        // first random command; doesn't really matter, it won't work anyway
-        args.add("get");
-        args.add("space-developers");
+                // first random command; doesn't really matter, it won't work anyway
+                .addArgument("get")
+                .addArgument("space-developers")
 
-        // need to provide *all* required CLI options, otherwise the tool will error out even _before_ the log file
-        // parameter could be evaluated
-        // FIXME: can be removed once #92 has been merged
-        args.add("-a");
-        args.add("test");
+                // need to provide *all* required CLI options, otherwise the tool will error out even _before_ the log
+                // file parameter could be evaluated
+                .addOption("-a", "test")
+                .addOption("-o", "test")
+                .addOption("-s", "test")
 
-        args.add("-o");
-        args.add("test");
+                .build();
 
-        args.add("-s");
-        args.add("test");
-
-        RunResult runResult = runBaseControllerWithArgs(args);
+        RunResult runResult = runBaseControllerWithArgs(arguments);
 
         assert runResult.getExitCode() == 1;
 

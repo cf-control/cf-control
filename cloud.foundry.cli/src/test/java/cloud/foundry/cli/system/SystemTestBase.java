@@ -29,22 +29,18 @@ public class SystemTestBase {
 
     /**
      * Run base controller with provided arguments. Simulates a normal program execution.
-     * @param args arguments to run application with
+     * @param arguments arguments to run application with
      * @return run result
      */
-    protected RunResult runBaseControllerWithArgs(List<String> args) {
+    protected RunResult runBaseControllerWithArgs(String[] arguments) {
         // capture stdout/stderr contents
         StreamManager streamManager = new StreamManager();
         streamManager.installNewStreams();
 
-        // to simulate a main() run, we need a regular String array
-        String[] argsArray = new String[args.size()];
-        args.toArray(argsArray);
-
         int exitCode = Integer.MIN_VALUE;
 
         try {
-            BaseController.main(argsArray);
+            BaseController.main(arguments);
         } catch (SystemExitException e) {
             exitCode = e.getExitCode();
         }
