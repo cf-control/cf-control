@@ -5,7 +5,6 @@ import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
 import cloud.foundry.cli.crosscutting.mapping.YamlMapper;
 import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
 import cloud.foundry.cli.logic.ApplyLogic;
-import cloud.foundry.cli.operations.ApplicationsOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import picocli.CommandLine;
 
@@ -18,7 +17,8 @@ import java.util.concurrent.Callable;
 @CommandLine.Command(name = "apply",
         header = "%n@|green Apply the configuration from a given yaml file to your cf instance.|@",
         mixinStandardHelpOptions = true,
-        subcommands = {ApplyController.ApplyApplicationCommand.class})
+        subcommands = {ApplyController.ApplyApplicationCommand.class,
+                        ApplyController.ApplyServiceCommand.class})
 public class ApplyController implements Callable<Integer> {
 
     @Override
@@ -51,6 +51,34 @@ public class ApplyController implements Callable<Integer> {
             log.info("YAML file interpreted.");
 
             applyLogic.applyApplications(desiredSpecBean.getApps());
+
+            return 0;
+        }
+    }
+
+    @CommandLine.Command(name = "services", description = "Create/remove services that are present in the given yaml" +
+            " file, but not in your cf instance.")
+    static class ApplyServiceCommand implements Callable<Integer> {
+
+        private static final Log log = Log.getLog(ApplyServiceCommand.class);
+
+        @CommandLine.Mixin
+        private LoginCommandOptions loginOptions;
+
+        @CommandLine.Mixin
+        private YamlCommandOptions yamlCommandOptions;
+
+        @Override
+        public Integer call() throws Exception {
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+
+            ApplyLogic applyLogic = new ApplyLogic(cfOperations);
+
+            log.info("Interpreting YAML file...");
+            SpecBean desiredSpecBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
+            log.info("YAML file interpreted.");
+
+            applyLogic.applyServices(desiredSpecBean.getServices());
 
             return 0;
         }
