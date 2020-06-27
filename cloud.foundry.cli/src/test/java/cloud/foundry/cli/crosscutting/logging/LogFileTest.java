@@ -1,8 +1,7 @@
 package cloud.foundry.cli.crosscutting.logging;
 
-import cloud.foundry.cli.services.BaseController;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import cloud.foundry.cli.system.SystemTestBase;
+import cloud.foundry.cli.system.SystemExitException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.xml.sax.InputSource;
@@ -15,70 +14,17 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.nio.file.Paths;
-import java.security.Permission;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Integration test for --log-file feature.
  */
-public class LogFileTest {
-    /**
-     * Thrown by custom security manager whenever System.exit(...) is called.
-     */
-    protected static class SystemExitException extends SecurityException {
-        private final int exitCode;
-
-        public SystemExitException(int exitCode) {
-            this.exitCode = exitCode;
-        }
-
-        public int getExitCode() {
-            return exitCode;
-        }
-    }
-
-    /**
-     * Custom security manager which prevents the JVM from exiting.
-     * Instead, it raises a {@link SystemExitException} when there's a call to System.exit(...).
-     */
-    private static class PreventExitSecurityManager extends SecurityManager {
-        // these checkPermission overrides are needed for some reason...
-        @Override
-        public void checkPermission(Permission perm) {}
-
-        @Override
-        public void checkPermission(Permission perm, Object context) {}
-
-        @Override
-        public void checkExit(int status) {
-            super.checkExit(status);
-            throw new SystemExitException(status);
-        }
-    }
-
-    @BeforeAll
-    private static void installCustomSecurityManager() {
-        System.setSecurityManager(new PreventExitSecurityManager());
-    }
-
-    @AfterAll
-    private static void restoreOriginalSecurityManager() {
-        System.setSecurityManager(null);
-    }
-
+public class LogFileTest extends SystemTestBase {
     // we use this directory to store the log files in
     // since it's an instance member, it should be cleaned up and recreated between the tests
     @TempDir
     File tempDir;
-
-    private void runBaseControllerWithArgs(List<String> args) {
-        // to simulate a main() run, we need a regular String array
-        String[] argsArray = new String[args.size()];
-        args.toArray(argsArray);
-
-        BaseController.main(argsArray);
-    }
 
     @Test
     public void testBaseController() throws ParserConfigurationException, IOException, SAXException {
