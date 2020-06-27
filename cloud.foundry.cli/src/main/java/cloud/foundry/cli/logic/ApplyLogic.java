@@ -67,10 +67,10 @@ public class ApplyLogic {
         log.info("Applications compared.");
 
         Map<String, List<CfChange>> allApplicationChanges = wrappedDiff.getApplicationChanges();
-        ApplicationsOperations appOperations = new ApplicationsOperations(cfOperations);
 
         Flux<Void> applicationRequests = Flux.fromIterable(allApplicationChanges.entrySet())
-                .flatMap( appChangeEntry -> ApplicationRequestsPlaner.create(appOperations, appChangeEntry.getKey(),
+                .flatMap( appChangeEntry -> ApplicationRequestsPlaner.create(applicationsOperations,
+                        appChangeEntry.getKey(),
                         appChangeEntry.getValue()))
                 .onErrorContinue(log::warning);
         applicationRequests.blockLast();
