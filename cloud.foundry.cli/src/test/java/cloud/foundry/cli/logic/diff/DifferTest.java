@@ -88,7 +88,7 @@ public class DifferTest {
         DiffNode apps = specNode.getChild("apps");
         assertThat(apps.getChanges().size(), is(0));
         //only two since the app (app2) that is not in the desired config gets skipped
-        assertThat(apps.getChildNodes().size(), is(2));
+        assertThat(apps.getChildNodes().size(), is(3));
         assertThat(apps.getChild("app1"), notNullValue());
         assertThat(apps.getChild("app3"), notNullValue());
 
