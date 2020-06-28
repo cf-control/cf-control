@@ -31,9 +31,9 @@ public class CfOperationsCreator {
      * @param commandOptions {@link LoginCommandOptions}
      * @return DefaultCloudFoundryOperations object, which is the entry point for accessing
      * the CF configurations.
+     * @throws IllegalStateException if any required attributes are not set in the provided command options
      */
-    public static DefaultCloudFoundryOperations createCfOperations(LoginCommandOptions commandOptions)
-            throws Exception {
+    public static DefaultCloudFoundryOperations createCfOperations(LoginCommandOptions commandOptions) {
         log.debug("Create the cfOperations object with your login command options...");
 
         DefaultConnectionContext connectionContext = createConnectionContext(commandOptions);
@@ -81,8 +81,7 @@ public class CfOperationsCreator {
                 .build();
     }
 
-    private static PasswordGrantTokenProvider createTokenProvider(LoginCommandOptions commandOptions)
-            throws Exception {
+    private static PasswordGrantTokenProvider createTokenProvider(LoginCommandOptions commandOptions) {
 
         String user = determineCredential(commandOptions.getUserName(), CF_CONTROL_USER);
         String password = determineCredential(commandOptions.getPassword(), CF_CONTROL_PASSWORD);
@@ -103,9 +102,9 @@ public class CfOperationsCreator {
      * @param environmentVariableName Environment variable name
      *
      * @return Credential-Data
-     * @throws Exception
+     * @throws CredentialException if there are no credentials provided
      */
-    private static String determineCredential(String credential, String environmentVariableName) throws Exception {
+    private static String determineCredential(String credential, String environmentVariableName) {
         String environmentVariableValue;
         try {
             environmentVariableValue = System.getenv(environmentVariableName);
