@@ -19,8 +19,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * This class is responsible to build the requests in the context of applications according to the CfChanges.
- * The class does creates the request tasks by implementing the {@link CfChangeVisitor} interface.
+ * This class is responsible to build the requests in the context of
+ * applications according to the CfChanges. The class does creates the request
+ * tasks by implementing the {@link CfChangeVisitor} interface.
  */
 public class ApplicationRequestsPlaner implements CfChangeVisitor {
 
@@ -38,9 +39,14 @@ public class ApplicationRequestsPlaner implements CfChangeVisitor {
 
     /**
      * Creates the request for CfNewObject
+     * 
      * @param newObject the CfNewObject to be visited
-     * @throws IllegalArgumentException if the newObject is neither an ApplicationBean or an ApplicationManifestBean
-     * @throws ApplyException that wraps the exceptions that can occur during the creation procedure.
+     * 
+     * @throws IllegalArgumentException if the newObject is neither an
+     *                                  ApplicationBean or an
+     *                                  ApplicationManifestBean
+     * @throws ApplyException           that wraps the exceptions that can occur
+     *                                  during the creation procedure.
      */
     @Override
     public void visitNewObject(CfNewObject newObject) {
@@ -51,8 +57,7 @@ public class ApplicationRequestsPlaner implements CfChangeVisitor {
             } catch (CreationException | IllegalArgumentException | NullPointerException | SecurityException e) {
                 throw new ApplyException(e);
             }
-        }
-        else if (!(affectedObject instanceof ApplicationManifestBean)) {
+        } else if (!(affectedObject instanceof ApplicationManifestBean)) {
             throw new IllegalArgumentException("Only changes of applications and manifests are permitted.");
         }
         return;
@@ -64,62 +69,82 @@ public class ApplicationRequestsPlaner implements CfChangeVisitor {
 
     /**
      * Creates the requests for CfObjectValueChanged
+     * 
      * @param objectValueChanged the CfObjectValueChanged to be visited
      */
     @Override
     public void visitObjectValueChanged(CfObjectValueChanged objectValueChanged) {
-        //TODO: later US
+        // TODO: later US
         return;
     }
 
     /**
      * Creates the requests for CfRemovedObject
+     * 
      * @param removedObject the CfRemovedObject to be visited
+     * @throws ApplyException           if an error during the apply logic occurs.
+     *                                  May contain another exception inside with
+     *                                  more details
+     * @throws IllegalArgumentException if the newObject is neither an
+     *                                  ApplicationBean or an
+     *                                  ApplicationManifestBean
      */
     @Override
     public void visitRemovedObject(CfRemovedObject removedObject) {
-        //TODO: later US
+        Object affectedObject = removedObject.getAffectedObject();
+        if (affectedObject instanceof ApplicationBean) {
+            try {
+                this.requests.add(this.appOperations.remove(this.applicationName));
+            } catch (Exception e) {
+                throw new ApplyException(e);
+            }
+        } else if (!(affectedObject instanceof ApplicationManifestBean)) {
+            throw new IllegalArgumentException("Only changes of applications and manifests are permitted.");
+        }
         return;
     }
 
     /**
      * Creates the requests CfContainerChange
+     * 
      * @param containerChange the CfContainerChange to be visited
      */
     @Override
     public void visitContainerChange(CfContainerChange containerChange) {
-        //TODO: later US
+        // TODO: later US
         return;
     }
 
     /**
      * Creates the requests for CfMapChange
+     * 
      * @param mapChange the CfMapChange to be visited
      */
     @Override
     public void visitMapChange(CfMapChange mapChange) {
-        //TODO: later US
+        // TODO: later US
         return;
     }
 
     /**
-     * Creates the requests for one application.
-     * @param appOperations the ApplicationOperations object used for
-     * @param applicationName the name of the application
-     * @param applicationChanges a list with all the Changes found during diff for that specific application
-     * @throws ApplyException if an error during the apply logic occurs. May contain another exception inside
-     * with more details
-     * @throws IllegalArgumentException if the newObject is neither an ApplicationBean or an ApplicationManifestBean
+     * Creates the remove/create requests for one application.
+     * 
+     * @param appOperations      the ApplicationOperations object used for
+     * @param applicationName    the name of the application
+     * @param applicationChanges a list with all the Changes found during diff for
+     *                           that specific application
      * @return Flux of all requests that are required to apply the changes
      */
-    public static Flux<Void> create(ApplicationsOperations appOperations, String applicationName,
-                                    List<CfChange> applicationChanges) {
+    public static Flux<Void> apply(ApplicationsOperations appOperations, String applicationName,
+        List<CfChange> applicationChanges) {
         ApplicationRequestsPlaner applicationRequestsPlaner = new ApplicationRequestsPlaner(appOperations,
-                applicationName);
+            applicationName);
+
         for (CfChange applicationChange : applicationChanges) {
             applicationChange.accept(applicationRequestsPlaner);
         }
 
         return Flux.merge(applicationRequestsPlaner.requests);
     }
+
 }

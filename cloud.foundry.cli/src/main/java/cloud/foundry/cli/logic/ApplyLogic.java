@@ -17,9 +17,11 @@ import reactor.core.publisher.Flux;
 import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 /**
- * This class takes care of applying desired cloud foundry configurations to a live system.
+ * This class takes care of applying desired cloud foundry configurations to a
+ * live system.
  */
 public class ApplyLogic {
 
@@ -29,7 +31,9 @@ public class ApplyLogic {
 
     /**
      * Creates a new instance that will use the provided cf operations internally.
-     * @param cfOperations the cf operations that should be used to communicate with the cf instance
+     * 
+     * @param cfOperations the cf operations that should be used to communicate with
+     *                     the cf instance
      * @throws NullPointerException if the argument is null
      */
     public ApplyLogic(@Nonnull DefaultCloudFoundryOperations cfOperations) {
@@ -38,12 +42,15 @@ public class ApplyLogic {
         this.cfOperations = cfOperations;
     }
 
-    //TODO update the documentation as soon as the method does more than just creating applications
+    // TODO update the documentation as soon as the method does more than just
+    // creating applications
     /**
-     * Creates all provided applications that are not present in the live system. In case of any error, the procedure
-     * is discontinued.
-     * @param desiredApplications the applications that should all be present in the live system after the procedure
-     * @throws ApplyException if an error occurs during the procedure
+     * Creates all provided applications that are not present in the live system. In
+     * case of any error, the procedure is discontinued.
+     * 
+     * @param desiredApplications the applications that should all be present in the
+     *                            live system after the procedure
+     * @throws ApplyException       if an error occurs during the procedure
      * @throws NullPointerException if the argument is null
      */
     public void applyApplications(@Nonnull Map<String, ApplicationBean> desiredApplications) {
@@ -58,7 +65,8 @@ public class ApplyLogic {
         ConfigBean desiredApplicationsConfig = createConfigFromApplications(desiredApplications);
         ConfigBean liveApplicationsConfig = createConfigFromApplications(liveApplications);
 
-        // compare entire configs as the diff wrapper is only suited for diff trees of these
+        // compare entire configs as the diff wrapper is only suited for diff trees of
+        // these
         DiffLogic diffLogic = new DiffLogic();
         log.info("Comparing the applications...");
         DiffResult wrappedDiff = diffLogic.createDiffResult(liveApplicationsConfig, desiredApplicationsConfig);
@@ -68,16 +76,18 @@ public class ApplyLogic {
         ApplicationsOperations appOperations = new ApplicationsOperations(cfOperations);
 
         Flux<Void> applicationRequests = Flux.fromIterable(allApplicationChanges.entrySet())
-                .flatMap( appChangeEntry -> ApplicationRequestsPlaner.create(appOperations, appChangeEntry.getKey(),
-                        appChangeEntry.getValue()))
-                .onErrorContinue(log::warning);
-        applicationRequests.blockLast();
+            .flatMap(appChangeEntry -> ApplicationRequestsPlaner.apply(appOperations, appChangeEntry.getKey(),
+                appChangeEntry.getValue()))
+            .onErrorContinue(log::warning);
 
         log.info("Applying changes to applications...");
+
+        applicationRequests.blockLast();
     }
 
     /**
-     * @param applicationBeans the application beans that should be contained in the resulting config bean
+     * @param applicationBeans the application beans that should be contained in the
+     *                         resulting config bean
      * @return a config bean only containing the entered application beans
      */
     private ConfigBean createConfigFromApplications(Map<String, ApplicationBean> applicationBeans) {
@@ -87,5 +97,4 @@ public class ApplyLogic {
         applicationsConfigBean.setSpec(applicationsSpecBean);
         return applicationsConfigBean;
     }
-
 }
