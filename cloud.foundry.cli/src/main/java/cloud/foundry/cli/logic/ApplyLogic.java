@@ -5,7 +5,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
-import cloud.foundry.cli.crosscutting.mapping.beans.SpaceDevelopersBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
 import cloud.foundry.cli.crosscutting.exceptions.ApplyException;
 import cloud.foundry.cli.logic.apply.ApplicationRequestsPlaner;
@@ -43,30 +42,39 @@ public class ApplyLogic {
         this.cfOperations = cfOperations;
     }
 
+    /**
+     * Assign users as space developers that are not present in the live system and revoke space developers
+     * permission, if its present in the live system but not defined in <code>desiredSpaceDevelopers</code>.
+     * In case of any error, the procedure is discontinued.
+     *
+     * @param desiredSpaceDevelopers the space developers that should all be present
+     *                               in the live system after the procedure.
+     * @throws NullPointerException if the argument is null.
+     */
     public void applySpaceDevelopers(@Nonnull List<String> desiredSpaceDevelopers) {
+        checkNotNull(desiredSpaceDevelopers);
+
         SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
         log.info("Fetching information about space developers...");
         List<String> liveSpaceDevelopers = spaceDevelopersOperations.getAll().block();
         log.info("Information fetched.");
 
-        SpaceDevelopersBean desiredSpaceDevelopersBean = new SpaceDevelopersBean(desiredSpaceDevelopers);
-        SpaceDevelopersBean liveSpaceDevelopersBean = new SpaceDevelopersBean(liveSpaceDevelopers);
+        ConfigBean desiredSpaceDevelopersConfig = createConfigFromSpaceDevelopers(desiredSpaceDevelopers);
+        ConfigBean liveSpaceDevelopersConfig = createConfigFromSpaceDevelopers(liveSpaceDevelopers);
 
         // compare entire configs as the diff wrapper is only suited for diff trees of these
         DiffLogic diffLogic = new DiffLogic();
         log.info("Comparing the space developers...");
-        DiffResult wrappedDiff = diffLogic.createDiffResult(liveSpaceDevelopersBean, desiredSpaceDevelopersBean);
+        DiffResult wrappedDiff = diffLogic.createDiffResult(liveSpaceDevelopersConfig, desiredSpaceDevelopersConfig);
         log.info("Space developers compared.");
 
         CfContainerChange spaceDevelopersChange = wrappedDiff.getSpaceDevelopersChange();
-
-        /*
-        Flux<Void> spaceDevelopersRequests = Flux.fromIterable(spaceDevelopersChange.getChangedValues())
-                .flatMap(spaceDeveloperValueChanged -> SpaceDevelopersRequestsPlaner.applySpaceDevelopers(
-                        spaceDevelopersOperations, spaceDevelopersChange.getChangedValues()))
+        Flux<Void> spaceDevelopersRequests = Flux.just(spaceDevelopersChange)
+                .flatMap(spaceDeveloperChange ->
+                        SpaceDevelopersRequestsPlaner
+                                .createSpaceDevelopersRequests(spaceDevelopersOperations, spaceDeveloperChange))
                 .onErrorContinue(log::warning);
         spaceDevelopersRequests.blockLast();
-         */
 
         log.info("Applying changes to space developers...");
     }
@@ -109,6 +117,20 @@ public class ApplyLogic {
         applicationRequests.blockLast();
 
         log.info("Applying changes to applications...");
+    }
+
+    /**
+     * @param spaceDevelopersBeans the space developer beans that should be contained in the resulting config bean.
+     * @return a config bean only containing the entered space developer beans.
+     */
+    private ConfigBean createConfigFromSpaceDevelopers(List<String> spaceDevelopersBeans) {
+        SpecBean specBean = new SpecBean();
+        specBean.setSpaceDevelopers(spaceDevelopersBeans);
+
+        ConfigBean configBean = new ConfigBean();
+        configBean.setSpec(specBean);
+
+        return configBean;
     }
 
     /**

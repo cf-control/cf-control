@@ -31,8 +31,10 @@ public class ApplyController implements Callable<Integer> {
         return 0;
     }
 
-    @Command(name = "space-developers", description = "Assign users as space developers that are present in the given yaml" +
-            " file, but not in your cf instance, or revoke the space developer if its in the cf instance, but not in the yaml file")
+    @Command(name = "space-developers",
+            description = "Assign users as space developers that are present " +
+                    "in the given yaml file, but not in your cf instance, or revoke the space developer " +
+                    "if its in the cf instance, but not in the yaml file.")
     static class ApplySpaceDevelopersCommand implements Callable<Integer> {
 
         private static final Log log = Log.getLog(ApplyApplicationCommand.class);
@@ -45,14 +47,12 @@ public class ApplyController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
-
-            ApplyLogic applyLogic = new ApplyLogic(cfOperations);
-
             log.info("Interpreting YAML file...");
             SpecBean desiredSpecBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
             log.info("YAML file interpreted.");
 
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+            ApplyLogic applyLogic = new ApplyLogic(cfOperations);
             applyLogic.applySpaceDevelopers(desiredSpecBean.getSpaceDevelopers());
 
             return 0;
