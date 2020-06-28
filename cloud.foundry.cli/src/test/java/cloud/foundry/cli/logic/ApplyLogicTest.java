@@ -16,6 +16,11 @@ import org.cloudfoundry.operations.applications.Applications;
 import org.cloudfoundry.operations.applications.GetApplicationRequest;
 import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
 import org.cloudfoundry.operations.applications.ApplicationManifest;
+import org.cloudfoundry.operations.spaces.GetSpaceRequest;
+import org.cloudfoundry.operations.spaces.Spaces;
+import org.cloudfoundry.operations.useradmin.ListSpaceUsersRequest;
+import org.cloudfoundry.operations.useradmin.SpaceUsers;
+import org.cloudfoundry.operations.useradmin.UserAdmin;
 import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
 import reactor.core.publisher.Flux;
@@ -23,6 +28,8 @@ import reactor.core.publisher.Mono;
 
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
@@ -43,6 +50,59 @@ public class ApplyLogicTest {
 
         assertThrows(NullPointerException.class, () -> applyLogic.applyApplications(null));
     }
+
+    @Test
+    public void testApplySpaceDevelopersWithNull() {
+        ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
+
+        assertThrows(NullPointerException.class, () -> applyLogic.applySpaceDevelopers(null));
+    }
+
+    /*
+    @Test
+    public void testApplySpaceDevelopersAssignAndRemoveSpaceDevelopers() {
+        // given
+        DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
+        Spaces spacesMock = mock(Spaces.class);
+
+        when(cfOperationsMock.spaces()).thenReturn(spacesMock);
+        when(spacesMock.list()).thenReturn(Flux.empty());
+
+        // from now on: mock-setup for ApplicationOperations.create delivers successful creation
+        when(spacesMock.get(any(GetSpaceRequest.class))).thenThrow(IllegalArgumentException.class);
+        Mono<Void> pushManifestMonoMock = mock(Mono.class);
+
+        // this will contain the received PushApplicationManifestRequest when pushManifest is called
+        UserAdmin userAdminMock = mock(UserAdmin.class);
+        when(cfOperationsMock.userAdmin()).thenReturn(userAdminMock);
+
+        List<String> spaceDevelopersToApply = new LinkedList<>();
+        spaceDevelopersToApply.add("Mr. Bean");
+
+        AtomicReference<ListSpaceUsersRequest> listingRequest = new AtomicReference<>(null);
+        when(userAdminMock.listSpaceUsers(any(ListSpaceUsersRequest.class)))
+                .then(invocation -> {
+                    listingRequest.set(invocation.getArgument(0));
+                    return Mono.just(spaceDevelopersToApply)
+                            .map(list -> SpaceUsers.builder().addAllDevelopers(list).build());
+                });
+        when(pushManifestMonoMock.onErrorContinue(any(Predicate.class), any())).thenReturn(pushManifestMonoMock);
+        when(pushManifestMonoMock.block()).thenReturn(null);
+
+        ApplyLogic applyLogic = new ApplyLogic(cfOperationsMock);
+
+        // when
+        applyLogic.applySpaceDevelopers(spaceDevelopersToApply);
+
+        // then
+        verify(spacesMock).list();
+
+        ListSpaceUsersRequest actualReceivedPushRequest = listingRequest.get();
+        assertThat(actualReceivedPushRequest, is(notNullValue()));
+        assertThat(actualReceivedPushRequest.getOrganizationName(), is(1));
+        assertThat(actualReceivedPushRequest.getSpaceName(), is(1));
+    }
+     */
 
     @Test
     public void testApplyApplicationsCreatesApplication() {
