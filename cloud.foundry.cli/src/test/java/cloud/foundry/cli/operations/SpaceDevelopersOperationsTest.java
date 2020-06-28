@@ -99,7 +99,7 @@ class SpaceDevelopersOperationsTest {
                 .mockForSpaceDeveloperAssignment();
 
         // when
-        Mono<AssociateSpaceDeveloperByUsernameResponse> result = spaceDevelopersOperations
+        Mono<Void> result = spaceDevelopersOperations
                 .assign(spaceDeveloperToAssign, spaceId);
 
         // then
@@ -130,7 +130,7 @@ class SpaceDevelopersOperationsTest {
                 .mockForSpaceDeveloperRemoval();
 
         // when
-        Mono<RemoveSpaceDeveloperByUsernameResponse> result = spaceDevelopersOperations
+        Mono<Void> result = spaceDevelopersOperations
                 .remove(spaceDeveloperToRemove, spaceId);
 
         // then

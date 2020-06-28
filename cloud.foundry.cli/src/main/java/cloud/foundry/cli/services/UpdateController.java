@@ -94,14 +94,13 @@ public class UpdateController implements Callable<Integer> {
             // signals if any error occurred during the removal of the space developers
             AtomicReference<Boolean> errorOccurred = new AtomicReference<>(false);
 
-            List<Mono<RemoveSpaceDeveloperByUsernameResponse>> assignRequests = spaceDevelopers.stream()
+            List<Mono<Void>> assignRequests = spaceDevelopers.stream()
                 .map(spaceDeveloper ->
                     spaceDevelopersOperations.remove(spaceDeveloper, spaceId)
                         .doOnSuccess(response -> onSuccessfulRemoval(spaceDeveloper))
                         .onErrorContinue(this::whenClientException,
                                 (throwable, o) -> onErrorDuringRemoval(throwable, spaceDeveloper, errorOccurred))
-                )
-                .collect(Collectors.toList());
+                ).collect(Collectors.toList());
 
             Flux.merge(assignRequests).blockLast();
             return errorOccurred.get() ? 1 : 0;

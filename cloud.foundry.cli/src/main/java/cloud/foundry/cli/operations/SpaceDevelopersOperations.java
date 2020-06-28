@@ -69,7 +69,7 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
      * @return mono object which yields the response upon subscription
      * @throws NullPointerException if any of the arguments are null
      */
-    public Mono<AssociateSpaceDeveloperByUsernameResponse> assign(@Nonnull String username, @Nonnull String spaceId) {
+    public Mono<Void> assign(@Nonnull String username, @Nonnull String spaceId) {
         checkNotNull(username);
         checkNotNull(spaceId);
 
@@ -82,7 +82,8 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
                 .spaces()
                 .associateDeveloperByUsername(request)
                 .doOnSubscribe(subscription -> log.debug("Assigning a space developer:", username))
-                .doOnSuccess(subscription -> log.debug("Space developer: ", username, " was assigned"));
+                .doOnSuccess(subscription -> log.debug("Space developer: ", username, " was assigned"))
+                .then(Mono.empty());
     }
 
     /**
@@ -94,7 +95,7 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
      * @return mono object which yields the response upon subscription
      * @throws NullPointerException if any of the arguments are null
      */
-    public Mono<RemoveSpaceDeveloperByUsernameResponse> remove(String username, String spaceId) {
+    public Mono<Void> remove(String username, String spaceId) {
         checkNotNull(username);
         checkNotNull(spaceId);
 
@@ -108,6 +109,7 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
                 .spaces()
                 .removeDeveloperByUsername(request)
                 .doOnSubscribe(subscription -> log.debug("Removing a space developer:", username))
-                .doOnSuccess(subscription -> log.debug("Space developer: ", username, " was removed"));
+                .doOnSuccess(subscription -> log.debug("Space developer: ", username, " was removed"))
+                .then(Mono.empty());
     }
 }
