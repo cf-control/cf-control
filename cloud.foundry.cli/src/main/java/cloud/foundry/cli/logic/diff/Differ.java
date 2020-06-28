@@ -57,9 +57,6 @@ public class Differ {
                 .map(ChangeParser::parse)
                 // Change types that are not relevant to us will get parsed to null, so ignore them
                 .filter(Objects::nonNull)
-                // As of the specification: nodes that are not in the desired config should not be displayed.
-                // TODO make it configurable
-                .filter(change -> !(change instanceof CfRemovedObject))
                 // Skip the inner map change infos of SpecBean, since change infos get stored in the child nodes anyway.
                 //TODO make it configurable
                 .filter(change -> !(change instanceof CfMapChange && change.getAffectedObject() instanceof SpecBean))
