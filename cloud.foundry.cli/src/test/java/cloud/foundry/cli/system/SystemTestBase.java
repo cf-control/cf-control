@@ -1,9 +1,16 @@
 package cloud.foundry.cli.system;
 
+import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
+import cloud.foundry.cli.operations.ApplicationsOperations;
+import cloud.foundry.cli.operations.ServicesOperations;
 import cloud.foundry.cli.services.BaseController;
+import cloud.foundry.cli.services.LoginCommandOptions;
+import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 
+import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -17,6 +24,73 @@ import java.util.List;
  * test run simulations.
  */
 public class SystemTestBase {
+
+    /*
+     * these environment variables are supposed to be defined in the test environment, and need to be set to
+     * the correct values (e.g., in the run configuration and on Travis CI)
+     */
+    private static final String CF_USERNAME = "CF_USERNAME";
+    private static final String CF_PASSWORD = "CF_PASSWORD";
+    private static final String CF_SPACE = "CF_SPACE";
+    private static final String CF_ORGANIZATION = "CF_ORGANIZATION";
+    private static final String CF_API_ENDPOINT = "CF_API_ENDPOINT";
+
+    // collection of all environment variables that are not defined in the system environment
+    private List<String> undefinedEnvironmentVariables = new LinkedList<>();
+
+    private String cfUsernameValue;
+    private String cfPasswordValue;
+    private String cfSpaceValue;
+    private String cfOrganizationValue;
+    private String cfApiEndpointValue;
+
+    // the space configurator will remain null if there are any undefined environment variables
+    protected SpaceConfigurator spaceConfigurator = null;
+
+    /**
+     * Reads and stores the values of environment variables, that are supposed to be defined. In case they are all
+     * defined, this constructor also initializes the space configurator.
+     */
+    public SystemTestBase() {
+        this.cfUsernameValue = readValueOfEnvironmentVariable(CF_USERNAME);
+        this.cfPasswordValue = readValueOfEnvironmentVariable(CF_PASSWORD);
+        this.cfSpaceValue = readValueOfEnvironmentVariable(CF_SPACE);
+        this.cfOrganizationValue = readValueOfEnvironmentVariable(CF_ORGANIZATION);
+        this.cfApiEndpointValue = readValueOfEnvironmentVariable(CF_API_ENDPOINT);
+
+        initializeSpaceConfigurator();
+    }
+
+    private String readValueOfEnvironmentVariable(String environmentVariable) {
+        String environmentVariableValue = System.getenv(environmentVariable);
+        if (environmentVariableValue == null) {
+            undefinedEnvironmentVariables.add(environmentVariable);
+        }
+        return environmentVariableValue;
+    }
+
+    private void initializeSpaceConfigurator() {
+        if (undefinedEnvironmentVariables.isEmpty()) {
+            // setup login command options for initialization of the cloud foundry operations instance
+            LoginCommandOptions loginCommandOptions = new LoginCommandOptions();
+            loginCommandOptions.setUserName(cfUsernameValue);
+            loginCommandOptions.setPassword(cfPasswordValue);
+            loginCommandOptions.setSpace(cfSpaceValue);
+            loginCommandOptions.setOrganization(cfOrganizationValue);
+            loginCommandOptions.setApiHost(cfApiEndpointValue);
+
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginCommandOptions);
+
+            // create operations instances that are needed by the space configurator
+            ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
+            ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
+
+            spaceConfigurator = new SpaceConfigurator(servicesOperations, applicationsOperations);
+        } else {
+            spaceConfigurator = null;
+        }
+    }
+
     @BeforeAll
     private static void installCustomSecurityManager() {
         System.setSecurityManager(new PreventExitSecurityManager());
@@ -52,8 +126,7 @@ public class SystemTestBase {
         StreamContents streamContents = streamManager.getContents();
 
         // return result
-        RunResult runResult = new RunResult(exitCode, streamContents);
-        return runResult;
+        return new RunResult(exitCode, streamContents);
     }
 
     /**
@@ -62,17 +135,19 @@ public class SystemTestBase {
      * The data are fetched from the environment, and need to be set during test runs. Otherwise, an exception
      * is thrown.
      * @param argumentsBuilder arguments builder to which the data from the environment are appended
-     * @throws IllegalArgumentException in case any of the environment variables are not set
-     * @returns run result
+     * @throws IllegalStateException in case any of the environment variables are not set
+     * @return run result
      */
     protected RunResult runBaseControllerWithCredentialsFromEnvironment(ArgumentsBuilder argumentsBuilder) {
-        // these environment variables are supposed to be defined in the test environment, and need to be set to
-        // the correct values (e.g., in the run configuration and on Travis CI)
-        argumentsBuilder.addOptionFromEnvironmentVariable("-u", "CF_USERNAME");
-        argumentsBuilder.addOptionFromEnvironmentVariable("-p", "CF_PASSWORD");
-        argumentsBuilder.addOptionFromEnvironmentVariable("-s", "CF_SPACE");
-        argumentsBuilder.addOptionFromEnvironmentVariable("-o", "CF_ORGANIZATION");
-        argumentsBuilder.addOptionFromEnvironmentVariable("-a", "CF_API_ENDPOINT");
+        if (!undefinedEnvironmentVariables.isEmpty()) {
+            throw new IllegalStateException("The environment variables " +
+                    Arrays.toString(undefinedEnvironmentVariables.toArray()) + " are not defined");
+        }
+        argumentsBuilder.addOption("-u", cfUsernameValue);
+        argumentsBuilder.addOption("-p", cfPasswordValue);
+        argumentsBuilder.addOption("-s", cfSpaceValue);
+        argumentsBuilder.addOption("-o", cfOrganizationValue);
+        argumentsBuilder.addOption("-a", cfApiEndpointValue);
 
         return runBaseControllerWithArgs(argumentsBuilder.build());
     }

@@ -35,20 +35,39 @@ public class LoginCommandOptions {
         return userName;
     }
 
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
+
     public String getPassword() {
         return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 
     public String getApiHost() {
         return apiHost;
     }
 
+    public void setApiHost(String apiHost) {
+        this.apiHost = apiHost;
+    }
+
     public String getOrganization() {
         return organization;
+    }
+
+    public void setOrganization(String organization) {
+        this.organization = organization;
     }
 
     public String getSpace() {
         return space;
     }
 
+    public void setSpace(String space) {
+        this.space = space;
+    }
 }

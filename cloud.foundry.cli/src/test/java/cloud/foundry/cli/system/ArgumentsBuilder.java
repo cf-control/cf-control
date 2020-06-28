@@ -39,22 +39,6 @@ public class ArgumentsBuilder {
     }
 
     /**
-     * Convenience method to append an option, fetching its value from a given environment variable
-     * @param optionName name of option (e.g., -o, -u, -a)
-     * @param environmentVariableName name of variable to fetch from environment
-     * @throws IllegalArgumentException if environment variable is not set
-     */
-    public ArgumentsBuilder addOptionFromEnvironmentVariable(String optionName, String environmentVariableName) {
-        String environmentVariableValue = System.getenv(environmentVariableName);
-
-        if (environmentVariableValue == null) {
-            throw new IllegalArgumentException("Environment variable " + environmentVariableName + " not found");
-        }
-
-        return addOption(optionName, environmentVariableValue);
-    }
-
-    /**
      * @return an array containing the entered arguments in the respective order
      */
     public String[] build() {
