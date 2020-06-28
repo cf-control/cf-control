@@ -1,6 +1,5 @@
 package cloud.foundry.cli.system;
 
-
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
 import cloud.foundry.cli.operations.ApplicationsOperations;
@@ -110,8 +109,8 @@ public class SpaceConfigurator {
         Flux.merge(getApplicationNamesRequest, getServiceNamesRequest).blockLast();
 
         // it's assumed that the request was successful and that the references now point to the resulting name sets
-        assert(applicationsToRemove.get() != null);
-        assert(servicesToRemove.get() != null);
+        assert (applicationsToRemove.get() != null);
+        assert (servicesToRemove.get() != null);
 
         // remove all applications of the cf instance by the previously collected application names
         Flux.merge(applicationsToRemove.get().stream()
