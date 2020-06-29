@@ -119,7 +119,7 @@ public class BaseController implements Callable<Integer> {
             } else if (ex instanceof DiffException) {
                 log.error("Unable to perform the diff:", ex.getMessage());
             } else if (ex instanceof ApplyException) {
-                log.error("An error occurred during the apply:", ex.getMessage());
+                log.error("An error occurred while processing the apply command:", ex.getMessage());
             } else if (ex instanceof GetException) {
                 Throwable getExceptionCause = ex.getCause();
 
@@ -141,7 +141,7 @@ public class BaseController implements Callable<Integer> {
                     log.error("Request to CF API failed: Invalid username or password " +
                                 "(your account might be locked due to too many login attempts with a wrong password)");
                 } else {
-                    log.error("An unexpected error occurred during the get:", ex.getMessage());
+                    log.error("An unexpected error occurred while processing the get command:", ex.getMessage());
                 }
 
             } else {
