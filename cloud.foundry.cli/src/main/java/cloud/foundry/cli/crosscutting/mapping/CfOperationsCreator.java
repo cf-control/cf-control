@@ -1,6 +1,6 @@
 package cloud.foundry.cli.crosscutting.mapping;
 
-import cloud.foundry.cli.crosscutting.exceptions.MissingCredentialException;
+import cloud.foundry.cli.crosscutting.exceptions.MissingCredentialsException;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.services.LoginCommandOptions;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
@@ -27,7 +27,7 @@ public class CfOperationsCreator {
      * @param commandOptions {@link LoginCommandOptions}
      * @return DefaultCloudFoundryOperations object, which is the entry point for accessing
      * the CF configurations.
-     * @throws MissingCredentialException if either the username or the password cannot be determined
+     * @throws MissingCredentialsException if either the username or the password cannot be determined
      */
     public static DefaultCloudFoundryOperations createCfOperations(LoginCommandOptions commandOptions) {
         log.debug("Create the cfOperations object with your login command options...");
@@ -90,7 +90,7 @@ public class CfOperationsCreator {
         }
 
         if (user == null || password == null) {
-            throw new MissingCredentialException(user, password);
+            throw new MissingCredentialsException(user, password);
         }
 
         return PasswordGrantTokenProvider.builder()

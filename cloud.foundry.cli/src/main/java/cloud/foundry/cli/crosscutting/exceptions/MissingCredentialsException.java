@@ -3,9 +3,9 @@ package cloud.foundry.cli.crosscutting.exceptions;
 import static com.google.common.base.Preconditions.checkArgument;
 
 /**
- * Indicates that provided credential information is incomplete.
+ * Indicates that the provided credentials are incomplete.
  */
-public class MissingCredentialException extends RuntimeException {
+public class MissingCredentialsException extends RuntimeException {
 
     /**
      * Initializes the exception with an error message that is generated from the provided arguments.
@@ -15,7 +15,7 @@ public class MissingCredentialException extends RuntimeException {
      * @param password the known password or null if unknown
      * @throws IllegalArgumentException if both arguments are not null
      */
-    public MissingCredentialException(String username, String password) {
+    public MissingCredentialsException(String username, String password) {
         super(determineErrorMessage(username, password));
     }
 
