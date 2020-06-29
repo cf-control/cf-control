@@ -91,17 +91,18 @@ public class ApplicationRequestsPlaner implements CfChangeVisitor {
      */
     @Override
     public void visitRemovedObject(CfRemovedObject removedObject) {
+              
         Object affectedObject = removedObject.getAffectedObject();
         if (affectedObject instanceof ApplicationBean) {
-            try {
-                this.requests.add(this.appOperations.remove(this.applicationName));
-            } catch (Exception e) {
-                throw new ApplyException(e);
-            }
+            addRemoveAppRequest();
         } else if (!(affectedObject instanceof ApplicationManifestBean)) {
             throw new IllegalArgumentException("Only changes of applications and manifests are permitted.");
         }
         return;
+    }
+
+    private void addRemoveAppRequest() {
+        this.requests.add(this.appOperations.remove(this.applicationName));
     }
 
     /**
@@ -133,7 +134,7 @@ public class ApplicationRequestsPlaner implements CfChangeVisitor {
      * @param applicationName    the name of the application
      * @param applicationChanges a list with all the Changes found during diff for
      *                           that specific application
-     * @return Flux of all requests that are required to apply the changes
+     * @return flux of all requests that are required to apply the changes
      */
     public static Flux<Void> apply(ApplicationsOperations appOperations, String applicationName,
         List<CfChange> applicationChanges) {

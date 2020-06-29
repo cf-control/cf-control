@@ -42,11 +42,10 @@ public class ApplyLogic {
         this.cfOperations = cfOperations;
     }
 
-    // TODO update the documentation as soon as the method does more than just
-    // creating applications
     /**
-     * Creates all provided applications that are not present in the live system. In
-     * case of any error, the procedure is discontinued.
+     * Apply the differences between the apps given in the yaml file and the
+     * configuration of the apps of your cf instance. In case of any error, the
+     * procedure is discontinued.
      * 
      * @param desiredApplications the applications that should all be present in the
      *                            live system after the procedure
@@ -65,24 +64,28 @@ public class ApplyLogic {
         ConfigBean desiredApplicationsConfig = createConfigFromApplications(desiredApplications);
         ConfigBean liveApplicationsConfig = createConfigFromApplications(liveApplications);
 
-        // compare entire configs as the diff wrapper is only suited for diff trees of
-        // these
+        // compare entire configs as the diff wrapper is only suited for diff trees of these
         DiffLogic diffLogic = new DiffLogic();
         log.info("Comparing the applications...");
         DiffResult wrappedDiff = diffLogic.createDiffResult(liveApplicationsConfig, desiredApplicationsConfig);
         log.info("Applications compared.");
 
         Map<String, List<CfChange>> allApplicationChanges = wrappedDiff.getApplicationChanges();
-        ApplicationsOperations appOperations = new ApplicationsOperations(cfOperations);
 
-        Flux<Void> applicationRequests = Flux.fromIterable(allApplicationChanges.entrySet())
-            .flatMap(appChangeEntry -> ApplicationRequestsPlaner.apply(appOperations, appChangeEntry.getKey(),
-                appChangeEntry.getValue()))
-            .onErrorContinue(log::warning);
+        if (allApplicationChanges == null || allApplicationChanges.isEmpty()) {
+            log.info("There is no difference to apply.");
+        } else {
+            ApplicationsOperations appOperations = new ApplicationsOperations(cfOperations);
 
-        log.info("Applying changes to applications...");
+            Flux<Void> applicationRequests = Flux.fromIterable(allApplicationChanges.entrySet())
+                .flatMap(appChangeEntry -> ApplicationRequestsPlaner.apply(appOperations, appChangeEntry.getKey(),
+                    appChangeEntry.getValue()))
+                .onErrorContinue(log::warning);
 
-        applicationRequests.blockLast();
+            log.info("Applying changes to applications...");
+
+            applicationRequests.blockLast();
+        }
     }
 
     /**
