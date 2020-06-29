@@ -10,7 +10,6 @@ import cloud.foundry.cli.logic.diff.change.map.CfMapChange;
 import cloud.foundry.cli.logic.diff.change.object.CfNewObject;
 import cloud.foundry.cli.logic.diff.change.object.CfObjectValueChanged;
 import cloud.foundry.cli.logic.diff.change.object.CfRemovedObject;
-import cloud.foundry.cli.operations.ApplicationsOperations;
 import cloud.foundry.cli.operations.ServicesOperations;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
