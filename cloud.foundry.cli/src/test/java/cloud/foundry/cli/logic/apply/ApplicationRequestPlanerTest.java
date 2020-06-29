@@ -103,7 +103,7 @@ class ApplicationRequestPlanerTest {
     }
 
     @Test
-    void applyTest_WithNewChangeObject_AppRemoved() throws CreationException {
+    void applyTest_WithRemovedObject_AppRemoved() throws CreationException {
         // given
         ApplicationsOperations appOperations = Mockito.mock(ApplicationsOperations.class);
         String appName = "testApp";

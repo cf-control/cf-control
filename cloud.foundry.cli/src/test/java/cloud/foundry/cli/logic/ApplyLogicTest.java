@@ -59,18 +59,15 @@ public class ApplyLogicTest {
         DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
         Applications applicationsMock = mock(Applications.class);
 
-        // from now on: mock-setup for ApplicationOperations.getAll delivers empty
-        // applications
+        // from now on: mock-setup for ApplicationOperations.getAll delivers empty applications
         when(cfOperationsMock.applications()).thenReturn(applicationsMock);
         when(applicationsMock.list()).thenReturn(Flux.empty());
 
-        // from now on: mock-setup for ApplicationOperations.create delivers successful
-        // creation
+        // from now on: mock-setup for ApplicationOperations.create delivers successful creation
         when(applicationsMock.get(any(GetApplicationRequest.class))).thenThrow(IllegalArgumentException.class);
         Mono<Void> pushManifestMonoMock = mock(Mono.class);
 
-        // this will contain the received PushApplicationManifestRequest when
-        // pushManifest is called
+        // this will contain the received PushApplicationManifestRequest when pushManifest is called
         AtomicReference<PushApplicationManifestRequest> receivedPushRequest = new AtomicReference<>(null);
 
         when(applicationsMock.pushManifest(any(PushApplicationManifestRequest.class)))
