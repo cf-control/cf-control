@@ -63,10 +63,10 @@ public class ApplyLogic {
         // compare entire configs as the diff wrapper is only suited for diff trees of these
         DiffLogic diffLogic = new DiffLogic();
         log.info("Comparing the applications...");
-        DiffResult wrappedDiff = diffLogic.createDiffResult(liveApplicationsConfig, desiredApplicationsConfig);
+        DiffResult diffResult = diffLogic.createDiffResult(liveApplicationsConfig, desiredApplicationsConfig);
         log.info("Applications compared.");
 
-        Map<String, List<CfChange>> allApplicationChanges = wrappedDiff.getApplicationChanges();
+        Map<String, List<CfChange>> allApplicationChanges = diffResult.getApplicationChanges();
 
         Flux<Void> applicationRequests = Flux.fromIterable(allApplicationChanges.entrySet())
                 .flatMap( appChangeEntry -> ApplicationRequestsPlaner.create(applicationsOperations,
@@ -89,8 +89,9 @@ public class ApplyLogic {
         checkNotNull(desiredServices);
 
         ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
+        GetLogic getLogic = new GetLogic();
         log.info("Fetching information about services...");
-        Map<String, ServiceBean> liveServices = servicesOperations.getAll().block();
+        Map<String, ServiceBean> liveServices = getLogic.getServices(servicesOperations);
         log.info("Information fetched.");
 
         // that way only the applications of the live system are compared in the diff
@@ -100,13 +101,14 @@ public class ApplyLogic {
         // compare entire configs as the diff wrapper is only suited for diff trees of these
         DiffLogic diffLogic = new DiffLogic();
         log.info("Comparing the services...");
-        DiffResult wrappedDiff = diffLogic.createDiffResult(liveServicesConfig, desiredServicesConfig);
+        DiffResult diffResult = diffLogic.createDiffResult(liveServicesConfig, desiredServicesConfig);
         log.info("Services compared.");
 
-        Map<String, List<CfChange>> allServicesChanges = wrappedDiff.getServiceChanges();
+        Map<String, List<CfChange>> allServicesChanges = diffResult.getServiceChanges();
 
         Flux<Void> serviceRequests = Flux.fromIterable(allServicesChanges.entrySet())
-                .flatMap( serviceChangeEntry -> ServiceRequestsPlaner.create(servicesOperations, serviceChangeEntry.getKey(),
+                .flatMap( serviceChangeEntry -> ServiceRequestsPlaner.create(servicesOperations,
+                        serviceChangeEntry.getKey(),
                         serviceChangeEntry.getValue()))
                 .onErrorContinue(log::warning);
         serviceRequests.blockLast();

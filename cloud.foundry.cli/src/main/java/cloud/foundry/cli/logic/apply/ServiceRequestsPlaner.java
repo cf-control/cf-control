@@ -58,7 +58,19 @@ public class ServiceRequestsPlaner implements CfChangeVisitor {
      */
     @Override
     public void visitRemovedObject(CfRemovedObject removedObject) {
+        checkArgument(this.getRequests().size() == 0,
+                "There may not be any other requests for that service when adding a remove request.");
 
+        if (!(removedObject.getAffectedObject() instanceof ServiceBean)) {
+            throw new IllegalArgumentException("Only changes of services are permitted.");
+        }
+
+        try {
+            log.info("Adding remove request for service " + serviceName);
+            this.addRequest(servicesOperations.remove(serviceName));
+        } catch (UpdateException | NullPointerException e) {
+            throw new ApplyException(e);
+        }
     }
 
     /**

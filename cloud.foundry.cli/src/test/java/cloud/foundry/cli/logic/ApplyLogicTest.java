@@ -97,4 +97,11 @@ public class ApplyLogicTest {
         assertThat(manifest.getBuildpack(), is("someBuildpack"));
     }
 
+    @Test
+    public void testApplyServicesWithNull() {
+        ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
+
+        assertThrows(NullPointerException.class, () -> applyLogic.applyServices(null));
+    }
+    
 }
