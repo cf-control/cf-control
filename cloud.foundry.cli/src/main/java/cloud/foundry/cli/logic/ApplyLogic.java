@@ -72,7 +72,7 @@ public class ApplyLogic {
                 .flatMap( appChangeEntry -> ApplicationRequestsPlaner.create(applicationsOperations,
                         appChangeEntry.getKey(),
                         appChangeEntry.getValue()))
-                .onErrorContinue(log::warning);
+                .onErrorContinue(log::error);
         applicationRequests.blockLast();
 
         log.info("Applying changes to applications...");
@@ -107,10 +107,11 @@ public class ApplyLogic {
         Map<String, List<CfChange>> allServicesChanges = diffResult.getServiceChanges();
 
         Flux<Void> serviceRequests = Flux.fromIterable(allServicesChanges.entrySet())
-                .flatMap( serviceChangeEntry -> ServiceRequestsPlaner.create(servicesOperations,
-                        serviceChangeEntry.getKey(),
-                        serviceChangeEntry.getValue()))
-                .onErrorContinue(log::warning);
+                .flatMap( serviceChangeEntry ->
+                        ServiceRequestsPlaner.create(servicesOperations,
+                                serviceChangeEntry.getKey(),
+                                serviceChangeEntry.getValue()))
+                .onErrorContinue(log::error);
         serviceRequests.blockLast();
 
         log.info("Applying changes to services...");
