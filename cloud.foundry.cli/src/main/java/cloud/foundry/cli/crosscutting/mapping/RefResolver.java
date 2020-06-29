@@ -16,7 +16,7 @@ import java.util.Map;
  * implementation is entirely hidden to the user of this class.
  */
 public class RefResolver implements YamlTreeVisitor {
-    
+
     private static final Log log = Log.getLog(RefResolver.class);
 
     /**
@@ -85,15 +85,17 @@ public class RefResolver implements YamlTreeVisitor {
         Object referredYamlTree;
         try {
             referredYamlTree = YamlMapper.loadYamlTree(filePath);
-        } catch (IOException exception) {
-            throw new RefResolvingException(exception);
+        } catch (IOException ioException) {
+            throw new RefResolvingException("Unable to read a referenced file: " + ioException.getMessage(),
+                    ioException);
         }
 
         if (yamlPointer != null) {
             try {
                 referredYamlTree = YamlTreeDescender.descend(referredYamlTree, yamlPointer);
             } catch (YamlTreeNodeNotFoundException nodeNotFoundException) {
-                throw new RefResolvingException(nodeNotFoundException);
+                throw new RefResolvingException("A referenced node could not be found: " +
+                        nodeNotFoundException.getMessage(), nodeNotFoundException);
             }
         }
         // this current mapping should be overridden by the referred yaml tree
@@ -120,7 +122,8 @@ public class RefResolver implements YamlTreeVisitor {
         try {
             yamlPointer = new YamlPointer(yamlPointerString);
         } catch (IllegalArgumentException illegalArgumentException) {
-            throw new RefResolvingException(illegalArgumentException);
+            throw new RefResolvingException("Encountered the pointer " + yamlPointerString +
+                    " with an invalid syntax:" + illegalArgumentException.getMessage(), illegalArgumentException);
         }
         return yamlPointer;
     }
