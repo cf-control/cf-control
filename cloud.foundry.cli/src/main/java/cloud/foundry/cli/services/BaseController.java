@@ -113,6 +113,8 @@ public class BaseController implements Callable<Integer> {
                 log.error("Unable to perform the diff:", ex.getMessage());
             } else if (ex instanceof ApplyException) {
                 log.error("An error occurred during the apply:", ex.getMessage());
+            } else if (ex.getCause() instanceof UnknownHostException) {
+                log.error("Unable to connect to the CF API host:", ex.getMessage());
             } else if (ex instanceof GetException) {
                 log.error("An error occurred during the get:", ex.getMessage());
             } else if (ex instanceof IllegalStateException) {
