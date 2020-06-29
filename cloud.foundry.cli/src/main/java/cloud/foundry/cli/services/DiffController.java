@@ -70,7 +70,8 @@ public class DiffController implements Callable<Integer> {
             desiredSpecBean.setServices(desiredServices);
             log.debug("Services Yaml File:", desiredSpecBean);
 
-            Map<String, ServiceBean> servicesLive = servicesOperations.getAll().block();
+            GetLogic getLogic = new GetLogic();
+            Map<String, ServiceBean> servicesLive = getLogic.getServices(servicesOperations);
 
             SpecBean specBeanLive = new SpecBean();
             specBeanLive.setServices(servicesLive);
@@ -115,7 +116,8 @@ public class DiffController implements Callable<Integer> {
             desiredSpecBean.setApps(desiredApplications);
             log.debug("Apps Yaml File:", desiredSpecBean);
 
-            Map<String, ApplicationBean> appsLive = applicationsOperations.getAll().block();
+            GetLogic getLogic = new GetLogic();
+            Map<String, ApplicationBean> appsLive = getLogic.getApplications(applicationsOperations);
 
             SpecBean specBeanLive = new SpecBean();
             specBeanLive.setApps(appsLive);
@@ -161,7 +163,9 @@ public class DiffController implements Callable<Integer> {
 
             log.debug("Space Devs Yaml File:", desiredSpecBean);
 
-            List<String> spaceDevs = spaceDevOperations.getAll().block();
+            GetLogic getLogic = new GetLogic();
+            List<String> spaceDevs = getLogic.getSpaceDevelopers(spaceDevOperations);
+
             SpecBean specBeanLive = new SpecBean();
             specBeanLive.setSpaceDevelopers(spaceDevs);
             log.debug("Space Devs current config:", specBeanLive);
