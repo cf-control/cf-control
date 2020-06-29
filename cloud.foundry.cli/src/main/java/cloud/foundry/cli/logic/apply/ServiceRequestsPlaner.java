@@ -54,7 +54,7 @@ public class ServiceRequestsPlaner extends RequestsPlaner {
     }
 
     private void addCreateServiceRequest(ServiceBean affectedObject) {
-        this.requests.add(this.servicesOperations.create(this.serviceName, affectedObject));
+        this.getRequests().add(this.servicesOperations.create(this.serviceName, affectedObject));
     }
 
     /**
