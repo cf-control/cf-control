@@ -1,7 +1,7 @@
 package cloud.foundry.cli.services;
 
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
-import cloud.foundry.cli.crosscutting.exceptions.CredentialException;
+import cloud.foundry.cli.crosscutting.exceptions.MissingCredentialException;
 import cloud.foundry.cli.crosscutting.exceptions.GetException;
 import cloud.foundry.cli.crosscutting.exceptions.DiffException;
 import cloud.foundry.cli.crosscutting.exceptions.RefResolvingException;
@@ -103,8 +103,8 @@ public class BaseController implements Callable<Integer> {
                 log.error("Failed to update message:" + ex.getMessage());
             } else if (ex instanceof UnsupportedOperationException) {
                 log.error("Operation not supported/implemented:", ex.getMessage());
-            } else if (ex instanceof CredentialException) {
-                log.error("Credentials error:", ex.getMessage());
+            } else if (ex instanceof MissingCredentialException) {
+                log.error("Missing credentials were detected:", ex.getMessage());
             } else if (ex instanceof RefResolvingException) {
                 log.error("Failed to resolve " + RefResolver.REF_KEY + "-occurrences:", ex.getMessage());
             } else if (ex instanceof ConstructorException) {
