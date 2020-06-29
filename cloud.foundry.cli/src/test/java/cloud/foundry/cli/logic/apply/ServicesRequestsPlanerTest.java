@@ -1,5 +1,11 @@
 package cloud.foundry.cli.logic.apply;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import cloud.foundry.cli.crosscutting.exceptions.ApplyException;
 import cloud.foundry.cli.crosscutting.exceptions.UpdateException;
 import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
@@ -15,11 +21,6 @@ import reactor.core.publisher.Mono;
 import java.util.Arrays;
 import java.util.Collections;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class ServicesRequestsPlanerTest {
 
@@ -27,6 +28,7 @@ public class ServicesRequestsPlanerTest {
     public void testCreateWithRemovedObjectThrowsExceptionWhenThereAreAlreadyOtherRequests() {
         // given
         ServicesOperations servicesOperations = mock(ServicesOperations.class);
+        when(servicesOperations.remove("someservice")).thenReturn(Mono.empty());
 
         CfChange remove1 = new CfRemovedObject(new ServiceBean(), "someservice", Collections.singletonList("root"));
         CfChange remove2 = new CfRemovedObject(new ServiceBean(), "someservice", Collections.singletonList("root"));

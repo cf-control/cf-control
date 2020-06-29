@@ -1,5 +1,7 @@
 package cloud.foundry.cli.logic.apply;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import cloud.foundry.cli.crosscutting.exceptions.ApplyException;
 import cloud.foundry.cli.crosscutting.exceptions.UpdateException;
 import cloud.foundry.cli.crosscutting.logging.Log;
@@ -12,7 +14,6 @@ import reactor.core.publisher.Flux;
 
 import java.util.List;
 
-import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * This class is responsible to build the requests in the context of services according to the CfChanges.
@@ -26,6 +27,7 @@ public class ServiceRequestsPlaner extends RequestsPlaner {
     private final String serviceName;
 
     private ServiceRequestsPlaner(ServicesOperations servicesOperations, String serviceName) {
+        super();
         this.servicesOperations = servicesOperations;
         this.serviceName = serviceName;
     }

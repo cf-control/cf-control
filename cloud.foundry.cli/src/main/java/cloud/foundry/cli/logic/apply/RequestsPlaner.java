@@ -1,5 +1,7 @@
 package cloud.foundry.cli.logic.apply;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import cloud.foundry.cli.crosscutting.exceptions.ApplyException;
 import cloud.foundry.cli.logic.diff.change.container.CfContainerChange;
 import cloud.foundry.cli.logic.diff.change.map.CfMapChange;
@@ -12,14 +14,13 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * This is the super class of all request planing classes which are responsible to build the required requests
  * according to the given CfChange objects.
  * The class does create the request tasks by implementing the {@link CfChangeVisitor} interface.
  */
-public abstract class RequestsPlaner implements CfChangeVisitor{
+public abstract class RequestsPlaner implements CfChangeVisitor {
 
     public static final String CHANGE_TYPE_IS_NOT_SUPPORTED = "Change type is not supported.";
 
