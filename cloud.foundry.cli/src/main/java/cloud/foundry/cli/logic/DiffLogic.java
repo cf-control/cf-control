@@ -40,7 +40,7 @@ public class DiffLogic {
 
     private DiffResult doCreateDiffResult(Bean liveConfig, Bean desiredConfig) {
         Differ differ = new Differ();
-        differ.ignoreRemovedObjects();
+        differ.ignoreSpecBeanMapChange();
 
         return new DiffResult(differ.createDiffTree(liveConfig, desiredConfig));
     }
