@@ -114,12 +114,15 @@ public class BaseController implements Callable<Integer> {
                 log.error("Unable to perform the diff:", ex.getMessage());
             } else if (ex instanceof ApplyException) {
                 log.error("An error occurred during the apply:", ex.getMessage());
-            } else if (ex.getCause() instanceof UnknownHostException) {
-                log.error("Unable to connect to the CF API host:", ex.getMessage());
             } else if (ex instanceof GetException) {
                 Throwable getExceptionCause = ex.getCause();
-                // illegal argument exceptions seem to denote invalid organizations and spaces
-                if (getExceptionCause instanceof IllegalArgumentException) {
+
+                // wrapped unknown host exceptions stand for unreachable hosts
+                if (getExceptionCause.getCause() instanceof UnknownHostException) {
+                    log.error("Unable to connect to the CF API host:", getExceptionCause.getMessage());
+
+                    // illegal argument exceptions seem to denote invalid organizations and spaces
+                } else if (getExceptionCause instanceof IllegalArgumentException) {
                     log.error("Wrong arguments provided:", getExceptionCause.getMessage());
 
                     // a little bit ugly, but it works
