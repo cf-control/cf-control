@@ -85,7 +85,13 @@ public class BaseController implements Callable<Integer> {
         BaseController controller = new BaseController();
 
         CommandLine cli = new CommandLine(controller);
-        args = CfArgumentsCreator.determineCommandLine(cli, args);
+        try {
+            args = CfArgumentsCreator.determineCommandLine(cli, args);
+        } catch (CommandLine.ParameterException parameterException) {
+            // the arguments are invalid
+            log.error(parameterException.getMessage());
+            System.exit(1);
+        }
 
         // picocli has a nice hidden feature: one can register a special exception handler and thus deal with
         // exceptions occurring during the execution of a Callable, Runnable etc.
