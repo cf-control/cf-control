@@ -106,8 +106,10 @@ public class ApplyLogic {
         Map<String, List<CfChange>> allServicesChanges = wrappedDiff.getServiceChanges();
 
         Flux<Void> serviceRequests = Flux.fromIterable(allServicesChanges.entrySet())
-                .flatMap( serviceChangeEntry -> ServiceRequestsPlaner.create(servicesOperations, serviceChangeEntry.getKey(),
-                        serviceChangeEntry.getValue()))
+                .flatMap( serviceChangeEntry ->
+                        ServiceRequestsPlaner.create(servicesOperations,
+                                serviceChangeEntry.getKey(),
+                                serviceChangeEntry.getValue()))
                 .onErrorContinue(log::warning);
         serviceRequests.blockLast();
 
