@@ -1,7 +1,9 @@
 package cloud.foundry.cli.logic.apply;
 
 import cloud.foundry.cli.crosscutting.exceptions.ApplyException;
+import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import cloud.foundry.cli.crosscutting.logging.Log;
+import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
 import cloud.foundry.cli.logic.diff.change.CfChange;
 import cloud.foundry.cli.logic.diff.change.container.CfContainerChange;
 import cloud.foundry.cli.logic.diff.change.map.CfMapChange;
@@ -40,7 +42,22 @@ public class ServiceRequestsPlaner implements CfChangeVisitor {
      */
     @Override
     public void visitNewObject(CfNewObject newObject) {
+        Object affectedObject = newObject.getAffectedObject();
+        if (affectedObject instanceof ServiceBean) {
+            try {
+                addCreateServiceRequest((ServiceBean) affectedObject);
+            } catch (CreationException | IllegalArgumentException | NullPointerException | SecurityException e) {
+                throw new ApplyException(e);
+            }
+        }
+        else {
+            throw new IllegalArgumentException("Only changes of services are permitted.");
+        }
+        return;
+    }
 
+    private void addCreateServiceRequest(ServiceBean affectedObject) {
+        this.requests.add(this.servicesOperations.create(this.serviceName, affectedObject));
     }
 
     /**
