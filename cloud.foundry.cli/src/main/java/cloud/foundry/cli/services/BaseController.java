@@ -117,27 +117,27 @@ public class BaseController implements Callable<Integer> {
             } else if (ex instanceof GetException) {
                 Throwable getExceptionCause = ex.getCause();
 
-                // wrapped unknown host exceptions stand for unreachable hosts
+                // the cases that are hard to identify are all wrapped in a GetException
                 if (getExceptionCause.getCause() instanceof UnknownHostException) {
+                    // wrapped unknown host exceptions stand for unreachable hosts
                     log.error("Unable to connect to the CF API host:", getExceptionCause.getMessage());
-
-                    // illegal argument exceptions seem to denote invalid organizations and spaces
                 } else if (getExceptionCause instanceof IllegalArgumentException) {
+                    // illegal argument exceptions seem to denote invalid organizations and spaces
                     log.error("Wrong arguments provided:", getExceptionCause.getMessage());
-
-                    // a little bit ugly, but it works
-                    // the problem is in reactor.core.Exceptions
-                    // it creates lambda class instances which are hard to test on...
-                    // by these checks we can make sure, that the exception was caused by invalid credentials
                 } else if (getExceptionCause instanceof IllegalStateException &&
                         getExceptionCause.getMessage().toLowerCase().contains("retries exhausted") &&
                         getExceptionCause.getCause() != null &&
                         getExceptionCause.getCause().toString().toLowerCase().contains("invalidtokenexception")) {
+                    // a little bit ugly, but it works
+                    // the problem is in reactor.core.Exceptions
+                    // it creates lambda class instances which are hard to test on...
+                    // by these checks we can make sure, that the exception was caused by invalid credentials
                         log.error("Request to CF API failed: Invalid username or password " +
                                 "(your account might be locked due to too many login attempts with a wrong password)");
                 } else {
-                    log.error("An error occurred during the get:", ex.getMessage());
+                    log.error("An unexpected error occurred during the get:", ex.getMessage());
                 }
+
             } else {
                 log.exception(ex, "Unexpected error occurred");
             }
