@@ -17,6 +17,7 @@ import picocli.CommandLine;
 import picocli.CommandLine.Option;
 
 import java.io.IOException;
+import java.net.UnknownHostException;
 import java.util.concurrent.Callable;
 import java.util.logging.FileHandler;
 
@@ -116,22 +117,23 @@ public class BaseController implements Callable<Integer> {
             } else if (ex.getCause() instanceof UnknownHostException) {
                 log.error("Unable to connect to the CF API host:", ex.getMessage());
             } else if (ex instanceof GetException) {
-                log.error("An error occurred during the get:", ex.getMessage());
-            } else if (ex instanceof IllegalStateException) {
-                // a little bit ugly, but it works
-                // the problem is in reactor.core.Exceptions
-                // it creates lambda class instances which are hard to test on...
-                if (ex.getMessage().toLowerCase().contains("retries exhausted")) {
-                    // now, if there is a cause and it's an InvalidTokenException, we can at least provide a hint
-                    // that it's likely a password issue
-                    if (ex.getCause() != null &&
-                            ex.getCause().toString().toLowerCase().contains("invalidtokenexception")) {
-                        log.error("Request to CF API failed: invalid token error (is the password correct?)");
-                    } else {
-                        log.exception(ex, "Request to CF API failed:");
-                    }
+                Throwable getExceptionCause = ex.getCause();
+                // illegal argument exceptions seem to denote invalid organizations and spaces
+                if (getExceptionCause instanceof IllegalArgumentException) {
+                    log.error("Wrong arguments provided:", getExceptionCause.getMessage());
+
+                    // a little bit ugly, but it works
+                    // the problem is in reactor.core.Exceptions
+                    // it creates lambda class instances which are hard to test on...
+                    // by these checks we can make sure, that the exception was caused by invalid credentials
+                } else if (getExceptionCause instanceof IllegalStateException &&
+                        getExceptionCause.getMessage().toLowerCase().contains("retries exhausted") &&
+                        getExceptionCause.getCause() != null &&
+                        getExceptionCause.getCause().toString().toLowerCase().contains("invalidtokenexception")) {
+                        log.error("Request to CF API failed: Invalid username or password " +
+                                "(your account might be locked due to too many login attempts with a wrong password)");
                 } else {
-                    log.exception(ex, "Unexpected illegal state error");
+                    log.error("An error occurred during the get:", ex.getMessage());
                 }
             } else {
                 log.exception(ex, "Unexpected error occurred");
