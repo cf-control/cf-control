@@ -8,16 +8,20 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
 
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationManifestBean;
+
+import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperByUsernameRequest;
+import org.cloudfoundry.client.v2.spaces.RemoveSpaceDeveloperByUsernameRequest;
+import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.applications.Applications;
 import org.cloudfoundry.operations.applications.GetApplicationRequest;
 import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
+import org.cloudfoundry.client.v2.spaces.Spaces;
 import org.cloudfoundry.operations.applications.ApplicationManifest;
-import org.cloudfoundry.operations.spaces.GetSpaceRequest;
-import org.cloudfoundry.operations.spaces.Spaces;
 import org.cloudfoundry.operations.useradmin.ListSpaceUsersRequest;
 import org.cloudfoundry.operations.useradmin.SpaceUsers;
 import org.cloudfoundry.operations.useradmin.UserAdmin;
@@ -58,36 +62,31 @@ public class ApplyLogicTest {
         assertThrows(NullPointerException.class, () -> applyLogic.applySpaceDevelopers(null));
     }
 
-    /*
     @Test
     public void testApplySpaceDevelopersAssignAndRemoveSpaceDevelopers() {
         // given
-        DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
-        Spaces spacesMock = mock(Spaces.class);
-
-        when(cfOperationsMock.spaces()).thenReturn(spacesMock);
-        when(spacesMock.list()).thenReturn(Flux.empty());
-
-        // from now on: mock-setup for ApplicationOperations.create delivers successful creation
-        when(spacesMock.get(any(GetSpaceRequest.class))).thenThrow(IllegalArgumentException.class);
-        Mono<Void> pushManifestMonoMock = mock(Mono.class);
-
-        // this will contain the received PushApplicationManifestRequest when pushManifest is called
-        UserAdmin userAdminMock = mock(UserAdmin.class);
-        when(cfOperationsMock.userAdmin()).thenReturn(userAdminMock);
-
+        // listSpacedevs to apply
         List<String> spaceDevelopersToApply = new LinkedList<>();
         spaceDevelopersToApply.add("Mr. Bean");
+        spaceDevelopersToApply.add("toAdd");
 
-        AtomicReference<ListSpaceUsersRequest> listingRequest = new AtomicReference<>(null);
-        when(userAdminMock.listSpaceUsers(any(ListSpaceUsersRequest.class)))
-                .then(invocation -> {
-                    listingRequest.set(invocation.getArgument(0));
-                    return Mono.just(spaceDevelopersToApply)
-                            .map(list -> SpaceUsers.builder().addAllDevelopers(list).build());
-                });
-        when(pushManifestMonoMock.onErrorContinue(any(Predicate.class), any())).thenReturn(pushManifestMonoMock);
-        when(pushManifestMonoMock.block()).thenReturn(null);
+        // list live
+        List<String> spaceDevelopersLive = new LinkedList<>();
+        spaceDevelopersLive.add("Mr. Bean");
+        spaceDevelopersLive.add("toDelete");
+
+        DefaultCloudFoundryOperations cfOperationsMock = mockSpaceDevelopersGetAll(spaceDevelopersLive);
+        CloudFoundryClient cloudFoundryClientMock = mock(CloudFoundryClient.class);
+        when(cfOperationsMock.getCloudFoundryClient()).thenReturn(cloudFoundryClientMock);
+        Spaces spacesMock = mock(Spaces.class);
+        when(cloudFoundryClientMock.spaces()).thenReturn(spacesMock);
+
+        // assign
+        AtomicReference<AssociateSpaceDeveloperByUsernameRequest> assignmentRequest = assignSpaceDevelopersMock(
+                spacesMock);
+
+        // delete
+        AtomicReference<RemoveSpaceDeveloperByUsernameRequest> removalRequest = deleteSpaceDevelopersMock(spacesMock);
 
         ApplyLogic applyLogic = new ApplyLogic(cfOperationsMock);
 
@@ -95,14 +94,74 @@ public class ApplyLogicTest {
         applyLogic.applySpaceDevelopers(spaceDevelopersToApply);
 
         // then
-        verify(spacesMock).list();
+        verify(spacesMock, times(1)).removeDeveloperByUsername(any(RemoveSpaceDeveloperByUsernameRequest.class));
+        verify(spacesMock, times(1)).associateDeveloperByUsername(any(AssociateSpaceDeveloperByUsernameRequest.class));
 
-        ListSpaceUsersRequest actualReceivedPushRequest = listingRequest.get();
-        assertThat(actualReceivedPushRequest, is(notNullValue()));
-        assertThat(actualReceivedPushRequest.getOrganizationName(), is(1));
-        assertThat(actualReceivedPushRequest.getSpaceName(), is(1));
+        AssociateSpaceDeveloperByUsernameRequest assignrequest = assignmentRequest.get();
+        assertThat(assignrequest, notNullValue());
+        assertThat(assignrequest.getUsername(), is("toAdd"));
+
+        RemoveSpaceDeveloperByUsernameRequest deleterequest = removalRequest.get();
+        assertThat(deleterequest, notNullValue());
+        assertThat(deleterequest.getUsername(), is("toDelete"));
+
     }
-     */
+
+    // mock for class getAll
+    private DefaultCloudFoundryOperations mockSpaceDevelopersGetAll(List<String> spaceDevelopersLive) {
+        DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
+
+        when(cfOperationsMock.getSpace()).thenReturn("spaceName");
+        when(cfOperationsMock.getOrganization()).thenReturn("organizationName");
+        Mono<String> monoMock = mock(Mono.class);
+        when(cfOperationsMock.getSpaceId()).thenReturn(monoMock);
+        when(monoMock.block()).thenReturn("spaceID");
+
+        UserAdmin userAdminMock = mock(UserAdmin.class);
+        when(cfOperationsMock.userAdmin()).thenReturn(userAdminMock);
+
+        AtomicReference<ListSpaceUsersRequest> listingRequest = new AtomicReference<>(null);
+        when(userAdminMock.listSpaceUsers(any(ListSpaceUsersRequest.class)))
+                .then(invocation -> {
+                    listingRequest.set(invocation.getArgument(0));
+                    return Mono.just(spaceDevelopersLive)
+                            .map(list -> SpaceUsers.builder().addAllDevelopers(list).build());
+                });
+
+        return cfOperationsMock;
+    }
+
+    // mock for assign space devs
+    private AtomicReference<AssociateSpaceDeveloperByUsernameRequest> assignSpaceDevelopersMock(Spaces spacesMock) {
+        Mono<Void> assignMonoMock = mock(Mono.class);
+        AtomicReference<AssociateSpaceDeveloperByUsernameRequest> assignmentRequest = new AtomicReference<>(null);
+        when(spacesMock.associateDeveloperByUsername(any(AssociateSpaceDeveloperByUsernameRequest.class)))
+                .then(invocation -> {
+                    assignmentRequest.set(invocation.getArgument(0));
+                    return Mono.empty();
+                });
+
+        when(assignMonoMock.onErrorContinue(any(Predicate.class), any())).thenReturn(assignMonoMock);
+        when(assignMonoMock.block()).thenReturn(null);
+
+        return assignmentRequest;
+    }
+
+    // mock for delete space devs
+    private AtomicReference<RemoveSpaceDeveloperByUsernameRequest> deleteSpaceDevelopersMock(Spaces spacesMock) {
+        Mono<Void> deleteMonoMock = mock(Mono.class);
+        AtomicReference<RemoveSpaceDeveloperByUsernameRequest> removalRequest = new AtomicReference<>(null);
+        when(spacesMock.removeDeveloperByUsername(any(RemoveSpaceDeveloperByUsernameRequest.class)))
+                .then(invocation -> {
+                    removalRequest.set(invocation.getArgument(0));
+                    return Mono.empty();
+                });
+
+        when(deleteMonoMock.onErrorContinue(any(Predicate.class), any())).thenReturn(deleteMonoMock);
+        when(deleteMonoMock.block()).thenReturn(null);
+
+        return removalRequest;
+    }
 
     @Test
     public void testApplyApplicationsCreatesApplication() {
@@ -110,15 +169,18 @@ public class ApplyLogicTest {
         DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
         Applications applicationsMock = mock(Applications.class);
 
-        // from now on: mock-setup for ApplicationOperations.getAll delivers empty applications
+        // from now on: mock-setup for ApplicationOperations.getAll delivers empty
+        // applications
         when(cfOperationsMock.applications()).thenReturn(applicationsMock);
         when(applicationsMock.list()).thenReturn(Flux.empty());
 
-        // from now on: mock-setup for ApplicationOperations.create delivers successful creation
+        // from now on: mock-setup for ApplicationOperations.create delivers successful
+        // creation
         when(applicationsMock.get(any(GetApplicationRequest.class))).thenThrow(IllegalArgumentException.class);
         Mono<Void> pushManifestMonoMock = mock(Mono.class);
 
-        // this will contain the received PushApplicationManifestRequest when pushManifest is called
+        // this will contain the received PushApplicationManifestRequest when
+        // pushManifest is called
         AtomicReference<PushApplicationManifestRequest> receivedPushRequest = new AtomicReference<>(null);
 
         when(applicationsMock.pushManifest(any(PushApplicationManifestRequest.class)))
@@ -126,7 +188,7 @@ public class ApplyLogicTest {
                     receivedPushRequest.set(invocation.getArgument(0));
                     return pushManifestMonoMock;
                 });
-        when(pushManifestMonoMock.onErrorContinue( any(Predicate.class), any())).thenReturn(pushManifestMonoMock);
+        when(pushManifestMonoMock.onErrorContinue(any(Predicate.class), any())).thenReturn(pushManifestMonoMock);
         when(pushManifestMonoMock.block()).thenReturn(null);
 
         // from now on: setup application to apply

@@ -109,6 +109,12 @@ You can have the tool create a machine-readable log file by specifying the `--lo
   remove-application      Remove applications in the target space.
 ```
 
+##### apply [SUBCOMMAND]
+```
+  space-developers       Assign users as space developers that are present in the given yaml file, 
+                         but not in your cf instance, or revoke the space developer if its in the cf instance, but not in the yaml file.
+```
+
 ##### [PARAMS]
 
 ```

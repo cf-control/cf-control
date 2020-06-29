@@ -93,10 +93,11 @@ public class SpaceDevelopersRequestsPlaner implements CfChangeVisitor {
      * @return Flux of all requests that are required to apply the changes.
      */
     public static Flux<Void> createSpaceDevelopersRequests(SpaceDevelopersOperations spaceDevelopersOperations,
-                                                  CfContainerChange spaceDevelopersChange) {
+                                                           CfContainerChange spaceDevelopersChange) {
 
         SpaceDevelopersRequestsPlaner spaceDevelopersRequestsPlaner =
                 new SpaceDevelopersRequestsPlaner(spaceDevelopersOperations);
+
         spaceDevelopersChange.accept(spaceDevelopersRequestsPlaner);
 
         return Flux.merge(spaceDevelopersRequestsPlaner.requests);

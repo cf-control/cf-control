@@ -4,9 +4,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import cloud.foundry.cli.crosscutting.logging.Log;
 import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperByUsernameRequest;
-import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperByUsernameResponse;
 import org.cloudfoundry.client.v2.spaces.RemoveSpaceDeveloperByUsernameRequest;
-import org.cloudfoundry.client.v2.spaces.RemoveSpaceDeveloperByUsernameResponse;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.useradmin.ListSpaceUsersRequest;
 import org.cloudfoundry.operations.useradmin.SpaceUsers;
@@ -39,14 +37,14 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
      */
     public Mono<List<String>> getAll() {
         ListSpaceUsersRequest request = ListSpaceUsersRequest.builder()
-            .spaceName(cloudFoundryOperations.getSpace())
-            .organizationName(cloudFoundryOperations.getOrganization())
-            .build();
+                .spaceName(cloudFoundryOperations.getSpace())
+                .organizationName(cloudFoundryOperations.getOrganization())
+                .build();
 
         return cloudFoundryOperations
-            .userAdmin()
-            .listSpaceUsers(request)
-            .map(SpaceUsers::getDevelopers);
+                .userAdmin()
+                .listSpaceUsers(request)
+                .map(SpaceUsers::getDevelopers);
     }
 
     /**
@@ -82,7 +80,7 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
                 .spaces()
                 .associateDeveloperByUsername(request)
                 .doOnSubscribe(subscription -> log.debug("Assigning a space developer:", username))
-                .doOnSuccess(subscription -> log.debug("Space developer: ", username, " was assigned"))
+                .doOnSuccess(subscription -> log.info("Space developer: ", username, " was assigned"))
                 .then(Mono.empty());
     }
 
@@ -109,7 +107,8 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
                 .spaces()
                 .removeDeveloperByUsername(request)
                 .doOnSubscribe(subscription -> log.debug("Removing a space developer:", username))
-                .doOnSuccess(subscription -> log.debug("Space developer: ", username, " was removed"))
+                .doOnSuccess(subscription -> log.info("Space developer: ", username, " was removed"))
                 .then(Mono.empty());
     }
+
 }

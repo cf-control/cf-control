@@ -22,7 +22,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This class takes care of applying desired cloud foundry configurations to a live system.
+ * This class takes care of applying desired cloud foundry configurations to a
+ * live system.
  */
 public class ApplyLogic {
 
@@ -33,7 +34,8 @@ public class ApplyLogic {
     /**
      * Creates a new instance that will use the provided cf operations internally.
      *
-     * @param cfOperations the cf operations that should be used to communicate with the cf instance
+     * @param cfOperations the cf operations that should be used to communicate with
+     *                     the cf instance
      * @throws NullPointerException if the argument is null
      */
     public ApplyLogic(@Nonnull DefaultCloudFoundryOperations cfOperations) {
@@ -43,9 +45,10 @@ public class ApplyLogic {
     }
 
     /**
-     * Assign users as space developers that are not present in the live system and revoke space developers
-     * permission, if its present in the live system but not defined in <code>desiredSpaceDevelopers</code>.
-     * In case of any error, the procedure is discontinued.
+     * Assign users as space developers that are not present in the live system and
+     * revoke space developers permission, if its present in the live system but not
+     * defined in <code>desiredSpaceDevelopers</code>. In case of any error, the
+     * procedure is discontinued.
      *
      * @param desiredSpaceDevelopers the space developers that should all be present
      *                               in the live system after the procedure.
@@ -69,23 +72,27 @@ public class ApplyLogic {
         log.info("Space developers compared.");
 
         CfContainerChange spaceDevelopersChange = wrappedDiff.getSpaceDevelopersChange();
-        Flux<Void> spaceDevelopersRequests = Flux.just(spaceDevelopersChange)
-                .flatMap(spaceDeveloperChange ->
-                        SpaceDevelopersRequestsPlaner
-                                .createSpaceDevelopersRequests(spaceDevelopersOperations, spaceDeveloperChange))
-                .onErrorContinue(log::warning);
-        spaceDevelopersRequests.blockLast();
-
-        log.info("Applying changes to space developers...");
+        if (spaceDevelopersChange == null) {
+            log.info("There is nothing to apply");
+        } else {
+            Flux<Void> spaceDevelopersRequests = Flux.just(spaceDevelopersChange)
+                    .flatMap(spaceDeveloperChange -> SpaceDevelopersRequestsPlaner
+                            .createSpaceDevelopersRequests(spaceDevelopersOperations, spaceDeveloperChange))
+                    .onErrorContinue(log::warning);
+            log.info("Applying changes to space developers...");
+            spaceDevelopersRequests.blockLast();
+        }
     }
 
-    //TODO update the documentation as soon as the method does more than just creating applications
+    // TODO update the documentation as soon as the method does more than just
+    // creating applications
 
     /**
-     * Creates all provided applications that are not present in the live system. In case of any error, the procedure
-     * is discontinued.
+     * Creates all provided applications that are not present in the live system. In
+     * case of any error, the procedure is discontinued.
      *
-     * @param desiredApplications the applications that should all be present in the live system after the procedure
+     * @param desiredApplications the applications that should all be present in the
+     *                            live system after the procedure
      * @throws ApplyException       if an error occurs during the procedure
      * @throws NullPointerException if the argument is null
      */
@@ -101,7 +108,8 @@ public class ApplyLogic {
         ConfigBean desiredApplicationsConfig = createConfigFromApplications(desiredApplications);
         ConfigBean liveApplicationsConfig = createConfigFromApplications(liveApplications);
 
-        // compare entire configs as the diff wrapper is only suited for diff trees of these
+        // compare entire configs as the diff wrapper is only suited for diff trees of
+        // these
         DiffLogic diffLogic = new DiffLogic();
         log.info("Comparing the applications...");
         DiffResult wrappedDiff = diffLogic.createDiffResult(liveApplicationsConfig, desiredApplicationsConfig);
@@ -120,7 +128,8 @@ public class ApplyLogic {
     }
 
     /**
-     * @param spaceDevelopersBeans the space developer beans that should be contained in the resulting config bean.
+     * @param spaceDevelopersBeans the space developer beans that should be
+     *                             contained in the resulting config bean.
      * @return a config bean only containing the entered space developer beans.
      */
     private ConfigBean createConfigFromSpaceDevelopers(List<String> spaceDevelopersBeans) {
@@ -134,7 +143,8 @@ public class ApplyLogic {
     }
 
     /**
-     * @param applicationBeans the application beans that should be contained in the resulting config bean
+     * @param applicationBeans the application beans that should be contained in the
+     *                         resulting config bean
      * @return a config bean only containing the entered application beans
      */
     private ConfigBean createConfigFromApplications(Map<String, ApplicationBean> applicationBeans) {
