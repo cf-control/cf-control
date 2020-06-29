@@ -32,10 +32,10 @@ public class Differ {
             .withListCompareAlgorithm(ListCompareAlgorithm.AS_SET)
             .build();
 
-    private final List<FilterCondition> filterConditions;
+    private final List<FilterCriteria> filterCriteria;
 
     public Differ() {
-        this.filterConditions = new LinkedList<>();
+        this.filterCriteria = new LinkedList<>();
     }
 
     /**
@@ -43,7 +43,7 @@ public class Differ {
      * in the resulting tree.
      */
     public void ignoreRemovedObjects() {
-        this.filterConditions.add(change -> !(change instanceof CfRemovedObject));
+        this.filterCriteria.add(change -> !(change instanceof CfRemovedObject));
     }
 
     /**
@@ -51,7 +51,7 @@ public class Differ {
      * However, the change objects in the child nodes regarding this map change, remain unaltered.
      */
     public void ignoreSpecBeanMapChange() {
-        this.filterConditions.add(change ->
+        this.filterCriteria.add(change ->
                 !(change instanceof CfMapChange && change.getAffectedObject() instanceof SpecBean));
     }
 
@@ -90,7 +90,7 @@ public class Differ {
 
     private boolean applyFilterConditions(CfChange change) {
         // iterating over all filter conditions
-        return filterConditions
+        return filterCriteria
                 .stream()
                 // evaluate if condition is met and store boolean value
                 .map(condition -> condition.isMet(change))
