@@ -138,7 +138,7 @@ public class BaseController implements Callable<Integer> {
                     // the problem is in reactor.core.Exceptions
                     // it creates lambda class instances which are hard to test on...
                     // by these checks we can make sure, that the exception was caused by invalid credentials
-                        log.error("Request to CF API failed: Invalid username or password " +
+                    log.error("Request to CF API failed: Invalid username or password " +
                                 "(your account might be locked due to too many login attempts with a wrong password)");
                 } else {
                     log.error("An unexpected error occurred during the get:", ex.getMessage());
