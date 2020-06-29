@@ -24,7 +24,6 @@ public class ApplicationRequestsPlaner extends RequestsPlaner {
     private final String applicationName;
 
     private ApplicationRequestsPlaner(ApplicationsOperations appOperations, String applicationName) {
-        super();
         this.appOperations = appOperations;
         this.applicationName = applicationName;
     }

@@ -28,7 +28,6 @@ public class ServiceRequestsPlaner extends RequestsPlaner {
     private final String serviceName;
 
     private ServiceRequestsPlaner(ServicesOperations servicesOperations, String serviceName) {
-        super();
         this.servicesOperations = servicesOperations;
         this.serviceName = serviceName;
     }

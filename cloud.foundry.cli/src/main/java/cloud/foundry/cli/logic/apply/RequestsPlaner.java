@@ -16,8 +16,8 @@ import java.util.List;
 
 
 /**
- * This is the super class of all request planing classes which are responsible to build the required requests
- * according to the given CfChange objects.
+ * This is the super class of all request planer classes which are responsible to build the required requests
+ * for their operation domain according to the given CfChange objects.
  * The class does create the request tasks by implementing the {@link CfChangeVisitor} interface.
  */
 public abstract class RequestsPlaner implements CfChangeVisitor {
@@ -34,6 +34,11 @@ public abstract class RequestsPlaner implements CfChangeVisitor {
         this.requests = new LinkedList<>();
     }
 
+    /**
+     * adds a request for the current domain object (app, service etc...) which should be applied to the cf instance
+     * @param request the request which should be added
+     * @throws NullPointerException when the argument was null
+     */
     protected void addRequest(Mono<Void> request) {
         checkNotNull(request);
 
