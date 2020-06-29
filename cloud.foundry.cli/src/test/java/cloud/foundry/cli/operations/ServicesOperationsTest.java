@@ -132,6 +132,17 @@ public class ServicesOperationsTest {
     }
 
     @Test
+    public void testCreateOnNullArgumentsThrowsException() {
+        // given
+        DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
+        ServicesOperations servicesOperations = new ServicesOperations(cfOperationsMock);
+
+        // when
+        assertThrows(NullPointerException.class, () -> servicesOperations.create(null, new ServiceBean()));
+        assertThrows(NullPointerException.class, () -> servicesOperations.create("oldname", null));
+    }
+
+    @Test
     public void testUpdate() {
         // given
         ServiceBean serviceBeanMock = mockServiceBean();
@@ -156,6 +167,17 @@ public class ServicesOperationsTest {
     }
 
     @Test
+    public void testUpdateOnNullArgumentsThrowsException() {
+        // given
+        DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
+        ServicesOperations servicesOperations = new ServicesOperations(cfOperationsMock);
+
+        // when
+        assertThrows(NullPointerException.class, () -> servicesOperations.update(null, new ServiceBean()));
+        assertThrows(NullPointerException.class, () -> servicesOperations.update("oldname", null));
+    }
+
+    @Test
     public void testRename() {
         // given
         DefaultCloudFoundryOperations cfMock = Mockito.mock(DefaultCloudFoundryOperations.class);
@@ -176,6 +198,17 @@ public class ServicesOperationsTest {
         StepVerifier.create(actualMono)
                 .expectComplete()
                 .verify();
+    }
+
+    @Test
+    public void testRenameOnNullNamesThrowsException() {
+        // given
+        DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
+        ServicesOperations servicesOperations = new ServicesOperations(cfOperationsMock);
+
+        // when
+        assertThrows(NullPointerException.class, () -> servicesOperations.rename(null, "newname"));
+        assertThrows(NullPointerException.class, () -> servicesOperations.rename("oldname", null));
     }
 
     @Test
@@ -270,6 +303,16 @@ public class ServicesOperationsTest {
                 .create(request)
                 .expectComplete()
                 .verify();
+    }
+
+    @Test
+    public void testRemoveOnNullNameThrowsException() {
+        // given
+        DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
+        ServicesOperations servicesOperations = new ServicesOperations(cfOperationsMock);
+
+        // when
+        assertThrows(NullPointerException.class, () -> servicesOperations.remove(null));
     }
 
     @Test
