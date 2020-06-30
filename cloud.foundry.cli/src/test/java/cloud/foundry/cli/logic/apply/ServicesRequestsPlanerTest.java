@@ -93,9 +93,10 @@ public class ServicesRequestsPlanerTest {
                 Arrays.asList(new CfMapValueChanged("key", "valueBefore", "valueAfter", ChangeType.CHANGED)));
 
         // when
-        ApplyException exception = assertThrows(ApplyException.class, () -> ServiceRequestsPlaner.create(servicesOperations,
-                "someservice",
-                Arrays.asList(mapchange)));
+        ApplyException exception = assertThrows(ApplyException.class,
+                () -> ServiceRequestsPlaner.create(servicesOperations,
+                        "someservice",
+                        Arrays.asList(mapchange)));
 
         assertThat(exception.getMessage(), is("Change type is not supported."));
     }
