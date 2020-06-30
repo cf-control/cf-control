@@ -9,13 +9,11 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import cloud.foundry.cli.crosscutting.exceptions.InvalidFileTypeException;
-import cloud.foundry.cli.crosscutting.mapping.FileUtils;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.MappingBuilder;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import org.apache.commons.io.IOUtils;
-import org.apache.hc.core5.http.ProtocolException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
