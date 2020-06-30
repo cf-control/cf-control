@@ -111,8 +111,8 @@ You can have the tool create a machine-readable log file by specifying the `--lo
 
 ##### apply [SUBCOMMAND]
 ```
-  space-developers       Assign users as space developers that are present in the given yaml file, 
-                         but not in your cf instance, or revoke the space developer if its in the cf instance, but not in the yaml file.
+  space-developers       Apply the differences between the space developers given in the YAML file and
+                    in the live system.
 ```
 
 ##### [PARAMS]
