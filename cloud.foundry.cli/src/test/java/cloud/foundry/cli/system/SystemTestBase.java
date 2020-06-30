@@ -24,7 +24,7 @@ import java.util.List;
  * Please check the runBaseController* methods, which eliminate a lot of boiler plate code usually required for system
  * test run simulations.
  */
-public class SystemTestBase {
+public abstract class SystemTestBase {
 
     /*
      * these environment variables are supposed to be defined in the test environment, and need to be set to
