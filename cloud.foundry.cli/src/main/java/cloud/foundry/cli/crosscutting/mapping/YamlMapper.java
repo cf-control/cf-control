@@ -35,18 +35,7 @@ public class YamlMapper {
      */
     public static final int INDENTATION = 2;
 
-    /**
-     * Loads a configuration file as a bean. During this process, the ref-occurrences in the specified configuration
-     * file are resolved.
-     *
-     * @param configFilePath the path to the config file
-     * @param beanType the desired type of the bean to load
-     * @throws IOException if the config file cannot be accessed
-     * @throws RefResolvingException if an error during the ref-resolution process occurs
-     * @throws ConstructorException if the resolved Object can not be dumped as the given Bean type
-     */
-    public static <B extends Bean> B loadBean(String configFilePath, Class<B> beanType) throws IOException {
-        Object yamlTreeRoot = loadYamlTree(configFilePath);
+    private static <B extends Bean> B loadBean(Object yamlTreeRoot, Class<B> beanType) {
         yamlTreeRoot = RefResolver.resolveRefs(yamlTreeRoot);
 
         Yaml treeDumper = createMinimalDumper();
@@ -57,16 +46,56 @@ public class YamlMapper {
     }
 
     /**
+     * Loads a configuration file as a bean. During this process, the ref-occurrences in the specified configuration
+     * file are resolved.
+     *
+     * @param configFilePath the path to the config file
+     * @param beanType the desired type of the bean to load
+     * @throws IOException if the config file cannot be accessed
+     * @throws RefResolvingException if an error during the ref-resolution process occurs
+     * @throws ConstructorException if the resolved Object can not be dumped as the given Bean type
+     */
+    public static <B extends Bean> B loadBeanFromFile(String configFilePath, Class<B> beanType) throws IOException {
+        Object yamlTreeRoot = loadYamlTreeFromFilePath(configFilePath);
+        return loadBean(yamlTreeRoot, beanType);
+    }
+
+    /**
+     * Loads a YAML string as a bean. During this process, the ref-occurrences in the specified configuration file
+     * are resolved.
+     *
+     * @param data YAML data
+     * @param beanType the desired type of the bean to load
+     * @throws IOException if the config file cannot be accessed
+     * @throws RefResolvingException if an error during the ref-resolution process occurs
+     * @throws ConstructorException if the resolved Object can not be dumped as the given Bean type
+     */
+    public static <B extends Bean> B loadBeanFromString(String data, Class<B> beanType) {
+        Object yamlTreeRoot = loadYamlTreeFromYamlString(data);
+        return loadBean(yamlTreeRoot, beanType);
+    }
+
+    /**
      * Reads the file (possibly on a server) and interprets its content as a yaml tree.
      *
      * @param filePath the path or url to a file
      * @return the resulting yaml tree
      * @throws IOException if the file cannot be accessed
      */
-    static Object loadYamlTree(String filePath) throws IOException {
+    static Object loadYamlTreeFromFilePath(String filePath) throws IOException {
         try (InputStream inputStream = FileUtils.openLocalOrRemoteFile(filePath)) {
             return createTreeLoader().load(inputStream);
         }
+    }
+
+    /**
+     * Reads the file (possibly on a server) and interprets its content as a yaml tree.
+     *
+     * @param data YAML data
+     * @return the resulting yaml tree
+     */
+    static Object loadYamlTreeFromYamlString(String data) {
+        return createTreeLoader().load(data);
     }
 
     private static Yaml createTreeLoader() {

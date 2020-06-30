@@ -46,7 +46,7 @@ public class YamlMapperTest {
         //given
         String configFilePath = "./src/test/resources/refresolver/Application.yml";
         //when
-        SpecBean specBean = YamlMapper.loadBean(configFilePath, SpecBean.class);
+        SpecBean specBean = YamlMapper.loadBeanFromFile(configFilePath, SpecBean.class);
         //then
         assertThat(specBean.getSpaceDevelopers(), is(nullValue()));
         assertThat(specBean.getServices(), is(nullValue()));
@@ -67,7 +67,7 @@ public class YamlMapperTest {
         //given
         String configFilePath = "./invalidpath";
         //when + then
-        assertThrows(IOException.class, () -> YamlMapper.loadBean(configFilePath, ApplicationBean.class));
+        assertThrows(IOException.class, () -> YamlMapper.loadBeanFromFile(configFilePath, ApplicationBean.class));
     }
 
     @Test
@@ -75,7 +75,7 @@ public class YamlMapperTest {
         //given
         String configFilePath = "./src/test/resources/refresolver/Application.yml";
         //when + then
-        assertThrows(ConstructorException.class, () -> YamlMapper.loadBean(configFilePath, ServiceBean.class));
+        assertThrows(ConstructorException.class, () -> YamlMapper.loadBeanFromFile(configFilePath, ServiceBean.class));
     }
 
     @Test
@@ -83,6 +83,6 @@ public class YamlMapperTest {
         //given
         String configFilePath = "./src/test/resources/refresolver/ApplicationPathWithRefProblem.yml";
         //when + then
-        assertThrows(ConstructorException.class, () -> YamlMapper.loadBean(configFilePath, ServiceBean.class));
+        assertThrows(ConstructorException.class, () -> YamlMapper.loadBeanFromFile(configFilePath, ServiceBean.class));
     }
 }

@@ -14,8 +14,8 @@ import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import java.util.concurrent.Callable;
 
 /**
- * This class realizes the functionality that is needed for the apply commands. They provide the service of manipulating
- * the state of a cloud foundry instance such that it matches with a provided configuration file.
+ * This class realizes the functionality that is needed for the apply commands. They provide the service of
+ * manipulating the state of a cloud foundry instance such that it matches with a provided configuration file.
  */
 @Command(name = "apply",
         header = "%n@|green Apply the configuration from a given yaml file to your cf instance.|@",
@@ -48,7 +48,8 @@ public class ApplyController implements Callable<Integer> {
         @Override
         public Integer call() throws Exception {
             log.info("Interpreting YAML file...");
-            SpecBean desiredSpecBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
+            SpecBean desiredSpecBean = YamlMapper.loadBeanFromFile(yamlCommandOptions.getYamlFilePath(),
+                    SpecBean.class);
             log.info("YAML file interpreted.");
 
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
@@ -79,7 +80,8 @@ public class ApplyController implements Callable<Integer> {
             ApplyLogic applyLogic = new ApplyLogic(cfOperations);
 
             log.info("Interpreting YAML file...");
-            SpecBean desiredSpecBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
+            SpecBean desiredSpecBean = YamlMapper.loadBeanFromFile(yamlCommandOptions.getYamlFilePath(),
+                    SpecBean.class);
             log.info("YAML file interpreted.");
 
             applyLogic.applyApplications(desiredSpecBean.getApps());

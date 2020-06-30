@@ -64,7 +64,7 @@ public class DiffController implements Callable<Integer> {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
 
-            SpecBean loadedSpecBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
+            SpecBean loadedSpecBean = YamlMapper.loadBeanFromFile(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
             Map<String, ServiceBean> desiredServices = loadedSpecBean.getServices();
             SpecBean desiredSpecBean = new SpecBean();
             desiredSpecBean.setServices(desiredServices);
@@ -110,7 +110,7 @@ public class DiffController implements Callable<Integer> {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
 
-            SpecBean loadedSpecBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
+            SpecBean loadedSpecBean = YamlMapper.loadBeanFromFile(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
             Map<String, ApplicationBean> desiredApplications = loadedSpecBean.getApps();
             SpecBean desiredSpecBean = new SpecBean();
             desiredSpecBean.setApps(desiredApplications);
@@ -156,7 +156,7 @@ public class DiffController implements Callable<Integer> {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             SpaceDevelopersOperations spaceDevOperations = new SpaceDevelopersOperations(cfOperations);
 
-            SpecBean loadedSpecBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
+            SpecBean loadedSpecBean = YamlMapper.loadBeanFromFile(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
             List<String> desiredSpaceDevelopers = loadedSpecBean.getSpaceDevelopers();
             SpecBean desiredSpecBean = new SpecBean();
             desiredSpecBean.setSpaceDevelopers(desiredSpaceDevelopers);
@@ -200,7 +200,8 @@ public class DiffController implements Callable<Integer> {
         @Override
         public Integer call() throws Exception {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
-            ConfigBean desiredConfigBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), ConfigBean.class);
+            ConfigBean desiredConfigBean = YamlMapper.loadBeanFromFile(yamlCommandOptions.getYamlFilePath(),
+                    ConfigBean.class);
 
             log.debug("Desired config:", desiredConfigBean);
             log.info("Fetching all information for target space...");
