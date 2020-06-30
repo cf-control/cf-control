@@ -11,6 +11,10 @@ import static org.mockito.Mockito.verify;
 
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationManifestBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
+import cloud.foundry.cli.logic.diff.DiffResult;
+import cloud.foundry.cli.logic.diff.change.CfChange;
+import cloud.foundry.cli.operations.ServicesOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.applications.Applications;
 import org.cloudfoundry.operations.applications.GetApplicationRequest;
@@ -23,7 +27,11 @@ import reactor.core.publisher.Mono;
 
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 
@@ -31,11 +39,6 @@ import java.util.function.Predicate;
  * Test for {@link ApplyLogic}
  */
 public class ApplyLogicTest {
-
-    @Test
-    public void testConstructorWithNull() {
-        assertThrows(NullPointerException.class, () -> new ApplyLogic(null));
-    }
 
     @Test
     public void testApplyApplicationsWithNull() {
@@ -97,4 +100,49 @@ public class ApplyLogicTest {
         assertThat(manifest.getBuildpack(), is("someBuildpack"));
     }
 
+    @Test
+    public void testApplyServices() {
+        //given
+        //desired Services
+        HashMap<String, ServiceBean> desiredServices = new HashMap<>();
+        ServiceBean serviceBean = new ServiceBean();
+        desiredServices.put("exampleService", serviceBean);
+
+        //liveConfig
+        HashMap<String, ServiceBean> liveConfig = new HashMap<>();
+        ServicesOperations servicesOpsMock = mock(ServicesOperations.class);
+        Mono<Map<String, ServiceBean>> getMono = mock(Mono.class);
+        when(getMono.block()).thenReturn(liveConfig);
+        when(servicesOpsMock.getAll()).thenReturn(getMono);
+
+        //Diffresult
+        DiffLogic diffLogicMock = mock(DiffLogic.class);
+        DiffResult diffResultMock = mock(DiffResult.class);
+        when(diffLogicMock.createDiffResult(any(), any())).thenReturn(diffResultMock);
+
+        //allServiceChanges
+        List<CfChange> cfChanges = new LinkedList<>();
+        CfChange cfChangeMock = mock(CfChange.class);
+        cfChanges.add(cfChangeMock);
+        Map<String, List<CfChange>> allServiceChanges = mock(Map.class);
+        when(diffResultMock.getServiceChanges()).thenReturn(allServiceChanges);
+        //entry set of allServiceChanges
+        Set<Map.Entry<String, List<CfChange>>> entrySet = new HashSet<>();
+        Map.Entry entry = mock(Map.Entry.class);
+        entrySet.add(entry);
+        when(allServiceChanges.entrySet()).thenReturn(entrySet);
+
+
+        //when
+        ApplyLogic applyLogic = new ApplyLogic(servicesOpsMock);
+        applyLogic.setDiffLogic(diffLogicMock);
+        applyLogic.applyServices(desiredServices);
+
+        //then
+        verify(servicesOpsMock).getAll();
+        verify(diffLogicMock).createDiffResult(any(), any());
+        //this is called when you apply to the changes
+        verify(entry).getKey();
+        verify(entry).getValue();
+    }
 }
