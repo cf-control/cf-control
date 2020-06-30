@@ -30,7 +30,7 @@ public class ApplyLogic {
 
     private DefaultCloudFoundryOperations cfOperations;
 
-    private ServicesOperations servicesOperations;
+    private GetLogic getLogic;
 
     private DiffLogic diffLogic = new DiffLogic();
 
@@ -41,19 +41,9 @@ public class ApplyLogic {
      */
     public ApplyLogic(@Nonnull DefaultCloudFoundryOperations cfOperations) {
         checkNotNull(cfOperations);
-
         this.cfOperations = cfOperations;
+        this.getLogic = new GetLogic();
     }
-
-    /**
-     * Creates a new instance that will use the provided cf operations internally.
-     * @param servicesOperations the operations object that should be used to communicate with the cf instance
-     * @throws NullPointerException if the argument is null
-     */
-    public ApplyLogic(@Nonnull ServicesOperations servicesOperations) {
-        this.servicesOperations = servicesOperations;
-    }
-
 
     //TODO update the documentation as soon as the method does more than just creating applications
     /**
@@ -102,9 +92,8 @@ public class ApplyLogic {
         checkNotNull(desiredServices);
 
         ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
-        GetLogic getLogic = new GetLogic();
         log.info("Fetching information about services...");
-        Map<String, ServiceBean> liveServices = getLogic.getServices(servicesOperations);
+        Map<String, ServiceBean> liveServices = this.getLogic.getServices(servicesOperations);
         log.info("Information fetched.");
 
         // that way only the applications of the live system are compared in the diff
@@ -156,5 +145,9 @@ public class ApplyLogic {
 
     public void setDiffLogic(DiffLogic diffLogic) {
         this.diffLogic = diffLogic;
+    }
+
+    public void setGetLogic(GetLogic getLogic) {
+        this.getLogic = getLogic;
     }
 }

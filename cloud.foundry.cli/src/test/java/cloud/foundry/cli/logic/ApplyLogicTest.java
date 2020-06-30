@@ -110,6 +110,8 @@ public class ApplyLogicTest {
     @Test
     public void testApplyServices() {
         //given
+        DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
+
         //desired Services
         HashMap<String, ServiceBean> desiredServices = new HashMap<>();
         ServiceBean serviceBean = new ServiceBean();
@@ -117,10 +119,8 @@ public class ApplyLogicTest {
 
         //liveConfig
         HashMap<String, ServiceBean> liveConfig = new HashMap<>();
-        ServicesOperations servicesOpsMock = mock(ServicesOperations.class);
-        Mono<Map<String, ServiceBean>> getMono = mock(Mono.class);
-        when(getMono.block()).thenReturn(liveConfig);
-        when(servicesOpsMock.getAll()).thenReturn(getMono);
+        GetLogic getlogic = mock(GetLogic.class);
+        when(getlogic.getServices(any())).thenReturn(liveConfig);
 
         //Diffresult
         DiffLogic diffLogicMock = mock(DiffLogic.class);
@@ -141,12 +141,13 @@ public class ApplyLogicTest {
 
 
         //when
-        ApplyLogic applyLogic = new ApplyLogic(servicesOpsMock);
+        ApplyLogic applyLogic = new ApplyLogic(cfOperationsMock);
         applyLogic.setDiffLogic(diffLogicMock);
+        applyLogic.setGetLogic(getlogic);
         applyLogic.applyServices(desiredServices);
 
         //then
-        verify(servicesOpsMock).getAll();
+        verify(getlogic).getServices(any());
         verify(diffLogicMock).createDiffResult(any(), any());
         //this is called when you apply to the changes
         verify(entry).getKey();

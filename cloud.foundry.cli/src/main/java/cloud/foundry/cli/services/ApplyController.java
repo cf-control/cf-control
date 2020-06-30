@@ -73,7 +73,7 @@ public class ApplyController implements Callable<Integer> {
         public Integer call() throws Exception {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
 
-            ApplyLogic applyLogic = new ApplyLogic(new ServicesOperations(cfOperations));
+            ApplyLogic applyLogic = new ApplyLogic(cfOperations);
 
             log.info("Interpreting YAML file...");
             SpecBean desiredSpecBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
