@@ -86,7 +86,7 @@ public class SpaceDevelopersRequestsPlaner implements CfChangeVisitor {
     }
 
     /**
-     * Creates the requests to assign/revoke space developers permission.
+     * Creates the requests to assign/revoke space developer's permission.
      *
      * @param spaceDevelopersOperations the SpaceDevelopersOperations object.
      * @param spaceDevelopersChange a list with all the Changes found during diff for the specific space developers.
