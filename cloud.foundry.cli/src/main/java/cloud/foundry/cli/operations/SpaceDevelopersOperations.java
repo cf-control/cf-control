@@ -82,7 +82,8 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
                 .spaces()
                 .associateDeveloperByUsername(request)
                 .doOnSubscribe(subscription -> log.debug("Assigning a space developer:", username))
-                .doOnSuccess(subscription -> log.debug("Space developer: ", username, " was assigned"));
+                .doOnSuccess(subscription -> log.debug("Space developer: ", username, " was assigned"))
+                .onErrorStop();
     }
 
     /**
@@ -108,6 +109,7 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
                 .spaces()
                 .removeDeveloperByUsername(request)
                 .doOnSubscribe(subscription -> log.debug("Removing a space developer:", username))
-                .doOnSuccess(subscription -> log.debug("Space developer: ", username, " was removed"));
+                .doOnSuccess(subscription -> log.debug("Space developer: ", username, " was removed"))
+                .onErrorStop();
     }
 }
