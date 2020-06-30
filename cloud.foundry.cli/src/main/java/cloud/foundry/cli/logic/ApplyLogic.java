@@ -48,7 +48,7 @@ public class ApplyLogic {
      * Assign users as space developers that are not present in the live system and
      * revoke space developers permission, if its present in the live system but not
      * defined in <code>desiredSpaceDevelopers</code>. In case of any error, the
-     * procedure is discontinued.
+     * procedure will be continued and the error is logged.
      *
      * @param desiredSpaceDevelopers the space developers that should all be present
      *                               in the live system after the procedure.
@@ -59,7 +59,9 @@ public class ApplyLogic {
 
         SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
         log.info("Fetching information about space developers...");
-        List<String> liveSpaceDevelopers = spaceDevelopersOperations.getAll().block();
+        GetLogic getLogic = new GetLogic();
+        List<String> liveSpaceDevelopers = getLogic.getSpaceDevelopers(spaceDevelopersOperations);
+        // List<String> liveSpaceDevelopers = spaceDevelopersOperations.getAll().block();
         log.info("Information fetched.");
 
         ConfigBean desiredSpaceDevelopersConfig = createConfigFromSpaceDevelopers(desiredSpaceDevelopers);
@@ -128,13 +130,13 @@ public class ApplyLogic {
     }
 
     /**
-     * @param spaceDevelopersBeans the space developer beans that should be
+     * @param spaceDevelopers the space developer that should be
      *                             contained in the resulting config bean.
-     * @return a config bean only containing the entered space developer beans.
+     * @return a config bean only containing the entered space developers.
      */
-    private ConfigBean createConfigFromSpaceDevelopers(List<String> spaceDevelopersBeans) {
+    private ConfigBean createConfigFromSpaceDevelopers(List<String> spaceDevelopers) {
         SpecBean specBean = new SpecBean();
-        specBean.setSpaceDevelopers(spaceDevelopersBeans);
+        specBean.setSpaceDevelopers(spaceDevelopers);
 
         ConfigBean configBean = new ConfigBean();
         configBean.setSpec(specBean);

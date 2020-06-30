@@ -64,7 +64,7 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
      *
      * @param username email of user to assign as space developer
      * @param spaceId the id of the space
-     * @return mono object which yields the response upon subscription
+     * @return mono which can be subscribed on to trigger the assignment request to the cf instance
      * @throws NullPointerException if any of the arguments are null
      */
     public Mono<Void> assign(@Nonnull String username, @Nonnull String spaceId) {
@@ -90,7 +90,7 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
      *
      * @param username email of user to remove as space developer
      * @param spaceId the id of the space
-     * @return mono object which yields the response upon subscription
+     * @return mono which can be subscribed on to trigger the removing request to the cf instance
      * @throws NullPointerException if any of the arguments are null
      */
     public Mono<Void> remove(String username, String spaceId) {

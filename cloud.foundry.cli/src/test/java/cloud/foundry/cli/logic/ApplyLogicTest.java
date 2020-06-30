@@ -107,7 +107,6 @@ public class ApplyLogicTest {
 
     }
 
-    // mock for class getAll
     private DefaultCloudFoundryOperations mockSpaceDevelopersGetAll(List<String> spaceDevelopersLive) {
         DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
 

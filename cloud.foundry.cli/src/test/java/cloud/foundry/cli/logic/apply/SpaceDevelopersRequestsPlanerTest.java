@@ -1,7 +1,6 @@
 package cloud.foundry.cli.logic.apply;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -77,10 +76,24 @@ public class SpaceDevelopersRequestsPlanerTest {
     }
 
     @Test
-    public void createSpaceDevelopersRequestsWithNullShouldThrowANullPointerException() {
+    public void createSpaceDevelopersRequestsWithNullValueForSpaceDevelopersChangeShouldThrowANullPointerException() {
         // given
         SpaceDevelopersOperations mockSpaceDevelopersOperations = mock(SpaceDevelopersOperations.class);
         CfContainerChange spaceDevelopersChange = null;
+
+        // then - when
+        assertThrows(NullPointerException.class,
+                () -> SpaceDevelopersRequestsPlaner
+                        .createSpaceDevelopersRequests(mockSpaceDevelopersOperations, spaceDevelopersChange));
+    }
+
+    @Test
+    public void createSpaceDevelopersRequestsWithNullValueForSpaceDevelopersOperationsShouldThrowANullPointerException
+            () {
+
+        // given
+        SpaceDevelopersOperations mockSpaceDevelopersOperations = null;
+        CfContainerChange spaceDevelopersChange = mock(CfContainerChange.class);;
 
         // then - when
         assertThrows(NullPointerException.class,
