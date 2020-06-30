@@ -1,6 +1,7 @@
 package cloud.foundry.cli.logic.apply;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import cloud.foundry.cli.crosscutting.exceptions.ApplyException;
 import cloud.foundry.cli.crosscutting.exceptions.UpdateException;
@@ -86,8 +87,9 @@ public class ServiceRequestsPlaner extends RequestsPlaner {
      * with more details
      * @return Flux of all requests that are required to apply the changes
      */
-    public static Flux<Void> create(ServicesOperations servicesOperations, String serviceName,
-                                    List<CfChange> serviceChanges) {
+    public static Flux<Void> createApplyRequests(ServicesOperations servicesOperations,
+                                                 String serviceName,
+                                                 List<CfChange> serviceChanges) {
         ServiceRequestsPlaner serviceRequestsPlaner = new ServiceRequestsPlaner(servicesOperations,
                 serviceName);
         for (CfChange applicationChange : serviceChanges) {

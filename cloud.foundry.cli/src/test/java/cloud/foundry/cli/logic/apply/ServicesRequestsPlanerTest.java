@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -39,7 +40,9 @@ public class ServicesRequestsPlanerTest {
 
         // when and then
         assertThrows(IllegalArgumentException.class,
-                () -> ServiceRequestsPlaner.create(servicesOperations, "someservice", Arrays.asList(remove1, remove2)));
+                () -> ServiceRequestsPlaner.createApplyRequests(servicesOperations,
+                        "someservice",
+                        Arrays.asList(remove1, remove2)));
     }
 
     @Test
@@ -51,7 +54,9 @@ public class ServicesRequestsPlanerTest {
 
         // when and then
         assertThrows(IllegalArgumentException.class,
-                () -> ServiceRequestsPlaner.create(servicesOperations, "someservice", Arrays.asList(remove1)));
+                () -> ServiceRequestsPlaner.createApplyRequests(servicesOperations,
+                        "someservice",
+                        Arrays.asList(remove1)));
     }
 
     @Test
@@ -64,7 +69,9 @@ public class ServicesRequestsPlanerTest {
 
         // when and then
         assertThrows(ApplyException.class,
-                () -> ServiceRequestsPlaner.create(servicesOperations, "someservice", Arrays.asList(remove1)));
+                () -> ServiceRequestsPlaner.createApplyRequests(servicesOperations,
+                        "someservice",
+                        Arrays.asList(remove1)));
     }
 
     @Test
@@ -72,15 +79,20 @@ public class ServicesRequestsPlanerTest {
         // given
         ServicesOperations servicesOperations = mock(ServicesOperations.class);
         CfChange remove1 = new CfRemovedObject(new ServiceBean(), "someservice", Collections.singletonList("root"));
-        Mockito.when(servicesOperations.remove("someservice")).thenReturn(Mono.empty());
+        Void voidMock = mock(Void.class);
+        Mockito.when(servicesOperations.remove("someservice")).thenReturn(Mono.just(voidMock));
 
         // when
-        Flux<Void> requests = ServiceRequestsPlaner.create(servicesOperations,
+        Flux<Void> requests = ServiceRequestsPlaner.createApplyRequests(servicesOperations,
                 "someservice",
                 Arrays.asList(remove1));
 
         //then
         assertThat(requests, notNullValue());
+        StepVerifier.create(requests)
+                .expectNext(voidMock)
+                .expectComplete()
+                .verify();
     }
 
     @Test
@@ -94,7 +106,7 @@ public class ServicesRequestsPlanerTest {
 
         // when
         ApplyException exception = assertThrows(ApplyException.class,
-                () -> ServiceRequestsPlaner.create(servicesOperations,
+                () -> ServiceRequestsPlaner.createApplyRequests(servicesOperations,
                         "someservice",
                         Arrays.asList(mapchange)));
 
