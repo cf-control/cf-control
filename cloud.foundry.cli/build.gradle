@@ -77,8 +77,19 @@ dependencies {
 
 test {
     useJUnitPlatform()
+    //Exclude system tests --> extra gradle task
+    exclude 'cloud/foundry/cli/system/**'
     maxHeapSize = '1G'
-    finalizedBy jacocoTestReport // report is always generated after tests run
+}
+
+task systemTest(type: Test) {
+    filter{
+        includeTestsMatching "cloud.foundry.cli.system.*"
+    }
+    useJUnitPlatform()
+    //Run every test with a fresh JVM, otherwise problems with capturing System.out/System.err
+    forkEvery = 1
+    maxHeapSize = '1G'
 }
 
 jar {
@@ -96,6 +107,7 @@ jar {
 
 jacocoTestReport {
     dependsOn test
+    dependsOn systemTest
     reports {
         xml.enabled = true // coveralls plugin depends on xml format report
         html.enabled = true
