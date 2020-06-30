@@ -61,7 +61,6 @@ public class ApplyLogic {
         log.info("Fetching information about space developers...");
         GetLogic getLogic = new GetLogic();
         List<String> liveSpaceDevelopers = getLogic.getSpaceDevelopers(spaceDevelopersOperations);
-        // List<String> liveSpaceDevelopers = spaceDevelopersOperations.getAll().block();
         log.info("Information fetched.");
 
         ConfigBean desiredSpaceDevelopersConfig = createConfigFromSpaceDevelopers(desiredSpaceDevelopers);
