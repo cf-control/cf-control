@@ -47,8 +47,8 @@ public class ApplyLogic {
     /**
      * Assign users as space developers that are not present in the live system and
      * revoke space developers permission, if its present in the live system but not
-     * defined in <code>desiredSpaceDevelopers</code>. In case of any error, the
-     * procedure will be continued and the error is logged.
+     * defined in <code>desiredSpaceDevelopers</code>. In case of any non-recoverable error, the
+     * procedure is discontinued.
      *
      * @param desiredSpaceDevelopers the space developers that should all be present
      *                               in the live system after the procedure.
