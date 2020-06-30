@@ -5,6 +5,7 @@ import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
 import cloud.foundry.cli.crosscutting.mapping.YamlMapper;
 import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
 import cloud.foundry.cli.logic.ApplyLogic;
+import cloud.foundry.cli.operations.ServicesOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import picocli.CommandLine;
 
@@ -72,7 +73,7 @@ public class ApplyController implements Callable<Integer> {
         public Integer call() throws Exception {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
 
-            ApplyLogic applyLogic = new ApplyLogic(cfOperations);
+            ApplyLogic applyLogic = new ApplyLogic(new ServicesOperations(cfOperations));
 
             log.info("Interpreting YAML file...");
             SpecBean desiredSpecBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);

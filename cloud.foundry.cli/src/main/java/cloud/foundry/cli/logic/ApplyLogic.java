@@ -30,6 +30,10 @@ public class ApplyLogic {
 
     private DefaultCloudFoundryOperations cfOperations;
 
+    private ServicesOperations servicesOperations;
+
+    private DiffLogic diffLogic = new DiffLogic();
+
     /**
      * Creates a new instance that will use the provided cf operations internally.
      * @param cfOperations the cf operations that should be used to communicate with the cf instance
@@ -40,6 +44,16 @@ public class ApplyLogic {
 
         this.cfOperations = cfOperations;
     }
+
+    /**
+     * Creates a new instance that will use the provided cf operations internally.
+     * @param servicesOperations the operations object that should be used to communicate with the cf instance
+     * @throws NullPointerException if the argument is null
+     */
+    public ApplyLogic(@Nonnull ServicesOperations servicesOperations) {
+        this.servicesOperations = servicesOperations;
+    }
+
 
     //TODO update the documentation as soon as the method does more than just creating applications
     /**
@@ -61,9 +75,8 @@ public class ApplyLogic {
         ConfigBean liveApplicationsConfig = createConfigFromApplications(liveApplications);
 
         // compare entire configs as the diff wrapper is only suited for diff trees of these
-        DiffLogic diffLogic = new DiffLogic();
         log.info("Comparing the applications...");
-        DiffResult wrappedDiff = diffLogic.createDiffResult(liveApplicationsConfig, desiredApplicationsConfig);
+        DiffResult wrappedDiff = this.diffLogic.createDiffResult(liveApplicationsConfig, desiredApplicationsConfig);
         log.info("Applications compared.");
 
         Map<String, List<CfChange>> allApplicationChanges = wrappedDiff.getApplicationChanges();
@@ -88,9 +101,8 @@ public class ApplyLogic {
     public void applyServices(@Nonnull Map<String, ServiceBean> desiredServices) {
         checkNotNull(desiredServices);
 
-        ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
         log.info("Fetching information about services...");
-        Map<String, ServiceBean> liveServices = servicesOperations.getAll().block();
+        Map<String, ServiceBean> liveServices = this.servicesOperations.getAll().block();
         log.info("Information fetched.");
 
         // that way only the applications of the live system are compared in the diff
@@ -98,9 +110,8 @@ public class ApplyLogic {
         ConfigBean liveServicesConfig = createConfigFromServices(liveServices);
 
         // compare entire configs as the diff wrapper is only suited for diff trees of these
-        DiffLogic diffLogic = new DiffLogic();
         log.info("Comparing the services...");
-        DiffResult wrappedDiff = diffLogic.createDiffResult(liveServicesConfig, desiredServicesConfig);
+        DiffResult wrappedDiff = this.diffLogic.createDiffResult(liveServicesConfig, desiredServicesConfig);
         log.info("Services compared.");
 
         Map<String, List<CfChange>> allServicesChanges = wrappedDiff.getServiceChanges();
@@ -141,4 +152,7 @@ public class ApplyLogic {
         return servicesConfigBean;
     }
 
+    public void setDiffLogic(DiffLogic diffLogic) {
+        this.diffLogic = diffLogic;
+    }
 }
