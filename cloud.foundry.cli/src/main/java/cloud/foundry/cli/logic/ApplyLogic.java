@@ -32,7 +32,7 @@ public class ApplyLogic {
 
     private GetLogic getLogic;
 
-    private DiffLogic diffLogic = new DiffLogic();
+    private DiffLogic diffLogic;
 
     /**
      * Creates a new instance that will use the provided cf operations internally.
@@ -43,6 +43,7 @@ public class ApplyLogic {
         checkNotNull(cfOperations);
         this.cfOperations = cfOperations;
         this.getLogic = new GetLogic();
+        this.diffLogic = new DiffLogic();
     }
 
     //TODO update the documentation as soon as the method does more than just creating applications
@@ -57,7 +58,7 @@ public class ApplyLogic {
 
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
         log.info("Fetching information about applications...");
-        Map<String, ApplicationBean> liveApplications = applicationsOperations.getAll().block();
+        Map<String, ApplicationBean> liveApplications = this.getLogic.getApplications(applicationsOperations);
         log.info("Information fetched.");
 
         // that way only the applications of the live system are compared in the diff
@@ -72,7 +73,7 @@ public class ApplyLogic {
         Map<String, List<CfChange>> allApplicationChanges = diffResult.getApplicationChanges();
 
         Flux<Void> applicationRequests = Flux.fromIterable(allApplicationChanges.entrySet())
-                .flatMap( appChangeEntry -> ApplicationRequestsPlaner.create(applicationsOperations,
+                .flatMap( appChangeEntry -> ApplicationRequestsPlaner.createApplyRequests(applicationsOperations,
                         appChangeEntry.getKey(),
                         appChangeEntry.getValue()))
                 .onErrorContinue(log::error);
@@ -109,7 +110,7 @@ public class ApplyLogic {
 
         Flux<Void> serviceRequests = Flux.fromIterable(allServicesChanges.entrySet())
                 .flatMap( serviceChangeEntry ->
-                        ServiceRequestsPlaner.create(servicesOperations,
+                        ServiceRequestsPlaner.createApplyRequests(servicesOperations,
                                 serviceChangeEntry.getKey(),
                                 serviceChangeEntry.getValue()))
                 .onErrorContinue(log::error);

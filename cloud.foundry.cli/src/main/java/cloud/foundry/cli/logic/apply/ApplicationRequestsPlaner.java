@@ -24,7 +24,6 @@ public class ApplicationRequestsPlaner extends RequestsPlaner {
     private final String applicationName;
 
     private ApplicationRequestsPlaner(ApplicationsOperations appOperations, String applicationName) {
-        super();
         this.appOperations = appOperations;
         this.applicationName = applicationName;
     }
@@ -65,8 +64,9 @@ public class ApplicationRequestsPlaner extends RequestsPlaner {
      * @throws IllegalArgumentException if the newObject is neither an ApplicationBean or an ApplicationManifestBean
      * @return Flux of all requests that are required to apply the changes
      */
-    public static Flux<Void> create(ApplicationsOperations appOperations, String applicationName,
-                                    List<CfChange> applicationChanges) {
+    public static Flux<Void> createApplyRequests(ApplicationsOperations appOperations,
+                                                 String applicationName,
+                                                 List<CfChange> applicationChanges) {
         ApplicationRequestsPlaner applicationRequestsPlaner = new ApplicationRequestsPlaner(appOperations,
                 applicationName);
         for (CfChange applicationChange : applicationChanges) {

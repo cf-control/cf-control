@@ -1,6 +1,7 @@
 package cloud.foundry.cli.logic.apply;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import cloud.foundry.cli.crosscutting.exceptions.ApplyException;
 import cloud.foundry.cli.crosscutting.exceptions.UpdateException;
@@ -27,7 +28,6 @@ public class ServiceRequestsPlaner extends RequestsPlaner {
     private final String serviceName;
 
     private ServiceRequestsPlaner(ServicesOperations servicesOperations, String serviceName) {
-        super();
         this.servicesOperations = servicesOperations;
         this.serviceName = serviceName;
     }
@@ -38,6 +38,9 @@ public class ServiceRequestsPlaner extends RequestsPlaner {
      */
     @Override
     public void visitNewObject(CfNewObject newObject) {
+        checkArgument(this.getRequests().size() == 0,
+                "There may not be any other requests for that service when adding a create request.");
+
         Object affectedObject = newObject.getAffectedObject();
         if (affectedObject instanceof ServiceBean) {
             try {
@@ -49,7 +52,6 @@ public class ServiceRequestsPlaner extends RequestsPlaner {
         else {
             throw new IllegalArgumentException("Only changes of services are permitted.");
         }
-        return;
     }
 
     private void addCreateServiceRequest(ServiceBean affectedObject) {
@@ -84,10 +86,16 @@ public class ServiceRequestsPlaner extends RequestsPlaner {
      * @param serviceChanges a list with all the Changes found during diff for that specific application
      * @throws ApplyException if an error during the apply logic occurs. May contain another exception inside
      * with more details
+     * @throws NullPointerException when any of the arguments is null
      * @return Flux of all requests that are required to apply the changes
      */
-    public static Flux<Void> create(ServicesOperations servicesOperations, String serviceName,
-                                    List<CfChange> serviceChanges) {
+    public static Flux<Void> createApplyRequests(ServicesOperations servicesOperations,
+                                                 String serviceName,
+                                                 List<CfChange> serviceChanges) {
+        checkNotNull(servicesOperations);
+        checkNotNull(serviceName);
+        checkNotNull(serviceChanges);
+
         ServiceRequestsPlaner serviceRequestsPlaner = new ServiceRequestsPlaner(servicesOperations,
                 serviceName);
         for (CfChange applicationChange : serviceChanges) {
