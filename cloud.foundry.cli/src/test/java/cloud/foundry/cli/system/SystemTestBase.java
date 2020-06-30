@@ -37,13 +37,25 @@ public abstract class SystemTestBase {
     private static final String CF_API_ENDPOINT = "CF_API_ENDPOINT";
 
     // collection of all environment variables that are not defined in the system environment
-    private List<String> undefinedEnvironmentVariables = new LinkedList<>();
+    private final List<String> undefinedEnvironmentVariables = new LinkedList<>();
 
-    private String cfUsernameValue;
-    private String cfPasswordValue;
-    private String cfSpaceValue;
-    private String cfOrganizationValue;
-    private String cfApiEndpointValue;
+    private final String cfUsernameValue;
+    private final String cfPasswordValue;
+    private final String cfSpaceValue;
+    private final String cfOrganizationValue;
+    private final String cfApiEndpointValue;
+
+    public String getCfSpaceValue() {
+        return cfSpaceValue;
+    }
+
+    public String getCfOrganizationValue() {
+        return cfOrganizationValue;
+    }
+
+    public String getCfApiEndpointValue() {
+        return cfApiEndpointValue;
+    }
 
     // the space configurator will remain null if there are any undefined environment variables
     protected SpaceConfigurator spaceConfigurator = null;
