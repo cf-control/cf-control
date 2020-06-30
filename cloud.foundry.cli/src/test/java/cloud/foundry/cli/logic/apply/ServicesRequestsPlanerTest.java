@@ -1,6 +1,7 @@
 package cloud.foundry.cli.logic.apply;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
@@ -11,6 +12,9 @@ import cloud.foundry.cli.crosscutting.exceptions.UpdateException;
 import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
 import cloud.foundry.cli.logic.diff.change.CfChange;
+import cloud.foundry.cli.logic.diff.change.ChangeType;
+import cloud.foundry.cli.logic.diff.change.map.CfMapChange;
+import cloud.foundry.cli.logic.diff.change.map.CfMapValueChanged;
 import cloud.foundry.cli.logic.diff.change.object.CfRemovedObject;
 import cloud.foundry.cli.operations.ServicesOperations;
 import org.junit.jupiter.api.Test;
@@ -77,5 +81,22 @@ public class ServicesRequestsPlanerTest {
 
         //then
         assertThat(requests, notNullValue());
+    }
+
+    @Test
+    public void testCreateWithRemovedCfMapChangeThrowsApplyException() {
+        // given
+        ServicesOperations servicesOperations = mock(ServicesOperations.class);
+        CfChange mapchange = new CfMapChange(new ServiceBean(),
+                "someservice",
+                Collections.singletonList("root"),
+                Arrays.asList(new CfMapValueChanged("key", "valueBefore", "valueAfter", ChangeType.CHANGED)));
+
+        // when
+        ApplyException exception = assertThrows(ApplyException.class, () -> ServiceRequestsPlaner.create(servicesOperations,
+                "someservice",
+                Arrays.asList(mapchange)));
+
+        assertThat(exception.getMessage(), is("Change type is not supported."));
     }
 }
