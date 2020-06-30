@@ -1,4 +1,4 @@
-package cloud.foundry.cli.system;
+package cloud.foundry.cli.system.util;
 
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;

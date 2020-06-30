@@ -1,4 +1,4 @@
-package cloud.foundry.cli.system;
+package cloud.foundry.cli.system.util;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileDescriptor;

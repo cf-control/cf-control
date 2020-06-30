@@ -1,4 +1,4 @@
-package cloud.foundry.cli.system;
+package cloud.foundry.cli.system.util;
 
 /**
  * Thrown by custom security manager whenever System.exit(...) is called.

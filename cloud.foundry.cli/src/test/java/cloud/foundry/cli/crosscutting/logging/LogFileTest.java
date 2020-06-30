@@ -1,7 +1,7 @@
 package cloud.foundry.cli.crosscutting.logging;
 
-import cloud.foundry.cli.system.ArgumentsBuilder;
-import cloud.foundry.cli.system.RunResult;
+import cloud.foundry.cli.system.util.ArgumentsBuilder;
+import cloud.foundry.cli.system.util.RunResult;
 import cloud.foundry.cli.system.SystemTestBase;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
