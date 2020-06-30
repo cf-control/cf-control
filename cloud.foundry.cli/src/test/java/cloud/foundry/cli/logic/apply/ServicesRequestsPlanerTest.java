@@ -30,6 +30,23 @@ import java.util.Collections;
 public class ServicesRequestsPlanerTest {
 
     @Test
+    public void testCreateOnNullArgumentsThrowsNullPointerException() {
+        // when and then
+        assertThrows(NullPointerException.class,
+                () -> ServiceRequestsPlaner.createApplyRequests(null,
+                        "someservice",
+                        Collections.emptyList()));
+        assertThrows(NullPointerException.class,
+                () -> ServiceRequestsPlaner.createApplyRequests(mock(ServicesOperations.class),
+                        null,
+                        Collections.emptyList()));
+        assertThrows(NullPointerException.class,
+                () -> ServiceRequestsPlaner.createApplyRequests(mock(ServicesOperations.class),
+                        "someservice",
+                        null));
+    }
+
+    @Test
     public void testCreateWithRemovedObjectThrowsExceptionWhenThereAreAlreadyOtherRequests() {
         // given
         ServicesOperations servicesOperations = mock(ServicesOperations.class);

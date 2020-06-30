@@ -90,6 +90,10 @@ public class ServiceRequestsPlaner extends RequestsPlaner {
     public static Flux<Void> createApplyRequests(ServicesOperations servicesOperations,
                                                  String serviceName,
                                                  List<CfChange> serviceChanges) {
+        checkNotNull(servicesOperations);
+        checkNotNull(serviceName);
+        checkNotNull(serviceChanges);
+
         ServiceRequestsPlaner serviceRequestsPlaner = new ServiceRequestsPlaner(servicesOperations,
                 serviceName);
         for (CfChange applicationChange : serviceChanges) {
