@@ -1,11 +1,9 @@
 package cloud.foundry.cli.logic.diff;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import cloud.foundry.cli.logic.diff.change.CfChange;
 
-import javax.annotation.Nonnull;
 import java.util.LinkedList;
 import java.util.List;
 
