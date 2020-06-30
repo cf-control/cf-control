@@ -1,6 +1,6 @@
 package cloud.foundry.cli.crosscutting.mapping;
 
-import cloud.foundry.cli.crosscutting.exceptions.CredentialException;
+import cloud.foundry.cli.crosscutting.exceptions.MissingCredentialsException;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.services.LoginCommandOptions;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
@@ -20,10 +20,6 @@ public class CfOperationsCreator {
     private static final String CF_CONTROL_USER = "CF_CONTROL_USER";
     private static final String CF_CONTROL_PASSWORD = "CF_CONTROL_PASSWORD";
 
-    private static final String SECURITY_EXCEPTION = "Security policy doesn't allow access to system environment";
-    private static final String CREDENTIAL_INFORMATION_HAS_NOT_BEEN_DEFINED =
-            "Credential information has not been defined";
-
     /**
      * Creates the cfOperations object, which is needed by our operations classes in the package.
      * {@link cloud.foundry.cli.operations}. The cfOperations object
@@ -31,7 +27,7 @@ public class CfOperationsCreator {
      * @param commandOptions {@link LoginCommandOptions}
      * @return DefaultCloudFoundryOperations object, which is the entry point for accessing
      * the CF configurations.
-     * @throws IllegalStateException if any required attributes are not set in the provided command options
+     * @throws MissingCredentialsException if either the username or the password cannot be determined
      */
     public static DefaultCloudFoundryOperations createCfOperations(LoginCommandOptions commandOptions) {
         log.debug("Create the cfOperations object with your login command options...");
@@ -83,40 +79,24 @@ public class CfOperationsCreator {
 
     private static PasswordGrantTokenProvider createTokenProvider(LoginCommandOptions commandOptions) {
 
-        String user = determineCredential(commandOptions.getUserName(), CF_CONTROL_USER);
-        String password = determineCredential(commandOptions.getPassword(), CF_CONTROL_PASSWORD);
+        String user = commandOptions.getUserName();
+        if (user == null) {
+            user = System.getenv(CF_CONTROL_USER);
+        }
+
+        String password = commandOptions.getPassword();
+        if (password == null) {
+            password = System.getenv(CF_CONTROL_PASSWORD);
+        }
+
+        if (user == null || password == null) {
+            throw new MissingCredentialsException(user, password);
+        }
 
         return PasswordGrantTokenProvider.builder()
                 .username(user)
                 .password(password)
                 .build();
-    }
-
-    /**
-     * Determines the credential-data, which is needed by the operations classes in the package.
-     * If the username and password is not set within the commandOptions,
-     * then it tries to get the values from the System Environment Variables:
-     * <b>"CF_CONTROL_USER" & "CF_CONTROL_PASSWORD"</b>
-     *
-     * @param credential Credential
-     * @param environmentVariableName Environment variable name
-     *
-     * @return Credential-Data
-     * @throws CredentialException if there are no credentials provided
-     */
-    private static String determineCredential(String credential, String environmentVariableName) {
-        String environmentVariableValue;
-        try {
-            environmentVariableValue = System.getenv(environmentVariableName);
-        } catch (SecurityException e) {
-            throw new CredentialException(SECURITY_EXCEPTION);
-        }
-
-        if (credential == null && environmentVariableValue == null) {
-            throw new CredentialException(CREDENTIAL_INFORMATION_HAS_NOT_BEEN_DEFINED);
-        }
-
-        return credential != null ? credential : environmentVariableValue;
     }
 
     private static DefaultConnectionContext createConnectionContext(LoginCommandOptions commandOptions) {

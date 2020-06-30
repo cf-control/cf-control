@@ -1,6 +1,5 @@
 package cloud.foundry.cli.crosscutting.mapping;
 
-import static com.google.common.base.Preconditions.checkElementIndex;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import cloud.foundry.cli.crosscutting.exceptions.YamlTreeNodeNotFoundException;

@@ -1,10 +1,8 @@
 package cloud.foundry.cli.crosscutting.mapping.beans;
 
 import org.cloudfoundry.operations.services.ServiceInstance;
-import org.cloudfoundry.operations.services.ServiceInstanceSummary;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Bean holding all data that is related to an instance of a service.
