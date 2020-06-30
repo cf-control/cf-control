@@ -22,7 +22,7 @@ public class SpaceDevelopersRequestsPlaner {
     /**
      * Creates the requests to assign/revoke space developer's permission.
      *
-     * @param spaceDevelopersOperations operations instance that is used to manipulate the space developersn
+     * @param spaceDevelopersOperations operations instance that is used to manipulate the space developers
      * @param spaceDevelopersChange a list with all the Changes found during diff for the specific space developers.
      * @return Flux of all requests that are required to apply the changes.
      * @throws NullPointerException if one of the argument is null.
