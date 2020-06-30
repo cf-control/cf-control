@@ -130,9 +130,9 @@ public class ApplyLogic {
     /**
      * @param spaceDevelopersBeans the space developer beans that should be
      *                             contained in the resulting config bean.
-     * @return a config bean only containing the entered space developer beans.
+     * @return a config bean only containing the entered space developers.
      */
-    private ConfigBean createConfigFromSpaceDevelopers(List<String> spaceDevelopersBeans) {
+    private ConfigBean createConfigFromSpaceDevelopers(List<String> spaceDevelopers) {
         SpecBean specBean = new SpecBean();
         specBean.setSpaceDevelopers(spaceDevelopersBeans);
 
