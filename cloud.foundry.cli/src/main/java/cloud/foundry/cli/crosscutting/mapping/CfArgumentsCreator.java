@@ -39,6 +39,7 @@ public class CfArgumentsCreator {
      * @param cli  CommandLine interpreter
      * @param args Commandline arguments
      * @return Commandline arguments
+     * @throws picocli.CommandLine.ParameterException if the arguments are invalid
      */
     public static String[] determineCommandLine(CommandLine cli, String[] args) {
         List<String> optionNames = Arrays.asList("-a", "-o", "-s");
