@@ -76,8 +76,11 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      *
      * @param serviceBean serves as template for the service to create
      * @return mono which can be subscribed on to trigger the creation request to the cf instance
+     * @throws NullPointerException when one of the arguments was null
      */
     public Mono<Void> create(String serviceInstanceName, ServiceBean serviceBean) {
+        checkNotNull(serviceInstanceName);
+        checkNotNull(serviceBean);
 
         CreateServiceInstanceRequest createServiceRequest = CreateServiceInstanceRequest.builder()
                 .serviceName(serviceBean.getService())
@@ -101,8 +104,12 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      * @param newName     new name of the service instance
      * @param currentName current name of the service instance
      * @return mono which can be subscribed on to trigger the renaming request to the cf instance
+     * @throws NullPointerException when one of the arguments was null
      */
     public Mono<Void> rename(String newName, String currentName) {
+        checkNotNull(newName);
+        checkNotNull(currentName);
+
         RenameServiceInstanceRequest renameServiceInstanceRequest = RenameServiceInstanceRequest.builder()
                 .name(currentName)
                 .newName(newName)
@@ -125,8 +132,12 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      * @param serviceInstanceName name of a service instance
      * @param serviceBean         serves as template for the service to update
      * @return mono which can be subscribed on to trigger the update request to the cf instance
+     * @throws NullPointerException when one of the arguments was null
      */
     public Mono<Void> update(String serviceInstanceName, ServiceBean serviceBean) {
+        checkNotNull(serviceInstanceName);
+        checkNotNull(serviceBean);
+
         //TODO:move logs
         UpdateServiceInstanceRequest updateServiceInstanceRequest = UpdateServiceInstanceRequest.builder()
                 .serviceInstanceName(serviceInstanceName)
@@ -149,8 +160,12 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      *
      * @param serviceInstanceName name of the service instance to remove
      * @return mono which can be subscribed on to trigger the service deletion
+     * @throws NullPointerException when the argument was null
+     * @throws UpdateException when a non recoverable error occurred
      */
     public Mono<Void> remove(String serviceInstanceName) {
+        checkNotNull(serviceInstanceName);
+
         try {
             return unbindApps(serviceInstanceName)
                     // and unbind keys
@@ -183,8 +198,11 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      *
      * @param serviceInstanceName name of the service instance to delete the keys from
      * @return flux which can be subscribed on to delete the keys
+     * @throws NullPointerException when the argument was null
      */
     public Flux<Void> deleteKeys(String serviceInstanceName) {
+        checkNotNull(serviceInstanceName);
+
         return getServiceInstance(serviceInstanceName)
                 .filter( serviceInstance -> !serviceInstance.getType()
                         .getValue()

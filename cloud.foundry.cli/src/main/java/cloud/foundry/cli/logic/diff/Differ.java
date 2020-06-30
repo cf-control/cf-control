@@ -14,6 +14,7 @@ import org.javers.core.JaversBuilder;
 import org.javers.core.diff.Diff;
 import org.javers.core.diff.ListCompareAlgorithm;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -30,6 +31,29 @@ public class Differ {
     private static final Javers JAVERS = JaversBuilder.javers()
             .withListCompareAlgorithm(ListCompareAlgorithm.AS_SET)
             .build();
+
+    private final List<FilterCriteria> filterCriteria;
+
+    public Differ() {
+        this.filterCriteria = new LinkedList<>();
+    }
+
+    /**
+     * If called before tree creation, ignores all CfRemovedObject objects. They will not be present
+     * in the resulting tree.
+     */
+    public void ignoreRemovedObjects() {
+        this.filterCriteria.add(change -> !(change instanceof CfRemovedObject));
+    }
+
+    /**
+     * If called before tree creation, ignores adding the CfMapChange object to the spec node.
+     * However, the change objects in the child nodes regarding this map change, remain unaltered.
+     */
+    public void ignoreSpecBeanMapChange() {
+        this.filterCriteria.add(change ->
+                !(change instanceof CfMapChange && change.getAffectedObject() instanceof SpecBean));
+    }
 
     /**
      * Compares the two given configurations and creates a tree composed of @DiffNode objects.
@@ -57,15 +81,22 @@ public class Differ {
                 .map(ChangeParser::parse)
                 // Change types that are not relevant to us will get parsed to null, so ignore them
                 .filter(Objects::nonNull)
-                // As of the specification: nodes that are not in the desired config should not be displayed.
-                // TODO make it configurable
-                .filter(change -> !(change instanceof CfRemovedObject))
-                // Skip the inner map change infos of SpecBean, since change infos get stored in the child nodes anyway.
-                //TODO make it configurable
-                .filter(change -> !(change instanceof CfMapChange && change.getAffectedObject() instanceof SpecBean))
+                // apply all custom set filters
+                .filter(this::applyFilterConditions)
                 .collect(Collectors.toList());
 
         return DiffTreeCreator.createFrom(cfChanges);
+    }
+
+    private boolean applyFilterConditions(CfChange change) {
+        // iterating over all filter conditions
+        return filterCriteria
+                .stream()
+                // evaluate if condition is met and store boolean value
+                .map(condition -> condition.isMet(change))
+                // concatenate all boolean values with the and operator
+                // => if one condition was not met return false
+                .reduce(true, (acc, condition) ->  (acc && condition));
     }
 
 }

@@ -1,38 +1,36 @@
 package cloud.foundry.cli.logic.apply;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import cloud.foundry.cli.crosscutting.exceptions.ApplyException;
+import cloud.foundry.cli.crosscutting.exceptions.UpdateException;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
 import cloud.foundry.cli.logic.diff.change.CfChange;
-import cloud.foundry.cli.logic.diff.change.container.CfContainerChange;
-import cloud.foundry.cli.logic.diff.change.map.CfMapChange;
 import cloud.foundry.cli.logic.diff.change.object.CfNewObject;
-import cloud.foundry.cli.logic.diff.change.object.CfObjectValueChanged;
 import cloud.foundry.cli.logic.diff.change.object.CfRemovedObject;
 import cloud.foundry.cli.operations.ServicesOperations;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
-import java.util.LinkedList;
 import java.util.List;
+
 
 /**
  * This class is responsible to build the requests in the context of services according to the CfChanges.
  * The class does create the request tasks by implementing the {@link CfChangeVisitor} interface.
  */
-public class ServiceRequestsPlaner implements CfChangeVisitor {
+public class ServiceRequestsPlaner extends RequestsPlaner {
 
     private static final Log log = Log.getLog(ServiceRequestsPlaner.class);
 
     private final ServicesOperations servicesOperations;
     private final String serviceName;
-    private final List<Mono<Void>> requests;
 
     private ServiceRequestsPlaner(ServicesOperations servicesOperations, String serviceName) {
+        super();
         this.servicesOperations = servicesOperations;
         this.serviceName = serviceName;
-        this.requests = new LinkedList<>();
     }
 
     /**
@@ -56,16 +54,7 @@ public class ServiceRequestsPlaner implements CfChangeVisitor {
     }
 
     private void addCreateServiceRequest(ServiceBean affectedObject) {
-        this.requests.add(this.servicesOperations.create(this.serviceName, affectedObject));
-    }
-
-    /**
-     * Creates the requests for CfObjectValueChanged
-     * @param objectValueChanged the CfObjectValueChanged to be visited
-     */
-    @Override
-    public void visitObjectValueChanged(CfObjectValueChanged objectValueChanged) {
-
+        this.getRequests().add(this.servicesOperations.create(this.serviceName, affectedObject));
     }
 
     /**
@@ -74,25 +63,19 @@ public class ServiceRequestsPlaner implements CfChangeVisitor {
      */
     @Override
     public void visitRemovedObject(CfRemovedObject removedObject) {
+        checkArgument(this.getRequests().size() == 0,
+                "There may not be any other requests for that service when adding a remove request.");
 
-    }
+        if (!(removedObject.getAffectedObject() instanceof ServiceBean)) {
+            throw new IllegalArgumentException("Only changes of services are permitted.");
+        }
 
-    /**
-     * Creates the requests CfContainerChange
-     * @param containerChange the CfContainerChange to be visited
-     */
-    @Override
-    public void visitContainerChange(CfContainerChange containerChange) {
-
-    }
-
-    /**
-     * Creates the requests for CfMapChange
-     * @param mapChange the CfMapChange to be visited
-     */
-    @Override
-    public void visitMapChange(CfMapChange mapChange) {
-
+        try {
+            log.info("Adding remove request for service " + serviceName);
+            this.addRequest(servicesOperations.remove(serviceName));
+        } catch (UpdateException | NullPointerException e) {
+            throw new ApplyException(e);
+        }
     }
 
     /**
@@ -112,7 +95,7 @@ public class ServiceRequestsPlaner implements CfChangeVisitor {
             applicationChange.accept(serviceRequestsPlaner);
         }
 
-        return Flux.merge(serviceRequestsPlaner.requests);
+        return Flux.merge(serviceRequestsPlaner.getRequests());
     }
 
 }

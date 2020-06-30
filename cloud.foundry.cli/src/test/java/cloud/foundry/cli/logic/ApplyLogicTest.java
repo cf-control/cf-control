@@ -101,6 +101,13 @@ public class ApplyLogicTest {
     }
 
     @Test
+    public void testApplyServicesWithNull() {
+        ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
+
+        assertThrows(NullPointerException.class, () -> applyLogic.applyServices(null));
+    }
+
+    @Test
     public void testApplyServices() {
         //given
         //desired Services

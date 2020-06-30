@@ -6,34 +6,27 @@ import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationManifestBean;
 import cloud.foundry.cli.logic.diff.change.CfChange;
-import cloud.foundry.cli.logic.diff.change.container.CfContainerChange;
-import cloud.foundry.cli.logic.diff.change.map.CfMapChange;
 import cloud.foundry.cli.logic.diff.change.object.CfNewObject;
-import cloud.foundry.cli.logic.diff.change.object.CfObjectValueChanged;
-import cloud.foundry.cli.logic.diff.change.object.CfRemovedObject;
 import cloud.foundry.cli.operations.ApplicationsOperations;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
-import java.util.LinkedList;
 import java.util.List;
 
 /**
  * This class is responsible to build the requests in the context of applications according to the CfChanges.
  * The class does create the request tasks by implementing the {@link CfChangeVisitor} interface.
  */
-public class ApplicationRequestsPlaner implements CfChangeVisitor {
+public class ApplicationRequestsPlaner extends RequestsPlaner {
 
     private static final Log log = Log.getLog(ApplicationRequestsPlaner.class);
 
     private final ApplicationsOperations appOperations;
     private final String applicationName;
-    private final List<Mono<Void>> requests;
 
     private ApplicationRequestsPlaner(ApplicationsOperations appOperations, String applicationName) {
+        super();
         this.appOperations = appOperations;
         this.applicationName = applicationName;
-        this.requests = new LinkedList<>();
     }
 
     /**
@@ -59,47 +52,7 @@ public class ApplicationRequestsPlaner implements CfChangeVisitor {
     }
 
     private void addCreateAppRequest(ApplicationBean affectedObject) throws CreationException {
-        this.requests.add(this.appOperations.create(this.applicationName, affectedObject, false));
-    }
-
-    /**
-     * Creates the requests for CfObjectValueChanged
-     * @param objectValueChanged the CfObjectValueChanged to be visited
-     */
-    @Override
-    public void visitObjectValueChanged(CfObjectValueChanged objectValueChanged) {
-        //TODO: later US
-        return;
-    }
-
-    /**
-     * Creates the requests for CfRemovedObject
-     * @param removedObject the CfRemovedObject to be visited
-     */
-    @Override
-    public void visitRemovedObject(CfRemovedObject removedObject) {
-        //TODO: later US
-        return;
-    }
-
-    /**
-     * Creates the requests CfContainerChange
-     * @param containerChange the CfContainerChange to be visited
-     */
-    @Override
-    public void visitContainerChange(CfContainerChange containerChange) {
-        //TODO: later US
-        return;
-    }
-
-    /**
-     * Creates the requests for CfMapChange
-     * @param mapChange the CfMapChange to be visited
-     */
-    @Override
-    public void visitMapChange(CfMapChange mapChange) {
-        //TODO: later US
-        return;
+        this.addRequest(this.appOperations.create(this.applicationName, affectedObject, false));
     }
 
     /**
@@ -120,6 +73,6 @@ public class ApplicationRequestsPlaner implements CfChangeVisitor {
             applicationChange.accept(applicationRequestsPlaner);
         }
 
-        return Flux.merge(applicationRequestsPlaner.requests);
+        return Flux.merge(applicationRequestsPlaner.getRequests());
     }
 }
