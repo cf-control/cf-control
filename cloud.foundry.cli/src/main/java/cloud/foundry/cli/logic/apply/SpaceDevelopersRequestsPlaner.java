@@ -58,7 +58,7 @@ public class SpaceDevelopersRequestsPlaner implements CfChangeVisitor {
     }
 
     /**
-     * Creates the requests CfContainerChange
+     * Creates the requests for CfContainerChange
      *
      * @param containerChange the CfContainerChange to be visited
      */
