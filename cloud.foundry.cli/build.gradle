@@ -87,8 +87,6 @@ task systemTest(type: Test) {
         includeTestsMatching "cloud.foundry.cli.system.*"
     }
     useJUnitPlatform()
-    //Run every test with a fresh JVM, otherwise problems with capturing System.out/System.err
-    forkEvery = 1
     maxHeapSize = '1G'
 }
 
