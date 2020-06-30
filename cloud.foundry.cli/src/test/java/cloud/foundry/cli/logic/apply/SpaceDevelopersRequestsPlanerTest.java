@@ -61,9 +61,7 @@ public class SpaceDevelopersRequestsPlanerTest {
         when(mockSpaceDevelopersOperations.remove(removeUserName, spaceId)).thenReturn(removeMonoMock);
 
         // when
-        SpaceDevelopersRequestsPlaner spaceDevelopersRequestsPlaner =
-                new SpaceDevelopersRequestsPlaner(mockSpaceDevelopersOperations);
-        Flux<Void> requests = spaceDevelopersRequestsPlaner
+        Flux<Void> requests = SpaceDevelopersRequestsPlaner
                 .createSpaceDevelopersRequests(mockSpaceDevelopersOperations, mockSpaceDevelopersChange);
 
         // then
@@ -84,10 +82,8 @@ public class SpaceDevelopersRequestsPlanerTest {
         CfContainerChange spaceDevelopersChange = null;
 
         // then - when
-        SpaceDevelopersRequestsPlaner spaceDevelopersRequestsPlaner =
-                new SpaceDevelopersRequestsPlaner(mockSpaceDevelopersOperations);
         assertThrows(NullPointerException.class,
-                () -> spaceDevelopersRequestsPlaner
+                () -> SpaceDevelopersRequestsPlaner
                         .createSpaceDevelopersRequests(mockSpaceDevelopersOperations, spaceDevelopersChange));
     }
 
@@ -100,10 +96,8 @@ public class SpaceDevelopersRequestsPlanerTest {
         CfContainerChange spaceDevelopersChange = mock(CfContainerChange.class);;
 
         // then - when
-        SpaceDevelopersRequestsPlaner spaceDevelopersRequestsPlaner =
-                new SpaceDevelopersRequestsPlaner(mockSpaceDevelopersOperations);
         assertThrows(NullPointerException.class,
-                () -> spaceDevelopersRequestsPlaner
+                () -> SpaceDevelopersRequestsPlaner
                         .createSpaceDevelopersRequests(mockSpaceDevelopersOperations, spaceDevelopersChange));
     }
 

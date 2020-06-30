@@ -76,11 +76,8 @@ public class ApplyLogic {
         if (spaceDevelopersChange == null) {
             log.info("There is nothing to apply");
         } else {
-            SpaceDevelopersRequestsPlaner spaceDevelopersRequestsPlaner =
-                    new SpaceDevelopersRequestsPlaner(spaceDevelopersOperations);
-
             Flux<Void> spaceDevelopersRequests = Flux.just(spaceDevelopersChange)
-                    .flatMap(spaceDeveloperChange -> spaceDevelopersRequestsPlaner
+                    .flatMap(spaceDeveloperChange -> SpaceDevelopersRequestsPlaner
                             .createSpaceDevelopersRequests(spaceDevelopersOperations, spaceDeveloperChange))
                     .onErrorContinue(log::warning);
             log.info("Applying changes to space developers...");
