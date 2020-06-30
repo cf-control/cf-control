@@ -16,7 +16,7 @@ import java.util.List;
 
 /**
  * This class is responsible to build the requests in the context of space developers according to the CfChanges.
- * The class does creates the request tasks by implementing the {@link CfChangeVisitor} interface.
+ * The class creates the request tasks by implementing the {@link CfChangeVisitor} interface.
  */
 public class SpaceDevelopersRequestsPlaner implements CfChangeVisitor {
 
