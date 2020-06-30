@@ -1,7 +1,6 @@
 package cloud.foundry.cli.logic.apply;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkArgument;
 
 import cloud.foundry.cli.crosscutting.exceptions.ApplyException;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
@@ -55,9 +54,6 @@ public class ApplicationRequestsPlaner implements CfChangeVisitor {
     @Override
     public void visitNewObject(CfNewObject newObject) {
         checkNotNull(newObject);
-        checkArgument(this.requests.size() == 0,
-            "There may not be any requests for this application " + this.applicationName
-                + " when adding a create request.");
 
         Object affectedObject = newObject.getAffectedObject();
         if (affectedObject instanceof ApplicationBean) {
@@ -97,9 +93,6 @@ public class ApplicationRequestsPlaner implements CfChangeVisitor {
     @Override
     public void visitRemovedObject(@Nonnull CfRemovedObject removedObject) {
         checkNotNull(removedObject);
-        checkArgument(this.requests.size() == 0,
-            "There may not be any requests for this application " + this.applicationName
-                + " when adding a remove request.");
 
         Object affectedObject = removedObject.getAffectedObject();
         if (affectedObject instanceof ApplicationBean) {
