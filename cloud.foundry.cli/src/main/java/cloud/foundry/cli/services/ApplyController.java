@@ -11,13 +11,15 @@ import picocli.CommandLine;
 import java.util.concurrent.Callable;
 
 /**
- * This class realizes the functionality that is needed for the apply commands. They provide the service of manipulating
- * the state of a cloud foundry instance such that it matches with a provided configuration file.
+ * This class realizes the functionality that is needed for the apply commands.
+ * They provide the service of manipulating the state of a cloud foundry
+ * instance such that it matches with a provided configuration file.
  */
 @CommandLine.Command(name = "apply",
-        header = "%n@|green Apply the configuration from a given yaml file to your cf instance.|@",
-        mixinStandardHelpOptions = true,
-        subcommands = {ApplyController.ApplyApplicationCommand.class})
+    header = "%n@|green Apply the configuration from a given yaml file to your cf instance.|@", 
+    mixinStandardHelpOptions = true, 
+    subcommands = {
+    ApplyController.ApplyApplicationCommand.class })
 public class ApplyController implements Callable<Integer> {
 
     @Override
@@ -26,9 +28,8 @@ public class ApplyController implements Callable<Integer> {
         return 0;
     }
 
-    //TODO update the description as soon as the command does more than just creating applications
-    @CommandLine.Command(name = "applications", description = "Create applications that are present in the given yaml" +
-            " file, but not in your cf instance.")
+    @CommandLine.Command(name = "applications", description = "Apply the differences between the applications given"
+        + " in the yaml file and the configuration of the apps of your cf instance")
     static class ApplyApplicationCommand implements Callable<Integer> {
 
         private static final Log log = Log.getLog(ApplyApplicationCommand.class);

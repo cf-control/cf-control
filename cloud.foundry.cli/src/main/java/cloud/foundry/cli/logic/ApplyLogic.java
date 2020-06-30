@@ -42,13 +42,13 @@ public class ApplyLogic {
     }
 
     /**
-     * Apply the differences between the apps given in the yaml file and the
-     * configuration of the apps of your cf instance. In case of any error, the
-     * procedure is discontinued.
+     * Apply the differences between the applications given in the yaml file and the configuration 
+     * of the applications of your cf instance. In case of any non-recoverable error,
+     * the procedure is discontinued.
      * 
      * @param desiredApplications the applications that should all be present in the
      *                            live system after the procedure
-     * @throws ApplyException       if an error occurs during the procedure
+     * @throws ApplyException       if an non-recoverable error occurs during the procedure
      * @throws NullPointerException if the argument is null
      */
     public void applyApplications(@Nonnull Map<String, ApplicationBean> desiredApplications) {
@@ -78,8 +78,9 @@ public class ApplyLogic {
             ApplicationsOperations appOperations = new ApplicationsOperations(cfOperations);
 
             Flux<Void> applicationRequests = Flux.fromIterable(allApplicationChanges.entrySet())
-                .flatMap(appChangeEntry -> ApplicationRequestsPlaner.apply(appOperations, appChangeEntry.getKey(),
-                    appChangeEntry.getValue()))
+                .flatMap(appChangeEntry -> ApplicationRequestsPlaner.createApplyRequests(appOperations,
+                                                                        appChangeEntry.getKey(),
+                                                                        appChangeEntry.getValue()))
                 .onErrorContinue(log::warning);
 
             log.info("Applying changes to applications...");

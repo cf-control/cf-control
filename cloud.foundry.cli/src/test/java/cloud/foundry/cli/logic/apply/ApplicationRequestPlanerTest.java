@@ -42,7 +42,7 @@ class ApplicationRequestPlanerTest {
         cfChanges.add(newObject2);
 
         // when
-        ApplicationRequestsPlaner.apply(appOperations, appName, cfChanges);
+        ApplicationRequestsPlaner.createApplyRequests(appOperations, appName, cfChanges);
         // then
         verify(newObject, times(1)).accept(any());
         verify(newObject2, times(1)).accept(any());
@@ -59,7 +59,7 @@ class ApplicationRequestPlanerTest {
         cfChanges.add(newObject);
         // when
         assertThrows(IllegalArgumentException.class,
-            () -> ApplicationRequestsPlaner.apply(appOperations, appName, cfChanges));
+            () -> ApplicationRequestsPlaner.createApplyRequests(appOperations, appName, cfChanges));
     }
 
     @Test
@@ -76,7 +76,7 @@ class ApplicationRequestPlanerTest {
         when(appOperations.create(appName, appBeanMock, false)).thenReturn(monoMock);
 
         // when
-        Flux<Void> requests = ApplicationRequestsPlaner.apply(appOperations, appName, cfChanges);
+        Flux<Void> requests = ApplicationRequestsPlaner.createApplyRequests(appOperations, appName, cfChanges);
         // then
         verify(appOperations, times(1)).create(appName, appBeanMock, false);
         StepVerifier.create(requests)
@@ -97,7 +97,7 @@ class ApplicationRequestPlanerTest {
         doThrow(new CreationException("Test")).when(appOperations).create(appName, appBeanMock, false);
         // when
         ApplyException applyException = assertThrows(ApplyException.class,
-            () -> ApplicationRequestsPlaner.apply(appOperations, appName, cfChanges));
+            () -> ApplicationRequestsPlaner.createApplyRequests(appOperations, appName, cfChanges));
         // then
         assertThat(applyException.getCause(), is(instanceOf(CreationException.class)));
     }
@@ -117,7 +117,7 @@ class ApplicationRequestPlanerTest {
         when(appOperations.remove(appName)).thenReturn(monoMock);
 
         // when
-        Flux<Void> requests = ApplicationRequestsPlaner.apply(appOperations, appName, cfChanges);
+        Flux<Void> requests = ApplicationRequestsPlaner.createApplyRequests(appOperations, appName, cfChanges);
         
         // then
         verify(appOperations, times(1)).remove(appName);
@@ -139,7 +139,7 @@ class ApplicationRequestPlanerTest {
         
         // when
         assertThrows(IllegalArgumentException.class,
-            () -> ApplicationRequestsPlaner.apply(appOperations, appName, cfChanges));
+            () -> ApplicationRequestsPlaner.createApplyRequests(appOperations, appName, cfChanges));
     }
     
 
