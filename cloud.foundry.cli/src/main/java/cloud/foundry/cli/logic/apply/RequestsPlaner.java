@@ -22,16 +22,19 @@ import java.util.List;
  */
 public abstract class RequestsPlaner implements CfChangeVisitor {
 
-    public static final String CHANGE_TYPE_IS_NOT_SUPPORTED = "Change type is not supported.";
+    private static final String CHANGE_TYPE_IS_NOT_SUPPORTED = "Change type is not supported.";
 
     private final List<Mono<Void>> requests;
 
-    protected List<Mono<Void>> getRequests() {
-        return Collections.unmodifiableList(this.requests);
-    }
-
     protected RequestsPlaner() {
         this.requests = new LinkedList<>();
+    }
+
+    /**
+     * @return an unmodifiable list of the requests
+     */
+    protected List<Mono<Void>> getRequests() {
+        return Collections.unmodifiableList(this.requests);
     }
 
     /**

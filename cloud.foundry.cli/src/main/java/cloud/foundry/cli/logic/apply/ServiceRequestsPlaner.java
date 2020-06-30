@@ -39,6 +39,9 @@ public class ServiceRequestsPlaner extends RequestsPlaner {
      */
     @Override
     public void visitNewObject(CfNewObject newObject) {
+        checkArgument(this.getRequests().size() == 0,
+                "There may not be any other requests for that service when adding a create request.");
+
         Object affectedObject = newObject.getAffectedObject();
         if (affectedObject instanceof ServiceBean) {
             try {
@@ -50,7 +53,6 @@ public class ServiceRequestsPlaner extends RequestsPlaner {
         else {
             throw new IllegalArgumentException("Only changes of services are permitted.");
         }
-        return;
     }
 
     private void addCreateServiceRequest(ServiceBean affectedObject) {
@@ -85,6 +87,7 @@ public class ServiceRequestsPlaner extends RequestsPlaner {
      * @param serviceChanges a list with all the Changes found during diff for that specific application
      * @throws ApplyException if an error during the apply logic occurs. May contain another exception inside
      * with more details
+     * @throws NullPointerException when any of the arguments is null
      * @return Flux of all requests that are required to apply the changes
      */
     public static Flux<Void> createApplyRequests(ServicesOperations servicesOperations,
