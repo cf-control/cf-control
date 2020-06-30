@@ -4,7 +4,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import cloud.foundry.cli.crosscutting.exceptions.ApplyException;
 import cloud.foundry.cli.crosscutting.exceptions.UpdateException;
-import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
 import cloud.foundry.cli.logic.diff.change.CfChange;
@@ -43,7 +42,7 @@ public class ServiceRequestsPlaner extends RequestsPlaner {
         if (affectedObject instanceof ServiceBean) {
             try {
                 addCreateServiceRequest((ServiceBean) affectedObject);
-            } catch (CreationException | IllegalArgumentException | NullPointerException | SecurityException e) {
+            } catch (NullPointerException e) {
                 throw new ApplyException(e);
             }
         }
@@ -54,7 +53,7 @@ public class ServiceRequestsPlaner extends RequestsPlaner {
     }
 
     private void addCreateServiceRequest(ServiceBean affectedObject) {
-        this.getRequests().add(this.servicesOperations.create(this.serviceName, affectedObject));
+        this.addRequest(this.servicesOperations.create(this.serviceName, affectedObject));
     }
 
     /**
