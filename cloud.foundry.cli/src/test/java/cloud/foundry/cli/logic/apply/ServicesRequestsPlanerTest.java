@@ -44,7 +44,7 @@ public class ServicesRequestsPlanerTest {
         List<CfChange> cfChanges = new LinkedList<>();
         cfChanges.add(newChange);
         // when
-        Flux<Void> requests = ServiceRequestsPlaner.create(servicesOperations,
+        Flux<Void> requests = ServiceRequestsPlaner.createApplyRequests(servicesOperations,
                 "someservice",
                 cfChanges);
 
@@ -65,7 +65,7 @@ public class ServicesRequestsPlanerTest {
         cfChanges.add(newChange);
         // when
         assertThrows(ApplyException.class,
-                () -> ServiceRequestsPlaner.create(servicesOperations, "someservice", cfChanges));
+                () -> ServiceRequestsPlaner.createApplyRequests(servicesOperations, "someservice", cfChanges));
     }
 
     @Test
@@ -79,7 +79,7 @@ public class ServicesRequestsPlanerTest {
         cfChanges.add(newChange);
         // when
         assertThrows(IllegalArgumentException.class,
-                () -> ServiceRequestsPlaner.create(servicesOperations, "someservice", cfChanges));
+                () -> ServiceRequestsPlaner.createApplyRequests(servicesOperations, "someservice", cfChanges));
     }
 
     @Test
