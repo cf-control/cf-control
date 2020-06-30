@@ -107,7 +107,7 @@ public class ApplyLogicTest {
 
     }
 
-    // mock for class getAll
+    // mock for method SpaceDeveloperOperations.getAll()
     private DefaultCloudFoundryOperations mockSpaceDevelopersGetAll(List<String> spaceDevelopersLive) {
         DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
 
