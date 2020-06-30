@@ -9,8 +9,8 @@ public class RefResolvingException extends RuntimeException {
         super(message);
     }
 
-    public RefResolvingException(Throwable throwable) {
-        super(throwable);
+    public RefResolvingException(String message, Throwable throwable) {
+        super(message, throwable);
     }
 
 }

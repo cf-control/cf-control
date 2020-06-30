@@ -1,7 +1,7 @@
 package cloud.foundry.cli.services;
 
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
-import cloud.foundry.cli.crosscutting.exceptions.CredentialException;
+import cloud.foundry.cli.crosscutting.exceptions.MissingCredentialsException;
 import cloud.foundry.cli.crosscutting.exceptions.GetException;
 import cloud.foundry.cli.crosscutting.exceptions.DiffException;
 import cloud.foundry.cli.crosscutting.exceptions.RefResolvingException;
@@ -17,6 +17,7 @@ import picocli.CommandLine;
 import picocli.CommandLine.Option;
 
 import java.io.IOException;
+import java.net.UnknownHostException;
 import java.util.concurrent.Callable;
 import java.util.logging.FileHandler;
 
@@ -84,7 +85,13 @@ public class BaseController implements Callable<Integer> {
         BaseController controller = new BaseController();
 
         CommandLine cli = new CommandLine(controller);
-        args = CfArgumentsCreator.determineCommandLine(cli, args);
+        try {
+            args = CfArgumentsCreator.determineCommandLine(cli, args);
+        } catch (CommandLine.ParameterException parameterException) {
+            // the arguments are invalid
+            log.error(parameterException.getMessage());
+            System.exit(1);
+        }
 
         // picocli has a nice hidden feature: one can register a special exception handler and thus deal with
         // exceptions occurring during the execution of a Callable, Runnable etc.
@@ -103,8 +110,8 @@ public class BaseController implements Callable<Integer> {
                 log.error("Failed to update message:" + ex.getMessage());
             } else if (ex instanceof UnsupportedOperationException) {
                 log.error("Operation not supported/implemented:", ex.getMessage());
-            } else if (ex instanceof CredentialException) {
-                log.error("Credentials error:", ex.getMessage());
+            } else if (ex instanceof MissingCredentialsException) {
+                log.error("Missing credentials were detected:", ex.getMessage());
             } else if (ex instanceof RefResolvingException) {
                 log.error("Failed to resolve " + RefResolver.REF_KEY + "-occurrences:", ex.getMessage());
             } else if (ex instanceof ConstructorException) {
@@ -112,25 +119,31 @@ public class BaseController implements Callable<Integer> {
             } else if (ex instanceof DiffException) {
                 log.error("Unable to perform the diff:", ex.getMessage());
             } else if (ex instanceof ApplyException) {
-                log.error("An error occurred during the apply:", ex.getMessage());
+                log.error("An error occurred while processing the apply command:", ex.getMessage());
             } else if (ex instanceof GetException) {
-                log.error("An error occurred during the get:", ex.getMessage());
-            } else if (ex instanceof IllegalStateException) {
-                // a little bit ugly, but it works
-                // the problem is in reactor.core.Exceptions
-                // it creates lambda class instances which are hard to test on...
-                if (ex.getMessage().toLowerCase().contains("retries exhausted")) {
-                    // now, if there is a cause and it's an InvalidTokenException, we can at least provide a hint
-                    // that it's likely a password issue
-                    if (ex.getCause() != null &&
-                            ex.getCause().toString().toLowerCase().contains("invalidtokenexception")) {
-                        log.error("Request to CF API failed: invalid token error (is the password correct?)");
-                    } else {
-                        log.exception(ex, "Request to CF API failed:");
-                    }
+                Throwable getExceptionCause = ex.getCause();
+
+                // the cases that are hard to identify are all wrapped in a GetException
+                if (getExceptionCause.getCause() instanceof UnknownHostException) {
+                    // wrapped unknown host exceptions stand for unreachable hosts
+                    log.error("Unable to connect to the CF API host:", getExceptionCause.getMessage());
+                } else if (getExceptionCause instanceof IllegalArgumentException) {
+                    // illegal argument exceptions seem to denote invalid organizations and spaces
+                    log.error("Wrong arguments provided:", getExceptionCause.getMessage());
+                } else if (getExceptionCause instanceof IllegalStateException &&
+                        getExceptionCause.getMessage().toLowerCase().contains("retries exhausted") &&
+                        getExceptionCause.getCause() != null &&
+                        getExceptionCause.getCause().toString().toLowerCase().contains("invalidtokenexception")) {
+                    // a little bit ugly, but it works
+                    // the problem is in reactor.core.Exceptions
+                    // it creates lambda class instances which are hard to test on...
+                    // by these checks we can make sure, that the exception was caused by invalid credentials
+                    log.error("Request to CF API failed: Invalid username or password " +
+                                "(your account might be locked due to too many login attempts with a wrong password)");
                 } else {
-                    log.exception(ex, "Unexpected illegal state error");
+                    log.error("An unexpected error occurred while processing the get command:", ex.getMessage());
                 }
+
             } else {
                 log.exception(ex, "Unexpected error occurred");
             }

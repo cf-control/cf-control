@@ -102,7 +102,8 @@ public class ApplyLogic {
 
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
         log.info("Fetching information about applications...");
-        Map<String, ApplicationBean> liveApplications = applicationsOperations.getAll().block();
+        GetLogic getLogic = new GetLogic();
+        Map<String, ApplicationBean> liveApplications = getLogic.getApplications(applicationsOperations);
         log.info("Information fetched.");
 
         // that way only the applications of the live system are compared in the diff
