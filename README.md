@@ -109,6 +109,12 @@ You can have the tool create a machine-readable log file by specifying the `--lo
   remove-application      Remove applications in the target space.
 ```
 
+##### apply [SUBCOMMAND]
+```
+  space-developers       Apply the differences between the space developers given in the YAML file and
+                    in the live system.
+```
+
 ##### [PARAMS]
 
 ```
