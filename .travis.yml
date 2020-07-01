@@ -35,6 +35,8 @@ matrix:
       script:
         - cd cloud.foundry.cli
         - ./gradlew systemTest
+      after_success:
+        - ./gradlew jacocoTestReport coveralls
 
 script:
   # our source code is currently in a subdirectory
