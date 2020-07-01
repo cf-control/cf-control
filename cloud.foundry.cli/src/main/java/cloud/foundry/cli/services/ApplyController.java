@@ -49,9 +49,9 @@ public class ApplyController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            log.info("Interpreting YAML file...");
+            log.verbose("Interpreting YAML file...");
             SpecBean desiredSpecBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
-            log.info("YAML file interpreted.");
+            log.verbose("YAML file interpreted.");
 
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             ApplyLogic applyLogic = new ApplyLogic(cfOperations);
@@ -80,9 +80,9 @@ public class ApplyController implements Callable<Integer> {
 
             ApplyLogic applyLogic = new ApplyLogic(cfOperations);
 
-            log.info("Interpreting YAML file...");
+            log.verbose("Interpreting YAML file...");
             SpecBean desiredSpecBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
-            log.info("YAML file interpreted.");
+            log.verbose("YAML file interpreted.");
 
             applyLogic.applyApplications(desiredSpecBean.getApps());
 
@@ -108,9 +108,9 @@ public class ApplyController implements Callable<Integer> {
 
             ApplyLogic applyLogic = new ApplyLogic(cfOperations);
 
-            log.info("Interpreting YAML file...");
+            log.verbose("Interpreting YAML file...");
             SpecBean desiredSpecBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
-            log.info("YAML file interpreted.");
+            log.verbose("YAML file interpreted.");
 
             applyLogic.applyServices(desiredSpecBean.getServices());
 
