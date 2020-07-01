@@ -71,8 +71,6 @@ public class SpaceConfigurator {
                 .map(serviceEntry -> servicesOperations.create(serviceEntry.getKey(), serviceEntry.getValue()))
                 .collect(Collectors.toList());
 
-        desiredServices.clear();
-
         return resultingCreationRequests;
     }
 
@@ -82,9 +80,36 @@ public class SpaceConfigurator {
                         applicationsOperations.create(applicationEntry.getKey(), applicationEntry.getValue(), false))
                 .collect(Collectors.toList());
 
-        desiredApplications.clear();
-
         return resultingCreationRequests;
+    }
+
+    /**
+     * Removes all previously registered desired services and applications on the space. After the removal process has
+     * finished, the applications and services are not registered as desired anymore.
+     * @throws RuntimeException or other subclasses of RuntimeException if any errors occur during the removal process
+     */
+    public void clear() {
+        Flux.merge(collectServiceRemovalRequests()).blockLast();
+        desiredServices.clear();
+
+        Flux.merge(collectApplicationRemovalRequests()).blockLast();
+        desiredApplications.clear();
+    }
+
+    private List<Mono<Void>> collectServiceRemovalRequests() {
+        List<Mono<Void>> resultingRemovalRequests = desiredServices.keySet().stream()
+                .map(serviceName -> servicesOperations.remove(serviceName))
+                .collect(Collectors.toList());
+
+        return resultingRemovalRequests;
+    }
+
+    private List<Mono<Void>> collectApplicationRemovalRequests() {
+        List<Mono<Void>> resultingRemovalRequests = desiredApplications.keySet().stream()
+                .map(applicationName -> applicationsOperations.remove(applicationName))
+                .collect(Collectors.toList());
+
+        return resultingRemovalRequests;
     }
 
     /**
@@ -92,7 +117,7 @@ public class SpaceConfigurator {
      * services or applications.
      * @throws RuntimeException or other subclasses of RuntimeException if any errors occur during the removal process
      */
-    public void clear() {
+    public void clearAll() {
         // these references will point to sets containing the name of all applications/services of the cf instance
         AtomicReference<Set<String>> applicationsToRemove = new AtomicReference<>(null);
         AtomicReference<Set<String>> servicesToRemove = new AtomicReference<>(null);
