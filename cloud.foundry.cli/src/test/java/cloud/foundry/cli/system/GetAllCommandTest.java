@@ -24,6 +24,26 @@ public class GetAllCommandTest extends SystemTestBase {
         spaceConfigurator.clear();
     }
 
+    private void assertRootBeanIsValid(ConfigBean rootBean) {
+        assert rootBean.getApiVersion().startsWith("2.");
+
+        TargetBean target = rootBean.getTarget();
+        assert target.getEndpoint().equals(getCfApiEndpointValue());
+        assert target.getOrg().equals(getCfOrganizationValue());
+        assert target.getSpace().equals(getCfSpaceValue());
+
+        SpecBean spec = rootBean.getSpec();
+        assert spec.getApps() == null;
+        // TODO: check if we can put in an absolute value once we use "throw-away spaces" created per test run
+        assert spec.getSpaceDevelopers().size() > 0;
+    }
+
+    private ConfigBean loadConfigBeanFromStdoutAndAssertItsValidity(String stdoutContent) {
+        ConfigBean rootBean = YamlMapper.loadBeanFromString(stdoutContent, ConfigBean.class);
+        assertRootBeanIsValid(rootBean);
+        return rootBean;
+    }
+
     @Test
     public void testEmptySpace() {
         ArgumentsBuilder args = new ArgumentsBuilder()
@@ -34,6 +54,14 @@ public class GetAllCommandTest extends SystemTestBase {
         String outContent = runResult.getStreamContents().getStdoutContent();
         assert outContent.length() > 0;
 
+        // parse YAML from stdout and check it for validity
+        ConfigBean rootBean = loadConfigBeanFromStdoutAndAssertItsValidity(outContent);
+
+        SpecBean spec = rootBean.getSpec();
+        assert spec.getApps() == null;
+        assert spec.getServices() == null;
+
+        // TODO: check log contents
         String errContent = runResult.getStreamContents().getStderrContent();
         assert errContent.length() > 0;
 
