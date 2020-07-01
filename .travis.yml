@@ -31,7 +31,9 @@ matrix:
           fi
 
     - name: "Run system tests"
-      jdk: openjdk11
+      # Really, coveralls plugin? You don't work with Java 11?
+      # https://github.com/kt3k/coveralls-gradle-plugin/issues/85
+      jdk: openjdk8
       script:
         - cd cloud.foundry.cli
         - ./gradlew systemTest
