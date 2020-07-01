@@ -59,6 +59,7 @@ public class GetAllCommandTest extends SystemTestBase {
         SpecBean spec = rootBean.getSpec();
         assert spec.getApps() == null;
         assert spec.getServices() == null;
+        assert spec.getSpaceDevelopers().size() > 0;
 
         // TODO: check log contents
         String errContent = runResult.getStreamContents().getStderrContent();
