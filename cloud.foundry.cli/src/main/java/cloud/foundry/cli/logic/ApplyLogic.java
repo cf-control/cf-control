@@ -66,9 +66,9 @@ public class ApplyLogic {
         ConfigBean liveApplicationsConfig = createConfigFromApplications(liveApplications);
 
         // compare entire configs as the diff wrapper is only suited for diff trees of these
-        log.info("Comparing the applications...");
+        log.verbose("Comparing the applications...");
         DiffResult diffResult = this.diffLogic.createDiffResult(liveApplicationsConfig, desiredApplicationsConfig);
-        log.info("Applications compared.");
+        log.verbose("Applications compared.");
 
         Map<String, List<CfChange>> allApplicationChanges = diffResult.getApplicationChanges();
 
@@ -76,7 +76,7 @@ public class ApplyLogic {
                 .flatMap( appChangeEntry -> ApplicationRequestsPlaner.createApplyRequests(applicationsOperations,
                         appChangeEntry.getKey(),
                         appChangeEntry.getValue()))
-                .onErrorContinue(log::error);
+                .onErrorContinue(log::warning);
         applicationRequests.blockLast();
 
         log.info("Applying changes to applications...");
@@ -84,8 +84,8 @@ public class ApplyLogic {
 
     //TODO update the documentation as soon as the method does more than just creating/removing services
     /**
-     * Creates/removes all provided services.
-     * @param desiredServices the applications that should all be present in the live system after the procedure
+     * Creates/removes all desired services in your live cf instance.
+     * @param desiredServices the services that should all be present in the live system after the procedure
      * @throws ApplyException if an error occurs during the procedure
      * @throws NullPointerException if the argument is null
      */
@@ -102,9 +102,9 @@ public class ApplyLogic {
         ConfigBean liveServicesConfig = createConfigFromServices(liveServices);
 
         // compare entire configs as the diff wrapper is only suited for diff trees of these
-        log.info("Comparing the services...");
+        log.verbose("Comparing the services...");
         DiffResult diffResult = this.diffLogic.createDiffResult(liveServicesConfig, desiredServicesConfig);
-        log.info("Services compared.");
+        log.verbose("Services compared.");
 
         Map<String, List<CfChange>> allServicesChanges = diffResult.getServiceChanges();
 
@@ -113,7 +113,7 @@ public class ApplyLogic {
                         ServiceRequestsPlaner.createApplyRequests(servicesOperations,
                                 serviceChangeEntry.getKey(),
                                 serviceChangeEntry.getValue()))
-                .onErrorContinue(log::error);
+                .onErrorContinue(log::warning);
         serviceRequests.blockLast();
 
         log.info("Applying changes to services...");
@@ -134,7 +134,7 @@ public class ApplyLogic {
 
     /**
      * @param serviceBeans the service beans that should be contained in the resulting config bean
-     * @return a config bean only containing the entered application beans
+     * @return a config bean only containing the entered service beans
      */
     private ConfigBean createConfigFromServices(Map<String, ServiceBean> serviceBeans) {
         SpecBean servicesSpecBean = new SpecBean();

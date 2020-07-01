@@ -21,7 +21,7 @@ import java.util.concurrent.Callable;
         header = "%n@|green Apply the configuration from a given yaml file to your cf instance.|@",
         mixinStandardHelpOptions = true,
         subcommands = {ApplyController.ApplyApplicationCommand.class,
-                        ApplyController.ApplyServiceCommand.class})
+                       ApplyController.ApplyServiceCommand.class})
 public class ApplyController implements Callable<Integer> {
 
     @Override
