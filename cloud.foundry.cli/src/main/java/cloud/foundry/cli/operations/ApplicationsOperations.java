@@ -89,7 +89,7 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
 
         return this.cloudFoundryOperations.applications()
                 .delete(request)
-                .doOnSuccess(aVoid -> log.info("Application " + applicationName + " has been successfully removed."))
+                .doOnSuccess(aVoid -> log.info("App removed: ",applicationName))
                 .onErrorStop();
     }
 

@@ -40,7 +40,6 @@ public class ApplyLogic {
 
     /**
      * Creates a new instance that will use the provided cf operations internally.
-     *
      * @param cfOperations the cf operations that should be used to communicate with
      *                     the cf instance
      * @throws NullPointerException if the argument is null
@@ -93,13 +92,14 @@ public class ApplyLogic {
         }
     }
 
-    // TODO update the documentation as soon as the method does more than just
-    // creating applications
-
     /**
-     * Creates all provided applications that are not present in the live system.
-     * @param desiredApplications the applications that should all be present in the live system after the procedure
-     * @throws ApplyException if an error occurs during the procedure
+     * Apply the differences between the applications given in the yaml file and the configuration
+     * of the applications of your cf instance. In case of any non-recoverable error,
+     * the procedure is discontinued.
+     *
+     * @param desiredApplications the applications that should all be present in the
+     *                            live system after the procedure
+     * @throws ApplyException       if an non-recoverable error occurs during the procedure
      * @throws NullPointerException if the argument is null
      */
     public void applyApplications(@Nonnull Map<String, ApplicationBean> desiredApplications) {
@@ -121,14 +121,21 @@ public class ApplyLogic {
 
         Map<String, List<CfChange>> allApplicationChanges = diffResult.getApplicationChanges();
 
+        if (allApplicationChanges == null || allApplicationChanges.isEmpty()) {
+            log.info("There is no difference to apply.");
+        } else {
+            ApplicationsOperations appOperations = new ApplicationsOperations(cfOperations);
+
         Flux<Void> applicationRequests = Flux.fromIterable(allApplicationChanges.entrySet())
-                .flatMap( appChangeEntry -> ApplicationRequestsPlaner.createApplyRequests(applicationsOperations,
+                .flatMap(appChangeEntry -> ApplicationRequestsPlaner.createApplyRequests(appOperations,
                         appChangeEntry.getKey(),
                         appChangeEntry.getValue()))
                 .onErrorContinue(log::warning);
-        applicationRequests.blockLast();
 
-        log.info("Applying changes to applications...");
+            log.info("Applying changes to applications...");
+
+            applicationRequests.blockLast();
+        }
     }
 
     //TODO update the documentation as soon as the method does more than just creating/removing services
@@ -194,6 +201,7 @@ public class ApplyLogic {
         applicationsSpecBean.setApps(applicationBeans);
         ConfigBean applicationsConfigBean = new ConfigBean();
         applicationsConfigBean.setSpec(applicationsSpecBean);
+
         return applicationsConfigBean;
     }
 

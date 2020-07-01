@@ -98,6 +98,12 @@ You can have the tool create a machine-readable log file by specifying the `--lo
     all              Print the differences between the configuration in the yaml file and
                      the configuration of your cf instance.
 ```
+##### apply [SUBCOMMAND]
+
+```
+  applications       Apply the differences between the apps given in the yaml file and
+                     the configuration of the apps of your cf instance.
+```
 
 ##### update [SUBCOMMAND]
 
