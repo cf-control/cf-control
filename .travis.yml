@@ -30,25 +30,19 @@ matrix:
             bash upload.sh build/libs/cf-control.jar
           fi
 
-    - name: "Run system tests"
+    - name: "Run all tests (including system tests) and report coverage (Java 8)"
       # Really, coveralls plugin? You don't work with Java 11?
       # https://github.com/kt3k/coveralls-gradle-plugin/issues/85
       jdk: openjdk8
       script:
         - cd cloud.foundry.cli
-        - ./gradlew systemTest
-      after_success:
         - ./gradlew jacocoTestReport coveralls
 
 script:
   # our source code is currently in a subdirectory
   - cd cloud.foundry.cli
-  - ./gradlew build
+  - ./gradlew buildWithoutSystemTests
   
-# send testreport to coveralls
-after_success:
-- ./gradlew jacocoTestReport coveralls
-
 branches:
   except:
     - # Do not build tags that we create when we upload to GitHub Releases

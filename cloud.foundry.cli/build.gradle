@@ -75,19 +75,30 @@ dependencies {
     compile 'org.slf4j:slf4j-nop:1.7.+'
 }
 
+// default tests task which runs all the tests
+// we have two special tasks which only run non-system tests or system tests
 test {
+    useJUnitPlatform()
+    maxHeapSize = '1G'
+}
+
+task nonSystemTests(type: Test) {
     useJUnitPlatform()
     //Exclude system tests --> extra gradle task
     exclude 'cloud/foundry/cli/system/**'
     maxHeapSize = '1G'
 }
 
-task systemTest(type: Test) {
+task systemTests(type: Test) {
     filter{
         includeTestsMatching "cloud.foundry.cli.system.*"
     }
     useJUnitPlatform()
     maxHeapSize = '1G'
+}
+
+task buildWithoutSystemTests {
+    dependsOn assemble, nonSystemTests
 }
 
 jar {
@@ -105,7 +116,7 @@ jar {
 
 jacocoTestReport {
     dependsOn test
-    dependsOn systemTest
+
     reports {
         xml.enabled = true // coveralls plugin depends on xml format report
         html.enabled = true
