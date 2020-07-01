@@ -82,13 +82,13 @@ public class Differ {
                 // Change types that are not relevant to us will get parsed to null, so ignore them
                 .filter(Objects::nonNull)
                 // apply all custom set filters
-                .filter(this::applyFilterConditions)
+                .filter(this::applyFilterCriterias)
                 .collect(Collectors.toList());
 
         return DiffTreeCreator.createFrom(cfChanges);
     }
 
-    private boolean applyFilterConditions(CfChange change) {
+    private boolean applyFilterCriterias(CfChange change) {
         // iterating over all filter conditions
         return filterCriteria
                 .stream()

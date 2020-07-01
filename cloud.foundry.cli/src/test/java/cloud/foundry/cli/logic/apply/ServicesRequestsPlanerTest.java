@@ -39,8 +39,8 @@ public class ServicesRequestsPlanerTest {
         ServiceBean newServiceMock = mock(ServiceBean.class);
         ServicesOperations servicesOperations = mock(ServicesOperations.class);
         CfChange newChange = new CfNewObject(newServiceMock, "someservice", Collections.singletonList("root"));
-        Mono<Void> monoMock = mock(Mono.class);
-        Mockito.when(servicesOperations.create("someservice", newServiceMock)).thenReturn(monoMock);
+        Void voidMock = mock(Void.class);
+        Mockito.when(servicesOperations.create("someservice", newServiceMock)).thenReturn(Mono.just(voidMock));
         List<CfChange> cfChanges = new LinkedList<>();
         cfChanges.add(newChange);
         // when
@@ -50,6 +50,10 @@ public class ServicesRequestsPlanerTest {
 
         //then
         assertThat(requests, notNullValue());
+        StepVerifier.create(requests)
+                .expectNext(voidMock)
+                .expectComplete()
+                .verify();
     }
 
     @Test
