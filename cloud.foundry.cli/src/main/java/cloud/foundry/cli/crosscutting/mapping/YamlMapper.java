@@ -89,7 +89,7 @@ public class YamlMapper {
     }
 
     /**
-     * Reads the file (possibly on a server) and interprets its content as a yaml tree.
+     * Interprets the given string as a yaml tree.
      *
      * @param data YAML data
      * @return the resulting yaml tree
