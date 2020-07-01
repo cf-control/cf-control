@@ -9,6 +9,7 @@ import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationManifestBean;
 import cloud.foundry.cli.logic.diff.change.CfChange;
 import cloud.foundry.cli.logic.diff.change.object.CfNewObject;
+import cloud.foundry.cli.logic.diff.change.object.CfRemovedObject;
 import cloud.foundry.cli.operations.ApplicationsOperations;
 import reactor.core.publisher.Flux;
 
@@ -84,7 +85,7 @@ public class ApplicationRequestsPlaner extends RequestsPlaner {
     }
 
     private void addRemoveAppRequest() {
-        this.getRequests().add(this.appOperations.remove(this.applicationName));
+        this.addRequest(this.appOperations.remove(this.applicationName));
     }
 
     /**

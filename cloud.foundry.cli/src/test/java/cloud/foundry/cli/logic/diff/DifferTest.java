@@ -140,7 +140,7 @@ public class DifferTest {
         DiffNode services = specNode.getChild("services");
         assertThat(services.getChanges().size(), is(0));
         //only one since the service (web-service-name) that is not in the desired config gets skipped
-        assertThat(services.getChildNodes().size(), is(2));
+        assertThat(services.getChildNodes().size(), is(1));
         assertThat(services.getChild("sql-service-name"), notNullValue());
         DiffNode service = services.getChild("sql-service-name");
         assertTrue(service.isLeaf());
@@ -153,7 +153,7 @@ public class DifferTest {
         DiffNode apps = specNode.getChild("apps");
         assertThat(apps.getChanges().size(), is(0));
         //only two since the app (app2) that is not in the desired config gets skipped
-        assertThat(apps.getChildNodes().size(), is(3));
+        assertThat(apps.getChildNodes().size(), is(2));
         assertThat(apps.getChild("app1"), notNullValue());
         assertThat(apps.getChild("app3"), notNullValue());
 

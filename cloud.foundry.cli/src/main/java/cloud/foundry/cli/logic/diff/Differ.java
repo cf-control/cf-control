@@ -8,6 +8,7 @@ import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
 import cloud.foundry.cli.logic.diff.change.CfChange;
 import cloud.foundry.cli.logic.diff.change.ChangeParser;
 import cloud.foundry.cli.logic.diff.change.map.CfMapChange;
+import cloud.foundry.cli.logic.diff.change.object.CfRemovedObject;
 import org.javers.core.Javers;
 import org.javers.core.JaversBuilder;
 import org.javers.core.diff.Diff;
