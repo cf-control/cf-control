@@ -33,7 +33,6 @@ public class GetAllCommandTest extends SystemTestBase {
         assert target.getSpace().equals(getCfSpaceValue());
 
         SpecBean spec = rootBean.getSpec();
-        assert spec.getApps() == null;
         // TODO: check if we can put in an absolute value once we use "throw-away spaces" created per test run
         assert spec.getSpaceDevelopers().size() > 0;
     }
