@@ -98,12 +98,6 @@ You can have the tool create a machine-readable log file by specifying the `--lo
     all              Print the differences between the configuration in the yaml file and
                      the configuration of your cf instance.
 ```
-##### apply [SUBCOMMAND]
-
-```
-  applications       Apply the differences between the apps given in the yaml file and
-                     the configuration of the apps of your cf instance.
-```
 
 ##### update [SUBCOMMAND]
 
@@ -117,10 +111,13 @@ You can have the tool create a machine-readable log file by specifying the `--lo
 
 ##### apply [SUBCOMMAND]
 ```
-  space-developers       Apply the differences between the space developers given in the YAML file and
-                    in the live system.
+  space-developers    Apply the differences between the space developers given in the YAML file and
+                       in the live system.
 
-  services                Create/remove services that are present in the given yaml file, but not in your cf instance.
+  services           Create/remove services that are present in the given yaml file, but not in your cf instance.
+  
+  applications       Apply the differences between the apps given in the yaml file and
+                     the configuration of the apps of your cf instance.
 ```
 
 ##### [PARAMS]
