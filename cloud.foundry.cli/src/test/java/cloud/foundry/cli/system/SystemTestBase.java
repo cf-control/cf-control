@@ -45,6 +45,8 @@ public abstract class SystemTestBase {
     private final String cfOrganizationValue;
     private final String cfApiEndpointValue;
 
+    private static SecurityManager cachedOriginalSecurityManager = null;
+
     public String getCfSpaceValue() {
         return cfSpaceValue;
     }
@@ -106,12 +108,14 @@ public abstract class SystemTestBase {
 
     @BeforeAll
     private static void installCustomSecurityManager() {
+        cachedOriginalSecurityManager = System.getSecurityManager();
         System.setSecurityManager(new PreventExitSecurityManager());
     }
 
     @AfterAll
     private static void restoreOriginalSecurityManager() {
-        System.setSecurityManager(null);
+        System.setSecurityManager(cachedOriginalSecurityManager);
+        cachedOriginalSecurityManager = null;
     }
 
     /**
