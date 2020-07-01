@@ -94,6 +94,7 @@ public class GetAllCommandTest extends SystemTestBase {
         ServiceBean parsedService = spec.getServices().get(serviceName);
         assert parsedService.getService().equals(service.getService());
         assert parsedService.getPlan().equals(service.getPlan());
+        assert parsedService.getTags() == null;
 
         // TODO: check log contents
         String errContent = runResult.getStreamContents().getStderrContent();
