@@ -79,11 +79,24 @@ public class GetAllCommandTest extends SystemTestBase {
                 .addArgument("get");
 
         RunResult runResult = runBaseControllerWithCredentialsFromEnvironment(args);
-        String stderrContents = runResult.getStreamContents().getStderrContent();
-        String stdoutContents = runResult.getStreamContents().getStdoutContent();
 
-        assert stderrContents.length() > 0;
-        assert stdoutContents.length() > 0;
+        String outContent = runResult.getStreamContents().getStdoutContent();
+        assert outContent.length() > 0;
+
+        // parse YAML from stdout and check it for validity
+        ConfigBean rootBean = loadConfigBeanFromStdoutAndAssertItsValidity(outContent);
+
+        SpecBean spec = rootBean.getSpec();
+        assert spec.getApps() == null;
+
+        assert spec.getServices().size() == 1;
+        ServiceBean parsedService = spec.getServices().get("test-service");
+        assert parsedService.getService().equals(service.getService());
+        assert parsedService.getPlan().equals(service.getPlan());
+
+        // TODO: check log contents
+        String errContent = runResult.getStreamContents().getStderrContent();
+        assert errContent.length() > 0;
 
         assert runResult.getExitCode() == 0;
     }
@@ -106,11 +119,25 @@ public class GetAllCommandTest extends SystemTestBase {
                 .addArgument("get");
 
         RunResult runResult = runBaseControllerWithCredentialsFromEnvironment(args);
-        String stderrContents = runResult.getStreamContents().getStderrContent();
-        String stdoutContents = runResult.getStreamContents().getStdoutContent();
 
-        assert stderrContents.length() > 0;
-        assert stdoutContents.length() > 0;
+        String outContent = runResult.getStreamContents().getStdoutContent();
+        assert outContent.length() > 0;
+
+        // parse YAML from stdout and check it for validity
+        ConfigBean rootBean = loadConfigBeanFromStdoutAndAssertItsValidity(outContent);
+
+        SpecBean spec = rootBean.getSpec();
+        assert spec.getServices() == null;
+
+        assert spec.getApps().size() == 1;
+        ApplicationBean parsedApplication = spec.getApps().get("cfcli-test-app");
+        assert parsedApplication.getPath() == null;
+        ApplicationManifestBean parsedManifest = parsedApplication.getManifest();
+        assert parsedManifest.getDockerImage().equals(manifest.getDockerImage());
+
+        // TODO: check log contents
+        String errContent = runResult.getStreamContents().getStderrContent();
+        assert errContent.length() > 0;
 
         assert runResult.getExitCode() == 0;
     }
