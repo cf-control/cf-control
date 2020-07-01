@@ -68,17 +68,16 @@ public class ApplyLogic {
 
         SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
         log.info("Fetching information about space developers...");
-        GetLogic getLogic = new GetLogic();
-        List<String> liveSpaceDevelopers = getLogic.getSpaceDevelopers(spaceDevelopersOperations);
+        List<String> liveSpaceDevelopers = this.getLogic.getSpaceDevelopers(spaceDevelopersOperations);
         log.info("Information fetched.");
 
         ConfigBean desiredSpaceDevelopersConfig = createConfigFromSpaceDevelopers(desiredSpaceDevelopers);
         ConfigBean liveSpaceDevelopersConfig = createConfigFromSpaceDevelopers(liveSpaceDevelopers);
 
         // compare entire configs as the diff wrapper is only suited for diff trees of these
-        DiffLogic diffLogic = new DiffLogic();
         log.info("Comparing the space developers...");
-        DiffResult wrappedDiff = diffLogic.createDiffResult(liveSpaceDevelopersConfig, desiredSpaceDevelopersConfig);
+        DiffResult wrappedDiff = this.diffLogic.createDiffResult(liveSpaceDevelopersConfig,
+                desiredSpaceDevelopersConfig);
         log.info("Space developers compared.");
 
         CfContainerChange spaceDevelopersChange = wrappedDiff.getSpaceDevelopersChange();
@@ -98,12 +97,6 @@ public class ApplyLogic {
     // creating applications
 
     /**
-     * Creates all provided applications that are not present in the live system. In
-     * case of any error, the procedure is discontinued.
-     *
-     * @param desiredApplications the applications that should all be present in the
-     *                            live system after the procedure
-     * @throws ApplyException       if an error occurs during the procedure
      * Creates all provided applications that are not present in the live system.
      * @param desiredApplications the applications that should all be present in the live system after the procedure
      * @throws ApplyException if an error occurs during the procedure
