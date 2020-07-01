@@ -16,6 +16,9 @@ import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationManifestBean;
 import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperByUsernameRequest;
 import org.cloudfoundry.client.v2.spaces.RemoveSpaceDeveloperByUsernameRequest;
 import org.cloudfoundry.client.CloudFoundryClient;
+import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
+import cloud.foundry.cli.logic.diff.DiffResult;
+import cloud.foundry.cli.logic.diff.change.CfChange;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.applications.Applications;
 import org.cloudfoundry.operations.applications.DeleteApplicationRequest;
@@ -37,10 +40,13 @@ import reactor.core.publisher.Mono;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
@@ -49,11 +55,6 @@ import java.util.function.Predicate;
  * Test for {@link ApplyLogic}
  */
 public class ApplyLogicTest {
-
-    @Test
-    public void testConstructorWithNull() {
-        assertThrows(NullPointerException.class, () -> new ApplyLogic(null));
-    }
 
     @Test
     public void testApplyApplicationsWithNull() {
@@ -243,7 +244,7 @@ public class ApplyLogicTest {
         verify(applicationsMock, times(0)).delete(any(DeleteApplicationRequest.class));
         verify(applicationsMock, times(0)).pushManifest(any(PushApplicationManifestRequest.class));
     }
-    
+
     @Test
     public void testApplyApplicationsRemovesApplication() {
         // given
@@ -267,7 +268,7 @@ public class ApplyLogicTest {
 
         Void voidMock = mock(Void.class);
         Mono<Void> deletedMonoMock = Mono.just(voidMock);
-        
+
         // This contains all the DeleteApplicationRequests received when delete is called
         CopyOnWriteArrayList<DeleteApplicationRequest> receivedDeleteRequests = new
                                                            CopyOnWriteArrayList<DeleteApplicationRequest>();
@@ -348,7 +349,7 @@ public class ApplyLogicTest {
     }
 
     private ApplicationSummary createMockApplicationSummary(ApplicationManifest manifest) {
-        
+
         return ApplicationSummary.builder()
             .name(manifest.getName())
             .diskQuota(100)
@@ -360,4 +361,57 @@ public class ApplyLogicTest {
             .build();
     }
 
+    @Test
+    public void testApplyServicesWithNull() {
+        ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
+
+        assertThrows(NullPointerException.class, () -> applyLogic.applyServices(null));
+    }
+
+    @Test
+    public void testApplyServices() {
+        //given
+        DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
+
+        //desired Services
+        HashMap<String, ServiceBean> desiredServices = new HashMap<>();
+        ServiceBean serviceBean = new ServiceBean();
+        desiredServices.put("exampleService", serviceBean);
+
+        //liveConfig
+        HashMap<String, ServiceBean> liveConfig = new HashMap<>();
+        GetLogic getlogic = mock(GetLogic.class);
+        when(getlogic.getServices(any())).thenReturn(liveConfig);
+
+        //Diffresult
+        DiffLogic diffLogicMock = mock(DiffLogic.class);
+        DiffResult diffResultMock = mock(DiffResult.class);
+        when(diffLogicMock.createDiffResult(any(), any())).thenReturn(diffResultMock);
+
+        //allServiceChanges
+        List<CfChange> cfChanges = new LinkedList<>();
+        CfChange cfChangeMock = mock(CfChange.class);
+        cfChanges.add(cfChangeMock);
+        Map<String, List<CfChange>> allServiceChanges = mock(Map.class);
+        when(diffResultMock.getServiceChanges()).thenReturn(allServiceChanges);
+        //entry set of allServiceChanges
+        Set<Map.Entry<String, List<CfChange>>> entrySet = new HashSet<>();
+        Map.Entry entry = mock(Map.Entry.class);
+        entrySet.add(entry);
+        when(allServiceChanges.entrySet()).thenReturn(entrySet);
+
+
+        //when
+        ApplyLogic applyLogic = new ApplyLogic(cfOperationsMock);
+        applyLogic.setDiffLogic(diffLogicMock);
+        applyLogic.setGetLogic(getlogic);
+        applyLogic.applyServices(desiredServices);
+
+        //then
+        verify(getlogic).getServices(any());
+        verify(diffLogicMock).createDiffResult(any(), any());
+        //this is called when you apply to the changes
+        verify(entry).getKey();
+        verify(entry).getValue();
+    }
 }

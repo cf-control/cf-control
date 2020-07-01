@@ -118,7 +118,7 @@ class ApplicationRequestPlanerTest {
 
         // when
         Flux<Void> requests = ApplicationRequestsPlaner.createApplyRequests(appOperations, appName, cfChanges);
-        
+
         // then
         verify(appOperations, times(1)).remove(appName);
         StepVerifier.create(requests)
@@ -126,7 +126,7 @@ class ApplicationRequestPlanerTest {
             .expectComplete()
             .verify();
     }
-    
+
     @Test
     void applyTest_WithRemovedObjectNotAppBeanOrAppManifestBean() {
         // given
@@ -136,11 +136,11 @@ class ApplicationRequestPlanerTest {
         ServiceBean serviceBeanMock = mock(ServiceBean.class);
         CfRemovedObject removedObject = new CfRemovedObject(serviceBeanMock, "propertyName", Arrays.asList("path"));
         cfChanges.add(removedObject);
-        
+
         // when
         assertThrows(IllegalArgumentException.class,
             () -> ApplicationRequestsPlaner.createApplyRequests(appOperations, appName, cfChanges));
     }
-    
+
 
 }

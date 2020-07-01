@@ -119,6 +119,8 @@ You can have the tool create a machine-readable log file by specifying the `--lo
 ```
   space-developers       Apply the differences between the space developers given in the YAML file and
                     in the live system.
+
+  services                Create/remove services that are present in the given yaml file, but not in your cf instance.
 ```
 
 ##### [PARAMS]
