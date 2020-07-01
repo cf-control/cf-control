@@ -12,7 +12,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
-import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import cloud.foundry.cli.crosscutting.exceptions.UpdateException;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
@@ -21,7 +20,6 @@ import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
 import cloud.foundry.cli.operations.ApplicationsOperations;
 import cloud.foundry.cli.operations.SpaceDevelopersOperations;
 import org.cloudfoundry.client.v2.ClientV2Exception;
-import org.cloudfoundry.client.v2.spaces.RemoveSpaceDeveloperByUsernameResponse;
 import picocli.CommandLine.Option;
 
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
@@ -94,14 +92,13 @@ public class UpdateController implements Callable<Integer> {
             // signals if any error occurred during the removal of the space developers
             AtomicReference<Boolean> errorOccurred = new AtomicReference<>(false);
 
-            List<Mono<RemoveSpaceDeveloperByUsernameResponse>> assignRequests = spaceDevelopers.stream()
+            List<Mono<Void>> assignRequests = spaceDevelopers.stream()
                 .map(spaceDeveloper ->
                     spaceDevelopersOperations.remove(spaceDeveloper, spaceId)
                         .doOnSuccess(response -> onSuccessfulRemoval(spaceDeveloper))
                         .onErrorContinue(this::whenClientException,
                                 (throwable, o) -> onErrorDuringRemoval(throwable, spaceDeveloper, errorOccurred))
-                )
-                .collect(Collectors.toList());
+                ).collect(Collectors.toList());
 
             Flux.merge(assignRequests).blockLast();
             return errorOccurred.get() ? 1 : 0;

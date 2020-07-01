@@ -4,9 +4,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import cloud.foundry.cli.crosscutting.logging.Log;
 import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperByUsernameRequest;
-import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperByUsernameResponse;
 import org.cloudfoundry.client.v2.spaces.RemoveSpaceDeveloperByUsernameRequest;
-import org.cloudfoundry.client.v2.spaces.RemoveSpaceDeveloperByUsernameResponse;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.useradmin.ListSpaceUsersRequest;
 import org.cloudfoundry.operations.useradmin.SpaceUsers;
@@ -39,14 +37,14 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
      */
     public Mono<List<String>> getAll() {
         ListSpaceUsersRequest request = ListSpaceUsersRequest.builder()
-            .spaceName(cloudFoundryOperations.getSpace())
-            .organizationName(cloudFoundryOperations.getOrganization())
-            .build();
+                .spaceName(cloudFoundryOperations.getSpace())
+                .organizationName(cloudFoundryOperations.getOrganization())
+                .build();
 
         return cloudFoundryOperations
-            .userAdmin()
-            .listSpaceUsers(request)
-            .map(SpaceUsers::getDevelopers);
+                .userAdmin()
+                .listSpaceUsers(request)
+                .map(SpaceUsers::getDevelopers);
     }
 
     /**
@@ -66,10 +64,10 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
      *
      * @param username email of user to assign as space developer
      * @param spaceId the id of the space
-     * @return mono object which yields the response upon subscription
+     * @return mono which can be subscribed on to trigger the assignment request to the cf instance
      * @throws NullPointerException if any of the arguments are null
      */
-    public Mono<AssociateSpaceDeveloperByUsernameResponse> assign(@Nonnull String username, @Nonnull String spaceId) {
+    public Mono<Void> assign(@Nonnull String username, @Nonnull String spaceId) {
         checkNotNull(username);
         checkNotNull(spaceId);
 
@@ -92,10 +90,10 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
      *
      * @param username email of user to remove as space developer
      * @param spaceId the id of the space
-     * @return mono object which yields the response upon subscription
+     * @return mono which can be subscribed on to trigger the removing request to the cf instance
      * @throws NullPointerException if any of the arguments are null
      */
-    public Mono<RemoveSpaceDeveloperByUsernameResponse> remove(String username, String spaceId) {
+    public Mono<Void> remove(String username, String spaceId) {
         checkNotNull(username);
         checkNotNull(spaceId);
 
@@ -109,7 +107,8 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
                 .spaces()
                 .removeDeveloperByUsername(request)
                 .doOnSubscribe(subscription -> log.debug("Removing a space developer:", username))
-                .doOnSuccess(subscription -> log.debug("Space developer: ", username, " was removed"))
+                .doOnSuccess(subscription -> log.info("Space developer: ", username, " was removed"))
                 .onErrorStop();
     }
+
 }
