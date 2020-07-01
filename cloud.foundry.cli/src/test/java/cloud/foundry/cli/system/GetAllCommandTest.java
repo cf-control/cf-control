@@ -72,8 +72,8 @@ public class GetAllCommandTest extends SystemTestBase {
         ServiceBean service = new ServiceBean();
         service.setService("elephantsql");
         service.setPlan("turtle");
-        getSpaceConfigurator().addDesiredService("test-service", service);
-        getSpaceConfigurator().configure();
+        getSpaceConfigurator().requestCreationOfService("test-service", service);
+        getSpaceConfigurator().createRequestedEntities();
 
         ArgumentsBuilder args = new ArgumentsBuilder()
                 .addArgument("get");
@@ -112,8 +112,8 @@ public class GetAllCommandTest extends SystemTestBase {
         application.setManifest(manifest);
 
         // note: the application name must be unique, it'll be used as domain
-        getSpaceConfigurator().addDesiredApplication("cfcli-test-app", application);
-        getSpaceConfigurator().configure();
+        getSpaceConfigurator().requestCreationOfApplication("cfcli-test-app", application);
+        getSpaceConfigurator().createRequestedEntities();
 
         ArgumentsBuilder args = new ArgumentsBuilder()
                 .addArgument("get");

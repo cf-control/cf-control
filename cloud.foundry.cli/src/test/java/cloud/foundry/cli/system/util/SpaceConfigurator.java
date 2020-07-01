@@ -20,8 +20,8 @@ import java.util.stream.Collectors;
  */
 public class SpaceConfigurator {
 
-    private HashMap<String, ServiceBean> desiredServices = new HashMap<>();
-    private HashMap<String, ApplicationBean> desiredApplications = new HashMap<>();
+    private HashMap<String, ServiceBean> servicesToCreate = new HashMap<>();
+    private HashMap<String, ApplicationBean> applicationsToCreate = new HashMap<>();
 
     private ServicesOperations servicesOperations;
     private ApplicationsOperations applicationsOperations;
@@ -41,8 +41,8 @@ public class SpaceConfigurator {
      * @param desiredServiceName the name of the desired service
      * @param desiredServiceBean the bean of the desired service
      */
-    public void addDesiredService(String desiredServiceName, ServiceBean desiredServiceBean) {
-        desiredServices.put(desiredServiceName, desiredServiceBean);
+    public void requestCreationOfService(String desiredServiceName, ServiceBean desiredServiceBean) {
+        servicesToCreate.put(desiredServiceName, desiredServiceBean);
     }
 
     /**
@@ -50,8 +50,8 @@ public class SpaceConfigurator {
      * @param desiredApplicationName the name of the desired application
      * @param desiredApplicationBean the bean of the desired application
      */
-    public void addDesiredApplication(String desiredApplicationName, ApplicationBean desiredApplicationBean) {
-        desiredApplications.put(desiredApplicationName, desiredApplicationBean);
+    public void requestCreationOfApplication(String desiredApplicationName, ApplicationBean desiredApplicationBean) {
+        applicationsToCreate.put(desiredApplicationName, desiredApplicationBean);
     }
 
     /**
@@ -59,7 +59,7 @@ public class SpaceConfigurator {
      * finished, the applications and services are not registered as desired anymore.
      * @throws RuntimeException or other subclasses of RuntimeException if any errors occur during the creation process
      */
-    public void configure() {
+    public void createRequestedEntities() {
         // FIXME if possible: Flux.merge would be faster but it leads to internal server errors on the cf instance
         Flux.concat(collectServiceCreationRequests()).blockLast();
 
@@ -67,7 +67,7 @@ public class SpaceConfigurator {
     }
 
     private List<Mono<Void>> collectServiceCreationRequests() {
-        List<Mono<Void>> resultingCreationRequests = desiredServices.entrySet().stream()
+        List<Mono<Void>> resultingCreationRequests = servicesToCreate.entrySet().stream()
                 .map(serviceEntry -> servicesOperations.create(serviceEntry.getKey(), serviceEntry.getValue()))
                 .collect(Collectors.toList());
 
@@ -75,11 +75,10 @@ public class SpaceConfigurator {
     }
 
     private List<Mono<Void>> collectApplicationCreationRequests() {
-        List<Mono<Void>> resultingCreationRequests = desiredApplications.entrySet().stream()
+        List<Mono<Void>> resultingCreationRequests = applicationsToCreate.entrySet().stream()
                 .map(applicationEntry ->
                         applicationsOperations.create(applicationEntry.getKey(), applicationEntry.getValue(), false))
                 .collect(Collectors.toList());
-
         return resultingCreationRequests;
     }
 
@@ -90,14 +89,14 @@ public class SpaceConfigurator {
      */
     public void clear() {
         Flux.merge(collectServiceRemovalRequests()).blockLast();
-        desiredServices.clear();
+        servicesToCreate.clear();
 
         Flux.merge(collectApplicationRemovalRequests()).blockLast();
-        desiredApplications.clear();
+        applicationsToCreate.clear();
     }
 
     private List<Mono<Void>> collectServiceRemovalRequests() {
-        List<Mono<Void>> resultingRemovalRequests = desiredServices.keySet().stream()
+        List<Mono<Void>> resultingRemovalRequests = servicesToCreate.keySet().stream()
                 .map(serviceName -> servicesOperations.remove(serviceName))
                 .collect(Collectors.toList());
 
@@ -105,7 +104,7 @@ public class SpaceConfigurator {
     }
 
     private List<Mono<Void>> collectApplicationRemovalRequests() {
-        List<Mono<Void>> resultingRemovalRequests = desiredApplications.keySet().stream()
+        List<Mono<Void>> resultingRemovalRequests = applicationsToCreate.keySet().stream()
                 .map(applicationName -> applicationsOperations.remove(applicationName))
                 .collect(Collectors.toList());
 
