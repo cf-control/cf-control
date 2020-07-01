@@ -37,54 +37,52 @@ public abstract class SystemTestBase {
     private static final String CF_API_ENDPOINT = "CF_API_ENDPOINT";
 
     // collection of all environment variables that are not defined in the system environment
-    private final List<String> undefinedEnvironmentVariables = new LinkedList<>();
+    private static final List<String> undefinedEnvironmentVariables = new LinkedList<>();
 
-    private final String cfUsernameValue;
-    private final String cfPasswordValue;
-    private final String cfSpaceValue;
-    private final String cfOrganizationValue;
-    private final String cfApiEndpointValue;
+    // the space configurator will remain null if there are any undefined environment variables
+    private static final SpaceConfigurator spaceConfigurator;
 
+    // should usually be null, but we'll store whatever is set before overwriting it to be on the safe side
     private static SecurityManager cachedOriginalSecurityManager = null;
 
-    public String getCfSpaceValue() {
+    private static final String cfUsernameValue;
+    private static final String cfPasswordValue;
+    private static final String cfSpaceValue;
+    private static final String cfOrganizationValue;
+    private static final String cfApiEndpointValue;
+
+    public static String getCfSpaceValue() {
         return cfSpaceValue;
     }
 
-    public String getCfOrganizationValue() {
+    public static String getCfOrganizationValue() {
         return cfOrganizationValue;
     }
 
-    public String getCfApiEndpointValue() {
+    public static String getCfApiEndpointValue() {
         return cfApiEndpointValue;
     }
 
-    // the space configurator will remain null if there are any undefined environment variables
-    protected SpaceConfigurator spaceConfigurator = null;
-
-    /**
-     * Reads and stores the values of environment variables, that are supposed to be defined. In case they are all
-     * defined, this constructor also initializes the space configurator.
-     */
-    public SystemTestBase() {
-        this.cfUsernameValue = readValueOfEnvironmentVariable(CF_USERNAME);
-        this.cfPasswordValue = readValueOfEnvironmentVariable(CF_PASSWORD);
-        this.cfSpaceValue = readValueOfEnvironmentVariable(CF_SPACE);
-        this.cfOrganizationValue = readValueOfEnvironmentVariable(CF_ORGANIZATION);
-        this.cfApiEndpointValue = readValueOfEnvironmentVariable(CF_API_ENDPOINT);
-
-        initializeSpaceConfigurator();
+    public static SpaceConfigurator getSpaceConfigurator() {
+        checkSpaceConfiguratorIsValid();
+        return spaceConfigurator;
     }
 
-    private String readValueOfEnvironmentVariable(String environmentVariable) {
-        String environmentVariableValue = System.getenv(environmentVariable);
-        if (environmentVariableValue == null) {
-            undefinedEnvironmentVariables.add(environmentVariable);
-        }
-        return environmentVariableValue;
-    }
+    static {
+        /*
+         * Reads and stores the values of environment variables, that are supposed to be defined. In case they are all
+         * defined, this constructor also initializes the space configurator.
+         */
 
-    private void initializeSpaceConfigurator() {
+        cfUsernameValue = readValueOfEnvironmentVariable(CF_USERNAME);
+        cfPasswordValue = readValueOfEnvironmentVariable(CF_PASSWORD);
+        cfSpaceValue = readValueOfEnvironmentVariable(CF_SPACE);
+        cfOrganizationValue = readValueOfEnvironmentVariable(CF_ORGANIZATION);
+        cfApiEndpointValue = readValueOfEnvironmentVariable(CF_API_ENDPOINT);
+
+        // only when all env vars are available, the space configurator is populated
+        // it isn't needed all the time, and this pattern allows to run such tests without having to set all the
+        // environment variables correctly
         if (undefinedEnvironmentVariables.isEmpty()) {
             // setup login command options for initialization of the cloud foundry operations instance
             LoginCommandOptions loginCommandOptions = new LoginCommandOptions();
@@ -104,6 +102,35 @@ public abstract class SystemTestBase {
         } else {
             spaceConfigurator = null;
         }
+    }
+
+    protected static void checkSpaceConfiguratorIsValid() {
+        if (!undefinedEnvironmentVariables.isEmpty()) {
+            throw new IllegalStateException("The environment variables " +
+                    Arrays.toString(undefinedEnvironmentVariables.toArray()) + " are not defined");
+        }
+
+        if (spaceConfigurator == null) {
+            throw new IllegalStateException("space configurator has not been created for unknown reason");
+        }
+    }
+
+    /**
+     * Default constructor. Doesn't have to do anything, really
+     */
+    public SystemTestBase() {}
+
+    /**
+     * Little helper that reads environment variables and puts unknown ones in a list (for better error messages).
+     * @param environmentVariable variable to fetch
+     * @return environment variable's value or null if it isn't set
+     */
+    private static String readValueOfEnvironmentVariable(String environmentVariable) {
+        String environmentVariableValue = System.getenv(environmentVariable);
+        if (environmentVariableValue == null) {
+            undefinedEnvironmentVariables.add(environmentVariable);
+        }
+        return environmentVariableValue;
     }
 
     @BeforeAll
@@ -156,10 +183,8 @@ public abstract class SystemTestBase {
      * @return run result
      */
     protected RunResult runBaseControllerWithCredentialsFromEnvironment(ArgumentsBuilder argumentsBuilder) {
-        if (!undefinedEnvironmentVariables.isEmpty()) {
-            throw new IllegalStateException("The environment variables " +
-                    Arrays.toString(undefinedEnvironmentVariables.toArray()) + " are not defined");
-        }
+        checkSpaceConfiguratorIsValid();
+
         argumentsBuilder.addOption("-u", cfUsernameValue);
         argumentsBuilder.addOption("-p", cfPasswordValue);
         argumentsBuilder.addOption("-s", cfSpaceValue);

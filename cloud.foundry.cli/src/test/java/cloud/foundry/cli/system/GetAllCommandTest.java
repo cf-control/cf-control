@@ -4,7 +4,7 @@ import cloud.foundry.cli.crosscutting.mapping.YamlMapper;
 import cloud.foundry.cli.crosscutting.mapping.beans.*;
 import cloud.foundry.cli.system.util.ArgumentsBuilder;
 import cloud.foundry.cli.system.util.RunResult;
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -16,12 +16,12 @@ public class GetAllCommandTest extends SystemTestBase {
 
     @BeforeEach
     private void cleanUpSpaceBefore() {
-        spaceConfigurator.clear();
+        getSpaceConfigurator().clear();
     }
 
-    @AfterEach
-    private void cleanUpSpaceAfterwards() {
-        spaceConfigurator.clear();
+    @AfterAll
+    private static void cleanUpSpaceAfterwards() {
+        getSpaceConfigurator().clear();
     }
 
     private void assertRootBeanIsValid(ConfigBean rootBean) {
@@ -72,8 +72,8 @@ public class GetAllCommandTest extends SystemTestBase {
         ServiceBean service = new ServiceBean();
         service.setService("elephantsql");
         service.setPlan("turtle");
-        spaceConfigurator.addDesiredService("test-service", service);
-        spaceConfigurator.configure();
+        getSpaceConfigurator().addDesiredService("test-service", service);
+        getSpaceConfigurator().configure();
 
         ArgumentsBuilder args = new ArgumentsBuilder()
                 .addArgument("get");
@@ -112,8 +112,8 @@ public class GetAllCommandTest extends SystemTestBase {
         application.setManifest(manifest);
 
         // note: the application name must be unique, it'll be used as domain
-        spaceConfigurator.addDesiredApplication("cfcli-test-app", application);
-        spaceConfigurator.configure();
+        getSpaceConfigurator().addDesiredApplication("cfcli-test-app", application);
+        getSpaceConfigurator().configure();
 
         ArgumentsBuilder args = new ArgumentsBuilder()
                 .addArgument("get");
