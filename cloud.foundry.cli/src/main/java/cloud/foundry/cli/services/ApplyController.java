@@ -14,8 +14,9 @@ import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import java.util.concurrent.Callable;
 
 /**
- * This class realizes the functionality that is needed for the apply commands. They provide the service of manipulating
- * the state of a cloud foundry instance such that it matches with a provided configuration file.
+ * This class realizes the functionality that is needed for the apply commands.
+ * They provide the service of manipulating the state of a cloud foundry
+ * instance such that it matches with a provided configuration file.
  */
 @Command(name = "apply",
         header = "%n@|green Apply the configuration from a given yaml file to your cf instance.|@",
@@ -59,9 +60,8 @@ public class ApplyController implements Callable<Integer> {
         }
     }
 
-    //TODO update the description as soon as the command does more than just creating applications
-    @Command(name = "applications", description = "Create applications that are present in the given yaml" +
-            " file, but not in your cf instance.")
+    @Command(name = "applications", description = "Apply the differences between the applications given"
+        + " in the yaml file and the configuration of the apps of your cf instance")
     static class ApplyApplicationCommand implements Callable<Integer> {
 
         private static final Log log = Log.getLog(ApplyApplicationCommand.class);

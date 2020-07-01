@@ -8,7 +8,6 @@ import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
 import cloud.foundry.cli.logic.diff.change.CfChange;
 import cloud.foundry.cli.logic.diff.change.ChangeParser;
 import cloud.foundry.cli.logic.diff.change.map.CfMapChange;
-import cloud.foundry.cli.logic.diff.change.object.CfRemovedObject;
 import org.javers.core.Javers;
 import org.javers.core.JaversBuilder;
 import org.javers.core.diff.Diff;
@@ -57,9 +56,6 @@ public class Differ {
                 .map(ChangeParser::parse)
                 // Change types that are not relevant to us will get parsed to null, so ignore them
                 .filter(Objects::nonNull)
-                // As of the specification: nodes that are not in the desired config should not be displayed.
-                // TODO make it configurable
-                .filter(change -> !(change instanceof CfRemovedObject))
                 // Skip the inner map change infos of SpecBean, since change infos get stored in the child nodes anyway.
                 //TODO make it configurable
                 .filter(change -> !(change instanceof CfMapChange && change.getAffectedObject() instanceof SpecBean))
