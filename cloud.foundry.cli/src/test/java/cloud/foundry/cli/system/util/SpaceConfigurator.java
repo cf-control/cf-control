@@ -4,6 +4,7 @@ import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
 import cloud.foundry.cli.operations.ApplicationsOperations;
 import cloud.foundry.cli.operations.ServicesOperations;
+import org.apache.commons.lang3.RandomStringUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -26,6 +27,11 @@ public class SpaceConfigurator {
     private ServicesOperations servicesOperations;
     private ApplicationsOperations applicationsOperations;
 
+    public static String makeRandomString() {
+        // 30 characters should be unique enough
+        return RandomStringUtils.randomAlphanumeric(30);
+    }
+
     /**
      * Default constructor.
      * @param servicesOperations the service operations instance that is used to manipulate services on a space
@@ -38,20 +44,24 @@ public class SpaceConfigurator {
 
     /**
      * Registers a service that is desired be created on the space.
-     * @param desiredServiceName the name of the desired service
      * @param desiredServiceBean the bean of the desired service
+     * @return random name used for the service
      */
-    public void requestCreationOfService(String desiredServiceName, ServiceBean desiredServiceBean) {
-        servicesToCreate.put(desiredServiceName, desiredServiceBean);
+    public String requestCreationOfService(ServiceBean desiredServiceBean) {
+        String randomName = "service-" + makeRandomString();
+        servicesToCreate.put(randomName, desiredServiceBean);
+        return randomName;
     }
 
     /**
      * Registers an application that is desired be created on the space.
-     * @param desiredApplicationName the name of the desired application
      * @param desiredApplicationBean the bean of the desired application
+     * @return random name used for the application
      */
-    public void requestCreationOfApplication(String desiredApplicationName, ApplicationBean desiredApplicationBean) {
-        applicationsToCreate.put(desiredApplicationName, desiredApplicationBean);
+    public String requestCreationOfApplication(ApplicationBean desiredApplicationBean) {
+        String randomName = "app-" + makeRandomString();
+        applicationsToCreate.put(randomName, desiredApplicationBean);
+        return randomName;
     }
 
     /**

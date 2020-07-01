@@ -72,7 +72,7 @@ public class GetAllCommandTest extends SystemTestBase {
         ServiceBean service = new ServiceBean();
         service.setService("elephantsql");
         service.setPlan("turtle");
-        getSpaceConfigurator().requestCreationOfService("test-service", service);
+        String serviceName = getSpaceConfigurator().requestCreationOfService(service);
         getSpaceConfigurator().createRequestedEntities();
 
         ArgumentsBuilder args = new ArgumentsBuilder()
@@ -90,7 +90,7 @@ public class GetAllCommandTest extends SystemTestBase {
         assert spec.getApps() == null;
 
         assert spec.getServices().size() == 1;
-        ServiceBean parsedService = spec.getServices().get("test-service");
+        ServiceBean parsedService = spec.getServices().get(serviceName);
         assert parsedService.getService().equals(service.getService());
         assert parsedService.getPlan().equals(service.getPlan());
 
@@ -112,7 +112,7 @@ public class GetAllCommandTest extends SystemTestBase {
         application.setManifest(manifest);
 
         // note: the application name must be unique, it'll be used as domain
-        getSpaceConfigurator().requestCreationOfApplication("cfcli-test-app", application);
+        String appName = getSpaceConfigurator().requestCreationOfApplication(application);
         getSpaceConfigurator().createRequestedEntities();
 
         ArgumentsBuilder args = new ArgumentsBuilder()
@@ -130,7 +130,7 @@ public class GetAllCommandTest extends SystemTestBase {
         assert spec.getServices() == null;
 
         assert spec.getApps().size() == 1;
-        ApplicationBean parsedApplication = spec.getApps().get("cfcli-test-app");
+        ApplicationBean parsedApplication = spec.getApps().get(appName);
         assert parsedApplication.getPath() == null;
         ApplicationManifestBean parsedManifest = parsedApplication.getManifest();
         assert parsedManifest.getDockerImage().equals(manifest.getDockerImage());
