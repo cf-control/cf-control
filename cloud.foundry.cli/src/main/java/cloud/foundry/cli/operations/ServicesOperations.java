@@ -71,7 +71,7 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
     }
 
     /**
-     * Prepares a request for creating a new service in the space and to bind apps to it.
+     * Prepares a request for creating a new service with specific tags, plan and parameters in the space.
      * The resulting mono is preconfigured such that it will perform logging.
      *
      * @param serviceBean serves as template for the service to create
