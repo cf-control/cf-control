@@ -1,4 +1,11 @@
-testfree:
-  plan: lemur
-  service: cloudamqp
-  application: testApp
+services:
+  test-config-server:
+    plan: trial
+    service: p-service-registry 
+    tags:
+     - TESTTAG
+    params:
+     count: 4
+  test-HalloWelt:
+    plan: lemur
+    service: cloudamqp

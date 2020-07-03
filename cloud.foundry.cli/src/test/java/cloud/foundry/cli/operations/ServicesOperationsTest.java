@@ -41,6 +41,7 @@ import reactor.test.StepVerifier;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -108,7 +109,7 @@ public class ServicesOperationsTest {
     public void testCreate() {
         // given
         String serviceInstanceName = "serviceInstanceName";
-        ServiceBean serviceBean = mockServiceBean();
+        ServiceBean serviceBeanMock = mockServiceBean();
         DefaultCloudFoundryOperations cfMock = Mockito.mock(DefaultCloudFoundryOperations.class);
         Services servicesMock = Mockito.mock(Services.class);
 
@@ -120,11 +121,15 @@ public class ServicesOperationsTest {
         ServicesOperations servicesOperations = new ServicesOperations(cfMock);
 
         // when
-        Mono<Void> actualMono = servicesOperations.create(serviceInstanceName, serviceBean);
+        Mono<Void> actualMono = servicesOperations.create(serviceInstanceName, serviceBeanMock);
         actualMono.block();
 
         // then
         assertThat(actualMono, notNullValue());
+        verify(serviceBeanMock, times(1)).getParams();
+        verify(serviceBeanMock, times(1)).getPlan();
+        verify(serviceBeanMock, times(1)).getTags();
+        verify(serviceBeanMock, times(1)).getService();
         verify(servicesMock, times(1)).createInstance(any(CreateServiceInstanceRequest.class));
         StepVerifier.create(actualMono)
                 .expectComplete()
@@ -618,6 +623,11 @@ public class ServicesOperationsTest {
         when(serviceBean.getService()).thenReturn("elephantsql");
         when(serviceBean.getPlan()).thenReturn("standard");
         when(serviceBean.getTags()).thenReturn(Arrays.asList("Tag1", "Tag2"));
+        
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("count", 5);
+        params.put("upgrade", true);
+        when(serviceBean.getParams()).thenReturn(params);
         return serviceBean;
     }
 

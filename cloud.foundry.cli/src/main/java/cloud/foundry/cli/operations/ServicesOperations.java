@@ -87,6 +87,7 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
                 .serviceInstanceName(serviceInstanceName)
                 .planName(serviceBean.getPlan())
                 .tags(serviceBean.getTags())
+                .parameters(serviceBean.getParams())
                 .build();
 
         return this.cloudFoundryOperations.services().createInstance(createServiceRequest)
