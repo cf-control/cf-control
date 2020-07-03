@@ -1,7 +1,6 @@
 package cloud.foundry.cli.crosscutting.mapping.beans;
 
 import org.cloudfoundry.operations.applications.ApplicationManifest;
-import org.javers.core.metamodel.annotation.Id;
 
 /**
  * Bean holding all data that is related to an application.
@@ -10,8 +9,7 @@ public class ApplicationBean implements Bean {
 
     private ApplicationManifestBean manifest;
     private String path;
-    @Id
-    private String meta = "v2.2,branch-exp";
+    private String meta;
 
     public ApplicationManifestBean getManifest() {
         return manifest;
@@ -29,6 +27,14 @@ public class ApplicationBean implements Bean {
         this.path = path;
     }
 
+    public String getMeta() {
+        return meta;
+    }
+
+    public void setMeta(String meta) {
+        this.meta = meta;
+    }
+
     public ApplicationBean(ApplicationManifest manifest) {
         this.path = manifest.getPath() == null ? null : manifest.getPath().toString();
         this.manifest = new ApplicationManifestBean(manifest);
@@ -42,6 +48,7 @@ public class ApplicationBean implements Bean {
         return "ApplicationBean{" +
                 "manifest=" + manifest +
                 ", path='" + path + '\'' +
+                ", meta='" + meta + '\'' +
                 '}';
     }
 }
