@@ -34,7 +34,8 @@ import java.util.logging.FileHandler;
                 GetController.class,
                 DiffController.class,
                 ApplyController.class,
-                UpdateController.class})
+                UpdateController.class,
+                RenameController.class})
 public class BaseController implements Callable<Integer> {
 
     private static final Log log = Log.getLog(BaseController.class);

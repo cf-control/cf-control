@@ -8,13 +8,8 @@ import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationManifestBean;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
-import org.cloudfoundry.operations.applications.ApplicationManifest;
-import org.cloudfoundry.operations.applications.ApplicationSummary;
-import org.cloudfoundry.operations.applications.DeleteApplicationRequest;
-import org.cloudfoundry.operations.applications.Docker;
-import org.cloudfoundry.operations.applications.GetApplicationManifestRequest;
-import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
-import org.cloudfoundry.operations.applications.Route;
+import org.cloudfoundry.operations.applications.*;
+import org.cloudfoundry.operations.services.RenameServiceInstanceRequest;
 import reactor.core.publisher.Mono;
 
 import java.nio.file.Paths;
@@ -203,4 +198,21 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                 .collect(Collectors.toList());
     }
 
+    //TODO:docu
+    public Mono<Void> rename(String newName, String currentName) {
+        checkNotNull(newName);
+        checkNotNull(currentName);
+
+        RenameApplicationRequest renameApplicationRequest = RenameApplicationRequest.builder()
+                .name(currentName)
+                .newName(newName)
+                .build();
+
+        return this.cloudFoundryOperations.applications().rename(renameApplicationRequest)
+                .doOnSubscribe(aVoid -> {
+                    log.debug("Rename application:", currentName);
+                    log.debug("With new name:", newName);})
+                .doOnSuccess(aVoid -> log.info("Application renamed from", currentName, "to", newName))
+                .onErrorStop();
+    }
 }
