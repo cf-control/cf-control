@@ -10,6 +10,7 @@ import cloud.foundry.cli.crosscutting.exceptions.ApplyException;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.RefResolver;
 import cloud.foundry.cli.crosscutting.mapping.CfArgumentsCreator;
+import cloud.foundry.cli.services.dump.DumpAllController;
 import org.yaml.snakeyaml.constructor.ConstructorException;
 import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
@@ -34,7 +35,8 @@ import java.util.logging.FileHandler;
                 GetController.class,
                 DiffController.class,
                 ApplyController.class,
-                UpdateController.class})
+                UpdateController.class,
+                DumpAllController.class})
 public class BaseController implements Callable<Integer> {
 
     private static final Log log = Log.getLog(BaseController.class);
