@@ -65,6 +65,7 @@ You can have the tool create a machine-readable log file by specifying the `--lo
   diff            Print the differences between the given yaml file and the configuration of your cf instance.
   apply           Apply the configuration from a given yaml file to your cf instance.
   update          Update/Remove apps, service instances or space developers.
+  dump            Resolve $ref-occurrences in a configuration file and print the result.
 ```
 
 
@@ -97,6 +98,15 @@ You can have the tool create a machine-readable log file by specifying the `--lo
                      the configuration of the services of your cf instance.
     all              Print the differences between the configuration in the yaml file and
                      the configuration of your cf instance.
+```
+
+##### dump [SUBCOMMAND]
+
+```
+  all               Resolve $ref-occurrences in an entire configuration file and print the result.
+  services          Resolve $ref-occurrences in a service configuration file and print the result.
+  space-developers  Resolve $ref-occurrences in a space-developers configuration file and print the result.
+  applications      Resolve $ref-occurrences in an application configuration file and print the result.
 ```
 
 ##### update [SUBCOMMAND]
