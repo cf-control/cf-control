@@ -7,12 +7,17 @@ import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationManifestBean;
+import org.cloudfoundry.client.v3.Metadata;
+import org.cloudfoundry.client.v3.applications.UpdateApplicationRequest;
+import org.cloudfoundry.client.v3.applications.UpdateApplicationResponse;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
+import org.cloudfoundry.operations.applications.ApplicationDetail;
 import org.cloudfoundry.operations.applications.ApplicationManifest;
 import org.cloudfoundry.operations.applications.ApplicationSummary;
 import org.cloudfoundry.operations.applications.DeleteApplicationRequest;
 import org.cloudfoundry.operations.applications.Docker;
 import org.cloudfoundry.operations.applications.GetApplicationManifestRequest;
+import org.cloudfoundry.operations.applications.GetApplicationRequest;
 import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
 import org.cloudfoundry.operations.applications.Route;
 import reactor.core.publisher.Mono;
@@ -36,6 +41,7 @@ import java.util.stream.Collectors;
 public class ApplicationsOperations extends AbstractOperations<DefaultCloudFoundryOperations> {
 
     private static final Log log = Log.getLog(ApplicationsOperations.class);
+    private static final String CF_CONTROL_APP_META = "CF_CONTROL_APP_META";
 
     /**
      * Name of the environment variable that hold the docker password.
@@ -93,7 +99,6 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                 .onErrorStop();
     }
 
-
     /**
      * Prepares a request for pushing an app to the cloud foundry instance specified within the cloud
      * foundry operations instance.
@@ -137,8 +142,13 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                     log.debug("Bean of the app:", bean);
                     log.debug("Should the app start:", shouldStart);
                 })
+                .onErrorStop()
                 .doOnSuccess(aVoid -> log.info("App created:", appName))
-                .onErrorStop();
+                .flatMap(aVoid -> getApplicationDetail(appName))
+                .flatMap(applicationDetail -> updateAppMeta(applicationDetail.getId(), bean.getMeta()))
+                .doOnError(throwable -> log.warning(throwable))
+                .onErrorStop()
+                .then();
     }
 
     private boolean whenServiceNotFound(Throwable throwable) {
@@ -201,6 +211,21 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                 .filter(Objects::nonNull)
                 .map(route -> Route.builder().route(route).build())
                 .collect(Collectors.toList());
+    }
+
+    private Mono<ApplicationDetail> getApplicationDetail(String appName) {
+        return this.cloudFoundryOperations
+                .applications()
+                .get(GetApplicationRequest.builder().name(appName).build());
+    }
+
+    private Mono<UpdateApplicationResponse> updateAppMeta(String appId, String appMeta) {
+        return this.cloudFoundryOperations
+                .getCloudFoundryClient()
+                .applicationsV3()
+                .update(UpdateApplicationRequest.builder()
+                        .applicationId(appId)
+                        .metadata(Metadata.builder().label(CF_CONTROL_APP_META, appMeta).build()).build());
     }
 
 }
