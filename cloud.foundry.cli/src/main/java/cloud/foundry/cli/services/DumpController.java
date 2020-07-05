@@ -16,7 +16,7 @@ import java.util.concurrent.Callable;
  * class that contains common behaviour of all the subcommands.
  */
 @Command(name = "dump", header = "%n@|green Resolve " + RefResolver.REF_KEY + "-occurrences in a configuration file" +
-        " and print the result|@",
+        " and print the result.|@",
         mixinStandardHelpOptions = true, subcommands = {
         DumpController.DumpAllCommand.class,
         DumpController.DumpServicesCommand.class,
@@ -37,7 +37,7 @@ public class DumpController implements Callable<Integer> {
     }
 
     @Command(name = "all", description = "Resolve " + RefResolver.REF_KEY + "-occurrences in an entire " +
-            "configuration file and print the result")
+            "configuration file and print the result.")
     static class DumpAllCommand extends DumpCommandBase<ConfigBean> {
 
         /**
@@ -49,7 +49,7 @@ public class DumpController implements Callable<Integer> {
     }
 
     @Command(name = "services", description = "Resolve " + RefResolver.REF_KEY + "-occurrences in a service " +
-            "configuration file and print the result")
+            "configuration file and print the result.")
     static class DumpServicesCommand extends DumpCommandBase<SpecBean> {
 
         /**
@@ -61,7 +61,7 @@ public class DumpController implements Callable<Integer> {
     }
 
     @Command(name = "applications", description = "Resolve " + RefResolver.REF_KEY + "-occurrences in an application " +
-            "configuration file and print the result")
+            "configuration file and print the result.")
     static class DumpApplicationsCommand extends DumpCommandBase<SpecBean> {
 
         /**
@@ -73,7 +73,7 @@ public class DumpController implements Callable<Integer> {
     }
 
     @Command(name = "space-developers", description = "Resolve " + RefResolver.REF_KEY + "-occurrences in a " +
-            "space-developers configuration file and print the result")
+            "space-developers configuration file and print the result.")
     static class DumpSpaceDevelopersCommand extends DumpCommandBase<SpecBean> {
 
         /**
