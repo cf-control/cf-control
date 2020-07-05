@@ -8,7 +8,9 @@ import cloud.foundry.cli.crosscutting.exceptions.UpdateException;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
 import cloud.foundry.cli.logic.diff.change.CfChange;
+import cloud.foundry.cli.logic.diff.change.container.CfContainerChange;
 import cloud.foundry.cli.logic.diff.change.object.CfNewObject;
+import cloud.foundry.cli.logic.diff.change.object.CfObjectValueChanged;
 import cloud.foundry.cli.logic.diff.change.object.CfRemovedObject;
 import cloud.foundry.cli.operations.ServicesOperations;
 import reactor.core.publisher.Flux;
@@ -17,8 +19,9 @@ import java.util.List;
 
 
 /**
- * This class is responsible to build the requests in the context of services according to the CfChanges.
- * The class does create the request tasks by implementing the {@link CfChangeVisitor} interface.
+ * This class is responsible to build the requests in the context of services
+ * according to the CfChanges. The class does create the request tasks by
+ * implementing the {@link CfChangeVisitor} interface.
  */
 public class ServiceRequestsPlaner extends RequestsPlaner {
 
@@ -34,6 +37,7 @@ public class ServiceRequestsPlaner extends RequestsPlaner {
 
     /**
      * Creates the request for CfNewObject
+     *
      * @param newObject the CfNewObject to be visited
      */
     @Override
@@ -48,8 +52,7 @@ public class ServiceRequestsPlaner extends RequestsPlaner {
             } catch (NullPointerException e) {
                 throw new ApplyException(e);
             }
-        }
-        else {
+        } else {
             throw new IllegalArgumentException("Only changes of services are permitted.");
         }
     }
@@ -59,7 +62,65 @@ public class ServiceRequestsPlaner extends RequestsPlaner {
     }
 
     /**
-     * Creates the requests for CfRemovedObject
+     * Creates the requests for CfContainerChange.
+     *
+     * @param containerChange the CfContainerChange to be visited
+     * @throws ApplyException    if an error during the apply logic occurs. May
+     *                           contain another exception inside with more details.
+     * @throws IllegalArgumentException if the affected-object is not an instance of <code>serviceBean</code>.
+     */
+    @Override
+    public void visitContainerChange(CfContainerChange containerChange) {
+        if (this.getRequests().size() == 0) {
+            Object affectedObject = containerChange.getAffectedObject();
+            if (affectedObject instanceof ServiceBean) {
+                try {
+                    addUpdateServiceRequest((ServiceBean) affectedObject);
+                } catch (NullPointerException e) {
+                    throw new ApplyException(e);
+                }
+            } else {
+                throw new IllegalArgumentException("Only changes of services are permitted.");
+            }
+        }
+    }
+
+    /**
+     * Creates the requests for CfObjectValueChanged.
+     *
+     * @param objectValueChanged the CfObjectValueChanged to be visited
+     * @throws ApplyException    if an error during the apply logic occurs. May
+     *                           contain another exception inside with more details.
+     * @throws IllegalArgumentException if the affected-object is not an instance of <code>serviceBean</code>.
+     */
+    @Override
+    public void visitObjectValueChanged(CfObjectValueChanged objectValueChanged) {
+        if (this.getRequests().size() == 0) {
+            Object affectedObject = objectValueChanged.getAffectedObject();
+            if (affectedObject instanceof ServiceBean) {
+                try {
+                    addUpdateServiceRequest((ServiceBean) affectedObject);
+                } catch (NullPointerException e) {
+                    throw new ApplyException(e);
+                }
+            } else {
+                throw new IllegalArgumentException("Only changes of services are permitted.");
+            }
+        }
+    }
+
+    /**
+     * Creates requests for Update Service.
+     *
+     * @param affectedObject ServiceBean
+     */
+    private void addUpdateServiceRequest(ServiceBean affectedObject) {
+        this.addRequest(this.servicesOperations.update(serviceName, affectedObject));
+    }
+
+    /**
+     * Creates the requests for CfRemovedObject.
+     *
      * @param removedObject the CfRemovedObject to be visited
      */
     @Override
@@ -81,11 +142,13 @@ public class ServiceRequestsPlaner extends RequestsPlaner {
 
     /**
      * Creates the requests for one service.
+     *
      * @param servicesOperations the ServicesOperations object used for
-     * @param serviceName the name of the service
-     * @param serviceChanges a list with all the Changes found during diff for that specific application
-     * @throws ApplyException if an error during the apply logic occurs. May contain another exception inside
-     * with more details
+     * @param serviceName        the name of the service
+     * @param serviceChanges     a list with all the Changes found during diff for
+     *                           that specific application
+     * @throws ApplyException    if an error during the apply logic occurs. May
+     *                           contain another exception inside with more details.
      * @throws NullPointerException when any of the arguments is null
      * @return Flux of all requests that are required to apply the changes
      */

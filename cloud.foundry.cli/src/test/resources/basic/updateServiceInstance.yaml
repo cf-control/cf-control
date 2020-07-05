@@ -1,4 +1,12 @@
-testfree:
-  plan: lemur
-  service: cloudamqp
-  application: testApp
+services:
+  newname-lemur:
+    plan: tiger
+    service: cloudamqp
+    tags:
+      - TAFS
+      - NETASGG
+  test-elephantsql:
+    plan: panda
+    service: elephantsql
+    tags:
+      - TESTTAG
