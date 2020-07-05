@@ -9,33 +9,23 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.times;
 
+import cloud.foundry.cli.mocking.DefaultCloudFoundryOperationsMockBuilder;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationManifestBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
+import org.cloudfoundry.client.v3.Metadata;
+import org.cloudfoundry.client.v3.applications.UpdateApplicationRequest;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
-import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
-import org.cloudfoundry.operations.applications.ApplicationManifest;
-import org.cloudfoundry.operations.applications.ApplicationSummary;
-import org.cloudfoundry.operations.applications.Applications;
-import org.cloudfoundry.operations.applications.DeleteApplicationRequest;
-import org.cloudfoundry.operations.applications.GetApplicationManifestRequest;
-import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
-import org.cloudfoundry.operations.applications.Route;
+import org.cloudfoundry.operations.applications.*;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.mockito.stubbing.Answer;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -48,8 +38,7 @@ public class ApplicationsOperationsTest {
     @Test
     public void testGetApplicationsWithEmptyMockData() {
         // prepare mock CF API client with an empty applications list
-        DefaultCloudFoundryOperations cfMock = createMockCloudFoundryOperations(Collections.emptyList(),
-                Collections.emptyList());
+        DefaultCloudFoundryOperations cfMock = DefaultCloudFoundryOperationsMockBuilder.get().setApplications(Collections.emptyMap()).build();
 
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfMock);
         Map<String, ApplicationBean> apps = applicationsOperations.getAll().block();
@@ -60,21 +49,25 @@ public class ApplicationsOperationsTest {
 
     @Test
     public void testGetApplicationsWithMockData() {
+        // given
         // create a mock CF API client
-        // first, we need to prepare some ApplicationSummary and ApplicationManifest
-        // (we're fine with one of both for now)
-        // those are then used to create a CF mock API object, which will be able to return those then the right way
+        // first, we need to prepare some ApplicationSummary
+        // this is then used to create a CF mock API object, which will be able to return those then the right way
         ApplicationManifest appManifest = createMockApplicationManifest();
-        ApplicationSummary summary = createMockApplicationSummary(appManifest);
 
         // now, let's create the mock object from that list
-        DefaultCloudFoundryOperations cfMock = createMockCloudFoundryOperations(Arrays.asList(summary),
-                Arrays.asList(appManifest));
+        DefaultCloudFoundryOperations cfMock = DefaultCloudFoundryOperationsMockBuilder
+                .get()
+                .setApplications(Collections.singletonMap("appId", appManifest))
+                .build();
 
         // now, we can generate a YAML doc for our ApplicationSummary
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfMock);
+
+        // when
         Map<String, ApplicationBean> apps = applicationsOperations.getAll().block();
 
+        // then
         // ... and make sure it contains exactly what we'd expect
         assertThat(apps.size(), is(1));
         assertTrue(apps.containsKey("notyetrandomname"));
@@ -100,33 +93,67 @@ public class ApplicationsOperationsTest {
     }
 
     @Test
-    public void testCreateApplicationsPushesAppManifestSucceeds() throws CreationException {
+    public void testCreateSucceeds() throws CreationException {
         //given
         ApplicationManifest appManifest = createMockApplicationManifest();
-        DefaultCloudFoundryOperations cfoMock = mock(DefaultCloudFoundryOperations.class);
-        Applications applicationsMock = mock(Applications.class);
+        DefaultCloudFoundryOperations cfoMock = DefaultCloudFoundryOperationsMockBuilder
+                .get()
+                .setApplications(Collections.singletonMap("appId", appManifest))
+                .build();
 
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfoMock);
 
-        when(cfoMock.applications()).thenReturn(applicationsMock);
-        when(applicationsMock.pushManifest(any(PushApplicationManifestRequest.class)))
-                .thenReturn(Mono.empty());
-
         ApplicationBean applicationsBean = new ApplicationBean(appManifest);
         applicationsBean.setPath("some/path");
+        applicationsBean.setMeta("somemeta");
 
         //when
-        Mono<Void> request = applicationsOperations.create("appName", applicationsBean, false);
+        Mono<Void> request = applicationsOperations.create(appManifest.getName(), applicationsBean, false);
+        request.block();
 
         //then
         assertThat(request, notNullValue());
-        verify(applicationsMock, times(1)).pushManifest(any(PushApplicationManifestRequest.class));
+        verify(cfoMock.applications(), times(1)).pushManifest(any(PushApplicationManifestRequest.class));
+        verify(cfoMock.applications(), times(1)).get(any(GetApplicationRequest.class));
+        UpdateApplicationRequest updateRequest = UpdateApplicationRequest
+                .builder()
+                .applicationId("appId")
+                .metadata(Metadata.builder().label("CF_CONTROL_APP_META", applicationsBean.getMeta()).build())
+                .build();
+        verify(cfoMock.getCloudFoundryClient().applicationsV3(), times(1)).update(updateRequest);
+    }
+
+    @Test
+    public void testCreateThrowsExceptionWhenPushAppManifestFails() {
+        //given
+        ApplicationManifest appManifest = createMockApplicationManifest();
+        DefaultCloudFoundryOperations cfoMock = DefaultCloudFoundryOperationsMockBuilder
+                .get()
+                .setApplications(Collections.singletonMap("appId", appManifest))
+                .setPushApplicationManifestError(new Exception())
+                .build();
+
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfoMock);
+
+        ApplicationBean applicationsBean = new ApplicationBean(appManifest);
+        applicationsBean.setPath("some/path");
+        applicationsBean.setMeta("somemeta");
+
+        //when
+        Mono<Void> request = applicationsOperations.create(appManifest.getName(), applicationsBean, false);
+
+        //then
+        assertThat(request, notNullValue());
+        assertThrows(Exception.class, request::block);
+        verify(cfoMock.applications(), times(1)).pushManifest(any(PushApplicationManifestRequest.class));
+        verify(cfoMock.applications(), times(0)).get(any(GetApplicationRequest.class));
+        verify(cfoMock.getCloudFoundryClient().applicationsV3(), times(0)).update(any(UpdateApplicationRequest.class));
     }
 
     @Test
     public void testCreateApplicationsOnMissingDockerPasswordThrowsCreationException() {
         //given
-        DefaultCloudFoundryOperations cfoMock = mock(DefaultCloudFoundryOperations.class);
+        DefaultCloudFoundryOperations cfoMock = DefaultCloudFoundryOperationsMockBuilder.get().build();
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfoMock);
 
         ApplicationBean applicationsBean = new ApplicationBean();
@@ -146,7 +173,7 @@ public class ApplicationsOperationsTest {
     public void testCreateOnNullNameThrowsNullPointerException() throws CreationException {
         //given
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(
-                Mockito.mock(DefaultCloudFoundryOperations.class));
+                DefaultCloudFoundryOperationsMockBuilder.get().build());
 
         //then
         assertThrows(NullPointerException.class,
@@ -154,27 +181,10 @@ public class ApplicationsOperationsTest {
     }
 
     @Test
-    public void testCreateOnNullPathAndNullDockerImageThrowsIllegalArgumentException() {
-        //given
-        ApplicationsOperations applicationsOperations = new ApplicationsOperations(
-                mock(DefaultCloudFoundryOperations.class));
-
-        ApplicationBean applicationBean = new ApplicationBean();
-        ApplicationManifestBean manifestBean = new ApplicationManifestBean();
-        manifestBean.setDockerImage(null);
-        applicationBean.setManifest(manifestBean);
-
-        //when
-        assertThrows(CreationException.class,
-                () -> applicationsOperations.create("appName", applicationBean, false),
-                "One of application or dockerImage must be supplied");
-    }
-
-    @Test
     public void testCreateOnEmptyNameThrowsIllegalArgumentException() {
         //given
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(
-                mock(DefaultCloudFoundryOperations.class));
+                DefaultCloudFoundryOperationsMockBuilder.get().build());
 
         ApplicationBean applicationBean = new ApplicationBean();
         applicationBean.setPath("some/path");
@@ -188,7 +198,7 @@ public class ApplicationsOperationsTest {
     public void testCreateOnNullBeanThrowsNullPointerException() {
         //given
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(
-                mock(DefaultCloudFoundryOperations.class));
+                DefaultCloudFoundryOperationsMockBuilder.get().build());
 
         //when
         assertThrows(NullPointerException.class, () -> applicationsOperations.create("appName", null, false));
@@ -197,12 +207,7 @@ public class ApplicationsOperationsTest {
     @Test
     public void testRemoveApplication() {
         // given
-        DefaultCloudFoundryOperations cfoMock = mock(DefaultCloudFoundryOperations.class);
-        Applications applicationsMock = mock(Applications.class);
-        when(cfoMock.applications()).thenReturn(applicationsMock);
-
-        when(applicationsMock.delete(any())).thenReturn(Mono.empty());
-
+        DefaultCloudFoundryOperations cfoMock = DefaultCloudFoundryOperationsMockBuilder.get().build();
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfoMock);
 
         // when
@@ -210,56 +215,17 @@ public class ApplicationsOperationsTest {
 
         // then
         assertThat(request, notNullValue());
-        verify(applicationsMock, times(1)).delete(any(DeleteApplicationRequest.class));
+        verify(cfoMock.applications(), times(1)).delete(any(DeleteApplicationRequest.class));
     }
 
     @Test
     public void testRemoveApplicationShouldThrowNullPointerExceptionWhenApplicationNameIsNull() {
         // given
-        DefaultCloudFoundryOperations cfoMock = mock(DefaultCloudFoundryOperations.class);
+        DefaultCloudFoundryOperations cfoMock = DefaultCloudFoundryOperationsMockBuilder.get().build();
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfoMock);
 
         // when -> then
         assertThrows(NullPointerException.class, () -> applicationsOperations.remove(null));
-    }
-
-    /**
-     * Creates and configures mock object for CF API client
-     * We only have to patch it so far as that it will return our own list of ApplicationSummary instances
-     * @param appSummaries List of ApplicationSummary objects that the mock object shall return
-     * @return mock {@link DefaultCloudFoundryOperations} object
-     */
-    private DefaultCloudFoundryOperations createMockCloudFoundryOperations(List<ApplicationSummary> appSummaries,
-                                                                           List<ApplicationManifest> manifests) {
-        // first, we create the mock objects we want to return later on
-        DefaultCloudFoundryOperations cfMock = Mockito.mock(DefaultCloudFoundryOperations.class);
-        Applications applicationsMock = Mockito.mock(Applications.class);
-        Flux<ApplicationSummary> flux = Flux.fromIterable(appSummaries);
-
-        // then we mock the necessary method calls
-        when(cfMock.applications()).thenReturn(applicationsMock);
-        // now, let's have the same fun for the manifests, which are queried in a different way
-        // luckily, we already have the applicationsMock, which we also need to hook on here
-        // unfortunately, the method matches a string on some map, so we have to rebuild something similar
-        // the following lambda construct does exactly that: search for the right manifest by name in the list we've
-        // been passed, and return that if possible (or otherwise throw some exception)
-        // TODO: check which exception to throw
-        when(applicationsMock.getApplicationManifest(any(GetApplicationManifestRequest.class)))
-                .thenAnswer((Answer<Mono<ApplicationManifest>>) invocation -> {
-                    GetApplicationManifestRequest request = invocation.getArgument(0);
-
-                    // simple linear search; this is not about performance, really
-                    for (ApplicationManifest manifest : manifests) {
-                        if (manifest.getName().equals(request.getName())) {
-                            return Mono.just(manifest);
-                        }
-                    }
-
-                    throw new RuntimeException("fixme");
-                });
-        when(applicationsMock.list()).thenReturn(flux);
-
-        return cfMock;
     }
 
     /**
@@ -293,26 +259,6 @@ public class ApplicationsOperationsTest {
                 .services("serviceomega")
                 .stack("nope")
                 .timeout(987654321)
-                .build();
-    }
-
-    /**
-     * Creates an {@link ApplicationSummary} from an {@link ApplicationManifest} for testing purposes.
-     * @return application summary
-     */
-    // FIXME: randomize some data
-    private ApplicationSummary createMockApplicationSummary(ApplicationManifest manifest) {
-        // we basically only need the manifest as we need to keep the names the same
-        // however, the summary builder complains if a few more attributes aren't set either, so we have to set more
-        // than just the name
-        return ApplicationSummary.builder()
-                .name(manifest.getName())
-                .diskQuota(100)
-                .id("summary_id")
-                .instances(manifest.getInstances())
-                .memoryLimit(manifest.getMemory())
-                .requestedState("SOMESTATE")
-                .runningInstances(1)
                 .build();
     }
 
