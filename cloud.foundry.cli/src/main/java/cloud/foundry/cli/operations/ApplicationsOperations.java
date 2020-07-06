@@ -25,7 +25,6 @@ import reactor.core.publisher.Mono;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -50,6 +49,11 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
      */
     private static final String DOCKER_PASSWORD_VAR_NAME = "CF_DOCKER_PASSWORD";
 
+    /**
+     * Name of the key of label for metadata.
+     */
+    private static final String METADATA_KEY = "CF_METADATA_KEY";
+
     public ApplicationsOperations(DefaultCloudFoundryOperations cloudFoundryOperations) {
         super(cloudFoundryOperations);
     }
@@ -62,7 +66,13 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
      *         key and the ApplicationBeans as value
      */
     public Mono<Map<String, ApplicationBean>> getAll() {
-
+        // Flux.zip(..) zips Mono<ApplicationManifest> and Mono<String> together as
+        // a Flux<Tuple2<ApplicationManifest, String>>
+        // collectMap(..) converts each Tuple2<ApplicationManifest, String> into a
+        // Mono<Map<String, ApplicationBean>>
+        // because flatMap returns Flux<Map<String, ApplicationBean>>
+        // reduce(..) helps to convert from Flux<Map<String, ApplicationBean>> into
+        // Mono<Map<String, ApplicationBean>>
         return this.cloudFoundryOperations
             .applications()
             .list()
@@ -88,6 +98,7 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
     }
 
     private Mono<String> getMetadata(ApplicationSummary applicationSummary) {
+
         GetApplicationRequest request = GetApplicationRequest.builder()
             .applicationId(applicationSummary.getId())
             .build();
@@ -98,21 +109,8 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
     }
 
     private Mono<String> doGetMetadata(GetApplicationResponse getApplicationResponse) {
-        List<String> metadata = new LinkedList<String>();
-        metadata.add(0, getApplicationResponse.getName());
-        
         Map<String, String> labels = getApplicationResponse.getMetadata().getLabels();
-        
-        labels.keySet().forEach(action -> {
-            if (action.equals("version")) {
-                metadata.add(1, labels.get(action));
-            } else if (action.equals("branch")) {
-                metadata.add(2, labels.get(action));
-            }
-        });
-        String meta = metadata.toString();
-        // remove [] in String
-        return Mono.just(meta.substring(1, meta.length() - 1));
+        return Mono.just(labels.get(METADATA_KEY));
     }
 
     /**
