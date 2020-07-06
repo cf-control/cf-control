@@ -2,14 +2,12 @@ package cloud.foundry.cli.operations;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.cloudfoundry.util.tuple.TupleUtils.function;
 
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationManifestBean;
 
-import org.cloudfoundry.client.v3.Metadata;
 import org.cloudfoundry.client.v3.applications.GetApplicationRequest;
 import org.cloudfoundry.client.v3.applications.GetApplicationResponse;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
@@ -23,12 +21,8 @@ import org.cloudfoundry.operations.applications.Route;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.util.function.Tuple2;
-import reactor.util.function.Tuples;
 
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -104,10 +98,11 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
     }
 
     private Mono<String> doGetMetadata(GetApplicationResponse getApplicationResponse) {
-     
         List<String> metadata = new LinkedList<String>();
         metadata.add(0, getApplicationResponse.getName());
+        
         Map<String, String> labels = getApplicationResponse.getMetadata().getLabels();
+        
         labels.keySet().forEach(action -> {
             if (action.equals("version")) {
                 metadata.add(1, labels.get(action));
@@ -117,7 +112,7 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
         });
         String meta = metadata.toString();
         // remove [] in String
-        return Mono.just(meta.substring(1, meta.length() -1));
+        return Mono.just(meta.substring(1, meta.length() - 1));
     }
 
     /**
