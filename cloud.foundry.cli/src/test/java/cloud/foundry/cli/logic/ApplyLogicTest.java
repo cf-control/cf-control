@@ -59,6 +59,8 @@ import java.util.function.Predicate;
  */
 public class ApplyLogicTest {
 
+    private static final String METADATA_KEY = "CF_METADATA_KEY";
+    
     @Test
     public void testApplyApplicationsWithNull() {
         ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
@@ -388,9 +390,7 @@ public class ApplyLogicTest {
      */
     private Metadata createMockMedatadata() {
         Map<String, String> labels = new HashMap<String, String>();
-        labels.put("name", "notyetrandomname");
-        labels.put("version", "1.0.1");
-        labels.put("branch", "some/branch");
+        labels.put(METADATA_KEY, "notyetrandomname_1.0.1_some/branch");
         labels.put("id", "1234");
 
         Metadata metadata = mock(Metadata.class);

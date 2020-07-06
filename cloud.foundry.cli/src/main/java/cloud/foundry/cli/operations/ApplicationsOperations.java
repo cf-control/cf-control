@@ -30,7 +30,6 @@ import reactor.core.publisher.Mono;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -55,6 +54,11 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
      * Name of the environment variable that hold the docker password.
      */
     private static final String DOCKER_PASSWORD_VAR_NAME = "CF_DOCKER_PASSWORD";
+
+    /**
+     * Name of the key of label for metadata.
+     */
+    private static final String METADATA_KEY = "CF_METADATA_KEY";
 
     public ApplicationsOperations(DefaultCloudFoundryOperations cloudFoundryOperations) {
         super(cloudFoundryOperations);
@@ -94,6 +98,7 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
     }
 
     private Mono<String> getMetadata(ApplicationSummary applicationSummary) {
+
         GetApplicationRequest request = GetApplicationRequest.builder()
             .applicationId(applicationSummary.getId())
             .build();
