@@ -24,7 +24,6 @@ import reactor.core.publisher.Mono;
 
 import java.nio.file.Paths;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -66,25 +65,16 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
      *         key and the ApplicationBeans as value
      */
     public Mono<Map<String, ApplicationBean>> getAll() {
-        // Flux.zip(..) zips Mono<ApplicationManifest> and Mono<String> together as
-        // a Flux<Tuple2<ApplicationManifest, String>>
-        // collectMap(..) converts each Tuple2<ApplicationManifest, String> into a
-        // Mono<Map<String, ApplicationBean>>
-        // because flatMap returns Flux<Map<String, ApplicationBean>>
-        // reduce(..) helps to convert from Flux<Map<String, ApplicationBean>> into
-        // Mono<Map<String, ApplicationBean>>
         return this.cloudFoundryOperations
             .applications()
             .list()
+            // group the application and the metadata in pairs
             .flatMap(applicationSummary -> Flux.zip(
                 getApplicationManifest(applicationSummary),
-                getMetadata(applicationSummary))
-                .collectMap(tuple -> tuple.getT1().getName(),
-                    tuple -> new ApplicationBean(tuple.getT1(), tuple.getT2())))
-            .reduce(new HashMap<String, ApplicationBean>(), (newMap, currentMap) -> {
-                newMap.putAll(currentMap);
-                return newMap;
-            });
+                getMetadata(applicationSummary)))
+            // T1 is the ApplicationManifest and T2 is the metadata of the application
+            .collectMap(tuple -> tuple.getT1().getName(),
+                tuple -> new ApplicationBean(tuple.getT1(), tuple.getT2()));
     }
 
     private Mono<ApplicationManifest> getApplicationManifest(ApplicationSummary applicationSummary) {
@@ -158,9 +148,9 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
      * @return mono which can be subscribed on to trigger the creation of the app
      */
     public Mono<Void> create(String appName, ApplicationBean bean, boolean shouldStart) {
-        checkNotNull(appName);
-        checkArgument(!appName.isEmpty(), "empty name");
-        checkNotNull(bean);
+        checkNotNull(appName, "Application name cannot be null");
+        checkArgument(!appName.isEmpty(), "Application name cannot be empty");
+        checkNotNull(bean, "Application contents cannot be null");
 
         try {
             return doCreate(appName, bean, shouldStart);
