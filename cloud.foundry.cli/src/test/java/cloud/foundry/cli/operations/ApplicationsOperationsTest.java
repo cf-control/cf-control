@@ -17,14 +17,7 @@ import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationManifestBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
-import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
-import org.cloudfoundry.operations.applications.ApplicationManifest;
-import org.cloudfoundry.operations.applications.ApplicationSummary;
-import org.cloudfoundry.operations.applications.Applications;
-import org.cloudfoundry.operations.applications.DeleteApplicationRequest;
-import org.cloudfoundry.operations.applications.GetApplicationManifestRequest;
-import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
-import org.cloudfoundry.operations.applications.Route;
+import org.cloudfoundry.operations.applications.*;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
@@ -221,6 +214,47 @@ public class ApplicationsOperationsTest {
 
         // when -> then
         assertThrows(NullPointerException.class, () -> applicationsOperations.remove(null));
+    }
+
+    @Test
+    public void testRenameOnCurrentNameNullThrowsNullPointerException() {
+        //given
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(
+                mock(DefaultCloudFoundryOperations.class));
+
+        //when
+        assertThrows(NullPointerException.class, () ->
+                applicationsOperations.rename("appName", null));
+    }
+
+    @Test
+    public void testRenameOnNewNameNullThrowsNullPointerException() {
+        //given
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(
+                mock(DefaultCloudFoundryOperations.class));
+
+        //when
+        assertThrows(NullPointerException.class, () ->
+                applicationsOperations.rename("appName", null));
+    }
+
+    @Test
+    public void testRename() {
+        // given
+        DefaultCloudFoundryOperations cfoMock = mock(DefaultCloudFoundryOperations.class);
+        Applications applicationsMock = mock(Applications.class);
+        when(cfoMock.applications()).thenReturn(applicationsMock);
+
+        when(applicationsMock.rename(any())).thenReturn(Mono.empty());
+
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfoMock);
+
+        // when
+        Mono<Void> request = applicationsOperations.rename("newName", SOME_APPLICATION);
+
+        // then
+        assertThat(request, notNullValue());
+        verify(applicationsMock, times(1)).rename(any(RenameApplicationRequest.class));
     }
 
     /**
