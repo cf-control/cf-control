@@ -29,7 +29,6 @@ import reactor.core.publisher.Mono;
 
 import java.nio.file.Paths;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -48,7 +47,6 @@ import java.util.stream.Collectors;
 public class ApplicationsOperations extends AbstractOperations<DefaultCloudFoundryOperations> {
 
     private static final Log log = Log.getLog(ApplicationsOperations.class);
-    private static final String CF_CONTROL_APP_META = "CF_CONTROL_APP_META";
 
     /**
      * Name of the environment variable that hold the docker password.
@@ -72,19 +70,16 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
      *         key and the ApplicationBeans as value
      */
     public Mono<Map<String, ApplicationBean>> getAll() {
-
         return this.cloudFoundryOperations
             .applications()
             .list()
+            // group the application and the metadata in pairs
             .flatMap(applicationSummary -> Flux.zip(
                 getApplicationManifest(applicationSummary),
-                getMetadata(applicationSummary))
-                .collectMap(tuple -> tuple.getT1().getName(),
-                    tuple -> new ApplicationBean(tuple.getT1(), tuple.getT2())))
-            .reduce(new HashMap<String, ApplicationBean>(), (newMap, currentMap) -> {
-                newMap.putAll(currentMap);
-                return newMap;
-            });
+                getMetadata(applicationSummary)))
+            // T1 is the ApplicationManifest and T2 is the metadata of the application
+            .collectMap(tuple -> tuple.getT1().getName(),
+                tuple -> new ApplicationBean(tuple.getT1(), tuple.getT2()));
     }
 
     private Mono<ApplicationManifest> getApplicationManifest(ApplicationSummary applicationSummary) {
@@ -109,21 +104,8 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
     }
 
     private Mono<String> doGetMetadata(GetApplicationResponse getApplicationResponse) {
-        List<String> metadata = new LinkedList<String>();
-        metadata.add(0, getApplicationResponse.getName());
-
         Map<String, String> labels = getApplicationResponse.getMetadata().getLabels();
-
-        labels.keySet().forEach(action -> {
-            if (action.equals("version")) {
-                metadata.add(1, labels.get(action));
-            } else if (action.equals("branch")) {
-                metadata.add(2, labels.get(action));
-            }
-        });
-        String meta = metadata.toString();
-        // remove [] in String
-        return Mono.just(meta.substring(1, meta.length() - 1));
+        return Mono.just(labels.get(METADATA_KEY));
     }
 
     /**
@@ -171,9 +153,9 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
      * @return mono which can be subscribed on to trigger the creation of the app
      */
     public Mono<Void> create(String appName, ApplicationBean bean, boolean shouldStart) {
-        checkNotNull(appName);
-        checkArgument(!appName.isEmpty(), "empty name");
-        checkNotNull(bean);
+        checkNotNull(appName, "Application name cannot be null");
+        checkArgument(!appName.isEmpty(), "Application name cannot be empty");
+        checkNotNull(bean, "Application contents cannot be null");
 
         try {
             return doCreate(appName, bean, shouldStart);
