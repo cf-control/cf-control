@@ -9,7 +9,6 @@ import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationManifestBean;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.applications.*;
-import org.cloudfoundry.operations.services.RenameServiceInstanceRequest;
 import reactor.core.publisher.Mono;
 
 import java.nio.file.Paths;
@@ -118,6 +117,32 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
         }
     }
 
+    /**
+     * Prepares a request for renaming an application instance.
+     * The resulting mono is preconfigured such that it will perform logging.
+     *
+     * @param newName     new name of the application instance
+     * @param currentName current name of the application instance
+     * @return mono which can be subscribed on to trigger the renaming request to the cf instance
+     * @throws NullPointerException when one of the arguments was null
+     */
+    public Mono<Void> rename(String newName, String currentName) {
+        checkNotNull(newName);
+        checkNotNull(currentName);
+
+        RenameApplicationRequest renameApplicationRequest = RenameApplicationRequest.builder()
+                .name(currentName)
+                .newName(newName)
+                .build();
+
+        return this.cloudFoundryOperations.applications().rename(renameApplicationRequest)
+                .doOnSubscribe(aVoid -> {
+                    log.debug("Rename application:", currentName);
+                    log.debug("With new name:", newName); })
+                .doOnSuccess(aVoid -> log.info("Application renamed from", currentName, "to", newName))
+                .onErrorStop();
+    }
+
     private Mono<Void> doCreate(String appName, ApplicationBean bean, boolean shouldStart) {
         return this.cloudFoundryOperations
                 .applications()
@@ -196,23 +221,5 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                 .filter(Objects::nonNull)
                 .map(route -> Route.builder().route(route).build())
                 .collect(Collectors.toList());
-    }
-
-    //TODO:docu
-    public Mono<Void> rename(String newName, String currentName) {
-        checkNotNull(newName);
-        checkNotNull(currentName);
-
-        RenameApplicationRequest renameApplicationRequest = RenameApplicationRequest.builder()
-                .name(currentName)
-                .newName(newName)
-                .build();
-
-        return this.cloudFoundryOperations.applications().rename(renameApplicationRequest)
-                .doOnSubscribe(aVoid -> {
-                    log.debug("Rename application:", currentName);
-                    log.debug("With new name:", newName);})
-                .doOnSuccess(aVoid -> log.info("Application renamed from", currentName, "to", newName))
-                .onErrorStop();
     }
 }

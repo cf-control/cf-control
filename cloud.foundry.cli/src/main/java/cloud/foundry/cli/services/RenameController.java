@@ -1,5 +1,7 @@
 package cloud.foundry.cli.services;
 
+import static picocli.CommandLine.*;
+import static picocli.CommandLine.usage;
 
 import cloud.foundry.cli.crosscutting.exceptions.UpdateException;
 import cloud.foundry.cli.crosscutting.logging.Log;
@@ -11,13 +13,12 @@ import reactor.core.publisher.Mono;
 
 import java.util.concurrent.Callable;
 
-import static picocli.CommandLine.*;
-import static picocli.CommandLine.usage;
-
 /**
- * TODO logs docu readme
+ * This class realizes the functionality that is needed for the rename commands.
+ * You can rename applications or services.
  */
-@Command(name = "rename", header = "%n@|green TODO|@", subcommands = {RenameController.RenameApplicationCommand.class,
+@Command(name = "rename", header = "%n@|green Rename an application or a service.|@",
+        subcommands = {RenameController.RenameApplicationCommand.class,
         RenameController.RenameServiceCommand.class})
 public class RenameController implements Callable<Integer> {
 
@@ -27,7 +28,7 @@ public class RenameController implements Callable<Integer> {
         return 0;
     }
 
-    @Command(name = "application", description = "Rename an application")
+    @Command(name = "application", description = "Rename an application.")
     static class RenameApplicationCommand implements Callable<Integer> {
 
         private static final Log log = Log.getLog(RenameApplicationCommand.class);
@@ -55,7 +56,7 @@ public class RenameController implements Callable<Integer> {
         }
     }
 
-    @Command(name = "service", description = "Rename a service")
+    @Command(name = "service", description = "Rename a service.")
     static class RenameServiceCommand implements Callable<Integer> {
 
         private static final Log log = Log.getLog(RenameController.RenameServiceCommand.class);
