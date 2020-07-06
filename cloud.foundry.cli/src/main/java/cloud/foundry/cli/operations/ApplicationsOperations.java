@@ -10,6 +10,9 @@ import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationManifestBean;
 import org.cloudfoundry.client.v3.Metadata;
 import org.cloudfoundry.client.v3.applications.UpdateApplicationRequest;
 import org.cloudfoundry.client.v3.applications.UpdateApplicationResponse;
+
+import org.cloudfoundry.client.v3.applications.GetApplicationRequest;
+import org.cloudfoundry.client.v3.applications.GetApplicationResponse;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.applications.ApplicationDetail;
 import org.cloudfoundry.operations.applications.ApplicationManifest;
@@ -20,22 +23,27 @@ import org.cloudfoundry.operations.applications.GetApplicationManifestRequest;
 import org.cloudfoundry.operations.applications.GetApplicationRequest;
 import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
 import org.cloudfoundry.operations.applications.Route;
+
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.nio.file.Paths;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-
 /**
- * Handles the operations for querying and manipulating applications on a cloud foundry instance.
+ * Handles the operations for querying and manipulating applications on a cloud
+ * foundry instance.
  *
- * To retrieve the data from resulting Mono or Flux objects you can use subscription methods (block, subscribe, etc.)
- * provided by the reactor library. For more details on how to work with Mono's visit:
+ * To retrieve the data from resulting Mono or Flux objects you can use
+ * subscription methods (block, subscribe, etc.) provided by the reactor
+ * library. For more details on how to work with Mono's visit:
  * https://projectreactor.io/docs/core/release/reference/index.html#core-features
  */
 public class ApplicationsOperations extends AbstractOperations<DefaultCloudFoundryOperations> {
@@ -53,67 +61,108 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
     }
 
     /**
-     * Prepares a request for fetching applications data from the cloud foundry instance.
-     * The resulting mono will not perform any logging by default.
+     * Prepares a request for fetching applications data from the cloud foundry
+     * instance. The resulting mono will not perform any logging by default.
      *
-     * @return mono object of all applications as map of the application names as key and the ApplicationBeans as value
+     * @return mono object of all applications as map of the application names as
+     *         key and the ApplicationBeans as value
      */
     public Mono<Map<String, ApplicationBean>> getAll() {
+
         return this.cloudFoundryOperations
-                .applications()
-                .list()
-                .flatMap(this::getApplicationManifest)
-                .collectMap(ApplicationManifest::getName, ApplicationBean::new);
+            .applications()
+            .list()
+            .flatMap(applicationSummary -> Flux.zip(
+                getApplicationManifest(applicationSummary),
+                getMetadata(applicationSummary))
+                .collectMap(tuple -> tuple.getT1().getName(),
+                    tuple -> new ApplicationBean(tuple.getT1(), tuple.getT2())))
+            .reduce(new HashMap<String, ApplicationBean>(), (newMap, currentMap) -> {
+                newMap.putAll(currentMap);
+                return newMap;
+            });
     }
 
     private Mono<ApplicationManifest> getApplicationManifest(ApplicationSummary applicationSummary) {
         return this.cloudFoundryOperations
-                .applications()
-                .getApplicationManifest(GetApplicationManifestRequest
-                        .builder()
-                        .name(applicationSummary.getName())
-                        .build());
+            .applications()
+            .getApplicationManifest(GetApplicationManifestRequest
+                .builder()
+                .name(applicationSummary.getName())
+                .build());
 
     }
 
+    private Mono<String> getMetadata(ApplicationSummary applicationSummary) {
+        GetApplicationRequest request = GetApplicationRequest.builder()
+            .applicationId(applicationSummary.getId())
+            .build();
+        return this.cloudFoundryOperations.getCloudFoundryClient()
+            .applicationsV3()
+            .get(request)
+            .flatMap(this::doGetMetadata);
+    }
+
+    private Mono<String> doGetMetadata(GetApplicationResponse getApplicationResponse) {
+        List<String> metadata = new LinkedList<String>();
+        metadata.add(0, getApplicationResponse.getName());
+
+        Map<String, String> labels = getApplicationResponse.getMetadata().getLabels();
+
+        labels.keySet().forEach(action -> {
+            if (action.equals("version")) {
+                metadata.add(1, labels.get(action));
+            } else if (action.equals("branch")) {
+                metadata.add(2, labels.get(action));
+            }
+        });
+        String meta = metadata.toString();
+        // remove [] in String
+        return Mono.just(meta.substring(1, meta.length() - 1));
+    }
+
     /**
-     * Prepares a request for deleting a specific application associated with the provided name.
-     * The resulting mono is preconfigured such that it will perform logging.
+     * Prepares a request for deleting a specific application associated with the
+     * provided name. The resulting mono is preconfigured such that it will perform
+     * logging.
      *
      * @param applicationName applicationName Name of an application.
      * @throws NullPointerException when the applicationName is null
-     * @return mono which can be subscribed on to trigger the removal of the app. The mono also handles
-     * the logging.
+     * @return mono which can be subscribed on to trigger the removal of the app.
+     *         The mono also handles the logging.
      */
     public Mono<Void> remove(String applicationName) {
         checkNotNull(applicationName);
 
         DeleteApplicationRequest request = DeleteApplicationRequest
-                .builder()
-                .name(applicationName)
-                .build();
+            .builder()
+            .name(applicationName)
+            .build();
 
         return this.cloudFoundryOperations.applications()
-                .delete(request)
-                .doOnSuccess(aVoid -> log.info("App removed: ",applicationName))
-                .onErrorStop();
+            .delete(request)
+            .doOnSuccess(aVoid -> log.info("App removed: ", applicationName))
+            .onErrorStop();
     }
 
     /**
-     * Prepares a request for pushing an app to the cloud foundry instance specified within the cloud
-     * foundry operations instance.
-     * The resulting mono is preconfigured such that it will perform logging.
+     * Prepares a request for pushing an app to the cloud foundry instance specified
+     * within the cloud foundry operations instance. The resulting mono is
+     * preconfigured such that it will perform logging.
      *
      * @param appName     name of the application
-     * @param bean        application bean that holds the configuration settings to deploy the app
-     *                    to the cloud foundry instance
+     * @param bean        application bean that holds the configuration settings to
+     *                    deploy the app to the cloud foundry instance
      * @param shouldStart if the app should start after being created
-     * @throws NullPointerException     when bean or app name is null
-     *                                  or docker password was not set in environment variables when creating app via
-     *                                  dockerImage and docker credentials
-     * @throws IllegalArgumentException    when app name empty
-     * @throws CreationException        when any fatal error occurs during creation of the app
-     * @throws SecurityException        when there is no permission to access environment variable CF_DOCKER_PASSWORD
+     * @throws NullPointerException     when bean or app name is null or docker
+     *                                  password was not set in environment
+     *                                  variables when creating app via dockerImage
+     *                                  and docker credentials
+     * @throws IllegalArgumentException when app name empty
+     * @throws CreationException        when any fatal error occurs during creation
+     *                                  of the app
+     * @throws SecurityException        when there is no permission to access
+     *                                  environment variable CF_DOCKER_PASSWORD
      * @return mono which can be subscribed on to trigger the creation of the app
      */
     public Mono<Void> create(String appName, ApplicationBean bean, boolean shouldStart) {
@@ -153,8 +202,8 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
 
     private boolean whenServiceNotFound(Throwable throwable) {
         return throwable instanceof IllegalArgumentException
-                && throwable.getMessage().contains("Service instance")
-                && throwable.getMessage().contains("could not be found");
+            && throwable.getMessage().contains("Service instance")
+            && throwable.getMessage().contains("could not be found");
     }
 
     private ApplicationManifest buildApplicationManifest(String appName, ApplicationBean bean) {
@@ -163,32 +212,32 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
         }
 
         return ApplicationManifest.builder()
-                .name(appName)
-                .path(bean.getPath() == null ? null : Paths.get(bean.getPath()))
-                .buildpack(bean.getManifest().getBuildpack())
-                .command(bean.getManifest().getCommand())
-                .disk(bean.getManifest().getDisk())
-                .docker(Docker.builder()
-                        .image(bean.getPath() == null && bean.getManifest().getDockerImage() == null
-                                ? ""
-                                : bean.getManifest().getDockerImage())
-                        .username( bean.getManifest().getDockerUsername())
-                        .password(getDockerPassword(bean.getManifest()))
-                        .build())
-                .healthCheckHttpEndpoint(bean.getManifest().getHealthCheckHttpEndpoint())
-                .healthCheckType(bean.getManifest().getHealthCheckType())
-                .instances(bean.getManifest().getInstances())
-                .memory(bean.getManifest().getMemory())
-                .noRoute(bean.getManifest().getNoRoute())
-                .routePath(bean.getManifest().getRoutePath())
-                .randomRoute(bean.getManifest().getRandomRoute())
-                .routes(getAppRoutes(bean.getManifest().getRoutes()))
-                .stack(bean.getManifest().getStack())
-                .timeout(bean.getManifest().getTimeout())
-                .putAllEnvironmentVariables(Optional.ofNullable(bean.getManifest().getEnvironmentVariables())
-                        .orElse(Collections.emptyMap()))
-                .services(bean.getManifest().getServices())
-                .build();
+            .name(appName)
+            .path(bean.getPath() == null ? null : Paths.get(bean.getPath()))
+            .buildpack(bean.getManifest().getBuildpack())
+            .command(bean.getManifest().getCommand())
+            .disk(bean.getManifest().getDisk())
+            .docker(Docker.builder()
+                .image(bean.getPath() == null && bean.getManifest().getDockerImage() == null
+                    ? ""
+                    : bean.getManifest().getDockerImage())
+                .username(bean.getManifest().getDockerUsername())
+                .password(getDockerPassword(bean.getManifest()))
+                .build())
+            .healthCheckHttpEndpoint(bean.getManifest().getHealthCheckHttpEndpoint())
+            .healthCheckType(bean.getManifest().getHealthCheckType())
+            .instances(bean.getManifest().getInstances())
+            .memory(bean.getManifest().getMemory())
+            .noRoute(bean.getManifest().getNoRoute())
+            .routePath(bean.getManifest().getRoutePath())
+            .randomRoute(bean.getManifest().getRandomRoute())
+            .routes(getAppRoutes(bean.getManifest().getRoutes()))
+            .stack(bean.getManifest().getStack())
+            .timeout(bean.getManifest().getTimeout())
+            .putAllEnvironmentVariables(Optional.ofNullable(bean.getManifest().getEnvironmentVariables())
+                .orElse(Collections.emptyMap()))
+            .services(bean.getManifest().getServices())
+            .build();
     }
 
     private String getDockerPassword(ApplicationManifestBean bean) {
@@ -196,17 +245,19 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
             return null;
         }
 
-        //TODO: Maybe outsource retrieving env variables to a dedicated class in a future feature.
+        // TODO: Maybe outsource retrieving env variables to a dedicated class in a
+        // future feature.
         String password = System.getenv(DOCKER_PASSWORD_VAR_NAME);
         if (password == null) {
             throw new NullPointerException("Docker password is not set in environment variable: "
-                    + DOCKER_PASSWORD_VAR_NAME);
+                + DOCKER_PASSWORD_VAR_NAME);
         }
         return password;
     }
 
     private List<Route> getAppRoutes(List<String> routes) {
-        return routes == null ? null : routes
+        return routes == null ? null
+            : routes
                 .stream()
                 .filter(Objects::nonNull)
                 .map(route -> Route.builder().route(route).build())

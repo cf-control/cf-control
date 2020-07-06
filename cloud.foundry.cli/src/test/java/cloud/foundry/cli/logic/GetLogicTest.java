@@ -281,7 +281,8 @@ public class GetLogicTest {
                 .services("appdynamics")
                 .build();
 
-        ApplicationBean bean = new ApplicationBean(applicationManifestMock);
+        String metadata = "testApp, 1.0.1, some/branch";
+        ApplicationBean bean = new ApplicationBean(applicationManifestMock, metadata);
 
         HashMap<String, ApplicationBean> map = new HashMap<String, ApplicationBean>() {{
             put("testApp", bean);

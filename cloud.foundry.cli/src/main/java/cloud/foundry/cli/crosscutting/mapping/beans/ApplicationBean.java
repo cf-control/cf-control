@@ -35,9 +35,10 @@ public class ApplicationBean implements Bean {
         this.meta = meta;
     }
 
-    public ApplicationBean(ApplicationManifest manifest) {
+    public ApplicationBean(ApplicationManifest manifest, String meta) {
         this.path = manifest.getPath() == null ? null : manifest.getPath().toString();
         this.manifest = new ApplicationManifestBean(manifest);
+        this.meta = meta;
     }
 
     public ApplicationBean() {
