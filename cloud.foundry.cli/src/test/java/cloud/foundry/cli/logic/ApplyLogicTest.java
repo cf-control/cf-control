@@ -23,9 +23,12 @@ import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.applications.Applications;
 import org.cloudfoundry.operations.applications.DeleteApplicationRequest;
 import org.cloudfoundry.operations.applications.GetApplicationManifestRequest;
-import org.cloudfoundry.operations.applications.GetApplicationRequest;
 import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
 import org.cloudfoundry.client.v2.spaces.Spaces;
+import org.cloudfoundry.client.v3.Metadata;
+import org.cloudfoundry.client.v3.applications.ApplicationsV3;
+import org.cloudfoundry.client.v3.applications.GetApplicationRequest;
+import org.cloudfoundry.client.v3.applications.GetApplicationResponse;
 import org.cloudfoundry.operations.applications.ApplicationManifest;
 import org.cloudfoundry.operations.applications.ApplicationSummary;
 import org.cloudfoundry.operations.useradmin.ListSpaceUsersRequest;
@@ -183,7 +186,6 @@ public class ApplyLogicTest {
 
         // from now on: mock-setup for ApplicationOperations.create delivers successful
         // creation
-        when(applicationsMock.get(any(GetApplicationRequest.class))).thenThrow(IllegalArgumentException.class);
         Mono<Void> pushManifestMonoMock = mock(Mono.class);
 
         // this will contain the received PushApplicationManifestRequest when
@@ -309,6 +311,10 @@ public class ApplyLogicTest {
         manifestBean.setBuildpack(buildpack);
         manifestBean.setInstances(1);
         manifestBean.setMemory(Integer.MAX_VALUE);
+        
+        String metadata = "appName, 1.0.1, some/branch";
+        applicationBean.setMeta(metadata);
+        
         appconfig.put(appname, applicationBean);
 
         return appconfig;
@@ -319,7 +325,11 @@ public class ApplyLogicTest {
 
         DefaultCloudFoundryOperations cfMock = Mockito.mock(DefaultCloudFoundryOperations.class);
         Flux<ApplicationSummary> flux = Flux.fromIterable(appSummaries);
-
+        CloudFoundryClient cfClientMock = mock(CloudFoundryClient.class);
+        ApplicationsV3 applicationsV3Mock = mock(ApplicationsV3.class);
+        GetApplicationResponse getApplicationResponseMock = mock(GetApplicationResponse.class);
+        Metadata metadata = createMockMedatadata();
+        
         when(cfMock.applications()).thenReturn(applicationsMock);
         when(applicationsMock.getApplicationManifest(any(GetApplicationManifestRequest.class)))
             .thenAnswer((Answer<Mono<ApplicationManifest>>) invocation -> {
@@ -333,7 +343,17 @@ public class ApplyLogicTest {
                 throw new RuntimeException("RuntimeException");
             });
         when(applicationsMock.list()).thenReturn(flux);
-
+        
+        // mock for getMetadata
+        when(cfMock.getCloudFoundryClient()).thenReturn(cfClientMock);
+        when(cfClientMock.applicationsV3()).thenReturn(applicationsV3Mock);
+        when(applicationsV3Mock.get(any(GetApplicationRequest.class)))
+            .thenAnswer((Answer<Mono<GetApplicationResponse>>) invocation -> {
+                return Mono.just(getApplicationResponseMock);
+            });
+        when(getApplicationResponseMock.getMetadata()).thenReturn(metadata);
+        when(getApplicationResponseMock.getName()).thenReturn("notyetrandomname");
+        
         return cfMock;
     }
 
@@ -360,7 +380,25 @@ public class ApplyLogicTest {
             .runningInstances(1)
             .build();
     }
+    
+    /**
+     * Creates an {@link Metadata} for testing purposes.
+     * 
+     * @return metadata for an application
+     */
+    private Metadata createMockMedatadata() {
+        Map<String, String> labels = new HashMap<String, String>();
+        labels.put("name", "notyetrandomname");
+        labels.put("version", "1.0.1");
+        labels.put("branch", "some/branch");
+        labels.put("id", "1234");
 
+        Metadata metadata = mock(Metadata.class);
+        when(metadata.getLabels()).thenReturn(labels);
+        
+        return metadata;
+    }
+    
     @Test
     public void testApplyServicesWithNull() {
         ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));

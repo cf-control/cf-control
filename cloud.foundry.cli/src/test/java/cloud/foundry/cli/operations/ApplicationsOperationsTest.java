@@ -16,6 +16,12 @@ import static org.mockito.Mockito.times;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationManifestBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
+
+import org.cloudfoundry.client.CloudFoundryClient;
+import org.cloudfoundry.client.v3.Metadata;
+import org.cloudfoundry.client.v3.applications.ApplicationsV3;
+import org.cloudfoundry.client.v3.applications.GetApplicationRequest;
+import org.cloudfoundry.client.v3.applications.GetApplicationResponse;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
 import org.cloudfoundry.operations.applications.ApplicationManifest;
@@ -49,7 +55,7 @@ public class ApplicationsOperationsTest {
     public void testGetApplicationsWithEmptyMockData() {
         // prepare mock CF API client with an empty applications list
         DefaultCloudFoundryOperations cfMock = createMockCloudFoundryOperations(Collections.emptyList(),
-                Collections.emptyList());
+            Collections.emptyList(), null);
 
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfMock);
         Map<String, ApplicationBean> apps = applicationsOperations.getAll().block();
@@ -61,15 +67,17 @@ public class ApplicationsOperationsTest {
     @Test
     public void testGetApplicationsWithMockData() {
         // create a mock CF API client
-        // first, we need to prepare some ApplicationSummary and ApplicationManifest
+        // first, we need to prepare some ApplicationSummary, Metadata and ApplicationManifest
         // (we're fine with one of both for now)
-        // those are then used to create a CF mock API object, which will be able to return those then the right way
+        // those are then used to create a CF mock API object, which will be able to
+        // return those then the right way
         ApplicationManifest appManifest = createMockApplicationManifest();
+        Metadata metadata = createMockMedatadata();
         ApplicationSummary summary = createMockApplicationSummary(appManifest);
 
         // now, let's create the mock object from that list
         DefaultCloudFoundryOperations cfMock = createMockCloudFoundryOperations(Arrays.asList(summary),
-                Arrays.asList(appManifest));
+            Arrays.asList(appManifest), metadata);
 
         // now, we can generate a YAML doc for our ApplicationSummary
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfMock);
@@ -97,11 +105,13 @@ public class ApplicationsOperationsTest {
         assertThat(appBean.getManifest().getServices(), contains("serviceomega"));
         assertThat(appBean.getManifest().getStack(), is("nope"));
         assertThat(appBean.getManifest().getTimeout(), is(987654321));
+        assertThat(appBean.getMeta(), is("notyetrandomname, 1.0.1, some/branch"));
     }
 
     @Test
     public void testCreateApplicationsPushesAppManifestSucceeds() throws CreationException {
-        //given
+        // given
+
         ApplicationManifest appManifest = createMockApplicationManifest();
         DefaultCloudFoundryOperations cfoMock = mock(DefaultCloudFoundryOperations.class);
         Applications applicationsMock = mock(Applications.class);
@@ -110,22 +120,23 @@ public class ApplicationsOperationsTest {
 
         when(cfoMock.applications()).thenReturn(applicationsMock);
         when(applicationsMock.pushManifest(any(PushApplicationManifestRequest.class)))
-                .thenReturn(Mono.empty());
+            .thenReturn(Mono.empty());
 
-        ApplicationBean applicationsBean = new ApplicationBean(appManifest);
+        String metadata = "appName, 1.0.1, some/branch";
+        ApplicationBean applicationsBean = new ApplicationBean(appManifest, metadata);
         applicationsBean.setPath("some/path");
 
-        //when
+        // when
         Mono<Void> request = applicationsOperations.create("appName", applicationsBean, false);
 
-        //then
+        // then
         assertThat(request, notNullValue());
         verify(applicationsMock, times(1)).pushManifest(any(PushApplicationManifestRequest.class));
     }
 
     @Test
     public void testCreateApplicationsOnMissingDockerPasswordThrowsCreationException() {
-        //given
+        // given
         DefaultCloudFoundryOperations cfoMock = mock(DefaultCloudFoundryOperations.class);
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfoMock);
 
@@ -136,61 +147,61 @@ public class ApplicationsOperationsTest {
 
         applicationsBean.setManifest(applicationManifestBean);
 
-        //when
+        // when
         CreationException exception = assertThrows(CreationException.class,
-                () -> applicationsOperations.create("appName", applicationsBean, false));
+            () -> applicationsOperations.create("appName", applicationsBean, false));
         assertThat(exception.getMessage(), containsString("Docker password is not set"));
     }
 
     @Test
     public void testCreateOnNullNameThrowsNullPointerException() throws CreationException {
-        //given
+        // given
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(
-                Mockito.mock(DefaultCloudFoundryOperations.class));
+            Mockito.mock(DefaultCloudFoundryOperations.class));
 
-        //then
+        // then
         assertThrows(NullPointerException.class,
-                () -> applicationsOperations.create(null, new ApplicationBean(), false));
+            () -> applicationsOperations.create(null, new ApplicationBean(), false));
     }
 
     @Test
     public void testCreateOnNullPathAndNullDockerImageThrowsIllegalArgumentException() {
-        //given
+        // given
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(
-                mock(DefaultCloudFoundryOperations.class));
+            mock(DefaultCloudFoundryOperations.class));
 
         ApplicationBean applicationBean = new ApplicationBean();
         ApplicationManifestBean manifestBean = new ApplicationManifestBean();
         manifestBean.setDockerImage(null);
         applicationBean.setManifest(manifestBean);
 
-        //when
+        // when
         assertThrows(CreationException.class,
-                () -> applicationsOperations.create("appName", applicationBean, false),
-                "One of application or dockerImage must be supplied");
+            () -> applicationsOperations.create("appName", applicationBean, false),
+            "One of application or dockerImage must be supplied");
     }
 
     @Test
     public void testCreateOnEmptyNameThrowsIllegalArgumentException() {
-        //given
+        // given
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(
-                mock(DefaultCloudFoundryOperations.class));
+            mock(DefaultCloudFoundryOperations.class));
 
         ApplicationBean applicationBean = new ApplicationBean();
         applicationBean.setPath("some/path");
 
-        //then
+        // then
         assertThrows(IllegalArgumentException.class,
-                () -> applicationsOperations.create("", applicationBean, false));
+            () -> applicationsOperations.create("", applicationBean, false));
     }
 
     @Test
     public void testCreateOnNullBeanThrowsNullPointerException() {
-        //given
+        // given
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(
-                mock(DefaultCloudFoundryOperations.class));
+            mock(DefaultCloudFoundryOperations.class));
 
-        //when
+        // when
         assertThrows(NullPointerException.class, () -> applicationsOperations.create("appName", null, false));
     }
 
@@ -224,46 +235,85 @@ public class ApplicationsOperationsTest {
     }
 
     /**
-     * Creates and configures mock object for CF API client
-     * We only have to patch it so far as that it will return our own list of ApplicationSummary instances
-     * @param appSummaries List of ApplicationSummary objects that the mock object shall return
+     * Creates and configures mock object for CF API client We only have to patch it
+     * so far as that it will return our own list of ApplicationSummary instances
+     * 
+     * @param appSummaries List of ApplicationSummary objects that the mock object
+     *                     shall return
      * @return mock {@link DefaultCloudFoundryOperations} object
      */
     private DefaultCloudFoundryOperations createMockCloudFoundryOperations(List<ApplicationSummary> appSummaries,
-                                                                           List<ApplicationManifest> manifests) {
+        List<ApplicationManifest> manifests, Metadata metadata) {
         // first, we create the mock objects we want to return later on
-        DefaultCloudFoundryOperations cfMock = Mockito.mock(DefaultCloudFoundryOperations.class);
-        Applications applicationsMock = Mockito.mock(Applications.class);
+        DefaultCloudFoundryOperations cfMock = mock(DefaultCloudFoundryOperations.class);
+        Applications applicationsMock = mock(Applications.class);
         Flux<ApplicationSummary> flux = Flux.fromIterable(appSummaries);
+        CloudFoundryClient cfClientMock = mock(CloudFoundryClient.class);
+        ApplicationsV3 applicationsV3Mock = mock(ApplicationsV3.class);
+        GetApplicationResponse getApplicationResponseMock = mock(GetApplicationResponse.class);
 
         // then we mock the necessary method calls
         when(cfMock.applications()).thenReturn(applicationsMock);
-        // now, let's have the same fun for the manifests, which are queried in a different way
-        // luckily, we already have the applicationsMock, which we also need to hook on here
-        // unfortunately, the method matches a string on some map, so we have to rebuild something similar
-        // the following lambda construct does exactly that: search for the right manifest by name in the list we've
+        // now, let's have the same fun for the manifests, which are queried in a
+        // different way
+        // luckily, we already have the applicationsMock, which we also need to hook on
+        // here
+        // unfortunately, the method matches a string on some map, so we have to rebuild
+        // something similar
+        // the following lambda construct does exactly that: search for the right
+        // manifest by name in the list we've
         // been passed, and return that if possible (or otherwise throw some exception)
         // TODO: check which exception to throw
         when(applicationsMock.getApplicationManifest(any(GetApplicationManifestRequest.class)))
-                .thenAnswer((Answer<Mono<ApplicationManifest>>) invocation -> {
-                    GetApplicationManifestRequest request = invocation.getArgument(0);
+            .thenAnswer((Answer<Mono<ApplicationManifest>>) invocation -> {
+                GetApplicationManifestRequest request = invocation.getArgument(0);
 
-                    // simple linear search; this is not about performance, really
-                    for (ApplicationManifest manifest : manifests) {
-                        if (manifest.getName().equals(request.getName())) {
-                            return Mono.just(manifest);
-                        }
+                // simple linear search; this is not about performance, really
+                for (ApplicationManifest manifest : manifests) {
+                    if (manifest.getName().equals(request.getName())) {
+                        return Mono.just(manifest);
                     }
+                }
 
-                    throw new RuntimeException("fixme");
-                });
+                throw new RuntimeException("fixme");
+            });
         when(applicationsMock.list()).thenReturn(flux);
+
+        // mock for getMetadata
+        when(cfMock.getCloudFoundryClient()).thenReturn(cfClientMock);
+        when(cfClientMock.applicationsV3()).thenReturn(applicationsV3Mock);
+        when(applicationsV3Mock.get(any(GetApplicationRequest.class)))
+            .thenAnswer((Answer<Mono<GetApplicationResponse>>) invocation -> {
+                return Mono.just(getApplicationResponseMock);
+            });
+        when(getApplicationResponseMock.getMetadata()).thenReturn(metadata);
+        when(getApplicationResponseMock.getName()).thenReturn("notyetrandomname");
 
         return cfMock;
     }
 
     /**
-     * Creates an {@link ApplicationManifest} with partially random data to increase test reliability.
+     * Creates an {@link Metadata} for testing purposes.
+     * 
+     * @return metadata for an application
+     */
+    private Metadata createMockMedatadata() {
+        Map<String, String> labels = new HashMap<String, String>();
+        labels.put("name", "notyetrandomname");
+        labels.put("version", "1.0.1");
+        labels.put("branch", "some/branch");
+        labels.put("id", "1234");
+
+        Metadata metadata = mock(Metadata.class);
+        when(metadata.getLabels()).thenReturn(labels);
+        
+        return metadata;
+    }
+
+    /**
+     * Creates an {@link ApplicationManifest} with partially random data to increase
+     * test reliability.
+     * 
      * @return application manifest containing test data
      */
     // FIXME: randomize some data
@@ -273,47 +323,51 @@ public class ApplicationsOperationsTest {
 
         // note: here we have to insert a path, too!
         // another note: routes and hosts cannot both be set, so we settle with hosts
-        // yet another note: docker image and buildpack cannot both be set, so we settle with buildpack
+        // yet another note: docker image and buildpack cannot both be set, so we settle
+        // with buildpack
 
         return ApplicationManifest.builder()
-                .buildpack("test_buildpack")
-                .command("test command")
-                .disk(1234)
-                .environmentVariables(envVars)
-                .healthCheckHttpEndpoint("http://healthcheck.local")
-                .healthCheckType(ApplicationHealthCheck.HTTP)
-                .instances(42)
-                .memory(Integer.MAX_VALUE)
-                .name("notyetrandomname")
-                .noRoute(false)
-                .path(Paths.get("/test/uri"))
-                .randomRoute(true)
-                .routes(Route.builder().route("route1").build(),
-                        Route.builder().route("route2").build())
-                .services("serviceomega")
-                .stack("nope")
-                .timeout(987654321)
-                .build();
+            .buildpack("test_buildpack")
+            .command("test command")
+            .disk(1234)
+            .environmentVariables(envVars)
+            .healthCheckHttpEndpoint("http://healthcheck.local")
+            .healthCheckType(ApplicationHealthCheck.HTTP)
+            .instances(42)
+            .memory(Integer.MAX_VALUE)
+            .name("notyetrandomname")
+            .noRoute(false)
+            .path(Paths.get("/test/uri"))
+            .randomRoute(true)
+            .routes(Route.builder().route("route1").build(),
+                Route.builder().route("route2").build())
+            .services("serviceomega")
+            .stack("nope")
+            .timeout(987654321)
+            .build();
     }
 
     /**
-     * Creates an {@link ApplicationSummary} from an {@link ApplicationManifest} for testing purposes.
+     * Creates an {@link ApplicationSummary} from an {@link ApplicationManifest} for
+     * testing purposes.
+     * 
      * @return application summary
      */
     // FIXME: randomize some data
     private ApplicationSummary createMockApplicationSummary(ApplicationManifest manifest) {
         // we basically only need the manifest as we need to keep the names the same
-        // however, the summary builder complains if a few more attributes aren't set either, so we have to set more
+        // however, the summary builder complains if a few more attributes aren't set
+        // either, so we have to set more
         // than just the name
         return ApplicationSummary.builder()
-                .name(manifest.getName())
-                .diskQuota(100)
-                .id("summary_id")
-                .instances(manifest.getInstances())
-                .memoryLimit(manifest.getMemory())
-                .requestedState("SOMESTATE")
-                .runningInstances(1)
-                .build();
+            .name(manifest.getName())
+            .diskQuota(100)
+            .id("summary_id")
+            .instances(manifest.getInstances())
+            .memoryLimit(manifest.getMemory())
+            .requestedState("SOMESTATE")
+            .runningInstances(1)
+            .build();
     }
 
 }
