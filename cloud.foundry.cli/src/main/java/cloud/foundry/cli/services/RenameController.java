@@ -44,6 +44,7 @@ public class RenameController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
+            log.info("Renaming application...");
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             ApplicationsOperations applicationOperations = new ApplicationsOperations(cfOperations);
             Mono<Void> toRename = applicationOperations.rename(newName, currentName);
@@ -52,6 +53,7 @@ public class RenameController implements Callable<Integer> {
             } catch (RuntimeException e) {
                 throw new UpdateException(e);
             }
+            log.info("Renamed app. Old-name:", currentName,"new-name:", newName);
             return 0;
         }
     }
@@ -69,6 +71,7 @@ public class RenameController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
+            log.info("Renaming service...");
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
             Mono<Void> toRename = servicesOperations.rename(newName, currentName);
@@ -77,6 +80,7 @@ public class RenameController implements Callable<Integer> {
             } catch (RuntimeException e) {
                 throw new UpdateException(e);
             }
+            log.info("Renamed service. Old-name:", currentName,"new-name:", newName);
             return 0;
         }
     }
