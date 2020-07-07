@@ -139,8 +139,7 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                 .doOnSubscribe(aVoid -> {
                     log.debug("Rename application:", currentName);
                     log.debug("With new name:", newName); })
-                .doOnSuccess(aVoid -> log.info("Application renamed from", currentName, "to", newName))
-                .onErrorStop();
+                .doOnSuccess(aVoid -> log.info("Application renamed from", currentName, "to", newName));
     }
 
     private Mono<Void> doCreate(String appName, ApplicationBean bean, boolean shouldStart) {

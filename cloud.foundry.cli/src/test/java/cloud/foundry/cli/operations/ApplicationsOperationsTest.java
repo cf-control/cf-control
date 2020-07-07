@@ -217,29 +217,29 @@ public class ApplicationsOperationsTest {
     }
 
     @Test
-    public void testRenameOnCurrentNameNullThrowsNullPointerException() {
+    public void testRenameWithNullValueForCurrentNameThrowsNullPointerExceptionn() {
         //given
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(
                 mock(DefaultCloudFoundryOperations.class));
 
-        //when
+        //when + then
         assertThrows(NullPointerException.class, () ->
                 applicationsOperations.rename("appName", null));
     }
 
     @Test
-    public void testRenameOnNewNameNullThrowsNullPointerException() {
+    public void testRenameWithNullValueForNewNameThrowsNullPointerException() {
         //given
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(
                 mock(DefaultCloudFoundryOperations.class));
 
-        //when
+        //when + then
         assertThrows(NullPointerException.class, () ->
                 applicationsOperations.rename("appName", null));
     }
 
     @Test
-    public void testRename() {
+    public void testRenameSucceeds() {
         // given
         DefaultCloudFoundryOperations cfoMock = mock(DefaultCloudFoundryOperations.class);
         Applications applicationsMock = mock(Applications.class);

@@ -65,7 +65,7 @@ You can have the tool create a machine-readable log file by specifying the `--lo
   diff            Print the differences between the given yaml file and the configuration of your cf instance.
   apply           Apply the configuration from a given yaml file to your cf instance.
   update          Update/Remove apps, service instances or space developers.
-  rename          Rename a app or a service instance.
+  rename          Rename an app or a service instance.
 ```
 
 
@@ -125,7 +125,7 @@ You can have the tool create a machine-readable log file by specifying the `--lo
 ```
   application        Rename an existing app.
 
-  service            Rename a existing service.
+  service            Rename an existing service.
 ```
 
 ##### [PARAMS]
