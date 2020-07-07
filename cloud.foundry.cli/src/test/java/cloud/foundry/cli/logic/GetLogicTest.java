@@ -20,6 +20,7 @@ import cloud.foundry.cli.operations.ClientOperations;
 import cloud.foundry.cli.operations.ServicesOperations;
 import cloud.foundry.cli.operations.SpaceDevelopersOperations;
 import cloud.foundry.cli.services.LoginCommandOptions;
+import org.cloudfoundry.client.v3.Metadata;
 import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
 import org.cloudfoundry.operations.applications.ApplicationManifest;
 import org.cloudfoundry.operations.services.ServiceInstance;
@@ -276,12 +277,15 @@ public class GetLogicTest {
                 .healthCheckType(ApplicationHealthCheck.HTTP)
                 .instances(3)
                 .memory(1024)
-                .path(Paths.get("some/path"))
                 .randomRoute(true)
                 .services("appdynamics")
                 .build();
 
-        String metadata = "testApp, 1.0.1, some/branch";
+        Metadata metadata = Metadata
+                .builder()
+                .annotation(ApplicationBean.METADATA_KEY, "testApp, 1.0.1, some/branch")
+                .annotation("path", "some/path")
+                .build();
         ApplicationBean bean = new ApplicationBean(applicationManifestMock, metadata);
 
         HashMap<String, ApplicationBean> map = new HashMap<String, ApplicationBean>() {{
