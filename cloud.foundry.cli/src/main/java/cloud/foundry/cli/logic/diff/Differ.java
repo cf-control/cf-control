@@ -9,14 +9,20 @@ import cloud.foundry.cli.logic.diff.change.CfChange;
 import cloud.foundry.cli.logic.diff.change.ChangeParser;
 import cloud.foundry.cli.logic.diff.change.map.CfMapChange;
 import cloud.foundry.cli.logic.diff.change.object.CfRemovedObject;
+import cloud.foundry.cli.logic.diff.change.parsing.ContainerChangeParsingStrategy;
+import cloud.foundry.cli.logic.diff.change.parsing.MapChangeParsingStrategy;
+import cloud.foundry.cli.logic.diff.change.parsing.NewObjectParsingStrategy;
+import cloud.foundry.cli.logic.diff.change.parsing.RemovedObjectParsingStrategy;
+import cloud.foundry.cli.logic.diff.change.parsing.ValueChangeParsingStrategy;
 import org.javers.core.Javers;
 import org.javers.core.JaversBuilder;
 import org.javers.core.diff.Diff;
 import org.javers.core.diff.ListCompareAlgorithm;
 
+
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -33,9 +39,17 @@ public class Differ {
             .build();
 
     private final List<FilterCriteria> filterCriteria;
+    private final ChangeParser changeParser;
 
     public Differ() {
         this.filterCriteria = new LinkedList<>();
+        this.changeParser = new ChangeParser();
+        this.changeParser.addParsingStrategy(new NewObjectParsingStrategy());
+        this.changeParser.addParsingStrategy(new RemovedObjectParsingStrategy());
+        this.changeParser.addParsingStrategy(new MapChangeParsingStrategy());
+        this.changeParser.addParsingStrategy(new ContainerChangeParsingStrategy());
+        this.changeParser.addParsingStrategy(new ContainerChangeParsingStrategy());
+        this.changeParser.addParsingStrategy(new ValueChangeParsingStrategy(this.changeParser));
     }
 
     /**
@@ -78,17 +92,16 @@ public class Differ {
         // parse the change objects created by the JaVers diff to custom change objects
         List<CfChange> cfChanges = diff.getChanges()
                 .stream()
-                .map(ChangeParser::parse)
-                // Change types that are not relevant to us will get parsed to null, so ignore them
-                .filter(Objects::nonNull)
+                .map(this.changeParser::parse)
+                .flatMap(Collection::stream)
                 // apply all custom set filters
-                .filter(this::applyFilterCriterias)
+                .filter(this::applyFilterCriterion)
                 .collect(Collectors.toList());
 
         return DiffTreeCreator.createFrom(cfChanges);
     }
 
-    private boolean applyFilterCriterias(CfChange change) {
+    private boolean applyFilterCriterion(CfChange change) {
         // iterating over all filter conditions
         return filterCriteria
                 .stream()

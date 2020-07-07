@@ -1,12 +1,6 @@
 package cloud.foundry.cli.logic.diff;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.hasItems;
-import static org.hamcrest.Matchers.hasProperty;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -59,19 +53,19 @@ public class DifferTest {
         DiffNode treeWithoutRemovedObjects = differ.createDiffTree(configLive, configDesired);
 
         // then
-        assertThat(treeWithRemovedObjects.getChildNodes().size(), is(2));
-        assertThat(treeWithRemovedObjects.getChanges().size(), is(0));
+        assertThat(treeWithRemovedObjects.getChildNodes().size(), Matchers.is(2));
+        assertThat(treeWithRemovedObjects.getChanges().size(), Matchers.is(0));
 
         DiffNode specNode  = treeWithRemovedObjects.getChild("spec");
-        assertThat(specNode.getChanges().size(), is(1));
-        assertThat(specNode.getChanges().get(0), is(instanceOf(CfRemovedObject.class)));
+        assertThat(specNode.getChanges().size(), Matchers.is(1));
+        assertThat(specNode.getChanges().get(0), Matchers.is(Matchers.instanceOf(CfRemovedObject.class)));
 
         DiffNode targetNode  = treeWithRemovedObjects.getChild("target");
-        assertThat(targetNode.getChanges().size(), is(1));
-        assertThat(targetNode.getChanges().get(0), is(instanceOf(CfRemovedObject.class)));
+        assertThat(targetNode.getChanges().size(), Matchers.is(1));
+        assertThat(targetNode.getChanges().get(0), Matchers.is(Matchers.instanceOf(CfRemovedObject.class)));
 
-        assertThat(treeWithoutRemovedObjects.getChildNodes().size(), is(0));
-        assertThat(treeWithoutRemovedObjects.getChanges().size(), is(0));
+        assertThat(treeWithoutRemovedObjects.getChildNodes().size(), Matchers.is(0));
+        assertThat(treeWithoutRemovedObjects.getChanges().size(), Matchers.is(0));
     }
 
     @Test
@@ -89,15 +83,15 @@ public class DifferTest {
         DiffNode specTreeWithoutMapChange = differ.createDiffTree(specLive, specDesired);
 
         // then
-        assertThat(specTreeWithMapChange.getChildNodes().size(), is(1));
-        assertThat(specTreeWithMapChange.getChanges().size(), is(1));
-        assertThat(specTreeWithMapChange.getChanges().get(0), is(instanceOf(CfMapChange.class)));
+        assertThat(specTreeWithMapChange.getChildNodes().size(), Matchers.is(1));
+        assertThat(specTreeWithMapChange.getChanges().size(), Matchers.is(1));
+        assertThat(specTreeWithMapChange.getChanges().get(0), Matchers.is(Matchers.instanceOf(CfMapChange.class)));
 
-        assertThat(specTreeWithoutMapChange.getChildNodes().size(), is(1));
-        assertThat(specTreeWithoutMapChange.getChanges().size(), is(0));
+        assertThat(specTreeWithoutMapChange.getChildNodes().size(), Matchers.is(1));
+        assertThat(specTreeWithoutMapChange.getChanges().size(), Matchers.is(0));
         DiffNode serviceNode = specTreeWithoutMapChange.getChild("services").getChild("someservice");
-        assertThat(serviceNode.getChanges().size(), is(1));
-        assertThat(serviceNode.getChanges(), Matchers.hasItem(instanceOf(CfRemovedObject.class)));
+        assertThat(serviceNode.getChanges().size(), Matchers.is(1));
+        assertThat(serviceNode.getChanges(), Matchers.hasItem(Matchers.instanceOf(CfRemovedObject.class)));
     }
 
     @Test
@@ -115,73 +109,70 @@ public class DifferTest {
 
         // then
         //no changes at root
-        assertThat(tree.getChanges().size(), is(0));
-        assertThat(tree.getChildNodes().size(), is(1));
-        assertThat(tree.getChild("spec"), notNullValue());
+        assertThat(tree.getChanges().size(), Matchers.is(0));
+        assertThat(tree.getChildNodes().size(), Matchers.is(1));
+        assertThat(tree.getChild("spec"), Matchers.notNullValue());
         assertTrue(tree.isRoot());
 
         // only spec, since there are no changes at target
         DiffNode specNode = tree.getChild("spec");
-        assertThat(specNode.getChildNodes().size(), is(2));
-        assertThat(specNode.getChild("services"), notNullValue());
-        assertThat(specNode.getChild("apps"), notNullValue());
-        assertThat(specNode.getChanges().size(), is(1));
+        assertThat(specNode.getChildNodes().size(), Matchers.is(2));
+        assertThat(specNode.getChild("services"), Matchers.notNullValue());
+        assertThat(specNode.getChild("apps"), Matchers.notNullValue());
+        assertThat(specNode.getChanges().size(), Matchers.is(1));
 
         //spaceDevelopers
         assertTrue(specNode.getChanges().get(0) instanceof CfContainerChange);
         CfContainerChange spaceDeveloperChanges = (CfContainerChange) specNode.getChanges().get(0);
-        assertThat(spaceDeveloperChanges.getPropertyName(), is("spaceDevelopers"));
-        assertThat(spaceDeveloperChanges.getChangedValues().size(), is(2));
-        assertThat(spaceDeveloperChanges.getChangedValues(), hasItems(
-                hasProperty("changeType", is(ChangeType.ADDED)),
-                hasProperty("changeType", is(ChangeType.REMOVED))));
+        assertThat(spaceDeveloperChanges.getPropertyName(), Matchers.is("spaceDevelopers"));
+        assertThat(spaceDeveloperChanges.getChangedValues().size(), Matchers.is(2));
+        assertThat(spaceDeveloperChanges.getChangedValues(), Matchers.hasItems(
+                Matchers.hasProperty("changeType", Matchers.is(ChangeType.ADDED)),
+                Matchers.hasProperty("changeType", Matchers.is(ChangeType.REMOVED))));
 
         //services
         DiffNode services = specNode.getChild("services");
-        assertThat(services.getChanges().size(), is(0));
+        assertThat(services.getChanges().size(), Matchers.is(0));
         //only one since the service (web-service-name) that is not in the desired config gets skipped
-        assertThat(services.getChildNodes().size(), is(1));
-        assertThat(services.getChild("sql-service-name"), notNullValue());
+        assertThat(services.getChildNodes().size(), Matchers.is(1));
+        assertThat(services.getChild("sql-service-name"), Matchers.notNullValue());
         DiffNode service = services.getChild("sql-service-name");
         assertTrue(service.isLeaf());
-        assertThat(service.getChanges().size(), is(1));
-        assertThat(service.getChanges().get(0).getPropertyName(), is("plan"));
-        assertThat(((CfObjectValueChanged) service.getChanges().get(0)).getValueBefore(), is("unsecure"));
-        assertThat(((CfObjectValueChanged) service.getChanges().get(0)).getValueAfter(), is("secure"));
+        assertThat(service.getChanges().size(), Matchers.is(1));
+        assertThat(service.getChanges().get(0).getPropertyName(), Matchers.is("plan"));
+        assertThat(((CfObjectValueChanged) service.getChanges().get(0)).getValueBefore(), Matchers.is("unsecure"));
+        assertThat(((CfObjectValueChanged) service.getChanges().get(0)).getValueAfter(), Matchers.is("secure"));
 
         //apps
         DiffNode apps = specNode.getChild("apps");
-        assertThat(apps.getChanges().size(), is(0));
+        assertThat(apps.getChanges().size(), Matchers.is(0));
         //only two since the app (app2) that is not in the desired config gets skipped
-        assertThat(apps.getChildNodes().size(), is(2));
-        assertThat(apps.getChild("app1"), notNullValue());
-        assertThat(apps.getChild("app3"), notNullValue());
+        assertThat(apps.getChildNodes().size(), Matchers.is(2));
+        assertThat(apps.getChild("app1"), Matchers.notNullValue());
+        assertThat(apps.getChild("app3"), Matchers.notNullValue());
 
         //app1
         DiffNode app1 = apps.getChild("app1");
-        assertThat(app1.getChanges().size(), is(0));
-        assertThat(app1.getChildNodes().size(), is(1));
-        assertThat(app1.getChild("manifest"), notNullValue());
+        assertThat(app1.getChanges().size(), Matchers.is(0));
+        assertThat(app1.getChildNodes().size(), Matchers.is(1));
+        assertThat(app1.getChild("manifest"), Matchers.notNullValue());
 
         DiffNode app1Manifest = app1.getChild("manifest");
         assertTrue(app1Manifest.isLeaf());
-        assertThat(app1Manifest.getChanges().size(), is(1));
-        assertThat(app1Manifest.getChanges(), contains(instanceOf(CfMapChange.class)));
+        assertThat(app1Manifest.getChanges().size(), Matchers.is(1));
+        assertThat(app1Manifest.getChanges(), Matchers.contains(Matchers.instanceOf(CfMapChange.class)));
         CfMapChange environmentVariablesChange = (CfMapChange) app1Manifest.getChanges().get(0);
-        assertThat(environmentVariablesChange.getChangedValues(), hasItems(
-                hasProperty("changeType", is(ChangeType.ADDED)),
-                hasProperty("changeType", is(ChangeType.REMOVED)),
-                hasProperty("changeType", is(ChangeType.CHANGED))));
-        assertThat(environmentVariablesChange.getPropertyName(), is("environmentVariables"));
+        assertThat(environmentVariablesChange.getChangedValues(), Matchers.hasItems(
+                Matchers.hasProperty("changeType", Matchers.is(ChangeType.ADDED)),
+                Matchers.hasProperty("changeType", Matchers.is(ChangeType.REMOVED)),
+                Matchers.hasProperty("changeType", Matchers.is(ChangeType.CHANGED))));
+        assertThat(environmentVariablesChange.getPropertyName(), Matchers.is("environmentVariables"));
 
         //app3
         DiffNode app3 = apps.getChild("app3");
         assertTrue(app3.isNewObject());
-        assertThat(app3.getChildNodes().size(), is(1));
-        assertThat(app3.getChild("manifest"), notNullValue());
-        //new app manifest object also
-        DiffNode app3Manifest = app3.getChild("manifest");
-        assertTrue(app3Manifest.isNewObject());
-        assertTrue(app3Manifest.isLeaf());
+        assertThat(app3.getChildNodes().size(), Matchers.is(0));
+        assertTrue(app3.isLeaf());
+
     }
 }

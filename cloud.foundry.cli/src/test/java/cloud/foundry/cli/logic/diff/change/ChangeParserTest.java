@@ -3,7 +3,6 @@ package cloud.foundry.cli.logic.diff.change;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationManifestBean;
@@ -18,6 +17,11 @@ import cloud.foundry.cli.logic.diff.change.map.CfMapValueChanged;
 import cloud.foundry.cli.logic.diff.change.object.CfNewObject;
 import cloud.foundry.cli.logic.diff.change.object.CfRemovedObject;
 import cloud.foundry.cli.logic.diff.change.object.CfObjectValueChanged;
+import cloud.foundry.cli.logic.diff.change.parsing.ContainerChangeParsingStrategy;
+import cloud.foundry.cli.logic.diff.change.parsing.MapChangeParsingStrategy;
+import cloud.foundry.cli.logic.diff.change.parsing.NewObjectParsingStrategy;
+import cloud.foundry.cli.logic.diff.change.parsing.RemovedObjectParsingStrategy;
+import cloud.foundry.cli.logic.diff.change.parsing.ValueChangeParsingStrategy;
 import org.javers.core.Changes;
 import org.javers.core.JaversBuilder;
 import org.javers.core.diff.ListCompareAlgorithm;
@@ -32,15 +36,30 @@ import org.javers.core.diff.changetype.map.EntryAdded;
 import org.javers.core.diff.changetype.map.EntryRemoved;
 import org.javers.core.diff.changetype.map.EntryValueChange;
 import org.javers.core.diff.changetype.map.MapChange;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Test for {@link ChangeParser}
  */
 public class ChangeParserTest {
+
+    ChangeParser changeParser;
+
+    @BeforeEach
+    public void setup() {
+        this.changeParser = new ChangeParser();
+        this.changeParser.addParsingStrategy(new NewObjectParsingStrategy());
+        this.changeParser.addParsingStrategy(new RemovedObjectParsingStrategy());
+        this.changeParser.addParsingStrategy(new MapChangeParsingStrategy());
+        this.changeParser.addParsingStrategy(new ContainerChangeParsingStrategy());
+        this.changeParser.addParsingStrategy(new ContainerChangeParsingStrategy());
+        this.changeParser.addParsingStrategy(new ValueChangeParsingStrategy(this.changeParser));
+    }
 
     @Test
     public void testParseNewObject() {
@@ -53,12 +72,15 @@ public class ChangeParserTest {
                 .getChangesByType(NewObject.class)
                 .get(0);
 
+
+
         // when
-        CfChange cfChange = ChangeParser.parse(newObject);
+        List<CfChange> cfChange = changeParser.parse(newObject);
 
         // then
-        assertTrue(cfChange instanceof CfNewObject);
-        assertThat(cfChange.getAffectedObject(), is(newObject.getAffectedObject().get()));
+        assertThat(cfChange.size(), is(1));
+        assertTrue(cfChange.get(0) instanceof CfNewObject);
+        assertThat(cfChange.get(0).getAffectedObject(), is(newObject.getAffectedObject().get()));
     }
 
     @Test
@@ -71,12 +93,14 @@ public class ChangeParserTest {
                 .getChangesByType(ObjectRemoved.class)
                 .get(0);
 
+
         // when
-        CfChange cfChange = ChangeParser.parse(objectRemoved);
+        List<CfChange> cfChange = changeParser.parse(objectRemoved);
 
         // then
-        assertTrue(cfChange instanceof CfRemovedObject);
-        assertThat(cfChange.getAffectedObject(), is(objectRemoved.getAffectedObject().get()));
+        assertThat(cfChange.size(), is(1));
+        assertTrue(cfChange.get(0) instanceof CfRemovedObject);
+        assertThat(cfChange.get(0).getAffectedObject(), is(objectRemoved.getAffectedObject().get()));
     }
 
     @Test
@@ -90,15 +114,18 @@ public class ChangeParserTest {
                 .getChangesByType(ValueChange.class)
                 .get(0);
 
+
         // when
-        CfChange cfChange = ChangeParser.parse(valueChange);
+        List<CfChange> cfChange = changeParser.parse(valueChange);
 
         // then
-        assertTrue(cfChange instanceof CfObjectValueChanged);
-        assertThat(cfChange.getAffectedObject(), is(valueChange.getAffectedObject().get()));
-        assertThat(cfChange.getPropertyName(), is(valueChange.getPropertyName()));
-        assertThat(((CfObjectValueChanged) cfChange).getValueBefore(), is(valueChange.getLeft().toString()));
-        assertThat(((CfObjectValueChanged) cfChange).getValueAfter(), is(valueChange.getRight().toString()));
+
+        assertThat(cfChange.size(), is(1));
+        assertTrue(cfChange.get(0) instanceof CfObjectValueChanged);
+        assertThat(cfChange.get(0).getAffectedObject(), is(valueChange.getAffectedObject().get()));
+        assertThat(cfChange.get(0).getPropertyName(), is(valueChange.getPropertyName()));
+        assertThat(((CfObjectValueChanged) cfChange.get(0)).getValueBefore(), is(valueChange.getLeft().toString()));
+        assertThat(((CfObjectValueChanged) cfChange.get(0)).getValueAfter(), is(valueChange.getRight().toString()));
     }
 
 
@@ -115,11 +142,12 @@ public class ChangeParserTest {
                 .get(0);
 
         // when
-        CfChange cfChange = ChangeParser.parse(mapChange);
+        List<CfChange> cfChange = changeParser.parse(mapChange);
 
         // then
-        assertTrue(cfChange instanceof CfMapChange);
-        CfMapChange cfMapChange = (CfMapChange) cfChange;
+        assertThat(cfChange.size(), is(1));
+        assertTrue(cfChange.get(0) instanceof CfMapChange);
+        CfMapChange cfMapChange = (CfMapChange) cfChange.get(0);
         assertThat(cfMapChange.getChangedValues().size(), is(1));
         assertThat(cfMapChange.getValueChangesBy(ChangeType.ADDED).size(), is(1));
         assertThat(cfMapChange.getPropertyName(), is("environmentVariables"));
@@ -146,11 +174,12 @@ public class ChangeParserTest {
                 .get(0);
 
         // when
-        CfChange cfChange = ChangeParser.parse(mapChange);
+        List<CfChange> cfChange = changeParser.parse(mapChange);
 
         // then
-        assertTrue(cfChange instanceof CfMapChange);
-        CfMapChange cfMapChange = (CfMapChange) cfChange;
+        assertThat(cfChange.size(), is(1));
+        assertTrue(cfChange.get(0) instanceof CfMapChange);
+        CfMapChange cfMapChange = (CfMapChange) cfChange.get(0);
         assertThat(cfMapChange.getChangedValues().size(), is(1));
         assertThat(cfMapChange.getValueChangesBy(ChangeType.REMOVED).size(), is(1));
         assertThat(cfMapChange.getPropertyName(), is("environmentVariables"));
@@ -177,11 +206,12 @@ public class ChangeParserTest {
                 .get(0);
 
         // when
-        CfChange cfChange = ChangeParser.parse(mapChange);
+        List<CfChange> cfChange = changeParser.parse(mapChange);
 
         // then
-        assertTrue(cfChange instanceof CfMapChange);
-        CfMapChange cfMapChange = (CfMapChange) cfChange;
+        assertThat(cfChange.size(), is(1));
+        assertTrue(cfChange.get(0) instanceof CfMapChange);
+        CfMapChange cfMapChange = (CfMapChange) cfChange.get(0);
         assertThat(cfMapChange.getChangedValues().size(), is(1));
         assertThat(cfMapChange.getValueChangesBy(ChangeType.CHANGED).size(), is(1));
         assertThat(cfMapChange.getPropertyName(), is("environmentVariables"));
@@ -207,11 +237,12 @@ public class ChangeParserTest {
                 .get(0);
 
         // when
-        CfChange cfChange = ChangeParser.parse(containerChange);
+        List<CfChange> cfChange = changeParser.parse(containerChange);
 
         // then
-        assertTrue(cfChange instanceof CfContainerChange);
-        CfContainerChange cfContainerChange = (CfContainerChange) cfChange;
+        assertThat(cfChange.size(), is(1));
+        assertTrue(cfChange.get(0) instanceof CfContainerChange);
+        CfContainerChange cfContainerChange = (CfContainerChange) cfChange.get(0);
         assertThat(cfContainerChange.getPropertyName(), is("spaceDevelopers"));
         assertThat(cfContainerChange.getValueChangesBy(ChangeType.ADDED).size(), is(1));
         assertThat(cfContainerChange.getChangedValues().size(), is(1));
@@ -234,11 +265,12 @@ public class ChangeParserTest {
                 .get(0);
 
         // when
-        CfChange cfChange = ChangeParser.parse(containerChange);
+        List<CfChange> cfChange = changeParser.parse(containerChange);
 
         // then
-        assertTrue(cfChange instanceof CfContainerChange);
-        CfContainerChange cfContainerChange = (CfContainerChange) cfChange;
+        assertThat(cfChange.size(), is(1));
+        assertTrue(cfChange.get(0) instanceof CfContainerChange);
+        CfContainerChange cfContainerChange = (CfContainerChange) cfChange.get(0);
         assertThat(cfContainerChange.getPropertyName(), is("spaceDevelopers"));
         assertThat(cfContainerChange.getValueChangesBy(ChangeType.REMOVED).size(), is(1));
         assertThat(cfContainerChange.getChangedValues().size(), is(1));
@@ -264,16 +296,17 @@ public class ChangeParserTest {
         assertThat(referenceChange.getPropertyName(), is("target"));
 
         // when
-        CfChange cfChange = ChangeParser.parse(referenceChange);
+        List<CfChange> cfChange = changeParser.parse(referenceChange);
 
         // then
-        assertThat(cfChange, nullValue());
+        assertThat(cfChange.size(), is(0));
     }
 
     private static Changes createJaversChanges(Bean live, Bean desired) {
         return JaversBuilder
                 .javers()
                 .withListCompareAlgorithm(ListCompareAlgorithm.AS_SET)
+                .registerValueObject(ApplicationManifestBean.class)
                 .build()
                 .compare(live, desired)
                 .getChanges();

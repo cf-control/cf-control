@@ -35,6 +35,26 @@ public abstract class CfChange {
     }
 
     /**
+     * sets the object in which the change has taken place
+     * @param affectedObject
+     */
+    public void setAffectedObject(Object affectedObject) {
+        checkNotNull(affectedObject);
+
+        this.affectedObject = affectedObject;
+    }
+
+    /**
+     * sets the absolute path to the property
+     * @param path path as a list of strings
+     */
+    public void setPath(List<String> path) {
+        checkNotNull(affectedObject);
+
+        this.path = path;
+    }
+
+    /**
      * @return the object in which the change has taken place
      */
     public Object getAffectedObject() {
