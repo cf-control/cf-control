@@ -11,6 +11,8 @@ import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.RefResolver;
 import cloud.foundry.cli.crosscutting.mapping.CfArgumentsCreator;
 import org.yaml.snakeyaml.constructor.ConstructorException;
+import org.yaml.snakeyaml.parser.ParserException;
+import org.yaml.snakeyaml.scanner.ScannerException;
 import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
 import picocli.CommandLine;
@@ -117,6 +119,8 @@ public class BaseController implements Callable<Integer> {
                 log.error("Failed to resolve " + RefResolver.REF_KEY + "-occurrences:", ex.getMessage());
             } else if (ex instanceof ConstructorException) {
                 log.error("Cannot interpret yaml contents:", ex.getMessage());
+            } else if (ex instanceof ParserException || ex instanceof ScannerException) {
+                log.error("Cannot parse file contents:", ex.getMessage());
             } else if (ex instanceof DiffException) {
                 log.error("Unable to perform the diff:", ex.getMessage());
             } else if (ex instanceof ApplyException) {
