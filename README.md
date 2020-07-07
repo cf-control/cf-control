@@ -65,6 +65,9 @@ You can have the tool create a machine-readable log file by specifying the `--lo
   diff            Print the differences between the given yaml file and the configuration of your cf instance.
   apply           Apply the configuration from a given yaml file to your cf instance.
   update          Update/Remove apps, service instances or space developers.
+  dump            Read a configuration file, resolve all $refs and print the result to the console.
+                  Helps users to understand how the tool resolves $ref and what the resulting config is
+                  it would apply.
 ```
 
 

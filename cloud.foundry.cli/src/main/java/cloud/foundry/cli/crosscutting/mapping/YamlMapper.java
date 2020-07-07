@@ -16,7 +16,9 @@ import org.yaml.snakeyaml.constructor.SafeConstructor;
 import org.yaml.snakeyaml.introspector.Property;
 import org.yaml.snakeyaml.nodes.NodeTuple;
 import org.yaml.snakeyaml.nodes.Tag;
+import org.yaml.snakeyaml.parser.ParserException;
 import org.yaml.snakeyaml.representer.Representer;
+import org.yaml.snakeyaml.scanner.ScannerException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -41,19 +43,51 @@ public class YamlMapper {
      *
      * @param configFilePath the path to the config file
      * @param beanType the desired type of the bean to load
+     * @return a bean holding the information of the configuration file
      * @throws IOException if the config file cannot be accessed
      * @throws RefResolvingException if an error during the ref-resolution process occurs
-     * @throws ConstructorException if the resolved Object can not be dumped as the given Bean type
+     * @throws ParserException if the configuration file content cannot be parsed as yaml
+     * @throws ScannerException if the configuration file content cannot be interpreted as yaml
+     * @throws ConstructorException if the resolved config cannot be interpreted as the given bean type
      */
     public static <B extends Bean> B loadBean(String configFilePath, Class<B> beanType) throws IOException {
-        Object yamlTreeRoot = loadYamlTree(configFilePath);
+        String resolvedConfigContent = resolveYamlFile(configFilePath);
+        return interpretBean(resolvedConfigContent, beanType);
+    }
+
+    /**
+     * Loads a yaml file as a tree and resolves all ref-occurrences. Returns the resolved content in the
+     * yaml format.
+     *
+     * @param yamlFilePath the path a yaml file
+     * @return the resolved content of the yaml file in the yaml format
+     * @throws IOException if the yaml file cannot be accessed
+     * @throws ParserException if the configuration file content cannot be parsed as yaml
+     * @throws ScannerException if the content of the yaml file cannot be interpreted as yaml
+     * @throws RefResolvingException if an error during the ref-resolution process occurs
+     */
+    public static String resolveYamlFile(String yamlFilePath) throws IOException {
+        Object yamlTreeRoot = loadYamlTree(yamlFilePath);
         yamlTreeRoot = RefResolver.resolveRefs(yamlTreeRoot);
 
-        Yaml treeDumper = createMinimalDumper();
-        String resolvedConfig = treeDumper.dump(yamlTreeRoot);
+        Yaml treeDumper = createDefaultDumper();
+        return treeDumper.dump(yamlTreeRoot);
+    }
 
+    /**
+     * Interprets a string that is formatted in the yaml format as a desired bean object. Ref-occurrences in the
+     * provided yaml content should have been resolved beforehand.
+     *
+     * @param resolvedYamlContent the yaml content to be interpreted as a bean object
+     * @param beanType the desired type of the bean
+     * @return the resolved content of the yaml file in the yaml format
+     * @throws ParserException if the configuration file content cannot be parsed as yaml
+     * @throws ScannerException if the provided yaml content cannot be interpreted as yaml
+     * @throws ConstructorException if the resolved config cannot be interpreted as the given bean type
+     */
+    public static <B extends Bean> B interpretBean(String resolvedYamlContent, Class<B> beanType) {
         Yaml yamlProcessor = new Yaml();
-        return yamlProcessor.loadAs(resolvedConfig, beanType);
+        return yamlProcessor.loadAs(resolvedYamlContent, beanType);
     }
 
     /**
@@ -62,6 +96,8 @@ public class YamlMapper {
      * @param filePath the path or url to a file
      * @return the resulting yaml tree
      * @throws IOException if the file cannot be accessed
+     * @throws ParserException if the configuration file content cannot be parsed as yaml
+     * @throws ScannerException if the file content cannot be interpreted as yaml
      */
     static Object loadYamlTree(String filePath) throws IOException {
         try (InputStream inputStream = FileUtils.openLocalOrRemoteFile(filePath)) {
@@ -131,14 +167,5 @@ public class YamlMapper {
         representer.addClassTag(TargetBean.class, Tag.MAP);
         representer.addClassTag(ConfigBean.class, Tag.MAP);
         return new Yaml(representer, options);
-    }
-
-    private static Yaml createMinimalDumper() {
-        DumperOptions options = new DumperOptions();
-        // do not dump tags into the document
-        options.setTags(new HashMap<>());
-        // minimal indentation needed as this does not serve as output to the user
-        options.setIndent(1);
-        return new Yaml(options);
     }
 }

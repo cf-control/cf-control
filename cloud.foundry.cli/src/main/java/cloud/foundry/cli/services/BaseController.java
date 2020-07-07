@@ -11,6 +11,8 @@ import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.RefResolver;
 import cloud.foundry.cli.crosscutting.mapping.CfArgumentsCreator;
 import org.yaml.snakeyaml.constructor.ConstructorException;
+import org.yaml.snakeyaml.parser.ParserException;
+import org.yaml.snakeyaml.scanner.ScannerException;
 import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
 import picocli.CommandLine;
@@ -34,7 +36,8 @@ import java.util.logging.FileHandler;
                 GetController.class,
                 DiffController.class,
                 ApplyController.class,
-                UpdateController.class})
+                UpdateController.class,
+                DumpController.class})
 public class BaseController implements Callable<Integer> {
 
     private static final Log log = Log.getLog(BaseController.class);
@@ -85,13 +88,6 @@ public class BaseController implements Callable<Integer> {
         BaseController controller = new BaseController();
 
         CommandLine cli = new CommandLine(controller);
-        try {
-            args = CfArgumentsCreator.determineCommandLine(cli, args);
-        } catch (CommandLine.ParameterException parameterException) {
-            // the arguments are invalid
-            log.error(parameterException.getMessage());
-            System.exit(1);
-        }
 
         // picocli has a nice hidden feature: one can register a special exception handler and thus deal with
         // exceptions occurring during the execution of a Callable, Runnable etc.
@@ -116,6 +112,8 @@ public class BaseController implements Callable<Integer> {
                 log.error("Failed to resolve " + RefResolver.REF_KEY + "-occurrences:", ex.getMessage());
             } else if (ex instanceof ConstructorException) {
                 log.error("Cannot interpret yaml contents:", ex.getMessage());
+            } else if (ex instanceof ParserException || ex instanceof ScannerException) {
+                log.error("Cannot parse file contents:", ex.getMessage());
             } else if (ex instanceof DiffException) {
                 log.error("Unable to perform the diff:", ex.getMessage());
             } else if (ex instanceof ApplyException) {
@@ -153,10 +151,12 @@ public class BaseController implements Callable<Integer> {
             return 1;
         });
 
+        CommandLine.ParseResult parseResult = null;
+
         // parse args now to be able to configure logging before we continue running the rest of the CLI
         // a nice catch of this approach: we can properly handle all sorts of argument parsing errors nicely
         try {
-            cli.parseArgs(args);
+            parseResult = cli.parseArgs(args);
         } catch (Exception e) {
             // TODO: consider printing this directly to stderr
             // (we don't necessarily need to use the logger while parsing the args)
@@ -200,6 +200,15 @@ public class BaseController implements Callable<Integer> {
         // register in the log if available
         if (fileHandler != null) {
             Log.addHandler(fileHandler);
+        }
+
+        // append login options if needed
+        try {
+            args = CfArgumentsCreator.determineCommandLine(cli, args, parseResult.subcommand());
+        } catch (CommandLine.ParameterException parameterException) {
+            // the arguments are invalid
+            log.error(parameterException.getMessage());
+            System.exit(1);
         }
 
         // okay, logging is configured, now let's run the rest of the CLI

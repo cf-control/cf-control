@@ -9,6 +9,7 @@ public class ApplicationBean implements Bean {
 
     private ApplicationManifestBean manifest;
     private String path;
+    private String meta;
 
     public ApplicationManifestBean getManifest() {
         return manifest;
@@ -26,6 +27,14 @@ public class ApplicationBean implements Bean {
         this.path = path;
     }
 
+    public String getMeta() {
+        return meta;
+    }
+
+    public void setMeta(String meta) {
+        this.meta = meta;
+    }
+
     public ApplicationBean(ApplicationManifest manifest) {
         this.path = manifest.getPath() == null ? null : manifest.getPath().toString();
         this.manifest = new ApplicationManifestBean(manifest);
@@ -39,6 +48,7 @@ public class ApplicationBean implements Bean {
         return "ApplicationBean{" +
                 "manifest=" + manifest +
                 ", path='" + path + '\'' +
+                ", meta='" + meta + '\'' +
                 '}';
     }
 }
