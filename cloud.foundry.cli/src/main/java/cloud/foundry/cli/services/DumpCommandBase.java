@@ -40,10 +40,15 @@ public abstract class DumpCommandBase<B extends Bean> implements Callable<Intege
      */
     @Override
     public Integer call() throws Exception {
-        log.info("Reading and processing YAML file...");
         String yamlFilePath = yamlCommandOptions.getYamlFilePath();
+
+        log.info("Reading and processing YAML file...");
         String resolvedConfig = YamlMapper.resolveYamlFile(yamlFilePath);
+
+        // print the config before interpreting it, so that in cases of interpretation errors, the user still gets his
+        // resolved config printed out on the console
         System.out.println(resolvedConfig);
+
         YamlMapper.interpretBean(resolvedConfig, beanClass);
         return 0;
     }
