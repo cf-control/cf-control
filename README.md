@@ -181,13 +181,13 @@ understanding how to use our tool. What can I use the files for?
 application.
 * [appPython.yml](cloud.foundry.cli/src/test/resources/demo/appPython.yml): Reference for create/update/remove of an
 application.
-* [getAll.yml](cloud.foundry.cli/src/test/resources/demo/appJava.yml): Example output of the **get all** command. 
+* [getAll.yml](cloud.foundry.cli/src/test/resources/demo/appJava.yml): Example output of the **get** command. 
 In this exmaple you can see how you have to structure the yml Files in general.
 * [refDemo.yml](cloud.foundry.cli/src/test/resources/demo/refDemo.yml) & 
 :[referred.yml](cloud.foundry.cli/src/test/resources/demo/referred.yml) Example how you can use the ref syntax in the 
 context of creating services (command: create services)
-* [services.yml](cloud.foundry.cli/src/test/resources/demo/services.yml): Reference for create/remove of 
-services.
+* [removeServices.yml](cloud.foundry.cli/src/test/resources/demo/removeServices.yml): Reference for removing of the services.
+* [createServices.yaml](cloud.foundry.cli/src/test/resources/demo/createServices.yaml): Reference for creation of the services.
 * [spaceDeveloper.yml](cloud.foundry.cli/src/test/resources/demo/spaceDeveloper.yml):  Reference for create/remove of 
 space developers.
 
