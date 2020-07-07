@@ -77,14 +77,12 @@ public class FileUtils {
 
     private static InputStream doOpenLocalFile(String filepath) throws IOException {
         File file = new File(filepath);
-        if (hasUnallowedFileExtension(file.getName())) {
-            throw new InvalidFileTypeException("invalid file extension: "
-                    + FilenameUtils.getExtension(file.getName()));
-        } else if (hasEmptyFileExtension(file.getName())) {
-            throw new InvalidFileTypeException("missing file extension");
-        }
+        checkFileExtensionNotEmpty(file.getName());
+        checkHasAllowedFileExtension(file.getName());
+
         return new FileInputStream(file);
     }
+
 
     /**
      * Opens a file with the given path on a remote host. The user must make sure to close the InputStream after usage.
@@ -105,10 +103,7 @@ public class FileUtils {
     private static InputStream doOpenRemoteFile(String url) throws IOException {
         URI uri = URI.create(url);
 
-        if (hasUnallowedFileExtension(uri.getPath()) && !hasEmptyFileExtension(uri.getPath())) {
-            throw new InvalidFileTypeException("invalid file extension: "
-                    + FilenameUtils.getExtension(uri.getPath()));
-        }
+        checkHasAllowedFileExtension(uri.getPath());
 
         try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
 
@@ -129,17 +124,21 @@ public class FileUtils {
         }
     }
 
-    private static boolean hasUnallowedFileExtension(String filename) {
-        return !ALLOWED_FILE_EXTENSIONS.contains(FilenameUtils.getExtension(filename).toUpperCase());
-    }
-
-    private static boolean hasEmptyFileExtension(String filename) {
-        return FilenameUtils.getExtension(filename).isEmpty();
-    }
-
     private static InputStream cloneInputStream(InputStream inputStream) throws IOException {
         byte[] data = IOUtils.toByteArray(inputStream);
         return new ByteArrayInputStream(data);
     }
 
+    private static void checkFileExtensionNotEmpty(String name) throws InvalidFileTypeException {
+        if(FilenameUtils.getExtension(name).isEmpty()) {
+            throw new InvalidFileTypeException("invalid file extension: no file extension.");
+        }
+    }
+
+    private static void checkHasAllowedFileExtension(String name) throws InvalidFileTypeException {
+        if (!FilenameUtils.getExtension(name).isEmpty() && !ALLOWED_FILE_EXTENSIONS.contains(FilenameUtils.getExtension(name).toUpperCase())) {
+            throw new InvalidFileTypeException("invalid file extension: "
+                    + FilenameUtils.getExtension(name));
+        }
+    }
 }
