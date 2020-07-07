@@ -53,7 +53,7 @@ public class RenameController implements Callable<Integer> {
             } catch (RuntimeException e) {
                 throw new UpdateException(e);
             }
-            log.info("Renamed app. Old-name:", currentName,"new-name:", newName);
+            log.info("Renamed the app from", currentName,"to", newName);
             return 0;
         }
     }
