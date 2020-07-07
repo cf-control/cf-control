@@ -31,7 +31,9 @@ public class RemovedObjectParsingStrategyTest {
         when(globalId.toString())
                 .thenReturn("#root/application");
         ApplicationBean applicationBean = new ApplicationBean();
-        Change change = new ObjectRemoved(globalId, Optional.of(applicationBean), Optional.of(mock(CommitMetadata.class)));
+        Change change = new ObjectRemoved(globalId,
+                Optional.of(applicationBean),
+                Optional.of(mock(CommitMetadata.class)));
         RemovedObjectParsingStrategy strategy = new RemovedObjectParsingStrategy();
 
         List<CfChange> changes = strategy.parse(change);
@@ -46,7 +48,9 @@ public class RemovedObjectParsingStrategyTest {
 
     @Test
     public void testParseOnInvalidTypeThrowsException() {
-        Change change = new NewObject(mock(GlobalId.class), Optional.of(new ApplicationBean()), Optional.of(mock(CommitMetadata.class)));
+        Change change = new NewObject(mock(GlobalId.class),
+                Optional.of(new ApplicationBean()),
+                Optional.of(mock(CommitMetadata.class)));
         RemovedObjectParsingStrategy strategy = new RemovedObjectParsingStrategy();
 
         assertThrows(IllegalArgumentException.class, () -> strategy.parse(change));

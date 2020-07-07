@@ -6,7 +6,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import cloud.foundry.cli.crosscutting.exceptions.ApplyException;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
-import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationManifestBean;
 import cloud.foundry.cli.logic.diff.change.CfChange;
 import cloud.foundry.cli.logic.diff.change.object.CfNewObject;
 import cloud.foundry.cli.logic.diff.change.object.CfObjectValueChanged;
@@ -14,7 +13,10 @@ import cloud.foundry.cli.logic.diff.change.object.CfRemovedObject;
 import cloud.foundry.cli.operations.ApplicationsOperations;
 import reactor.core.publisher.Flux;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import javax.annotation.Nonnull;
 
@@ -47,8 +49,8 @@ public class ApplicationRequestsPlaner extends RequestsPlaner {
     @Override
     public void visitNewObject(CfNewObject newObject) {
         checkNotNull(newObject);
-        checkArgument(this.requestType == RequestType.NONE
-                , "Trying to process new object when app will be removed or changed already.");
+        checkArgument(this.requestType == RequestType.NONE,
+                "Trying to process new object when app will be removed or changed already.");
         checkArgument(newObject.getAffectedObject() instanceof ApplicationBean,
                 "Change object must contain an ApplicationBean");
 
@@ -73,10 +75,10 @@ public class ApplicationRequestsPlaner extends RequestsPlaner {
                 "Trying to process change object when app will be added or removed already.");
 
         // Already restarting, nothing to do
-        if(this.requestType == RequestType.CHANGE_RESTART) return;
+        if (this.requestType == RequestType.CHANGE_RESTART) return;
 
         // if the field where the change as taken place can only be changed through restarting
-        if(FIELDS_REQUIRE_RESTART.contains(objectValueChanged.getPropertyName())) {
+        if (FIELDS_REQUIRE_RESTART.contains(objectValueChanged.getPropertyName())) {
             this.requestType = RequestType.CHANGE_RESTART;
             return;
         }
@@ -95,8 +97,8 @@ public class ApplicationRequestsPlaner extends RequestsPlaner {
     @Override
     public void visitRemovedObject(@Nonnull CfRemovedObject removedObject) {
         checkNotNull(removedObject);
-        checkArgument(requestType == RequestType.NONE
-                , "Trying to process remove object when app will be added or changed already.");
+        checkArgument(requestType == RequestType.NONE,
+                "Trying to process remove object when app will be added or changed already.");
         checkArgument(removedObject.getAffectedObject() instanceof ApplicationBean ,
                 "Change object must contain an ApplicationBean");
 
@@ -121,7 +123,7 @@ public class ApplicationRequestsPlaner extends RequestsPlaner {
         checkNotNull(applicationName);
         checkNotNull(applicationChanges);
 
-        try{
+        try {
             ApplicationRequestsPlaner applicationRequestsPlaner = new ApplicationRequestsPlaner(appOperations,
                     applicationName);
 
@@ -142,16 +144,16 @@ public class ApplicationRequestsPlaner extends RequestsPlaner {
     }
 
     private Flux<Void> determineRequest(ApplicationBean applicationBean) {
-        if(this.requestType == RequestType.CREATE) {
+        if (this.requestType == RequestType.CREATE) {
             log.debug("Add create request for app: " + applicationName);
             return Flux.merge(this.appOperations.create(this.applicationName, applicationBean, false));
-        } else if(this.requestType == RequestType.REMOVE) {
+        } else if (this.requestType == RequestType.REMOVE) {
             log.debug("Add remove request for app: " + applicationName);
             return Flux.merge(this.appOperations.remove(this.applicationName));
-        } else if(this.requestType == RequestType.CHANGE_RESTART) {
+        } else if (this.requestType == RequestType.CHANGE_RESTART) {
             log.debug("Add update with restart request for app: " + applicationName);
             return Flux.merge(this.appOperations.create(this.applicationName, applicationBean, false));
-        } else if(this.requestType == RequestType.CHANGE_INPLACE) {
+        } else if (this.requestType == RequestType.CHANGE_INPLACE) {
             System.out.println("UPDATING APP INPLACE: " + applicationName);
             // TODO scale, env vars or healthcheck type
         }

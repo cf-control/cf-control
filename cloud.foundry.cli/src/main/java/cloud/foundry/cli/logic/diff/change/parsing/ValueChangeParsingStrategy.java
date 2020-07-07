@@ -44,12 +44,14 @@ public class ValueChangeParsingStrategy extends AbstractParsingStrategy {
     protected List<CfChange> doParse(Change change) {
         ValueChange valueChange = (ValueChange) change;
 
-        if(((ValueChange) change).getPropertyName().equals("manifest")) {
-            List<Change> manifestChanges = this.javers.compare(((ValueChange) change).getLeft(), ((ValueChange) change).getRight()).getChanges();
+        if (valueChange.getPropertyName().equals("manifest")) {
+            List<Change> manifestChanges = this.javers.compare(
+                    valueChange.getLeft(),
+                    valueChange.getRight()).getChanges();
 
             return manifestChanges.stream()
                     .flatMap(manifestChange -> this.changeParser.parse(manifestChange).stream())
-                    .peek(manifestChange ->{
+                    .peek(manifestChange -> {
                         manifestChange.setAffectedObject(change.getAffectedObject().get());
                         List<String> path = extractPathFrom(change);
                         path.add("manifest");

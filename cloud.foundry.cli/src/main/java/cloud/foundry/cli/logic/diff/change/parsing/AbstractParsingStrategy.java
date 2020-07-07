@@ -27,8 +27,9 @@ public abstract class AbstractParsingStrategy implements ParsingStrategy {
     protected abstract List<CfChange> doParse(Change change);
 
     private void assertMatchingTypes(Change change) {
-        if(!getMatchingTypes().contains(change.getClass())) {
-            throw new IllegalArgumentException("Invalid change type. Was '" + change.getClass() + "'. Should be one of " + getMatchingTypes());
+        if (!getMatchingTypes().contains(change.getClass())) {
+            throw new IllegalArgumentException("Invalid change type. Was '" +
+                    change.getClass() + "'. Should be one of " + getMatchingTypes());
         }
     }
 

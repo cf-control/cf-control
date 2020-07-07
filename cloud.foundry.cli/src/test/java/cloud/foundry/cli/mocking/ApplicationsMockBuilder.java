@@ -5,7 +5,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.applications.ApplicationDetail;
 import org.cloudfoundry.operations.applications.ApplicationManifest;
 import org.cloudfoundry.operations.applications.ApplicationSummary;
@@ -14,7 +13,6 @@ import org.cloudfoundry.operations.applications.DeleteApplicationRequest;
 import org.cloudfoundry.operations.applications.GetApplicationManifestRequest;
 import org.cloudfoundry.operations.applications.GetApplicationRequest;
 import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
-import org.mockito.stubbing.Answer;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -85,6 +83,10 @@ public class ApplicationsMockBuilder {
                 .thenAnswer(invocation -> {
                     GetApplicationRequest request = invocation.getArgument(0);
 
+                    if (this.apps.containsKey(request.getName())) {
+                        ApplicationManifest appManifest = this.apps.get(request.getName());
+                        return Mono.just(toApplicationDetail(request.getName(), appManifest));
+                    }
                     Map.Entry<String, ApplicationManifest> appManifestEntry = this.apps.entrySet()
                             .stream()
                             .filter(entry -> entry.getValue().getName().equals(request.getName()))
@@ -121,7 +123,7 @@ public class ApplicationsMockBuilder {
                     GetApplicationManifestRequest request = invocation.getArgument(0);
 
                     // simple linear search; this is not about performance, really
-                    if(this.apps.containsKey(request.getName())) {
+                    if (this.apps.containsKey(request.getName())) {
                         return Mono.just(this.apps.get(request.getName()));
                     }
 

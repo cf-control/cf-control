@@ -55,7 +55,10 @@ public class ApplicationManifestBean implements Bean {
         this.dockerImage =  manifest.getDocker() == null ? null : manifest.getDocker().getImage();
         this.dockerUsername =  manifest.getDocker() == null ? null :  manifest.getDocker().getUsername();
         this.domains = manifest.getDomains();
-        this.environmentVariables = manifest.getEnvironmentVariables() != null && manifest.getEnvironmentVariables().isEmpty() ? null : manifest.getEnvironmentVariables();
+        this.environmentVariables = manifest.getEnvironmentVariables() != null
+                && manifest.getEnvironmentVariables().isEmpty()
+                ? null
+                : manifest.getEnvironmentVariables();
         this.healthCheckHttpEndpoint = manifest.getHealthCheckHttpEndpoint();
         this.healthCheckType = manifest.getHealthCheckType();
         this.hosts = manifest.getHosts();
@@ -69,7 +72,10 @@ public class ApplicationManifestBean implements Bean {
                 .stream()
                 .map(Route::getRoute)
                 .collect(Collectors.toList());
-        this.services = manifest.getServices() != null && manifest.getServices().isEmpty() ? null : manifest.getServices();
+        this.services = manifest.getServices() != null
+                && manifest.getServices().isEmpty()
+                ? null
+                : manifest.getServices();
         this.stack = manifest.getStack();
         this.timeout = manifest.getTimeout();
     }
@@ -267,7 +273,26 @@ public class ApplicationManifestBean implements Bean {
 
     @Override
     public int hashCode() {
-        return Objects.hash(buildpack, command, disk, dockerImage, dockerUsername, environmentVariables, healthCheckHttpEndpoint, healthCheckType, instances, memory, noRoute, randomRoute, routePath, routes, services, stack, timeout, domains, hosts, noHostname);
+        return Objects.hash(buildpack,
+                command,
+                disk,
+                dockerImage,
+                dockerUsername,
+                environmentVariables,
+                healthCheckHttpEndpoint,
+                healthCheckType,
+                instances,
+                memory,
+                noRoute,
+                randomRoute,
+                routePath,
+                routes,
+                services,
+                stack,
+                timeout,
+                domains,
+                hosts,
+                noHostname);
     }
 
     @Override

@@ -67,7 +67,9 @@ public class MapChangeParsingStrategyTest {
 
     @Test
     public void testParseOnInvalidTypeThrowsException() {
-        Change change = new ObjectRemoved(mock(GlobalId.class), Optional.of(new ApplicationBean()), Optional.of(mock(CommitMetadata.class)));
+        Change change = new ObjectRemoved(mock(GlobalId.class),
+                Optional.of(new ApplicationBean()),
+                Optional.of(mock(CommitMetadata.class)));
         MapChangeParsingStrategy strategy = new MapChangeParsingStrategy();
 
         assertThrows(IllegalArgumentException.class, () -> strategy.parse(change));

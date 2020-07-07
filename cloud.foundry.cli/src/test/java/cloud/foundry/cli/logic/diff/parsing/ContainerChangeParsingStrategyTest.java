@@ -61,7 +61,9 @@ public class ContainerChangeParsingStrategyTest {
 
     @Test
     public void testParseOnInvalidTypeThrowsException() {
-        Change change = new ObjectRemoved(mock(GlobalId.class), Optional.of(new ApplicationBean()), Optional.of(mock(CommitMetadata.class)));
+        Change change = new ObjectRemoved(mock(GlobalId.class),
+                Optional.of(new ApplicationBean()),
+                Optional.of(mock(CommitMetadata.class)));
         ContainerChangeParsingStrategy strategy = new ContainerChangeParsingStrategy();
 
         assertThrows(IllegalArgumentException.class, () -> strategy.parse(change));

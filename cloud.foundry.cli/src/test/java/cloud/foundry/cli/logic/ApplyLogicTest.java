@@ -28,20 +28,21 @@ import org.cloudfoundry.operations.applications.*;
 import org.cloudfoundry.client.v2.spaces.Spaces;
 import org.cloudfoundry.client.v3.Metadata;
 import org.cloudfoundry.client.v3.applications.ApplicationsV3;
-import org.cloudfoundry.client.v3.applications.GetApplicationRequest;
-import org.cloudfoundry.client.v3.applications.GetApplicationResponse;
 import org.cloudfoundry.operations.useradmin.ListSpaceUsersRequest;
 import org.cloudfoundry.operations.useradmin.SpaceUsers;
 import org.cloudfoundry.operations.useradmin.UserAdmin;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.mockito.stubbing.Answer;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 
@@ -174,8 +175,8 @@ public class ApplyLogicTest {
         Metadata appMetadata = createMockMetadata("someApplicationName", "some/path");
 
         DefaultCloudFoundryOperations cfMock = createMockCloudFoundryOperations2(
-                Collections.singletonMap("app1", appManifest),
-                Collections.singletonMap("app1", appMetadata));
+                Collections.singletonMap("someApplicationName", appManifest),
+                Collections.singletonMap("someApplicationName", appMetadata));
 
         // from now on: setup application to apply
         Map<String, ApplicationBean> applicationsToApply = createDesiredApplications("someApplicationName",
@@ -283,7 +284,10 @@ public class ApplyLogicTest {
                 .build();
     }
 
-    private Map<String, ApplicationBean> createDesiredApplications(String appname, String path, String buildpack, String meta) {
+    private Map<String, ApplicationBean> createDesiredApplications(String appname,
+                                                                   String path,
+                                                                   String buildpack,
+                                                                   String meta) {
         Map<String, ApplicationBean> appconfig = new HashMap<>();
         ApplicationBean applicationBean = new ApplicationBean();
         applicationBean.setPath(path);
@@ -299,6 +303,7 @@ public class ApplyLogicTest {
 
         return appconfig;
     }
+
   private DefaultCloudFoundryOperations createMockCloudFoundryOperations2(Map<String, ApplicationManifest> apps,
                                                                           Map<String, Metadata> metadata) {
       Applications applicationsMock = ApplicationsMockBuilder

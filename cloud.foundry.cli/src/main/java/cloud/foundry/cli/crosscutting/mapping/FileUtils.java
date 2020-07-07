@@ -130,13 +130,14 @@ public class FileUtils {
     }
 
     private static void checkFileExtensionNotEmpty(String name) throws InvalidFileTypeException {
-        if(FilenameUtils.getExtension(name).isEmpty()) {
+        if (FilenameUtils.getExtension(name).isEmpty()) {
             throw new InvalidFileTypeException("invalid file extension: no file extension.");
         }
     }
 
     private static void checkHasAllowedFileExtension(String name) throws InvalidFileTypeException {
-        if (!FilenameUtils.getExtension(name).isEmpty() && !ALLOWED_FILE_EXTENSIONS.contains(FilenameUtils.getExtension(name).toUpperCase())) {
+        if (!FilenameUtils.getExtension(name).isEmpty()
+                && !ALLOWED_FILE_EXTENSIONS.contains(FilenameUtils.getExtension(name).toUpperCase())) {
             throw new InvalidFileTypeException("invalid file extension: "
                     + FilenameUtils.getExtension(name));
         }

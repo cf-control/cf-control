@@ -1,23 +1,24 @@
 package cloud.foundry.cli.mocking;
 
-import org.cloudfoundry.client.v3.Lifecycle;
-import org.cloudfoundry.client.v3.LifecycleData;
-import org.cloudfoundry.client.v3.LifecycleType;
-import org.cloudfoundry.client.v3.Metadata;
-import org.cloudfoundry.client.v3.applications.*;
-import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
-import org.cloudfoundry.operations.applications.ApplicationManifest;
-import org.cloudfoundry.operations.applications.Applications;
-import org.cloudfoundry.uaa.users.Meta;
-import reactor.core.publisher.Mono;
-
-import java.util.List;
-import java.util.Map;
-
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import org.cloudfoundry.client.v3.Lifecycle;
+import org.cloudfoundry.client.v3.LifecycleData;
+import org.cloudfoundry.client.v3.LifecycleType;
+import org.cloudfoundry.client.v3.Metadata;
+import org.cloudfoundry.client.v3.applications.ApplicationState;
+import org.cloudfoundry.client.v3.applications.ApplicationsV3;
+import org.cloudfoundry.client.v3.applications.GetApplicationRequest;
+import org.cloudfoundry.client.v3.applications.GetApplicationResponse;
+import org.cloudfoundry.client.v3.applications.UpdateApplicationRequest;
+import org.cloudfoundry.client.v3.applications.UpdateApplicationResponse;
+import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
+import reactor.core.publisher.Mono;
+
+import java.util.Map;
 
 /**
  * Builder class that creates a mock instance for the {@link ApplicationsV3MockBuilder} class
@@ -67,13 +68,17 @@ public class ApplicationsV3MockBuilder {
                 .thenAnswer(invocation -> {
                     String appId = ((GetApplicationRequest) invocation.getArgument(0)).getApplicationId();
 
-                    if(this.metadata.containsKey(appId)) {
+                    if (this.metadata.containsKey(appId)) {
                         GetApplicationResponse response = GetApplicationResponse
                                 .builder()
                                 .metadata(this.metadata.get(appId))
                                 // random values without meaning
                                 .createdAt("someday")
-                                .lifecycle(Lifecycle.builder().data(mock(LifecycleData.class)).type(LifecycleType.BUILDPACK).build())
+                                .lifecycle(Lifecycle
+                                        .builder()
+                                        .data(mock(LifecycleData.class))
+                                        .type(LifecycleType.BUILDPACK)
+                                        .build())
                                 .name("somename")
                                 .state(ApplicationState.STOPPED)
                                 .id(appId)

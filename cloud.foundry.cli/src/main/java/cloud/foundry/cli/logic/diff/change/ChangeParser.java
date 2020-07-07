@@ -25,7 +25,7 @@ public class ChangeParser {
     }
 
     public void addParsingStrategy(ParsingStrategy parsingStrategy) {
-        for(Class<? extends Change> classType : parsingStrategy.getMatchingTypes()) {
+        for (Class<? extends Change> classType : parsingStrategy.getMatchingTypes()) {
             this.parsers.put(classType, parsingStrategy);
         }
     }
@@ -39,7 +39,7 @@ public class ChangeParser {
     public List<CfChange> parse(Change change) {
         checkNotNull(change);
 
-        if(this.parsers.containsKey(change.getClass())) {
+        if (this.parsers.containsKey(change.getClass())) {
             return parsers.get(change.getClass()).parse(change);
         }
 

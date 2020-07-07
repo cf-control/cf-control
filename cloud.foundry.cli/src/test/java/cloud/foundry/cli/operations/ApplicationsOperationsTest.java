@@ -8,7 +8,6 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 import cloud.foundry.cli.mocking.ApplicationsMockBuilder;
 import cloud.foundry.cli.mocking.ApplicationsV3MockBuilder;
@@ -21,12 +20,11 @@ import org.cloudfoundry.client.v3.Metadata;
 import org.cloudfoundry.client.v3.applications.UpdateApplicationRequest;
 
 import org.cloudfoundry.client.CloudFoundryClient;
-import org.cloudfoundry.client.v3.Metadata;
 import org.cloudfoundry.client.v3.applications.ApplicationsV3;
-import org.cloudfoundry.client.v3.applications.GetApplicationResponse;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.applications.*;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import reactor.core.publisher.Mono;
 
 import java.nio.file.Paths;
@@ -46,7 +44,10 @@ public class ApplicationsOperationsTest {
     public void testGetApplicationsWithEmptyMockData() {
         // prepare mock CF API client with an empty applications list
         Applications applicationsMock = ApplicationsMockBuilder.get().setApps(Collections.emptyMap()).build();
-        DefaultCloudFoundryOperations cfMock = DefaultCloudFoundryOperationsMockBuilder.get().setApplications(applicationsMock).build();
+        DefaultCloudFoundryOperations cfMock = DefaultCloudFoundryOperationsMockBuilder
+                .get()
+                .setApplications(applicationsMock)
+                .build();
 
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfMock);
         Map<String, ApplicationBean> apps = applicationsOperations.getAll().block();
@@ -70,8 +71,8 @@ public class ApplicationsOperationsTest {
                 .annotation(ApplicationBean.METADATA_KEY, "notyetrandomname,1.0.1,some/branch")
                 .build();
         DefaultCloudFoundryOperations cfMock = getCloudFoundryOperations(
-                Collections.singletonMap("appId", appManifest),
-                Collections.singletonMap("appId", metadata),
+                Collections.singletonMap("notyetrandomname", appManifest),
+                Collections.singletonMap("notyetrandomname", metadata),
                 null
         );
 
@@ -105,7 +106,7 @@ public class ApplicationsOperationsTest {
         assertThat(appBean.getManifest().getStack(), is("nope"));
         assertThat(appBean.getManifest().getTimeout(), is(987654321));
         assertThat(appBean.getMeta(), is("notyetrandomname,1.0.1,some/branch"));
-        verify(cfMock.applications(), times(1)).list();
+        Mockito.verify(cfMock.applications(), Mockito.times(1)).list();
     }
 
     @Test
@@ -137,8 +138,10 @@ public class ApplicationsOperationsTest {
 
         // then
         assertThat(request, notNullValue());
-        verify(cfoMock.applications(), times(1)).pushManifest(any(PushApplicationManifestRequest.class));
-        verify(cfoMock.applications(), times(1)).get(any(org.cloudfoundry.operations.applications.GetApplicationRequest.class));
+        Mockito.verify(cfoMock.applications(), Mockito.times(1))
+                .pushManifest(any(PushApplicationManifestRequest.class));
+        Mockito.verify(cfoMock.applications(), Mockito.times(1))
+                .get(any(org.cloudfoundry.operations.applications.GetApplicationRequest.class));
         UpdateApplicationRequest updateRequest = UpdateApplicationRequest
                 .builder()
                 .applicationId("appId")
@@ -149,7 +152,7 @@ public class ApplicationsOperationsTest {
                         .annotation("id", "appId")
                         .build())
                 .build();
-        verify(cfoMock.getCloudFoundryClient().applicationsV3(), times(1)).update(updateRequest);
+        Mockito.verify(cfoMock.getCloudFoundryClient().applicationsV3(), Mockito.times(1)).update(updateRequest);
     }
 
     @Test
@@ -179,9 +182,12 @@ public class ApplicationsOperationsTest {
         //then
         assertThat(request, notNullValue());
         assertThrows(Exception.class, request::block);
-        verify(cfoMock.applications(), times(1)).pushManifest(any(PushApplicationManifestRequest.class));
-        verify(cfoMock.applications(), times(1)).get(any(GetApplicationRequest.class));
-        verify(cfoMock.getCloudFoundryClient().applicationsV3(), times(0)).update(any(UpdateApplicationRequest.class));
+        Mockito.verify(cfoMock.applications(), Mockito.times(1))
+                .pushManifest(any(PushApplicationManifestRequest.class));
+        Mockito.verify(cfoMock.applications(), Mockito.times(1))
+                .get(any(GetApplicationRequest.class));
+        Mockito.verify(cfoMock.getCloudFoundryClient().applicationsV3(), Mockito.times(0))
+                .update(any(UpdateApplicationRequest.class));
     }
 
     @Test
@@ -253,7 +259,7 @@ public class ApplicationsOperationsTest {
 
         // then
         assertThat(request, notNullValue());
-        verify(cfoMock.applications(), times(1)).delete(any(DeleteApplicationRequest.class));
+        Mockito.verify(cfoMock.applications(), Mockito.times(1)).delete(any(DeleteApplicationRequest.class));
     }
 
     @Test
@@ -276,8 +282,8 @@ public class ApplicationsOperationsTest {
         annotations.put(METADATA_KEY, "notyetrandomname,1.0.1,some/branch");
         annotations.put("id", "1234");
 
-        Metadata metadata = mock(Metadata.class);
-        when(metadata.getAnnotations()).thenReturn(annotations);
+        Metadata metadata = Mockito.mock(Metadata.class);
+        Mockito.when(metadata.getAnnotations()).thenReturn(annotations);
 
         return metadata;
     }
@@ -318,7 +324,9 @@ public class ApplicationsOperationsTest {
             .build();
     }
 
-    private DefaultCloudFoundryOperations getCloudFoundryOperations(Map<String, ApplicationManifest> apps, Map<String, Metadata> metadata, Throwable pushAppError) {
+    private DefaultCloudFoundryOperations getCloudFoundryOperations(Map<String, ApplicationManifest> apps,
+                                                                    Map<String, Metadata> metadata,
+                                                                    Throwable pushAppError) {
         ApplicationsV3 applicationsV3Mock = ApplicationsV3MockBuilder
                 .get()
                 .setMetadata(metadata)

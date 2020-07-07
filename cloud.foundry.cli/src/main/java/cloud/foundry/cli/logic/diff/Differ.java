@@ -19,7 +19,6 @@ import org.javers.core.JaversBuilder;
 import org.javers.core.diff.Diff;
 import org.javers.core.diff.ListCompareAlgorithm;
 
-
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
