@@ -1,8 +1,7 @@
 package cloud.foundry.cli.logic.apply;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
@@ -31,7 +30,7 @@ import java.util.LinkedList;
 class ApplicationRequestPlanerTest {
 
     @Test
-    void applyTest_WithSingleChangeObject_AcceptMethodCalledOnChangeObject() {
+    void applyTest_WithSingleMultipleNewObject_AcceptMethodCallOnOnlyOne() {
         // given
         ApplicationsOperations appOperations = Mockito.mock(ApplicationsOperations.class);
         String appName = "testApp";
@@ -42,10 +41,11 @@ class ApplicationRequestPlanerTest {
         cfChanges.add(newObject2);
 
         // when
-        ApplicationRequestsPlaner.createApplyRequests(appOperations, appName, cfChanges);
+        Flux<Void> requests = ApplicationRequestsPlaner.createApplyRequests(appOperations, appName, cfChanges);
         // then
         verify(newObject, times(1)).accept(any());
-        verify(newObject2, times(1)).accept(any());
+        verify(newObject2, times(0)).accept(any());
+        assertThat(requests, notNullValue());
     }
 
     @Test
@@ -58,7 +58,7 @@ class ApplicationRequestPlanerTest {
         CfNewObject newObject = new CfNewObject(serviceBeanMock, "", Arrays.asList("path"));
         cfChanges.add(newObject);
         // when
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(ApplyException.class,
             () -> ApplicationRequestsPlaner.createApplyRequests(appOperations, appName, cfChanges));
     }
 
@@ -138,7 +138,7 @@ class ApplicationRequestPlanerTest {
         cfChanges.add(removedObject);
 
         // when
-        assertThrows(IllegalArgumentException.class,
+        assertThrows(ApplyException.class,
             () -> ApplicationRequestsPlaner.createApplyRequests(appOperations, appName, cfChanges));
     }
 

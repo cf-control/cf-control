@@ -48,7 +48,6 @@ public class Differ {
         this.changeParser.addParsingStrategy(new RemovedObjectParsingStrategy());
         this.changeParser.addParsingStrategy(new MapChangeParsingStrategy());
         this.changeParser.addParsingStrategy(new ContainerChangeParsingStrategy());
-        this.changeParser.addParsingStrategy(new ContainerChangeParsingStrategy());
         this.changeParser.addParsingStrategy(new ValueChangeParsingStrategy(this.changeParser));
     }
 
