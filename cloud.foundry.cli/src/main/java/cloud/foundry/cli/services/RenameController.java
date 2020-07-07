@@ -55,7 +55,7 @@ public class RenameController implements Callable<Integer> {
                 throw new UpdateException(e);
             }
 
-            log.info("Renamed app. Old-name:", currentName,"new-name:", newName);
+            log.info("Renamed the app from", currentName,"to", newName);
             return 0;
         }
     }
@@ -87,7 +87,7 @@ public class RenameController implements Callable<Integer> {
                 throw new UpdateException(e);
             }
 
-            log.info("Renamed service. Old-name:", currentName,"new-name:", newName);
+            log.info("Renamed the service from", currentName,"to", newName);
             return 0;
         }
     }
