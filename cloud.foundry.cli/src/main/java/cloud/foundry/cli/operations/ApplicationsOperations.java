@@ -7,6 +7,7 @@ import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationManifestBean;
+import org.checkerframework.checker.nullness.Opt;
 import org.cloudfoundry.client.v3.Metadata;
 import org.cloudfoundry.client.v3.applications.UpdateApplicationRequest;
 import org.cloudfoundry.client.v3.applications.UpdateApplicationResponse;
@@ -20,7 +21,6 @@ import org.cloudfoundry.operations.applications.ApplicationSummary;
 import org.cloudfoundry.operations.applications.DeleteApplicationRequest;
 import org.cloudfoundry.operations.applications.Docker;
 import org.cloudfoundry.operations.applications.GetApplicationManifestRequest;
-import org.cloudfoundry.operations.applications.GetApplicationRequest;
 import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
 import org.cloudfoundry.operations.applications.Route;
 
@@ -89,23 +89,16 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                 .builder()
                 .name(applicationSummary.getName())
                 .build());
-
     }
 
-    private Mono<String> getMetadata(ApplicationSummary applicationSummary) {
-
+    private Mono<Metadata> getMetadata(ApplicationSummary applicationSummary) {
         GetApplicationRequest request = GetApplicationRequest.builder()
             .applicationId(applicationSummary.getId())
             .build();
         return this.cloudFoundryOperations.getCloudFoundryClient()
             .applicationsV3()
             .get(request)
-            .flatMap(this::doGetMetadata);
-    }
-
-    private Mono<String> doGetMetadata(GetApplicationResponse getApplicationResponse) {
-        Map<String, String> labels = getApplicationResponse.getMetadata().getLabels();
-        return Mono.just(labels.get(METADATA_KEY));
+            .map(GetApplicationResponse::getMetadata);
     }
 
     /**
@@ -178,11 +171,10 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                     log.debug("Bean of the app:", bean);
                     log.debug("Should the app start:", shouldStart);
                 })
-                .onErrorStop()
                 .doOnSuccess(aVoid -> log.info("App created:", appName))
-                .flatMap(aVoid -> getApplicationDetail(appName))
-                .flatMap(applicationDetail -> updateAppMeta(applicationDetail.getId(), bean.getMeta()))
-                .doOnError(throwable -> log.warning(throwable))
+                .then(getApplicationDetail(appName)
+                        .flatMap(applicationDetail -> updateAppMeta(applicationDetail.getId(), bean)))
+                .doOnError(throwable -> log.warning(throwable, "test"))
                 .onErrorStop()
                 .then();
     }
@@ -232,8 +224,7 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
             return null;
         }
 
-        // TODO: Maybe outsource retrieving env variables to a dedicated class in a
-        // future feature.
+        // TODO: Maybe outsource retrieving env variables to a dedicated class in a future feature.
         String password = System.getenv(DOCKER_PASSWORD_VAR_NAME);
         if (password == null) {
             throw new NullPointerException("Docker password is not set in environment variable: "
@@ -254,16 +245,22 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
     private Mono<ApplicationDetail> getApplicationDetail(String appName) {
         return this.cloudFoundryOperations
                 .applications()
-                .get(GetApplicationRequest.builder().name(appName).build());
+                .get(org.cloudfoundry.operations.applications.GetApplicationRequest.builder().name(appName).build())
+                .doOnSubscribe(subscription -> log.info("Getting app detail for app: " + appName));
     }
 
-    private Mono<UpdateApplicationResponse> updateAppMeta(String appId, String appMeta) {
+    private Mono<UpdateApplicationResponse> updateAppMeta(String appId, ApplicationBean applicationBean) {
         return this.cloudFoundryOperations
                 .getCloudFoundryClient()
                 .applicationsV3()
                 .update(UpdateApplicationRequest.builder()
                         .applicationId(appId)
-                        .metadata(Metadata.builder().label(CF_CONTROL_APP_META, appMeta).build()).build());
+                        .metadata(Metadata.builder()
+                                .annotation(METADATA_KEY, applicationBean.getMeta())
+                                .annotation("path", applicationBean.getPath())
+                                .annotation("id", appId)
+                                .build()).build())
+                .doOnSubscribe(subscription -> log.debug("Update app meta for app: " + appId));
     }
 
 }
