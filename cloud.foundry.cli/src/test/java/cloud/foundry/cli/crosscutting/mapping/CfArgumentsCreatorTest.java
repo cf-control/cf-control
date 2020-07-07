@@ -19,8 +19,11 @@ public class CfArgumentsCreatorTest {
         CommandLine cli = new CommandLine(controller);
 
         // when
-        String[] result = CfArgumentsCreator.determineCommandLine(cli,
-                new String[]{"diff", "services", "-y", "somePath"});
+        String[] result = CfArgumentsCreator.determineCommandLine(
+                cli,
+                new String[]{"diff", "services", "-y", "somePath"},
+                null
+        );
 
         // then
         assertThat(result, arrayContaining("diff", "services", "-y", "somePath", "-a",
@@ -34,8 +37,11 @@ public class CfArgumentsCreatorTest {
         CommandLine cli = new CommandLine(controller);
 
         // when
-        String[] result = CfArgumentsCreator.determineCommandLine(cli,
-                new String[]{"diff", "services", "-s", "development", "-y", "somePath"});
+        String[] result = CfArgumentsCreator.determineCommandLine(
+                cli,
+                new String[]{"diff", "services", "-s", "development", "-y", "somePath"},
+                null
+        );
 
         // then
         assertThat(result, arrayContaining("diff", "services", "-s", "development", "-y", "somePath", "-a",
@@ -52,7 +58,7 @@ public class CfArgumentsCreatorTest {
                 "-o", "cloud.foundry.cli", "-s", "development"};
 
         // when
-        String[] result = CfArgumentsCreator.determineCommandLine(cli, args);
+        String[] result = CfArgumentsCreator.determineCommandLine(cli, args, null);
 
         // then
         assertThat(result, arrayContaining(args));
