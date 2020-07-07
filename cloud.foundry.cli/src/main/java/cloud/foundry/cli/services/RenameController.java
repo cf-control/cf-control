@@ -80,7 +80,7 @@ public class RenameController implements Callable<Integer> {
             } catch (RuntimeException e) {
                 throw new UpdateException(e);
             }
-            log.info("Renamed service. Old-name:", currentName,"new-name:", newName);
+            log.info("Renamed the service from", currentName,"to", newName);
             return 0;
         }
     }
