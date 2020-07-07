@@ -3,13 +3,12 @@ package cloud.foundry.cli.services;
 import static picocli.CommandLine.*;
 import static picocli.CommandLine.usage;
 
-import cloud.foundry.cli.crosscutting.exceptions.UpdateException;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
+import cloud.foundry.cli.logic.RenameLogic;
 import cloud.foundry.cli.operations.ApplicationsOperations;
 import cloud.foundry.cli.operations.ServicesOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
-import reactor.core.publisher.Mono;
 
 import java.util.concurrent.Callable;
 
@@ -48,12 +47,9 @@ public class RenameController implements Callable<Integer> {
 
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             ApplicationsOperations applicationOperations = new ApplicationsOperations(cfOperations);
-            Mono<Void> toRename = applicationOperations.rename(newName, currentName);
-            try {
-                toRename.block();
-            } catch (RuntimeException e) {
-                throw new UpdateException(e);
-            }
+
+            RenameLogic renameLogic = new RenameLogic();
+            renameLogic.renameApplication(applicationOperations, newName, currentName);
 
             log.info("Renamed the app from", currentName,"to", newName);
             return 0;
@@ -80,12 +76,9 @@ public class RenameController implements Callable<Integer> {
 
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
-            Mono<Void> toRename = servicesOperations.rename(newName, currentName);
-            try {
-                toRename.block();
-            } catch (RuntimeException e) {
-                throw new UpdateException(e);
-            }
+
+            RenameLogic renameLogic = new RenameLogic();
+            renameLogic.renameService(servicesOperations, newName, currentName);
 
             log.info("Renamed the service from", currentName,"to", newName);
             return 0;
