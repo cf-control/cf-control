@@ -65,6 +65,7 @@ You can have the tool create a machine-readable log file by specifying the `--lo
   diff            Print the differences between the given yaml file and the configuration of your cf instance.
   apply           Apply the configuration from a given yaml file to your cf instance.
   update          Update/Remove apps, service instances or space developers.
+  rename          Rename an app or a service instance.
   dump            Read a configuration file, resolve all $refs and print the result to the console.
                   Helps users to understand how the tool resolves $ref and what the resulting config is
                   it would apply.
@@ -114,13 +115,20 @@ You can have the tool create a machine-readable log file by specifying the `--lo
 
 ##### apply [SUBCOMMAND]
 ```
-  space-developers    Apply the differences between the space developers given in the YAML file and
-                       in the live system.
+  space-developers   Apply the differences between the space developers given in the YAML file and
+                     in the live system.
 
   services           Create/remove services that are present in the given yaml file, but not in your cf instance.
   
   applications       Apply the differences between the apps given in the yaml file and
                      the configuration of the apps of your cf instance.
+```
+
+##### rename [SUBCOMMAND]
+```
+  application        Rename an existing app.
+
+  service            Rename an existing service.
 ```
 
 ##### [PARAMS]
