@@ -88,13 +88,6 @@ public class BaseController implements Callable<Integer> {
         BaseController controller = new BaseController();
 
         CommandLine cli = new CommandLine(controller);
-        try {
-            args = CfArgumentsCreator.determineCommandLine(cli, args);
-        } catch (CommandLine.ParameterException parameterException) {
-            // the arguments are invalid
-            log.error(parameterException.getMessage());
-            System.exit(1);
-        }
 
         // picocli has a nice hidden feature: one can register a special exception handler and thus deal with
         // exceptions occurring during the execution of a Callable, Runnable etc.
@@ -158,10 +151,12 @@ public class BaseController implements Callable<Integer> {
             return 1;
         });
 
+        CommandLine.ParseResult parseResult = null;
+
         // parse args now to be able to configure logging before we continue running the rest of the CLI
         // a nice catch of this approach: we can properly handle all sorts of argument parsing errors nicely
         try {
-            cli.parseArgs(args);
+            parseResult = cli.parseArgs(args);
         } catch (Exception e) {
             // TODO: consider printing this directly to stderr
             // (we don't necessarily need to use the logger while parsing the args)
@@ -205,6 +200,15 @@ public class BaseController implements Callable<Integer> {
         // register in the log if available
         if (fileHandler != null) {
             Log.addHandler(fileHandler);
+        }
+
+        // append login options if needed
+        try {
+            args = CfArgumentsCreator.determineCommandLine(cli, args, parseResult.subcommand());
+        } catch (CommandLine.ParameterException parameterException) {
+            // the arguments are invalid
+            log.error(parameterException.getMessage());
+            System.exit(1);
         }
 
         // okay, logging is configured, now let's run the rest of the CLI

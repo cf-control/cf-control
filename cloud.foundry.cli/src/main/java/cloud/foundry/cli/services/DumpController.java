@@ -21,11 +21,6 @@ public class DumpController implements Callable<Integer> {
 
     private Log log = Log.getLog(DumpController.class);
 
-    // FIXME this field is actually not necessary, but needed due to the argument extension mechanism in the class
-    // CfArgumentsCreator... its contents are simply ignored by the dump command
-    @Mixin
-    private static LoginCommandOptions loginOptions;
-
     @Mixin
     private YamlCommandOptions yamlCommandOptions;
 
