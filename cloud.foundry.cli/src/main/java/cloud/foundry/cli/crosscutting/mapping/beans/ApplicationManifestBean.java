@@ -4,14 +4,17 @@ import org.apache.commons.lang3.StringUtils;
 import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
 import org.cloudfoundry.operations.applications.ApplicationManifest;
 import org.cloudfoundry.operations.applications.Route;
+import org.javers.core.metamodel.annotation.Value;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
  * Bean holding all data of the manifest file from an application.
  */
+@Value
 public class ApplicationManifestBean implements Bean {
 
     // list of all attributes the manifest supports, except for path
@@ -52,7 +55,7 @@ public class ApplicationManifestBean implements Bean {
         this.dockerImage =  manifest.getDocker() == null ? null : manifest.getDocker().getImage();
         this.dockerUsername =  manifest.getDocker() == null ? null :  manifest.getDocker().getUsername();
         this.domains = manifest.getDomains();
-        this.environmentVariables = manifest.getEnvironmentVariables();
+        this.environmentVariables = manifest.getEnvironmentVariables() != null && manifest.getEnvironmentVariables().isEmpty() ? null : manifest.getEnvironmentVariables();
         this.healthCheckHttpEndpoint = manifest.getHealthCheckHttpEndpoint();
         this.healthCheckType = manifest.getHealthCheckType();
         this.hosts = manifest.getHosts();
@@ -66,7 +69,7 @@ public class ApplicationManifestBean implements Bean {
                 .stream()
                 .map(Route::getRoute)
                 .collect(Collectors.toList());
-        this.services = manifest.getServices();
+        this.services = manifest.getServices() != null && manifest.getServices().isEmpty() ? null : manifest.getServices();
         this.stack = manifest.getStack();
         this.timeout = manifest.getTimeout();
     }
@@ -233,6 +236,38 @@ public class ApplicationManifestBean implements Bean {
 
     public void setTimeout(Integer timeout) {
         this.timeout = timeout;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ApplicationManifestBean that = (ApplicationManifestBean) o;
+        return Objects.equals(buildpack, that.buildpack) &&
+                Objects.equals(command, that.command) &&
+                Objects.equals(disk, that.disk) &&
+                Objects.equals(dockerImage, that.dockerImage) &&
+                Objects.equals(dockerUsername, that.dockerUsername) &&
+                Objects.equals(environmentVariables, that.environmentVariables) &&
+                Objects.equals(healthCheckHttpEndpoint, that.healthCheckHttpEndpoint) &&
+                healthCheckType == that.healthCheckType &&
+                Objects.equals(instances, that.instances) &&
+                Objects.equals(memory, that.memory) &&
+                Objects.equals(noRoute, that.noRoute) &&
+                Objects.equals(randomRoute, that.randomRoute) &&
+                Objects.equals(routePath, that.routePath) &&
+                Objects.equals(routes, that.routes) &&
+                Objects.equals(services, that.services) &&
+                Objects.equals(stack, that.stack) &&
+                Objects.equals(timeout, that.timeout) &&
+                Objects.equals(domains, that.domains) &&
+                Objects.equals(hosts, that.hosts) &&
+                Objects.equals(noHostname, that.noHostname);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(buildpack, command, disk, dockerImage, dockerUsername, environmentVariables, healthCheckHttpEndpoint, healthCheckType, instances, memory, noRoute, randomRoute, routePath, routes, services, stack, timeout, domains, hosts, noHostname);
     }
 
     @Override
