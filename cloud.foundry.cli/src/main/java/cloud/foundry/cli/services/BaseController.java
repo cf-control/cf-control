@@ -38,7 +38,6 @@ import java.util.logging.FileHandler;
                 ApplyController.class,
                 UpdateController.class,
                 RenameController.class,
-                UpdateController.class,
                 DumpController.class})
 public class BaseController implements Callable<Integer> {
 
