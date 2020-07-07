@@ -1,86 +1,50 @@
 package cloud.foundry.cli.services;
 
-import static picocli.CommandLine.usage;
 import static picocli.CommandLine.Command;
 import static picocli.CommandLine.Mixin;
 
+import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.RefResolver;
+import cloud.foundry.cli.crosscutting.mapping.YamlMapper;
 import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
-import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
 
 import java.util.concurrent.Callable;
 
 /**
- * This class realizes the functionality that is needed for the dump commands.
- * It defines command classes that take care of the command execution. They are derived from the {@link DumpCommandBase}
- * class that contains common behaviour of all the subcommands.
+ * This class realizes the functionality that is needed for the dump command.
  */
-@Command(name = "dump", header = "%n@|green Resolve " + RefResolver.REF_KEY + "-occurrences in a configuration file" +
-        " and print the result.|@",
-        mixinStandardHelpOptions = true, subcommands = {
-        DumpController.DumpAllCommand.class,
-        DumpController.DumpServicesCommand.class,
-        DumpController.DumpApplicationsCommand.class,
-        DumpController.DumpSpaceDevelopersCommand.class
-})
+@Command(name = "dump", header = "%n@|green Read a configuration file, resolve all " + RefResolver.REF_KEY + "s and " +
+        "print the result to the console. Helps users to understand how the tool resolves " + RefResolver.REF_KEY +
+        " and what the resulting config is it would apply.|@",
+        mixinStandardHelpOptions = true)
 public class DumpController implements Callable<Integer> {
+
+    private Log log = Log.getLog(DumpController.class);
 
     // FIXME this field is actually not necessary, but needed due to the argument extension mechanism in the class
     // CfArgumentsCreator... its contents are simply ignored by the dump command
     @Mixin
     private static LoginCommandOptions loginOptions;
 
+    @Mixin
+    private YamlCommandOptions yamlCommandOptions;
+
+    /**
+     * Implementation of the dump command functionality. It reads the provided configuration file, resolves
+     * ref-occurrences, prints the resolved configuration and tries to interpret it as a {@link ConfigBean}.
+     */
     @Override
-    public Integer call() {
-        usage(this, System.out);
+    public Integer call() throws Exception {
+        String yamlFilePath = yamlCommandOptions.getYamlFilePath();
+
+        log.info("Reading and processing YAML the configuration file...");
+        String resolvedConfig = YamlMapper.resolveYamlFile(yamlFilePath);
+
+        // print the config before interpreting it, so that in cases of interpretation errors, the user still gets his
+        // resolved config printed out on the console
+        System.out.println(resolvedConfig);
+
+        YamlMapper.interpretBean(resolvedConfig, ConfigBean.class);
         return 0;
-    }
-
-    @Command(name = "all", description = "Resolve " + RefResolver.REF_KEY + "-occurrences in an entire " +
-            "configuration file and print the result.")
-    static class DumpAllCommand extends DumpCommandBase<ConfigBean> {
-
-        /**
-         * Constructor that specifies the bean type and the command class for {@link DumpCommandBase}
-         */
-        protected DumpAllCommand() {
-            super(ConfigBean.class, DumpAllCommand.class);
-        }
-    }
-
-    @Command(name = "services", description = "Resolve " + RefResolver.REF_KEY + "-occurrences in a service " +
-            "configuration file and print the result.")
-    static class DumpServicesCommand extends DumpCommandBase<SpecBean> {
-
-        /**
-         * Constructor that specifies the bean type and the command class for {@link DumpCommandBase}
-         */
-        protected DumpServicesCommand() {
-            super(SpecBean.class, DumpServicesCommand.class);
-        }
-    }
-
-    @Command(name = "applications", description = "Resolve " + RefResolver.REF_KEY + "-occurrences in an application " +
-            "configuration file and print the result.")
-    static class DumpApplicationsCommand extends DumpCommandBase<SpecBean> {
-
-        /**
-         * Constructor that specifies the bean type and the command class for {@link DumpCommandBase}
-         */
-        protected DumpApplicationsCommand() {
-            super(SpecBean.class, DumpApplicationsCommand.class);
-        }
-    }
-
-    @Command(name = "space-developers", description = "Resolve " + RefResolver.REF_KEY + "-occurrences in a " +
-            "space-developers configuration file and print the result.")
-    static class DumpSpaceDevelopersCommand extends DumpCommandBase<SpecBean> {
-
-        /**
-         * Constructor that specifies the bean type and the command class for {@link DumpCommandBase}
-         */
-        protected DumpSpaceDevelopersCommand() {
-            super(SpecBean.class, DumpSpaceDevelopersCommand.class);
-        }
     }
 }
