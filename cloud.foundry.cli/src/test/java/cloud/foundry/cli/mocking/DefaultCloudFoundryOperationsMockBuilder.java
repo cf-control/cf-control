@@ -5,23 +5,19 @@ import static org.mockito.Mockito.when;
 
 import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
-import org.cloudfoundry.operations.applications.ApplicationManifest;
 import org.cloudfoundry.operations.applications.Applications;
 import org.mockito.Mockito;
-
-import java.util.Collections;
-import java.util.Map;
 
 /**
  * Builder class that creates a mock instance for the {@link DefaultCloudFoundryOperations} class
  */
 public class DefaultCloudFoundryOperationsMockBuilder {
 
-    private Map<String, ApplicationManifest> apps;
-    private Throwable pushAppManifestException;
+    private Applications applications;
+    private CloudFoundryClient cloudFoundryClient;
 
     private DefaultCloudFoundryOperationsMockBuilder() {
-        this.apps = Collections.emptyMap();
+
     }
 
     /**
@@ -32,24 +28,26 @@ public class DefaultCloudFoundryOperationsMockBuilder {
     }
 
     /**
-     * Set the applications that the cloud foundry instance should store
-     * @param apps map of the app id as key and an {@link ApplicationManifest} as value
+     * Set the applications mock object
+     * @param applicationsMock mock of the {@link Applications}
      * @return the builder instance
      */
-    public DefaultCloudFoundryOperationsMockBuilder setApplications(Map<String, ApplicationManifest> apps) {
-        checkNotNull(apps);
+    public DefaultCloudFoundryOperationsMockBuilder setApplications(Applications applicationsMock) {
+        checkNotNull(applicationsMock);
 
-        this.apps = apps;
+        this.applications = applicationsMock;
         return this;
     }
 
     /**
-     * Set an error that gets thrown when pushApplicationManifest is invoked
-     * @param throwable the exception that should be thrown
+     * Set the cloud foundry client mock object
+     * @param cloudFoundryClientMock mock of the {@link CloudFoundryClient}
      * @return the builder instance
      */
-    public DefaultCloudFoundryOperationsMockBuilder setPushApplicationManifestError(Throwable throwable) {
-        this.pushAppManifestException = throwable;
+    public DefaultCloudFoundryOperationsMockBuilder setCloudFoundryClient(CloudFoundryClient cloudFoundryClientMock) {
+        checkNotNull(cloudFoundryClientMock);
+
+        this.cloudFoundryClient = cloudFoundryClientMock;
         return this;
     }
 
@@ -66,15 +64,13 @@ public class DefaultCloudFoundryOperationsMockBuilder {
     }
 
     private void mockCloudFoundryClient(DefaultCloudFoundryOperations cfOperationsMock) {
-        CloudFoundryClient cloudFoundryClientMock = CloudFoundryClientMockBuilder.get().build();
         when(cfOperationsMock.getCloudFoundryClient())
-                .thenReturn(cloudFoundryClientMock);
+                .thenReturn(this.cloudFoundryClient);
     }
 
     private void mockApplications(DefaultCloudFoundryOperations cfOperationsMock) {
-        Applications applicationsMock = ApplicationsMockBuilder.get().setApps(apps).setPushApplicationManifestError(pushAppManifestException).build();
         when(cfOperationsMock.applications())
-                .thenReturn(applicationsMock);
+                .thenReturn(this.applications);
     }
 
 }

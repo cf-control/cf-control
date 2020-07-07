@@ -1,20 +1,19 @@
 package cloud.foundry.cli.mocking;
 
-import static org.mockito.ArgumentMatchers.any;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.client.v3.applications.ApplicationsV3;
-import org.cloudfoundry.client.v3.applications.UpdateApplicationRequest;
-import org.cloudfoundry.client.v3.applications.UpdateApplicationResponse;
-import reactor.core.publisher.Mono;
 
 
 /**
  * Builder class that creates a mock instance for the {@link CloudFoundryClient} class
  */
 public class CloudFoundryClientMockBuilder {
+
+    private ApplicationsV3 applicationsV3Mock;
 
     private CloudFoundryClientMockBuilder() { }
 
@@ -26,17 +25,25 @@ public class CloudFoundryClientMockBuilder {
     }
 
     /**
+     * Set the applicationsv3 mock object
+     * @param applicationsV3Mock mock of the {@link ApplicationsV3}
+     * @return the builder instance
+     */
+    public CloudFoundryClientMockBuilder setApplicationsV3(ApplicationsV3 applicationsV3Mock) {
+        checkNotNull(applicationsV3Mock);
+
+        this.applicationsV3Mock = applicationsV3Mock;
+        return this;
+    }
+
+    /**
      * @return a mock of the {@link CloudFoundryClient}
      */
     public CloudFoundryClient build() {
         CloudFoundryClient cloudFoundryClientMock = mock(CloudFoundryClient.class);
 
-        ApplicationsV3 applicationsV3Mock = mock(ApplicationsV3.class);
-        when(applicationsV3Mock.update(any(UpdateApplicationRequest.class)))
-                .thenReturn(Mono.just(mock(UpdateApplicationResponse.class)));
-
         when(cloudFoundryClientMock.applicationsV3())
-                .thenReturn(applicationsV3Mock);
+                .thenReturn(this.applicationsV3Mock);
 
         return cloudFoundryClientMock;
     }

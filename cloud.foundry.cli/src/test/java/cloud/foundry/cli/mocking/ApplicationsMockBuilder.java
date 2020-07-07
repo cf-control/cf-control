@@ -18,6 +18,7 @@ import org.mockito.stubbing.Answer;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -29,7 +30,9 @@ public class ApplicationsMockBuilder {
     private Map<String, ApplicationManifest> apps;
     private Throwable pushAppManifestException;
 
-    private ApplicationsMockBuilder() {}
+    private ApplicationsMockBuilder() {
+        this.apps = Collections.emptyMap();
+    }
 
     /**
      * @return an instance of the builder
@@ -93,7 +96,7 @@ public class ApplicationsMockBuilder {
 
     private void mockDelete(Applications applicationsMock) {
         when(applicationsMock.delete(any(DeleteApplicationRequest.class)))
-                .thenReturn(Mono.empty());
+                .thenReturn(Mono.just(mock(Void.class)));
     }
 
     private void mockPushManifest(Applications applicationsMock) {
@@ -114,17 +117,15 @@ public class ApplicationsMockBuilder {
          * @return mock {@link DefaultCloudFoundryOperations} object
          */
         when(applicationsMock.getApplicationManifest(any(GetApplicationManifestRequest.class)))
-                .thenAnswer((Answer<Mono<ApplicationManifest>>) invocation -> {
+                .thenAnswer(invocation -> {
                     GetApplicationManifestRequest request = invocation.getArgument(0);
 
                     // simple linear search; this is not about performance, really
-                    for (ApplicationManifest manifest : this.apps.values()) {
-                        if (manifest.getName().equals(request.getName())) {
-                            return Mono.just(manifest);
-                        }
+                    if(this.apps.containsKey(request.getName())) {
+                        return Mono.just(this.apps.get(request.getName()));
                     }
 
-                    throw new RuntimeException("fixme");
+                    throw new RuntimeException("App does not exist.");
                 });
     }
 

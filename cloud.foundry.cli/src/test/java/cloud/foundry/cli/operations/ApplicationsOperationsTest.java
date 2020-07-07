@@ -8,10 +8,11 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.*;
 
+import cloud.foundry.cli.mocking.ApplicationsMockBuilder;
+import cloud.foundry.cli.mocking.ApplicationsV3MockBuilder;
+import cloud.foundry.cli.mocking.CloudFoundryClientMockBuilder;
 import cloud.foundry.cli.mocking.DefaultCloudFoundryOperationsMockBuilder;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationManifestBean;
@@ -22,7 +23,6 @@ import org.cloudfoundry.client.v3.applications.UpdateApplicationRequest;
 import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.client.v3.Metadata;
 import org.cloudfoundry.client.v3.applications.ApplicationsV3;
-import org.cloudfoundry.client.v3.applications.GetApplicationRequest;
 import org.cloudfoundry.client.v3.applications.GetApplicationResponse;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.applications.*;
@@ -41,13 +41,12 @@ public class ApplicationsOperationsTest {
 
     private static final String SOME_APPLICATION = "SOME_APPLICATION";
     private static final String METADATA_KEY = "CF_METADATA_KEY";
-    
+
     @Test
     public void testGetApplicationsWithEmptyMockData() {
         // prepare mock CF API client with an empty applications list
-        DefaultCloudFoundryOperations cfMock = createMockCloudFoundryOperations(Collections.emptyList(),
-            Collections.emptyList(), null);
-        DefaultCloudFoundryOperations cfMock = DefaultCloudFoundryOperationsMockBuilder.get().setApplications(Collections.emptyMap()).build();
+        Applications applicationsMock = ApplicationsMockBuilder.get().setApps(Collections.emptyMap()).build();
+        DefaultCloudFoundryOperations cfMock = DefaultCloudFoundryOperationsMockBuilder.get().setApplications(applicationsMock).build();
 
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfMock);
         Map<String, ApplicationBean> apps = applicationsOperations.getAll().block();
@@ -65,16 +64,16 @@ public class ApplicationsOperationsTest {
         // those are then used to create a CF mock API object, which will be able to
         // return those then the right way
         ApplicationManifest appManifest = createMockApplicationManifest();
-        Metadata metadata = createMockMedatadata();
-        ApplicationSummary summary = createMockApplicationSummary(appManifest);
-
-        // now, let's create the mock object from that list
-        DefaultCloudFoundryOperations cfMock = DefaultCloudFoundryOperationsMockBuilder
-                .get()
-                .setApplications(Collections.singletonMap("appId", appManifest))
+        Metadata metadata = Metadata
+                .builder()
+                .annotation("path", "/test/uri")
+                .annotation(ApplicationBean.METADATA_KEY, "notyetrandomname,1.0.1,some/branch")
                 .build();
-        DefaultCloudFoundryOperations cfMock = createMockCloudFoundryOperations(Arrays.asList(summary),
-            Arrays.asList(appManifest), metadata);
+        DefaultCloudFoundryOperations cfMock = getCloudFoundryOperations(
+                Collections.singletonMap("appId", appManifest),
+                Collections.singletonMap("appId", metadata),
+                null
+        );
 
         // now, we can generate a YAML doc for our ApplicationSummary
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfMock);
@@ -105,7 +104,8 @@ public class ApplicationsOperationsTest {
         assertThat(appBean.getManifest().getServices(), contains("serviceomega"));
         assertThat(appBean.getManifest().getStack(), is("nope"));
         assertThat(appBean.getManifest().getTimeout(), is(987654321));
-        assertThat(appBean.getMeta(), is("notyetrandomname_1.0.1_some/branch"));
+        assertThat(appBean.getMeta(), is("notyetrandomname,1.0.1,some/branch"));
+        verify(cfMock.applications(), times(1)).list();
     }
 
     @Test
@@ -113,14 +113,21 @@ public class ApplicationsOperationsTest {
         // given
 
         ApplicationManifest appManifest = createMockApplicationManifest();
-        DefaultCloudFoundryOperations cfoMock = DefaultCloudFoundryOperationsMockBuilder
-                .get()
-                .setApplications(Collections.singletonMap("appId", appManifest))
+        Metadata metadata = Metadata
+                .builder()
+                .annotation("path", "some/path")
+                .annotation(ApplicationBean.METADATA_KEY, "somemeta")
                 .build();
+
+        DefaultCloudFoundryOperations cfoMock = getCloudFoundryOperations(
+                Collections.singletonMap("appId", appManifest),
+                Collections.emptyMap(),
+                null
+        );
 
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfoMock);
 
-        ApplicationBean applicationsBean = new ApplicationBean(appManifest);
+        ApplicationBean applicationsBean = new ApplicationBean(appManifest, metadata);
         applicationsBean.setPath("some/path");
         applicationsBean.setMeta("somemeta");
 
@@ -131,11 +138,16 @@ public class ApplicationsOperationsTest {
         // then
         assertThat(request, notNullValue());
         verify(cfoMock.applications(), times(1)).pushManifest(any(PushApplicationManifestRequest.class));
-        verify(cfoMock.applications(), times(1)).get(any(GetApplicationRequest.class));
+        verify(cfoMock.applications(), times(1)).get(any(org.cloudfoundry.operations.applications.GetApplicationRequest.class));
         UpdateApplicationRequest updateRequest = UpdateApplicationRequest
                 .builder()
                 .applicationId("appId")
-                .metadata(Metadata.builder().label("CF_CONTROL_APP_META", applicationsBean.getMeta()).build())
+                .metadata(Metadata
+                        .builder()
+                        .annotation(METADATA_KEY , applicationsBean.getMeta())
+                        .annotation("path", applicationsBean.getPath())
+                        .annotation("id", "appId")
+                        .build())
                 .build();
         verify(cfoMock.getCloudFoundryClient().applicationsV3(), times(1)).update(updateRequest);
     }
@@ -144,15 +156,20 @@ public class ApplicationsOperationsTest {
     public void testCreateThrowsExceptionWhenPushAppManifestFails() {
         //given
         ApplicationManifest appManifest = createMockApplicationManifest();
-        DefaultCloudFoundryOperations cfoMock = DefaultCloudFoundryOperationsMockBuilder
-                .get()
-                .setApplications(Collections.singletonMap("appId", appManifest))
-                .setPushApplicationManifestError(new Exception())
+        Metadata metadata = Metadata
+                .builder()
+                .annotation("path", "some/path")
+                .annotation(ApplicationBean.METADATA_KEY, "somemeta")
                 .build();
+        DefaultCloudFoundryOperations cfoMock = getCloudFoundryOperations(
+                Collections.singletonMap("appId", appManifest),
+                Collections.emptyMap(),
+                new Exception()
+        );
 
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfoMock);
 
-        ApplicationBean applicationsBean = new ApplicationBean(appManifest);
+        ApplicationBean applicationsBean = new ApplicationBean(appManifest, metadata);
         applicationsBean.setPath("some/path");
         applicationsBean.setMeta("somemeta");
 
@@ -163,7 +180,7 @@ public class ApplicationsOperationsTest {
         assertThat(request, notNullValue());
         assertThrows(Exception.class, request::block);
         verify(cfoMock.applications(), times(1)).pushManifest(any(PushApplicationManifestRequest.class));
-        verify(cfoMock.applications(), times(0)).get(any(GetApplicationRequest.class));
+        verify(cfoMock.applications(), times(1)).get(any(GetApplicationRequest.class));
         verify(cfoMock.getCloudFoundryClient().applicationsV3(), times(0)).update(any(UpdateApplicationRequest.class));
     }
 
@@ -224,7 +241,11 @@ public class ApplicationsOperationsTest {
     @Test
     public void testRemoveApplication() {
         // given
-        DefaultCloudFoundryOperations cfoMock = DefaultCloudFoundryOperationsMockBuilder.get().build();
+        Applications applicationsMock = ApplicationsMockBuilder.get().build();
+        DefaultCloudFoundryOperations cfoMock = DefaultCloudFoundryOperationsMockBuilder
+                .get()
+                .setApplications(applicationsMock)
+                .build();
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfoMock);
 
         // when
@@ -251,12 +272,12 @@ public class ApplicationsOperationsTest {
      * @return metadata for an application
      */
     private Metadata createMockMedatadata() {
-        Map<String, String> labels = new HashMap<String, String>();
-        labels.put(METADATA_KEY, "notyetrandomname_1.0.1_some/branch");
-        labels.put("id", "1234");
+        Map<String, String> annotations = new HashMap<String, String>();
+        annotations.put(METADATA_KEY, "notyetrandomname,1.0.1,some/branch");
+        annotations.put("id", "1234");
 
         Metadata metadata = mock(Metadata.class);
-        when(metadata.getLabels()).thenReturn(labels);
+        when(metadata.getAnnotations()).thenReturn(annotations);
 
         return metadata;
     }
@@ -295,6 +316,27 @@ public class ApplicationsOperationsTest {
             .stack("nope")
             .timeout(987654321)
             .build();
+    }
+
+    private DefaultCloudFoundryOperations getCloudFoundryOperations(Map<String, ApplicationManifest> apps, Map<String, Metadata> metadata, Throwable pushAppError) {
+        ApplicationsV3 applicationsV3Mock = ApplicationsV3MockBuilder
+                .get()
+                .setMetadata(metadata)
+                .build();
+        CloudFoundryClient cloudFoundryClientMock = CloudFoundryClientMockBuilder
+                .get()
+                .setApplicationsV3(applicationsV3Mock)
+                .build();
+        Applications applicationsMock = ApplicationsMockBuilder
+                .get()
+                .setApps(apps)
+                .setPushApplicationManifestError(pushAppError)
+                .build();
+        return DefaultCloudFoundryOperationsMockBuilder
+                .get()
+                .setApplications(applicationsMock)
+                .setCloudFoundryClient(cloudFoundryClientMock)
+                .build();
     }
 
 }

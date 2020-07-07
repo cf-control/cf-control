@@ -13,6 +13,10 @@ import static org.mockito.Mockito.times;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationManifestBean;
 
+import cloud.foundry.cli.mocking.ApplicationsMockBuilder;
+import cloud.foundry.cli.mocking.ApplicationsV3MockBuilder;
+import cloud.foundry.cli.mocking.CloudFoundryClientMockBuilder;
+import cloud.foundry.cli.mocking.DefaultCloudFoundryOperationsMockBuilder;
 import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperByUsernameRequest;
 import org.cloudfoundry.client.v2.spaces.RemoveSpaceDeveloperByUsernameRequest;
 import org.cloudfoundry.client.CloudFoundryClient;
@@ -20,17 +24,12 @@ import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
 import cloud.foundry.cli.logic.diff.DiffResult;
 import cloud.foundry.cli.logic.diff.change.CfChange;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
-import org.cloudfoundry.operations.applications.Applications;
-import org.cloudfoundry.operations.applications.DeleteApplicationRequest;
-import org.cloudfoundry.operations.applications.GetApplicationManifestRequest;
-import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
+import org.cloudfoundry.operations.applications.*;
 import org.cloudfoundry.client.v2.spaces.Spaces;
 import org.cloudfoundry.client.v3.Metadata;
 import org.cloudfoundry.client.v3.applications.ApplicationsV3;
 import org.cloudfoundry.client.v3.applications.GetApplicationRequest;
 import org.cloudfoundry.client.v3.applications.GetApplicationResponse;
-import org.cloudfoundry.operations.applications.ApplicationManifest;
-import org.cloudfoundry.operations.applications.ApplicationSummary;
 import org.cloudfoundry.operations.useradmin.ListSpaceUsersRequest;
 import org.cloudfoundry.operations.useradmin.SpaceUsers;
 import org.cloudfoundry.operations.useradmin.UserAdmin;
@@ -41,16 +40,8 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.*;
 import java.util.LinkedList;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 
@@ -60,7 +51,7 @@ import java.util.function.Predicate;
 public class ApplyLogicTest {
 
     private static final String METADATA_KEY = "CF_METADATA_KEY";
-    
+
     @Test
     public void testApplyApplicationsWithNull() {
         ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
@@ -177,112 +168,92 @@ public class ApplyLogicTest {
 
     @Test
     public void testApplyApplicationsCreatesApplication() {
-        // given
-        DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
-        Applications applicationsMock = mock(Applications.class);
+        ApplicationManifest appManifest = createMockApplicationManifest("someApplicationName",
+                "/some/path",
+                "someBuildpack");
+        Metadata appMetadata = createMockMetadata("someApplicationName", "some/path");
 
-        // from now on: mock-setup for ApplicationOperations.getAll delivers empty
-        // applications
-        when(cfOperationsMock.applications()).thenReturn(applicationsMock);
-        when(applicationsMock.list()).thenReturn(Flux.empty());
-
-        // from now on: mock-setup for ApplicationOperations.create delivers successful
-        // creation
-        Mono<Void> pushManifestMonoMock = mock(Mono.class);
-
-        // this will contain the received PushApplicationManifestRequest when
-        // pushManifest is called
-        AtomicReference<PushApplicationManifestRequest> receivedPushRequest = new AtomicReference<>(null);
-
-        when(applicationsMock.pushManifest(any(PushApplicationManifestRequest.class)))
-            .thenAnswer((Answer<Mono<Void>>) invocation -> {
-                receivedPushRequest.set(invocation.getArgument(0));
-                return pushManifestMonoMock;
-            });
-        when(pushManifestMonoMock.onErrorContinue(any(Predicate.class), any())).thenReturn(pushManifestMonoMock);
-        when(pushManifestMonoMock.block()).thenReturn(null);
+        DefaultCloudFoundryOperations cfMock = createMockCloudFoundryOperations2(
+                Collections.singletonMap("app1", appManifest),
+                Collections.singletonMap("app1", appMetadata));
 
         // from now on: setup application to apply
         Map<String, ApplicationBean> applicationsToApply = createDesiredApplications("someApplicationName",
-            "/some/path", "someBuildpack");
+            "/some/path",
+            "someBuildpack",
+            "app1meta");
 
-        ApplyLogic applyLogic = new ApplyLogic(cfOperationsMock);
+        ApplyLogic applyLogic = new ApplyLogic(cfMock);
 
         // when
         applyLogic.applyApplications(applicationsToApply);
 
         // then
-        verify(applicationsMock).list();
-
-        PushApplicationManifestRequest actualReceivedPushRequest = receivedPushRequest.get();
-        assertThat(actualReceivedPushRequest, is(notNullValue()));
-        assertThat(actualReceivedPushRequest.getManifests().size(), is(1));
-
-        ApplicationManifest manifest = actualReceivedPushRequest.getManifests().get(0);
-        assertThat(manifest.getName(), is("someApplicationName"));
-        assertThat(manifest.getPath(), is(Paths.get("/some/path")));
-        assertThat(manifest.getBuildpack(), is("someBuildpack"));
+        verify(cfMock.applications()).list();
+        PushApplicationManifestRequest request = PushApplicationManifestRequest
+                .builder()
+                .manifest(appManifest)
+                .noStart(true)
+                .build();
+        verify(cfMock.applications(), times(1)).pushManifest(request);
     }
 
 
     @Test
     public void testApplyApplicationsWithoutDifference() {
         // given
-        Map<String, ApplicationBean> appsToApply = createDesiredApplications("app1", "path", "someBuildpack");
+        Map<String, ApplicationBean> appsToApply = createDesiredApplications("app1",
+                "path",
+                "someBuildpack",
+                "app1meta");
 
         // mock-setup for ApplicationOperations.getAll() delivers 1 application
-        ApplicationManifest appManifest1 = createMockApplicationManifest("app1", "path", "someBuildpack");
-        ApplicationSummary summary1 = createMockApplicationSummary(appManifest1);
+        ApplicationManifest appManifest = createMockApplicationManifest("app1", "path", "someBuildpack");
+        Metadata appMetadata = createMockMetadata("app1meta", "path");
 
-        Applications applicationsMock = mock(Applications.class);
-        DefaultCloudFoundryOperations cfOperationsMock = createMockCloudFoundryOperations(
-                                                            Arrays.asList(summary1),
-                                                            Arrays.asList(appManifest1),
-                                                            applicationsMock);
+        DefaultCloudFoundryOperations cfOperationsMock = createMockCloudFoundryOperations2(
+                Collections.singletonMap("app1", appManifest),
+                Collections.singletonMap("app1", appMetadata)
+        );
+
         ApplyLogic applyLogic = new ApplyLogic(cfOperationsMock);
         //when
         applyLogic.applyApplications(appsToApply);
 
         // then
-        verify(applicationsMock).list();
-        verify(applicationsMock, times(0)).delete(any(DeleteApplicationRequest.class));
-        verify(applicationsMock, times(0)).pushManifest(any(PushApplicationManifestRequest.class));
+        verify(cfOperationsMock.applications()).list();
+        verify(cfOperationsMock.applications(), times(0)).delete(any(DeleteApplicationRequest.class));
+        verify(cfOperationsMock.applications(), times(0)).pushManifest(any(PushApplicationManifestRequest.class));
     }
 
     @Test
     public void testApplyApplicationsRemovesApplication() {
         // given
-        Map<String, ApplicationBean> appsToApply = createDesiredApplications("app1", "/some/path", "someBuildpack");
+        Map<String, ApplicationBean> appsToApply = createDesiredApplications("app1",
+                "/some/path",
+                "someBuildpack",
+                "app1meta");
 
         // mock-setup for ApplicationOperations.getAll() delivers 3 applications (app1, app2, app3)
         ApplicationManifest appManifest1 = createMockApplicationManifest("app1", "/some/path", "someBuildpack");
-        ApplicationSummary summary1 = createMockApplicationSummary(appManifest1);
-
+        Metadata app1Metadata = createMockMetadata("app1meta", "some/path");
         ApplicationManifest appManifest2 = createMockApplicationManifest("app2", "/some/path", "someBuildpack");
-        ApplicationSummary summary2 = createMockApplicationSummary(appManifest2);
-
+        Metadata app2Metadata = createMockMetadata("app2meta", "some/path");
         ApplicationManifest appManifest3 = createMockApplicationManifest("app3", "/some/path", "someBuildpack");
-        ApplicationSummary summary3 = createMockApplicationSummary(appManifest3);
+        Metadata app3Metadata = createMockMetadata("app3meta", "some/path");
 
-        Applications applicationsMock = mock(Applications.class);
-        DefaultCloudFoundryOperations cfOperationsMock = createMockCloudFoundryOperations(
-                                                            Arrays.asList(summary1, summary2, summary3),
-                                                            Arrays.asList(appManifest1, appManifest2, appManifest3),
-                                                            applicationsMock);
+        Map<String, ApplicationManifest> apps = new HashMap<String, ApplicationManifest>() {{
+            put("app1", appManifest1);
+            put("app2", appManifest2);
+            put("app3", appManifest3);
+        }};
+        Map<String, Metadata> metadata = new HashMap<String, Metadata>() {{
+            put("app1", app1Metadata);
+            put("app2", app2Metadata);
+            put("app3", app3Metadata);
+        }};
 
-        Void voidMock = mock(Void.class);
-        Mono<Void> deletedMonoMock = Mono.just(voidMock);
-
-        // This contains all the DeleteApplicationRequests received when delete is called
-        CopyOnWriteArrayList<DeleteApplicationRequest> receivedDeleteRequests = new
-                                                           CopyOnWriteArrayList<DeleteApplicationRequest>();
-
-        when(applicationsMock.delete(any(DeleteApplicationRequest.class)))
-            .thenAnswer((Answer<Mono<Void>>) invocation -> {
-                receivedDeleteRequests.add(invocation.getArgument(0));
-
-                return deletedMonoMock;
-            });
+        DefaultCloudFoundryOperations cfOperationsMock = createMockCloudFoundryOperations2(apps, metadata);
 
         ApplyLogic applyLogic = new ApplyLogic(cfOperationsMock);
 
@@ -290,21 +261,29 @@ public class ApplyLogicTest {
         applyLogic.applyApplications(appsToApply);
 
         // then
-        verify(applicationsMock).list();
-
-        ListIterator<DeleteApplicationRequest> listDeleteRequests = receivedDeleteRequests.listIterator();
-        assertThat(receivedDeleteRequests.size(), is(2));
-
-        DeleteApplicationRequest deleteRequest1 = listDeleteRequests.next();
-        assertThat(deleteRequest1, is(notNullValue()));
-        assertThat(deleteRequest1.getName(), is("app2"));
-
-        DeleteApplicationRequest deleteRequest2 = listDeleteRequests.next();
-        assertThat(deleteRequest2, is(notNullValue()));
-        assertThat(deleteRequest2.getName(), is("app3"));
+        DeleteApplicationRequest request1 = DeleteApplicationRequest.builder().name("app2").build();
+        verify(cfOperationsMock.applications(), times(1)).delete(request1);
+        DeleteApplicationRequest request2 = DeleteApplicationRequest.builder().name("app3").build();
+        verify(cfOperationsMock.applications(), times(1)).delete(request2);
+        verify(cfOperationsMock.applications()).list();
     }
 
-    private Map<String, ApplicationBean> createDesiredApplications(String appname, String path, String buildpack) {
+
+    private ApplicationManifest createMockApplicationManifest(String appName, String path, String buildpack) {
+
+        return ApplicationManifest.builder()
+                .name(appName)
+                .buildpack(buildpack)
+                .path(Paths.get(path))
+                .instances(1)
+                .docker(Docker.builder().build())
+                .environmentVariables(Collections.emptyMap())
+                .disk(1024)
+                .memory(Integer.MAX_VALUE)
+                .build();
+    }
+
+    private Map<String, ApplicationBean> createDesiredApplications(String appname, String path, String buildpack, String meta) {
         Map<String, ApplicationBean> appconfig = new HashMap<>();
         ApplicationBean applicationBean = new ApplicationBean();
         applicationBean.setPath(path);
@@ -312,93 +291,49 @@ public class ApplyLogicTest {
         applicationBean.setManifest(manifestBean);
         manifestBean.setBuildpack(buildpack);
         manifestBean.setInstances(1);
+        manifestBean.setDisk(1024);
         manifestBean.setMemory(Integer.MAX_VALUE);
-        
-        String metadata = "appName, 1.0.1, some/branch";
-        applicationBean.setMeta(metadata);
-        
+        applicationBean.setMeta(meta);
+
         appconfig.put(appname, applicationBean);
 
         return appconfig;
     }
+  private DefaultCloudFoundryOperations createMockCloudFoundryOperations2(Map<String, ApplicationManifest> apps,
+                                                                          Map<String, Metadata> metadata) {
+      Applications applicationsMock = ApplicationsMockBuilder
+              .get()
+              .setApps(apps)
+              .build();
+      ApplicationsV3 applicationsV3Mock = ApplicationsV3MockBuilder
+              .get()
+              .setMetadata(metadata)
+              .build();
+      CloudFoundryClient cloudFoundryClientMock = CloudFoundryClientMockBuilder
+              .get()
+              .setApplicationsV3(applicationsV3Mock)
+              .build();
+      DefaultCloudFoundryOperations cfOperationsMock = DefaultCloudFoundryOperationsMockBuilder
+              .get()
+              .setApplications(applicationsMock)
+              .setCloudFoundryClient(cloudFoundryClientMock)
+              .build();
 
-    private DefaultCloudFoundryOperations createMockCloudFoundryOperations(List<ApplicationSummary> appSummaries,
-        List<ApplicationManifest> manifests, Applications applicationsMock) {
-
-        DefaultCloudFoundryOperations cfMock = Mockito.mock(DefaultCloudFoundryOperations.class);
-        Flux<ApplicationSummary> flux = Flux.fromIterable(appSummaries);
-        CloudFoundryClient cfClientMock = mock(CloudFoundryClient.class);
-        ApplicationsV3 applicationsV3Mock = mock(ApplicationsV3.class);
-        GetApplicationResponse getApplicationResponseMock = mock(GetApplicationResponse.class);
-        Metadata metadata = createMockMedatadata();
-        
-        when(cfMock.applications()).thenReturn(applicationsMock);
-        when(applicationsMock.getApplicationManifest(any(GetApplicationManifestRequest.class)))
-            .thenAnswer((Answer<Mono<ApplicationManifest>>) invocation -> {
-                GetApplicationManifestRequest request = invocation.getArgument(0);
-
-                for (ApplicationManifest manifest : manifests) {
-                    if (manifest.getName().equals(request.getName())) {
-                        return Mono.just(manifest);
-                    }
-                }
-                throw new RuntimeException("RuntimeException");
-            });
-        when(applicationsMock.list()).thenReturn(flux);
-        
-        // mock for getMetadata
-        when(cfMock.getCloudFoundryClient()).thenReturn(cfClientMock);
-        when(cfClientMock.applicationsV3()).thenReturn(applicationsV3Mock);
-        when(applicationsV3Mock.get(any(GetApplicationRequest.class)))
-            .thenAnswer((Answer<Mono<GetApplicationResponse>>) invocation -> {
-                return Mono.just(getApplicationResponseMock);
-            });
-        when(getApplicationResponseMock.getMetadata()).thenReturn(metadata);
-        when(getApplicationResponseMock.getName()).thenReturn("notyetrandomname");
-        
-        return cfMock;
+      return cfOperationsMock;
     }
 
-    private ApplicationManifest createMockApplicationManifest(String appName, String path, String buildpack) {
-
-        return ApplicationManifest.builder()
-            .name(appName)
-            .buildpack(buildpack)
-            .path(Paths.get(path))
-            .instances(1)
-            .memory(Integer.MAX_VALUE)
-            .build();
-    }
-
-    private ApplicationSummary createMockApplicationSummary(ApplicationManifest manifest) {
-
-        return ApplicationSummary.builder()
-            .name(manifest.getName())
-            .diskQuota(100)
-            .id("summary_id")
-            .instances(manifest.getInstances())
-            .memoryLimit(manifest.getMemory())
-            .requestedState("SOMESTATE")
-            .runningInstances(1)
-            .build();
-    }
-    
     /**
      * Creates an {@link Metadata} for testing purposes.
-     * 
+     *
      * @return metadata for an application
      */
-    private Metadata createMockMedatadata() {
-        Map<String, String> labels = new HashMap<String, String>();
-        labels.put(METADATA_KEY, "notyetrandomname_1.0.1_some/branch");
-        labels.put("id", "1234");
-
-        Metadata metadata = mock(Metadata.class);
-        when(metadata.getLabels()).thenReturn(labels);
-        
-        return metadata;
+    private Metadata createMockMetadata(String meta, String path) {
+        return Metadata.builder()
+                .annotation(ApplicationBean.METADATA_KEY, meta)
+                .annotation("path", path)
+                .build();
     }
-    
+
     @Test
     public void testApplyServicesWithNull() {
         ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
