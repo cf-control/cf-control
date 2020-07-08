@@ -114,7 +114,7 @@ public class FileUtils {
                 }
 
                 if (response.getEntity() == null || response.getEntity().getContent() == null) {
-                    throw new IOException("no response content input stream available");
+                    throw new IOException("No response content input stream available.");
                 }
 
                 // cloning the input stream, since leaving the ClosableHttpResponse block
@@ -131,15 +131,16 @@ public class FileUtils {
 
     private static void checkFileExtensionNotEmpty(String name) throws InvalidFileTypeException {
         if (FilenameUtils.getExtension(name).isEmpty()) {
-            throw new InvalidFileTypeException("invalid file extension: no file extension.");
+            throw new InvalidFileTypeException("Invalid file extension: no file extension.");
         }
     }
 
     private static void checkHasAllowedFileExtension(String name) throws InvalidFileTypeException {
         if (!FilenameUtils.getExtension(name).isEmpty()
                 && !ALLOWED_FILE_EXTENSIONS.contains(FilenameUtils.getExtension(name).toUpperCase())) {
-            throw new InvalidFileTypeException("invalid file extension: "
-                    + FilenameUtils.getExtension(name));
+            throw new InvalidFileTypeException("Invalid file extension. Was "
+                    + FilenameUtils.getExtension(name) + ", allowed are " +
+                    ALLOWED_FILE_EXTENSIONS + ".");
         }
     }
 }

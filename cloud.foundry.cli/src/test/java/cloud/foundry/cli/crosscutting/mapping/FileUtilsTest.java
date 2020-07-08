@@ -418,7 +418,6 @@ public class FileUtilsTest {
         // when
         InvalidFileTypeException exception = assertThrows(InvalidFileTypeException.class,
                 () -> FileUtils.openRemoteFile(server.url("SimpleList.txt")));
-        assertThat(exception.getMessage(), containsString("invalid file extension"));
 
         //Cleanup
         server.stop();
