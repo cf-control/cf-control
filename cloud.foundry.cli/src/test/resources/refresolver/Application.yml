@@ -1,19 +1,19 @@
 apps:
   testApp:
     path:
-      $ref: ./src/test/resources/refresolver/ApplicationPath.yml
+      $ref: ./ApplicationPath.yml
     manifest:
       memory : 2048
       instances : 1
       timeout : 80
       stack :
-        $ref: ./src/test/resources/refresolver/ApplicationManifest.yml#/stack
+        $ref: ./ApplicationManifest.yml#/stack
       randomRoute : true
       healthCheckType : PORT
       healthCheckHttpEndpoint: /health
       buildpack : https://github.com/cloudfoundry/java-buildpack.git
       services:
-        $ref: ./src/test/resources/refresolver/ApplicationManifest.yml#/services
+        $ref: ./ApplicationManifest.yml#/services
       environmentVariables :
-        $ref: ./src/test/resources/refresolver/ApplicationManifest.yml#/environmentVariables
+        $ref: ./ApplicationManifest.yml#/environmentVariables
       disk : 2048

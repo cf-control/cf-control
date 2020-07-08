@@ -68,7 +68,7 @@ public class YamlMapper {
      */
     public static String resolveYamlFile(String yamlFilePath) throws IOException {
         Object yamlTreeRoot = loadYamlTree(yamlFilePath);
-        yamlTreeRoot = RefResolver.resolveRefs(yamlTreeRoot);
+        yamlTreeRoot = RefResolver.resolveRefs(yamlTreeRoot, yamlFilePath);
 
         Yaml treeDumper = createDefaultDumper();
         return treeDumper.dump(yamlTreeRoot);

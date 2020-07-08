@@ -12,12 +12,10 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.HttpStatus;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import javax.annotation.Nonnull;
+import java.io.*;
 import java.net.URI;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -127,6 +125,33 @@ public class FileUtils {
     private static InputStream cloneInputStream(InputStream inputStream) throws IOException {
         byte[] data = IOUtils.toByteArray(inputStream);
         return new ByteArrayInputStream(data);
+    }
+
+    /**
+     * Calculate absolute path for file, relative to a given directory. If the path is absolute already, it is
+     * returned as-is. URLs are ignored, too.
+     * @param potentiallyRelativePath a path that might be absolute
+     * @param parentDirectoryPath directory from which to resolve the file path
+     * @return absolute path
+     */
+    public static String calculateAbsolutePath(
+            @Nonnull final String potentiallyRelativePath,
+            @Nonnull final String parentDirectoryPath)
+    {
+        checkNotNull(potentiallyRelativePath);
+        checkNotNull(parentDirectoryPath);
+
+        // ignore URIs
+        if (potentiallyRelativePath.contains("://")) {
+            return potentiallyRelativePath;
+        }
+
+        // ignore absolute paths
+        if (Paths.get(potentiallyRelativePath).isAbsolute()) {
+            return potentiallyRelativePath;
+        }
+
+        return Paths.get(parentDirectoryPath, potentiallyRelativePath).toAbsolutePath().toString();
     }
 
     private static void checkFileExtensionNotEmpty(String name) throws InvalidFileTypeException {
