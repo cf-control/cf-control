@@ -38,7 +38,6 @@ import java.util.Map;
 public class ApplicationsOperationsTest {
 
     private static final String SOME_APPLICATION = "SOME_APPLICATION";
-    private static final String METADATA_KEY = "CF_METADATA_KEY";
 
     @Test
     public void testGetApplicationsWithEmptyMockData() {
@@ -87,7 +86,7 @@ public class ApplicationsOperationsTest {
         assertThat(apps.size(), is(1));
         assertTrue(apps.containsKey("notyetrandomname"));
         ApplicationBean appBean = apps.get("notyetrandomname");
-        assertThat(appBean.getPath(), is(Paths.get("/test/uri").toString()));
+        assertThat(Paths.get(appBean.getPath()).toString(), is(Paths.get("/test/uri").toString()));
         assertThat(appBean.getManifest().getBuildpack(), is("test_buildpack"));
         assertThat(appBean.getManifest().getCommand(), is("test command"));
         assertThat(appBean.getManifest().getDisk(), is(1234));
@@ -147,7 +146,7 @@ public class ApplicationsOperationsTest {
                 .applicationId("appId")
                 .metadata(Metadata
                         .builder()
-                        .annotation(METADATA_KEY , applicationsBean.getMeta())
+                        .annotation(ApplicationBean.METADATA_KEY , applicationsBean.getMeta())
                         .annotation("path", applicationsBean.getPath())
                         .annotation("id", "appId")
                         .build())
@@ -279,7 +278,7 @@ public class ApplicationsOperationsTest {
      */
     private Metadata createMockMedatadata() {
         Map<String, String> annotations = new HashMap<String, String>();
-        annotations.put(METADATA_KEY, "notyetrandomname,1.0.1,some/branch");
+        annotations.put(ApplicationBean.METADATA_KEY, "notyetrandomname,1.0.1,some/branch");
         annotations.put("id", "1234");
 
         Metadata metadata = Mockito.mock(Metadata.class);

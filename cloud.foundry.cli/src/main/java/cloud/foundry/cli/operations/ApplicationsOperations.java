@@ -52,11 +52,6 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
      */
     private static final String DOCKER_PASSWORD_VAR_NAME = "CF_DOCKER_PASSWORD";
 
-    /**
-     * Name of the key of label for metadata.
-     */
-    private static final String METADATA_KEY = "CF_METADATA_KEY";
-
     public ApplicationsOperations(DefaultCloudFoundryOperations cloudFoundryOperations) {
         super(cloudFoundryOperations);
     }
@@ -255,9 +250,8 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                 .update(UpdateApplicationRequest.builder()
                         .applicationId(appId)
                         .metadata(Metadata.builder()
-                                .annotation(METADATA_KEY, applicationBean.getMeta())
-                                .annotation("path", applicationBean.getPath())
-                                .annotation("id", appId)
+                                .annotation(ApplicationBean.METADATA_KEY, applicationBean.getMeta())
+                                .annotation(ApplicationBean.PATH_KEY, applicationBean.getPath())
                                 .build()).build())
                 .doOnSubscribe(subscription -> log.debug("Update app meta for app: " + appId));
     }
