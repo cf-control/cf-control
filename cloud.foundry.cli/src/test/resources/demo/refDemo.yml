@@ -7,9 +7,8 @@ services:
   someServiceName:
     plan:
 
-      # Since this path is relative, the file is opened relative to the current working directory of cf-control.
+      # Since this path is relative, the file is opened relative to the current file's directory.
       # The pointer (after the '#') points to an element inside of a sequence. Therefore an according index is specified.
-      # TODO: you may need to change the path to the referred.yml file
       $ref: 'referred.yml#/plans/0'
 
     # This specifies an anchor named 'myService'. It can be referenced within this document.

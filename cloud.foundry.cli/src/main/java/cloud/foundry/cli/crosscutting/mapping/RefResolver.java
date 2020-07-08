@@ -5,6 +5,7 @@ import cloud.foundry.cli.crosscutting.exceptions.YamlTreeNodeNotFoundException;
 import cloud.foundry.cli.crosscutting.logging.Log;
 
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
@@ -25,11 +26,13 @@ public class RefResolver implements YamlTreeVisitor {
     public static final String REF_KEY = "$ref";
 
     private final Object yamlTreeRoot;
+    private final String parentYamlFilePath;
 
     private Object overridingNode;
 
-    private RefResolver(Object yamlTreeRoot) {
+    private RefResolver(Object yamlTreeRoot, String parentYamlFilePath) {
         this.yamlTreeRoot = yamlTreeRoot;
+        this.parentYamlFilePath = parentYamlFilePath;
         overridingNode = yamlTreeRoot;
     }
 
@@ -39,13 +42,14 @@ public class RefResolver implements YamlTreeVisitor {
      * tree is descended to the node that is specified in the pointer. The additional yaml tree then overrides the node
      * where the ref occurred.
      * @param yamlTreeRoot the root of the yaml tree in which to resolve ref-occurrences
+     * @param rootFilePath path to the root YAML file (used to resolve relative $ref entries)
      * @return the new root of the specified yaml tree after the ref-resolving process
      * @throws RefResolvingException if an error during the ref-resolution process occurs
      */
-    public static Object resolveRefs(Object yamlTreeRoot) {
+    public static Object resolveRefs(Object yamlTreeRoot, String rootFilePath) {
         log.debug("Resolve", RefResolver.REF_KEY + "-occurrences");
 
-        RefResolver refResolvingYamlTreeVisitor = new RefResolver(yamlTreeRoot);
+        RefResolver refResolvingYamlTreeVisitor = new RefResolver(yamlTreeRoot, rootFilePath);
         Object resolvedYamlTreeRoot = refResolvingYamlTreeVisitor.doResolveRefs();
 
         log.debug("Resolving completed");
@@ -81,10 +85,13 @@ public class RefResolver implements YamlTreeVisitor {
         String filePath = extractFilePath(refValue);
         YamlPointer yamlPointer = extractYamlPointer(refValue);
 
+        String parentYamlFileDirectoryPath = Paths.get(parentYamlFilePath).getParent().toAbsolutePath().toString();
+        String absoluteFilePath = FileUtils.calculateAbsolutePath(filePath, parentYamlFileDirectoryPath);
+
         log.debug("Reading content of", filePath);
         Object referredYamlTree;
         try {
-            referredYamlTree = YamlMapper.loadYamlTree(filePath);
+            referredYamlTree = YamlMapper.loadYamlTree(absoluteFilePath);
         } catch (IOException ioException) {
             throw new RefResolvingException("Unable to read a referenced file: " + ioException.getMessage(),
                     ioException);
