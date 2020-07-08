@@ -61,7 +61,37 @@ public class SpaceManager implements AutoCloseable {
         createSpace();
     }
 
+    /**
+     * To be called every time the system environment is accessed.
+     */
+    private void assertAllRequiredEnvVarsAvailable() {
+        ArrayList<String> undefinedEnvironmentVariables = new ArrayList<>();
+
+        // query environment variables, remembering all the ones which are not defined
+        // fetching data from the environment is very "cheap", it'd be more annoying to keep them around
+        // it adds a little complexity, but allows us to print them out to help the user set them
+        for (String envVarName : new String[] {
+                CF_USERNAME_ENV_VAR_NAME,
+                CF_PASSWORD_ENV_VAR_NAME,
+                CF_ORGANIZATION_ENV_VAR_NAME,
+                CF_API_ENDPOINT_ENV_VAR_NAME,
+        }) {
+            String envVarValue = System.getenv(envVarName);
+            if (envVarValue == null) {
+                undefinedEnvironmentVariables.add(envVarName);
+            }
+        }
+
+        if (!undefinedEnvironmentVariables.isEmpty()) {
+            throw new IllegalStateException("The environment variables " +
+                    Arrays.toString(undefinedEnvironmentVariables.toArray()) + " are not defined");
+        }
+    }
+
     private String safeGetenv(String envVarName) {
+        // precondition
+        assertAllRequiredEnvVarsAvailable();
+
         String value = System.getenv(envVarName);
 
         if (value == null) {
@@ -115,37 +145,12 @@ public class SpaceManager implements AutoCloseable {
             throw new IllegalStateException("space has been created already");
         }
 
-        // no need to pollute the method namespace
-        {
-            ArrayList<String> undefinedEnvironmentVariables = new ArrayList<>();
-
-            // query environment variables, remembering all the ones which are not defined
-            // fetching data from the environment is very "cheap", it'd be more annoying to keep them around
-            // it adds a little complexity, but allows us to print them out to help the user set them
-            for (String envVarName : new String[] {
-                    CF_USERNAME_ENV_VAR_NAME,
-                    CF_PASSWORD_ENV_VAR_NAME,
-                    CF_ORGANIZATION_ENV_VAR_NAME,
-                    CF_API_ENDPOINT_ENV_VAR_NAME,
-            }) {
-                String envVarValue = System.getenv(envVarName);
-                if (envVarValue == null) {
-                    undefinedEnvironmentVariables.add(envVarName);
-                }
-            }
-
-            if (!undefinedEnvironmentVariables.isEmpty()) {
-                throw new IllegalStateException("The environment variables " +
-                        Arrays.toString(undefinedEnvironmentVariables.toArray()) + " are not defined");
-            }
-        }
-
         // setup login command options for initialization of the cloud foundry operations instance
         LoginCommandOptions loginCommandOptions = new LoginCommandOptions();
-        loginCommandOptions.setUserName(System.getenv(CF_USERNAME_ENV_VAR_NAME));
-        loginCommandOptions.setPassword(System.getenv(CF_PASSWORD_ENV_VAR_NAME));
-        loginCommandOptions.setOrganization(System.getenv(CF_ORGANIZATION_ENV_VAR_NAME));
-        loginCommandOptions.setApiHost(System.getenv(CF_API_ENDPOINT_ENV_VAR_NAME));
+        loginCommandOptions.setUserName(getCfUsername());
+        loginCommandOptions.setPassword(getCfPassword());
+        loginCommandOptions.setOrganization(getCfOrganization());
+        loginCommandOptions.setApiHost(getCfApiEndpoint());
         loginCommandOptions.setSpace(spaceName);
 
         cfOperations = CfOperationsCreator.createCfOperations(loginCommandOptions);
