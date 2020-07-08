@@ -9,9 +9,18 @@ import java.util.List;
 
 /**
  * Abstract super class for all parsing strategies.
+ * The parsing strategies will be used in the {@link cloud.foundry.cli.logic.diff.change.ChangeParser } object to
+ * convert a JaVers change object to a list of custom change object depending on the type of change.
+ * How conversion will happen, will be determined in the implemented parsing strategy.
  */
 public abstract class AbstractParsingStrategy implements ParsingStrategy {
 
+    /**
+     * Converts a given JaVers change in to an more appropriate list of custom change objects
+     * The way the change object will be parsed is determined in the {@link AbstractParsingStrategy } class
+     * @param change the object that should be parsed to the custom change objects
+     * @return the parsed list of custom change objects
+     */
     @Override
     public List<CfChange> parse(Change change) {
         assertMatchingTypes(change);
@@ -26,6 +35,10 @@ public abstract class AbstractParsingStrategy implements ParsingStrategy {
      */
     protected abstract List<CfChange> doParse(Change change);
 
+    /**
+     * asserts if the given change type fits the change types determined in the getMatchingTypes() method
+     * @param change the jaVers change object
+     */
     private void assertMatchingTypes(Change change) {
         if (!getMatchingTypes().contains(change.getClass())) {
             throw new IllegalArgumentException("Invalid change type. Was '" +

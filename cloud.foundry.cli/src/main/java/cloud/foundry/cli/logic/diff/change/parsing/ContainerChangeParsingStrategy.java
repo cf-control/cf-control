@@ -32,7 +32,7 @@ public class ContainerChangeParsingStrategy extends AbstractParsingStrategy {
     }
 
     @Override
-    public List<CfChange> doParse(Change change) {
+    protected List<CfChange> doParse(Change change) {
         ContainerChange containerChange = (ContainerChange) change;
 
         List<CfContainerValueChanged> cfChanges = containerChange.getChanges()

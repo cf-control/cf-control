@@ -12,7 +12,8 @@ import java.util.List;
 public interface ParsingStrategy {
 
     /**
-     * @return a list of class types of type {@link Change} that should be parsed
+     * This method returns a list of {@link Change} types that should be parsed in the implemented parsing strategy.
+     * @return a list of class types of type {@link Change}
      */
     List<Class<? extends Change>> getMatchingTypes();
 

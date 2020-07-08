@@ -20,7 +20,7 @@ public class NewObjectParsingStrategy extends AbstractParsingStrategy {
     }
 
     @Override
-    public List<CfChange> doParse(Change change) {
+    protected List<CfChange> doParse(Change change) {
         return Arrays.asList(new CfNewObject(change.getAffectedObject().get(),
                 "",
                 extractPathFrom(change)));

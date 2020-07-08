@@ -24,17 +24,24 @@ public class ChangeParser {
         this.parsers = new HashMap<>();
     }
 
+    /**
+     * adds a parsing strategy to the parsing process that will be used in regards to its getMatchingTypes() method
+     * @param parsingStrategy the strategy that should be added
+     * @throws NullPointerException when the argument is null
+     */
     public void addParsingStrategy(ParsingStrategy parsingStrategy) {
+        checkNotNull(parsingStrategy);
+
         for (Class<? extends Change> classType : parsingStrategy.getMatchingTypes()) {
             this.parsers.put(classType, parsingStrategy);
         }
     }
 
     /**
-     * Parse the JaVers change object to a more appropriate custom change object.
+     * Parse the JaVers change object to a more appropriate custom list of change objects.
      * @param change the JaVers change object
-     * @return custom change object or null if the change type is not supported
-     * @throws NullPointerException when change is null
+     * @return a list of change objects
+     * @throws NullPointerException when the argument is null
      */
     public List<CfChange> parse(Change change) {
         checkNotNull(change);

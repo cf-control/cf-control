@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 public class MapChangeParsingStrategy extends AbstractParsingStrategy {
 
     @Override
-    public List<CfChange> doParse(Change change) {
+    protected List<CfChange> doParse(Change change) {
         MapChange mapChange = (MapChange) change;
 
         List<CfMapValueChanged> cfChanges = mapChange.getEntryChanges()
