@@ -13,7 +13,7 @@ import java.util.Objects;
 public class ApplicationBean implements Bean {
 
     /**
-     * Name of the key of annotation for metadata.
+     * The key for the custom metadata annotation.
      */
     public static final String METADATA_KEY = "CF_METADATA_KEY";
 
