@@ -3,9 +3,12 @@ services:
     plan: trial
     service: p-service-registry 
     tags:
-     - TESTTAG
+     - Tag1
+     - Tag2
     params:
      count: 4
   test-HalloWelt:
     plan: lemur
     service: cloudamqp
+    tags:
+    - Tag01
