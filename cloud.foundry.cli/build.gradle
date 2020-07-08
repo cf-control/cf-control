@@ -73,6 +73,10 @@ dependencies {
     // therefore, we can use the nop implementation, which doesn't generate any output, effectively hiding the Javers
     // messages
     compile 'org.slf4j:slf4j-nop:1.7.+'
+
+    // add substitute for some JAXB classes which were removed in Java 9+
+    // https://stackoverflow.com/a/43574427
+    implementation "jakarta.xml.bind:jakarta.xml.bind-api:2.3.2"
 }
 
 // default tests task which runs all the tests
