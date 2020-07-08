@@ -244,33 +244,40 @@ public class ApplicationManifestBean implements Bean {
         this.timeout = timeout;
     }
 
+    /**
+     * Since declaring this bean as a {@link Value} object for the jaVers parser, it is necessary to provide a
+     * equals method that evaluates the equality of two app manifest beans correctly.
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ApplicationManifestBean that = (ApplicationManifestBean) o;
-        return Objects.equals(buildpack, that.buildpack) &&
-                Objects.equals(command, that.command) &&
-                Objects.equals(disk, that.disk) &&
-                Objects.equals(dockerImage, that.dockerImage) &&
-                Objects.equals(dockerUsername, that.dockerUsername) &&
-                Objects.equals(environmentVariables, that.environmentVariables) &&
-                Objects.equals(healthCheckHttpEndpoint, that.healthCheckHttpEndpoint) &&
-                healthCheckType == that.healthCheckType &&
-                Objects.equals(instances, that.instances) &&
-                Objects.equals(memory, that.memory) &&
-                Objects.equals(noRoute, that.noRoute) &&
-                Objects.equals(randomRoute, that.randomRoute) &&
-                Objects.equals(routePath, that.routePath) &&
-                Objects.equals(routes, that.routes) &&
-                Objects.equals(services, that.services) &&
-                Objects.equals(stack, that.stack) &&
-                Objects.equals(timeout, that.timeout) &&
-                Objects.equals(domains, that.domains) &&
-                Objects.equals(hosts, that.hosts) &&
-                Objects.equals(noHostname, that.noHostname);
+        ApplicationManifestBean otherBean = (ApplicationManifestBean) o;
+        return Objects.equals(buildpack, otherBean.buildpack) &&
+                Objects.equals(command, otherBean.command) &&
+                Objects.equals(disk, otherBean.disk) &&
+                Objects.equals(dockerImage, otherBean.dockerImage) &&
+                Objects.equals(dockerUsername, otherBean.dockerUsername) &&
+                Objects.equals(environmentVariables, otherBean.environmentVariables) &&
+                Objects.equals(healthCheckHttpEndpoint, otherBean.healthCheckHttpEndpoint) &&
+                healthCheckType == otherBean.healthCheckType &&
+                Objects.equals(instances, otherBean.instances) &&
+                Objects.equals(memory, otherBean.memory) &&
+                Objects.equals(noRoute, otherBean.noRoute) &&
+                Objects.equals(randomRoute, otherBean.randomRoute) &&
+                Objects.equals(routePath, otherBean.routePath) &&
+                Objects.equals(routes, otherBean.routes) &&
+                Objects.equals(services, otherBean.services) &&
+                Objects.equals(stack, otherBean.stack) &&
+                Objects.equals(timeout, otherBean.timeout) &&
+                Objects.equals(domains, otherBean.domains) &&
+                Objects.equals(hosts, otherBean.hosts) &&
+                Objects.equals(noHostname, otherBean.noHostname);
     }
 
+    /**
+     * Overriding the equals method implies overriding the hashcode method
+     */
     @Override
     public int hashCode() {
         return Objects.hash(buildpack,

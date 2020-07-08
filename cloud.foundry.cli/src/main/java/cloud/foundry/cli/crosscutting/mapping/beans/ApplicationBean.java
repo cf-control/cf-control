@@ -56,21 +56,6 @@ public class ApplicationBean implements Bean {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ApplicationBean that = (ApplicationBean) o;
-        return Objects.equals(manifest, that.manifest) &&
-                Objects.equals(path, that.path) &&
-                Objects.equals(meta, that.meta);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(manifest, path, meta);
-    }
-
-    @Override
     public String toString() {
         return "ApplicationBean{" +
                 "manifest=" + manifest +
