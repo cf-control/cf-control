@@ -75,14 +75,12 @@ public class FileUtils {
 
     private static InputStream doOpenLocalFile(String filepath) throws IOException {
         File file = new File(filepath);
-        if (hasUnallowedFileExtension(file.getName())) {
-            throw new InvalidFileTypeException("invalid file extension: "
-                    + FilenameUtils.getExtension(file.getName()));
-        } else if (hasEmptyFileExtension(file.getName())) {
-            throw new InvalidFileTypeException("missing file extension");
-        }
+        checkFileExtensionNotEmpty(file.getName());
+        checkHasAllowedFileExtension(file.getName());
+
         return new FileInputStream(file);
     }
+
 
     /**
      * Opens a file with the given path on a remote host. The user must make sure to close the InputStream after usage.
@@ -103,10 +101,7 @@ public class FileUtils {
     private static InputStream doOpenRemoteFile(String url) throws IOException {
         URI uri = URI.create(url);
 
-        if (hasUnallowedFileExtension(uri.getPath()) && !hasEmptyFileExtension(uri.getPath())) {
-            throw new InvalidFileTypeException("invalid file extension: "
-                    + FilenameUtils.getExtension(uri.getPath()));
-        }
+        checkHasAllowedFileExtension(uri.getPath());
 
         try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
 
@@ -117,7 +112,7 @@ public class FileUtils {
                 }
 
                 if (response.getEntity() == null || response.getEntity().getContent() == null) {
-                    throw new IOException("no response content input stream available");
+                    throw new IOException("No response content input stream available.");
                 }
 
                 // cloning the input stream, since leaving the ClosableHttpResponse block
@@ -125,14 +120,6 @@ public class FileUtils {
                 return cloneInputStream(response.getEntity().getContent());
             }
         }
-    }
-
-    private static boolean hasUnallowedFileExtension(String filename) {
-        return !ALLOWED_FILE_EXTENSIONS.contains(FilenameUtils.getExtension(filename).toUpperCase());
-    }
-
-    private static boolean hasEmptyFileExtension(String filename) {
-        return FilenameUtils.getExtension(filename).isEmpty();
     }
 
     private static InputStream cloneInputStream(InputStream inputStream) throws IOException {
@@ -167,4 +154,18 @@ public class FileUtils {
         return Paths.get(parentDirectoryPath, potentiallyRelativePath).toAbsolutePath().toString();
     }
 
+    private static void checkFileExtensionNotEmpty(String name) throws InvalidFileTypeException {
+        if (FilenameUtils.getExtension(name).isEmpty()) {
+            throw new InvalidFileTypeException("Invalid file extension: no file extension.");
+        }
+    }
+
+    private static void checkHasAllowedFileExtension(String name) throws InvalidFileTypeException {
+        if (!FilenameUtils.getExtension(name).isEmpty()
+                && !ALLOWED_FILE_EXTENSIONS.contains(FilenameUtils.getExtension(name).toUpperCase())) {
+            throw new InvalidFileTypeException("Invalid file extension. Was "
+                    + FilenameUtils.getExtension(name) + ", allowed are " +
+                    ALLOWED_FILE_EXTENSIONS + ".");
+        }
+    }
 }

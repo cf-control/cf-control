@@ -1,12 +1,7 @@
 package cloud.foundry.cli.logic.diff;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.hasItems;
-import static org.hamcrest.Matchers.hasProperty;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -20,7 +15,7 @@ import cloud.foundry.cli.logic.diff.change.container.CfContainerChange;
 import cloud.foundry.cli.logic.diff.change.map.CfMapChange;
 import cloud.foundry.cli.logic.diff.change.object.CfObjectValueChanged;
 import cloud.foundry.cli.logic.diff.change.object.CfRemovedObject;
-import org.hamcrest.Matchers;
+
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -97,7 +92,7 @@ public class DifferTest {
         assertThat(specTreeWithoutMapChange.getChanges().size(), is(0));
         DiffNode serviceNode = specTreeWithoutMapChange.getChild("services").getChild("someservice");
         assertThat(serviceNode.getChanges().size(), is(1));
-        assertThat(serviceNode.getChanges(), Matchers.hasItem(instanceOf(CfRemovedObject.class)));
+        assertThat(serviceNode.getChanges(), hasItem(instanceOf(CfRemovedObject.class)));
     }
 
     @Test
@@ -177,11 +172,8 @@ public class DifferTest {
         //app3
         DiffNode app3 = apps.getChild("app3");
         assertTrue(app3.isNewObject());
-        assertThat(app3.getChildNodes().size(), is(1));
-        assertThat(app3.getChild("manifest"), notNullValue());
-        //new app manifest object also
-        DiffNode app3Manifest = app3.getChild("manifest");
-        assertTrue(app3Manifest.isNewObject());
-        assertTrue(app3Manifest.isLeaf());
+        assertThat(app3.getChildNodes().size(), is(0));
+        assertTrue(app3.isLeaf());
+
     }
 }

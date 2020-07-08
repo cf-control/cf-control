@@ -4,7 +4,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -418,7 +417,6 @@ public class FileUtilsTest {
         // when
         InvalidFileTypeException exception = assertThrows(InvalidFileTypeException.class,
                 () -> FileUtils.openRemoteFile(server.url("SimpleList.txt")));
-        assertThat(exception.getMessage(), containsString("invalid file extension"));
 
         //Cleanup
         server.stop();
@@ -442,7 +440,7 @@ public class FileUtilsTest {
     }
 
     @Test
-    public void testCalculateAbsolutePathIgnoreURLs() {
+    public void testCalculateAbsolutePathIgnoreUrls() {
         final String url = "http://localhost:1234";
         final String resolved = FileUtils.calculateAbsolutePath(url, "/a/b/c");
         assertThat(resolved, is(url));
