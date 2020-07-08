@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 
 /**
  * This class is responsible to configure a space for the purpose of system testing. It is able to manipulate the
- * spaces and applications of a cf instance as needed by a particular system test.
+ * spaces, services and applications of a cf instance as needed by a particular system test.
  * The class supports the try-with-resources idiom, and users are encouraged to use it like that.
  * https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html
  */

@@ -22,8 +22,9 @@ public class GetAllCommandTest extends SystemTestBase {
         assert target.getSpace().equals(spaceManager.getSpaceName());
 
         SpecBean spec = rootBean.getSpec();
-        // TODO: check if we can put in an absolute value once we use "throw-away spaces" created per test run
-        assert spec.getSpaceDevelopers().size() > 0;
+        // should contain only our current user, who created the space
+        assert spec.getSpaceDevelopers().size() == 1;
+        assert spec.getSpaceDevelopers().contains(spaceManager.getCfUsername());
     }
 
     private ConfigBean loadConfigBeanFromStdoutAndAssertItsValidity(String stdoutContent, SpaceManager spaceManager) {
@@ -51,7 +52,8 @@ public class GetAllCommandTest extends SystemTestBase {
             assert spec.getServices() == null;
             assert spec.getSpaceDevelopers().size() > 0;
 
-            // TODO: check log contents
+            // there's no log messages >= INFO we could test against, only from setup/teardown, so we just check
+            // there's *some* contents
             String errContent = runResult.getStreamContents().getStderrContent();
             assert errContent.length() > 0;
 
@@ -88,7 +90,8 @@ public class GetAllCommandTest extends SystemTestBase {
             assert parsedService.getPlan().equals(service.getPlan());
             assert parsedService.getTags() == null;
 
-            // TODO: check log contents
+            // there's no log messages >= INFO we could test against, only from setup/teardown, so we just check
+            // there's *some* contents
             String errContent = runResult.getStreamContents().getStderrContent();
             assert errContent.length() > 0;
 
@@ -131,7 +134,8 @@ public class GetAllCommandTest extends SystemTestBase {
             ApplicationManifestBean parsedManifest = parsedApplication.getManifest();
             assert parsedManifest.getDockerImage().equals(manifest.getDockerImage());
 
-            // TODO: check log contents
+            // there's no log messages >= INFO we could test against, only from setup/teardown, so we just check
+            // there's *some* contents
             String errContent = runResult.getStreamContents().getStderrContent();
             assert errContent.length() > 0;
 
