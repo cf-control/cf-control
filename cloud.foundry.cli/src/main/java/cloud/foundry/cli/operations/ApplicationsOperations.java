@@ -251,8 +251,7 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                         .applicationId(appId)
                         .metadata(Metadata.builder()
                                 .annotation(ApplicationBean.METADATA_KEY, applicationBean.getMeta())
-                                .annotation("path", applicationBean.getPath())
-                                .annotation("id", appId)
+                                .annotation(ApplicationBean.PATH_KEY, applicationBean.getPath())
                                 .build()).build())
                 .doOnSubscribe(subscription -> log.debug("Update app meta for app: " + appId));
     }

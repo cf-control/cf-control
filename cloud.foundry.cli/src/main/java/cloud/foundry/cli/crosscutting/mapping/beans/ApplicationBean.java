@@ -15,7 +15,12 @@ public class ApplicationBean implements Bean {
     /**
      * The key for the custom metadata annotation.
      */
-    public static final String METADATA_KEY = "CF_METADATA_KEY";
+    public static final String METADATA_KEY = "CF_CONTROL_METADATA";
+
+    /**
+     * The key for the custom path annotation.
+     */
+    public static final String PATH_KEY = "CF_CONTROL_PATH";
 
     private ApplicationManifestBean manifest;
     private String path;
@@ -49,7 +54,7 @@ public class ApplicationBean implements Bean {
         this.path = manifest.getPath() == null ? null : manifest.getPath().toString();
         this.manifest = new ApplicationManifestBean(manifest);
         this.meta = meta.getAnnotations().get(METADATA_KEY);
-        this.path = meta.getAnnotations().get("path");
+        this.path = meta.getAnnotations().get(PATH_KEY);
     }
 
     public ApplicationBean() {
