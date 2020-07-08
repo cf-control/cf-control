@@ -111,8 +111,8 @@ public class ApplicationRequestsPlaner extends RequestsPlaner {
      * @param applicationName    the name of the application
      * @param applicationChanges a list with all the Changes found during diff for
      *                           that specific application
-     * @throws IllegalArgumentException if the newObject is neither an ApplicationBean or an ApplicationManifestBean
      * @throws NullPointerException if any of the arguments are null
+     * @throws ApplyException if during the planing process a non recoverable error occurs
      * @return flux of all requests that are required to apply the changes
      */
     public static Flux<Void> createApplyRequests(@Nonnull ApplicationsOperations appOperations,

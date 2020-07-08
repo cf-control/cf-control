@@ -30,8 +30,14 @@ public abstract class RequestsPlaner implements CfChangeVisitor {
         CHANGE_RESTART
     }
 
+    /**
+     * error message when the change type is not supported
+     */
     private static final String CHANGE_TYPE_IS_NOT_SUPPORTED = "Change type is not supported.";
 
+    /**
+     * the type of request that is necessary to apply the needed changes
+     */
     protected RequestType requestType;
 
     private final List<Mono<Void>> requests;
