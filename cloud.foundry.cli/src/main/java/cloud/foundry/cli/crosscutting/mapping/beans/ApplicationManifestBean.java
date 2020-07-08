@@ -4,14 +4,17 @@ import org.apache.commons.lang3.StringUtils;
 import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
 import org.cloudfoundry.operations.applications.ApplicationManifest;
 import org.cloudfoundry.operations.applications.Route;
+import org.javers.core.metamodel.annotation.Value;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
  * Bean holding all data of the manifest file from an application.
  */
+@Value
 public class ApplicationManifestBean implements Bean {
 
     // list of all attributes the manifest supports, except for path
@@ -52,7 +55,10 @@ public class ApplicationManifestBean implements Bean {
         this.dockerImage =  manifest.getDocker() == null ? null : manifest.getDocker().getImage();
         this.dockerUsername =  manifest.getDocker() == null ? null :  manifest.getDocker().getUsername();
         this.domains = manifest.getDomains();
-        this.environmentVariables = manifest.getEnvironmentVariables();
+        this.environmentVariables = manifest.getEnvironmentVariables() != null
+                && manifest.getEnvironmentVariables().isEmpty()
+                ? null
+                : manifest.getEnvironmentVariables();
         this.healthCheckHttpEndpoint = manifest.getHealthCheckHttpEndpoint();
         this.healthCheckType = manifest.getHealthCheckType();
         this.hosts = manifest.getHosts();
@@ -66,7 +72,10 @@ public class ApplicationManifestBean implements Bean {
                 .stream()
                 .map(Route::getRoute)
                 .collect(Collectors.toList());
-        this.services = manifest.getServices();
+        this.services = manifest.getServices() != null
+                && manifest.getServices().isEmpty()
+                ? null
+                : manifest.getServices();
         this.stack = manifest.getStack();
         this.timeout = manifest.getTimeout();
     }
@@ -233,6 +242,64 @@ public class ApplicationManifestBean implements Bean {
 
     public void setTimeout(Integer timeout) {
         this.timeout = timeout;
+    }
+
+    /**
+     * Since declaring this bean as a {@link Value} object for the jaVers parser, it is necessary to provide a
+     * equals method that evaluates the equality of two app manifest beans correctly.
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ApplicationManifestBean otherBean = (ApplicationManifestBean) o;
+        return Objects.equals(buildpack, otherBean.buildpack) &&
+                Objects.equals(command, otherBean.command) &&
+                Objects.equals(disk, otherBean.disk) &&
+                Objects.equals(dockerImage, otherBean.dockerImage) &&
+                Objects.equals(dockerUsername, otherBean.dockerUsername) &&
+                Objects.equals(environmentVariables, otherBean.environmentVariables) &&
+                Objects.equals(healthCheckHttpEndpoint, otherBean.healthCheckHttpEndpoint) &&
+                healthCheckType == otherBean.healthCheckType &&
+                Objects.equals(instances, otherBean.instances) &&
+                Objects.equals(memory, otherBean.memory) &&
+                Objects.equals(noRoute, otherBean.noRoute) &&
+                Objects.equals(randomRoute, otherBean.randomRoute) &&
+                Objects.equals(routePath, otherBean.routePath) &&
+                Objects.equals(routes, otherBean.routes) &&
+                Objects.equals(services, otherBean.services) &&
+                Objects.equals(stack, otherBean.stack) &&
+                Objects.equals(timeout, otherBean.timeout) &&
+                Objects.equals(domains, otherBean.domains) &&
+                Objects.equals(hosts, otherBean.hosts) &&
+                Objects.equals(noHostname, otherBean.noHostname);
+    }
+
+    /**
+     * Overriding the equals method implies overriding the hashcode method
+     */
+    @Override
+    public int hashCode() {
+        return Objects.hash(buildpack,
+                command,
+                disk,
+                dockerImage,
+                dockerUsername,
+                environmentVariables,
+                healthCheckHttpEndpoint,
+                healthCheckType,
+                instances,
+                memory,
+                noRoute,
+                randomRoute,
+                routePath,
+                routes,
+                services,
+                stack,
+                timeout,
+                domains,
+                hosts,
+                noHostname);
     }
 
     @Override

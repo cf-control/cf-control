@@ -12,12 +12,10 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.core5.http.HttpStatus;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import javax.annotation.Nonnull;
+import java.io.*;
 import java.net.URI;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -77,14 +75,12 @@ public class FileUtils {
 
     private static InputStream doOpenLocalFile(String filepath) throws IOException {
         File file = new File(filepath);
-        if (hasUnallowedFileExtension(file.getName())) {
-            throw new InvalidFileTypeException("invalid file extension: "
-                    + FilenameUtils.getExtension(file.getName()));
-        } else if (hasEmptyFileExtension(file.getName())) {
-            throw new InvalidFileTypeException("missing file extension");
-        }
+        checkFileExtensionNotEmpty(file.getName());
+        checkHasAllowedFileExtension(file.getName());
+
         return new FileInputStream(file);
     }
+
 
     /**
      * Opens a file with the given path on a remote host. The user must make sure to close the InputStream after usage.
@@ -105,10 +101,7 @@ public class FileUtils {
     private static InputStream doOpenRemoteFile(String url) throws IOException {
         URI uri = URI.create(url);
 
-        if (hasUnallowedFileExtension(uri.getPath()) && !hasEmptyFileExtension(uri.getPath())) {
-            throw new InvalidFileTypeException("invalid file extension: "
-                    + FilenameUtils.getExtension(uri.getPath()));
-        }
+        checkHasAllowedFileExtension(uri.getPath());
 
         try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
 
@@ -119,7 +112,7 @@ public class FileUtils {
                 }
 
                 if (response.getEntity() == null || response.getEntity().getContent() == null) {
-                    throw new IOException("no response content input stream available");
+                    throw new IOException("No response content input stream available.");
                 }
 
                 // cloning the input stream, since leaving the ClosableHttpResponse block
@@ -129,17 +122,50 @@ public class FileUtils {
         }
     }
 
-    private static boolean hasUnallowedFileExtension(String filename) {
-        return !ALLOWED_FILE_EXTENSIONS.contains(FilenameUtils.getExtension(filename).toUpperCase());
-    }
-
-    private static boolean hasEmptyFileExtension(String filename) {
-        return FilenameUtils.getExtension(filename).isEmpty();
-    }
-
     private static InputStream cloneInputStream(InputStream inputStream) throws IOException {
         byte[] data = IOUtils.toByteArray(inputStream);
         return new ByteArrayInputStream(data);
     }
 
+    /**
+     * Calculate absolute path for file, relative to a given directory. If the path is absolute already, it is
+     * returned as-is. URLs are ignored, too.
+     * @param potentiallyRelativePath a path that might be absolute
+     * @param parentDirectoryPath directory from which to resolve the file path
+     * @return absolute path
+     */
+    public static String calculateAbsolutePath(
+            @Nonnull final String potentiallyRelativePath,
+            @Nonnull final String parentDirectoryPath)
+    {
+        checkNotNull(potentiallyRelativePath);
+        checkNotNull(parentDirectoryPath);
+
+        // ignore URIs
+        if (potentiallyRelativePath.contains("://")) {
+            return potentiallyRelativePath;
+        }
+
+        // ignore absolute paths
+        if (Paths.get(potentiallyRelativePath).isAbsolute()) {
+            return potentiallyRelativePath;
+        }
+
+        return Paths.get(parentDirectoryPath, potentiallyRelativePath).toAbsolutePath().toString();
+    }
+
+    private static void checkFileExtensionNotEmpty(String name) throws InvalidFileTypeException {
+        if (FilenameUtils.getExtension(name).isEmpty()) {
+            throw new InvalidFileTypeException("Invalid file extension: no file extension.");
+        }
+    }
+
+    private static void checkHasAllowedFileExtension(String name) throws InvalidFileTypeException {
+        if (!FilenameUtils.getExtension(name).isEmpty()
+                && !ALLOWED_FILE_EXTENSIONS.contains(FilenameUtils.getExtension(name).toUpperCase())) {
+            throw new InvalidFileTypeException("Invalid file extension. Was "
+                    + FilenameUtils.getExtension(name) + ", allowed are " +
+                    ALLOWED_FILE_EXTENSIONS + ".");
+        }
+    }
 }

@@ -4,7 +4,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -418,10 +417,40 @@ public class FileUtilsTest {
         // when
         InvalidFileTypeException exception = assertThrows(InvalidFileTypeException.class,
                 () -> FileUtils.openRemoteFile(server.url("SimpleList.txt")));
-        assertThat(exception.getMessage(), containsString("invalid file extension"));
 
         //Cleanup
         server.stop();
+    }
+
+    @Test
+    public void testCalculateAbsolutePathExistingFileAndPath() {
+        // like in most other tests, we assume the current working directory is the gradle project root
+        final String currentWorkingDirectory = new File("").getAbsolutePath();
+
+        final String existingFileRelativePath = "build.gradle";
+        final String resolved = FileUtils.calculateAbsolutePath(existingFileRelativePath, "");
+        assertThat(resolved, is(currentWorkingDirectory + "/build.gradle"));
+    }
+
+    @Test
+    public void testCalculateAbsolutePathNonExistingFile() {
+        final String nonexistingFilePath = "../nonexistingFile";
+        final String resolved = FileUtils.calculateAbsolutePath(nonexistingFilePath, "/a/b/c/");
+        assertThat(resolved, is("/a/b/c/../nonexistingFile"));
+    }
+
+    @Test
+    public void testCalculateAbsolutePathIgnoreUrls() {
+        final String url = "http://localhost:1234";
+        final String resolved = FileUtils.calculateAbsolutePath(url, "/a/b/c");
+        assertThat(resolved, is(url));
+    }
+
+    @Test
+    public void testCalculateAbsolutePathIgnoreAbsolutePath() {
+        final String alreadyAbsolutePath = "/absolute/path";
+        final String resolved = FileUtils.calculateAbsolutePath(alreadyAbsolutePath, "/a/b/c");
+        assertThat(resolved, is(alreadyAbsolutePath));
     }
 
     private static class MockServerBuilder {

@@ -1,4 +1,4 @@
 should: be
-$ref : './src/test/resources/basic/VariousContents.yaml'
+$ref : '../basic/VariousContents.yaml'
 over:
   rid: den

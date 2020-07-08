@@ -37,8 +37,11 @@ public class YamlMapper {
      */
     public static final int INDENTATION = 2;
 
-    private static <B extends Bean> B loadBean(Object yamlTreeRoot, Class<B> beanType) {
-        yamlTreeRoot = RefResolver.resolveRefs(yamlTreeRoot);
+    private static <B extends Bean> B loadBean(Object yamlTreeRoot, Class<B> beanType, String rootFilePath) {
+        // resolving is not supported if no parent file path is defined
+        if (rootFilePath != null) {
+            yamlTreeRoot = RefResolver.resolveRefs(yamlTreeRoot, rootFilePath);
+        }
 
         Yaml treeDumper = createDefaultDumper();
         String resolvedConfig = treeDumper.dump(yamlTreeRoot);
@@ -62,7 +65,7 @@ public class YamlMapper {
      */
     public static <B extends Bean> B loadBeanFromFile(String configFilePath, Class<B> beanType) throws IOException {
         Object yamlTreeRoot = loadYamlTreeFromFilePath(configFilePath);
-        return loadBean(yamlTreeRoot, beanType);
+        return loadBean(yamlTreeRoot, beanType, configFilePath);
     }
 
     /**
@@ -80,7 +83,7 @@ public class YamlMapper {
      */
     public static <B extends Bean> B loadBeanFromString(String data, Class<B> beanType) {
         Object yamlTreeRoot = loadYamlTreeFromYamlString(data);
-        return loadBean(yamlTreeRoot, beanType);
+        return loadBean(yamlTreeRoot, beanType, null);
     }
 
     /**
@@ -96,7 +99,7 @@ public class YamlMapper {
      */
     public static String resolveYamlFile(String yamlFilePath) throws IOException {
         Object yamlTreeRoot = loadYamlTreeFromFilePath(yamlFilePath);
-        yamlTreeRoot = RefResolver.resolveRefs(yamlTreeRoot);
+        yamlTreeRoot = RefResolver.resolveRefs(yamlTreeRoot, yamlFilePath);
 
         Yaml treeDumper = createDefaultDumper();
         return treeDumper.dump(yamlTreeRoot);
