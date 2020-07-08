@@ -1,7 +1,6 @@
 package cloud.foundry.cli.logic.apply;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.*;
 
 import cloud.foundry.cli.crosscutting.exceptions.ApplyException;
 import cloud.foundry.cli.crosscutting.logging.Log;
@@ -49,10 +48,10 @@ public class ApplicationRequestsPlaner extends RequestsPlaner {
     @Override
     public void visitNewObject(CfNewObject newObject) {
         checkNotNull(newObject);
-        checkArgument(this.requestType == RequestType.NONE,
-                "Trying to process new object when app will be removed or changed already.");
         checkArgument(newObject.getAffectedObject() instanceof ApplicationBean,
                 "Change object must contain an ApplicationBean");
+        checkState(this.requestType == RequestType.NONE,
+                "Trying to process new object when app will be removed or changed already.");
 
         this.requestType = RequestType.CREATE;
     }
@@ -71,7 +70,7 @@ public class ApplicationRequestsPlaner extends RequestsPlaner {
         checkNotNull(objectValueChanged);
         checkArgument(objectValueChanged.getAffectedObject() instanceof ApplicationBean,
                 "Change object must contain an ApplicationBean");
-        checkArgument(this.requestType != RequestType.CREATE && this.requestType != RequestType.REMOVE,
+        checkState(this.requestType != RequestType.CREATE && this.requestType != RequestType.REMOVE,
                 "Trying to process change object when app will be added or removed already.");
 
         // Already restarting, nothing to do
@@ -97,10 +96,10 @@ public class ApplicationRequestsPlaner extends RequestsPlaner {
     @Override
     public void visitRemovedObject(@Nonnull CfRemovedObject removedObject) {
         checkNotNull(removedObject);
-        checkArgument(requestType == RequestType.NONE,
-                "Trying to process remove object when app will be added or changed already.");
         checkArgument(removedObject.getAffectedObject() instanceof ApplicationBean ,
                 "Change object must contain an ApplicationBean");
+        checkState(requestType == RequestType.NONE,
+                "Trying to process remove object when app will be added or changed already.");
 
         this.requestType = RequestType.REMOVE;
     }
