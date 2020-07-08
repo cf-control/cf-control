@@ -143,20 +143,21 @@ public class ApplicationRequestsPlaner extends RequestsPlaner {
     }
 
     private Flux<Void> determineRequest(ApplicationBean applicationBean) {
-        if (this.requestType == RequestType.CREATE) {
-            log.debug("Add create request for app: " + applicationName);
-            return Flux.merge(this.appOperations.create(this.applicationName, applicationBean, false));
-        } else if (this.requestType == RequestType.REMOVE) {
-            log.debug("Add remove request for app: " + applicationName);
-            return Flux.merge(this.appOperations.remove(this.applicationName));
-        } else if (this.requestType == RequestType.CHANGE_RESTART) {
-            log.debug("Add update with restart request for app: " + applicationName);
-            return Flux.merge(this.appOperations.create(this.applicationName, applicationBean, false));
-        } else if (this.requestType == RequestType.CHANGE_INPLACE) {
-            System.out.println("UPDATING APP INPLACE: " + applicationName);
-            // TODO scale, env vars or healthcheck type
+        switch (this.requestType) {
+            case CREATE:
+                log.debug("Add create request for app: " + applicationName);
+                return Flux.merge(this.appOperations.create(this.applicationName, applicationBean, false));
+            case REMOVE:
+                log.debug("Add remove request for app: " + applicationName);
+                return Flux.merge(this.appOperations.remove(this.applicationName));
+            case CHANGE_RESTART:
+                log.debug("Add update with restart request for app: " + applicationName);
+                return Flux.merge(this.appOperations.create(this.applicationName, applicationBean, false));
+            case CHANGE_INPLACE:
+                System.out.println("UPDATING APP INPLACE: " + applicationName);
+                // TODO scale, env vars or healthcheck type
+            default:
+                return Flux.empty();
         }
-
-        return Flux.empty();
     }
 }
