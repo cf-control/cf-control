@@ -14,14 +14,7 @@ import org.cloudfoundry.client.v3.applications.UpdateApplicationResponse;
 import org.cloudfoundry.client.v3.applications.GetApplicationRequest;
 import org.cloudfoundry.client.v3.applications.GetApplicationResponse;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
-import org.cloudfoundry.operations.applications.ApplicationDetail;
-import org.cloudfoundry.operations.applications.ApplicationManifest;
-import org.cloudfoundry.operations.applications.ApplicationSummary;
-import org.cloudfoundry.operations.applications.DeleteApplicationRequest;
-import org.cloudfoundry.operations.applications.Docker;
-import org.cloudfoundry.operations.applications.GetApplicationManifestRequest;
-import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
-import org.cloudfoundry.operations.applications.Route;
+import org.cloudfoundry.operations.applications.*;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
