@@ -334,7 +334,7 @@ public class ApplyLogicTest {
     private Metadata createMockMetadata(String meta, String path) {
         return Metadata.builder()
                 .annotation(ApplicationBean.METADATA_KEY, meta)
-                .annotation("path", path)
+                .annotation(ApplicationBean.PATH_KEY, path)
                 .build();
     }
 

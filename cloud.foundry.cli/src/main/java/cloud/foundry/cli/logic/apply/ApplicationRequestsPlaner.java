@@ -156,6 +156,7 @@ public class ApplicationRequestsPlaner extends RequestsPlaner {
             case CHANGE_INPLACE:
                 System.out.println("UPDATING APP INPLACE: " + applicationName);
                 // TODO scale, env vars or healthcheck type
+                return Flux.empty();
             default:
                 return Flux.empty();
         }

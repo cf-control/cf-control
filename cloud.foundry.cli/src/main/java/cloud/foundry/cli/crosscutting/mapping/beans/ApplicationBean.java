@@ -4,8 +4,6 @@ import org.cloudfoundry.client.v3.Metadata;
 import org.cloudfoundry.operations.applications.ApplicationManifest;
 import org.javers.core.metamodel.annotation.TypeName;
 
-import java.util.Objects;
-
 /**
  * Bean holding all data that is related to an application.
  */
