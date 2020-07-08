@@ -66,7 +66,7 @@ public class ApplicationsOperationsTest {
         ApplicationManifest appManifest = createMockApplicationManifest();
         Metadata metadata = Metadata
                 .builder()
-                .annotation("path", "/test/uri")
+                .annotation(ApplicationBean.PATH_KEY, "/test/uri")
                 .annotation(ApplicationBean.METADATA_KEY, "notyetrandomname,1.0.1,some/branch")
                 .build();
         DefaultCloudFoundryOperations cfMock = getCloudFoundryOperations(
@@ -86,7 +86,7 @@ public class ApplicationsOperationsTest {
         assertThat(apps.size(), is(1));
         assertTrue(apps.containsKey("notyetrandomname"));
         ApplicationBean appBean = apps.get("notyetrandomname");
-        assertThat(Paths.get(appBean.getPath()).toString(), is(Paths.get("/test/uri").toString()));
+        assertThat(appBean.getPath(), is("/test/uri"));
         assertThat(appBean.getManifest().getBuildpack(), is("test_buildpack"));
         assertThat(appBean.getManifest().getCommand(), is("test command"));
         assertThat(appBean.getManifest().getDisk(), is(1234));
@@ -147,8 +147,7 @@ public class ApplicationsOperationsTest {
                 .metadata(Metadata
                         .builder()
                         .annotation(ApplicationBean.METADATA_KEY , applicationsBean.getMeta())
-                        .annotation("path", applicationsBean.getPath())
-                        .annotation("id", "appId")
+                        .annotation(ApplicationBean.PATH_KEY, applicationsBean.getPath())
                         .build())
                 .build();
         Mockito.verify(cfoMock.getCloudFoundryClient().applicationsV3(), Mockito.times(1)).update(updateRequest);

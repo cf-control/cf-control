@@ -286,7 +286,7 @@ public class GetLogicTest {
         Metadata metadata = Metadata
                 .builder()
                 .annotation(ApplicationBean.METADATA_KEY, "testApp, 1.0.1, some/branch")
-                .annotation("path", "some/path")
+                .annotation(ApplicationBean.PATH_KEY, "some/path")
                 .build();
         ApplicationBean bean = new ApplicationBean(applicationManifestMock, metadata);
 
