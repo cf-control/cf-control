@@ -245,7 +245,7 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
         return this.cloudFoundryOperations
                 .applications()
                 .get(org.cloudfoundry.operations.applications.GetApplicationRequest.builder().name(appName).build())
-                .doOnSubscribe(subscription -> log.info("Getting app detail for app: " + appName));
+                .doOnSubscribe(subscription -> log.debug("Getting app detail for app: " + appName));
     }
 
     private Mono<UpdateApplicationResponse> updateAppMeta(String appId, ApplicationBean applicationBean) {
