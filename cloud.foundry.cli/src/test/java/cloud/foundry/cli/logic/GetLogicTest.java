@@ -111,7 +111,8 @@ public class GetLogicTest {
 
         assertThat(configBean.getSpec().getApps().size(), is(1));
         assertThat(configBean.getSpec().getApps().containsKey("testApp"), is(true));
-        assertThat(configBean.getSpec().getApps().get("testApp").getPath(), is(Paths.get("some/path").toString()));
+        assertThat(Paths.get(configBean.getSpec().getApps().get("testApp").getPath()).toString(),
+                is(Paths.get("some/path").toString()));
         ApplicationManifestBean appManifest = configBean.getSpec().getApps().get("testApp").getManifest();
         assertThat(appManifest.getBuildpack(), is("buildpack"));
         assertThat(appManifest.getDisk(), is(1024));
@@ -205,7 +206,8 @@ public class GetLogicTest {
         assertThat(applications, is(notNullValue()));
         assertThat(applications.size(), is(1));
         assertThat(applications.containsKey("testApp"), is(true));
-        assertThat(applications.get("testApp").getPath(), is(Paths.get("some/path").toString()));
+        assertThat(Paths.get(applications.get("testApp").getPath()).toString(),
+                is(Paths.get("some/path").toString()));
 
         ApplicationManifestBean appManifest = applications.get("testApp").getManifest();
         assertThat(appManifest.getBuildpack(), is("buildpack"));

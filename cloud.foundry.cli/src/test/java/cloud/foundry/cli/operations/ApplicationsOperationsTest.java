@@ -87,7 +87,7 @@ public class ApplicationsOperationsTest {
         assertThat(apps.size(), is(1));
         assertTrue(apps.containsKey("notyetrandomname"));
         ApplicationBean appBean = apps.get("notyetrandomname");
-        assertThat(appBean.getPath(), is(Paths.get("/test/uri").toString()));
+        assertThat(Paths.get(appBean.getPath()).toString(), is(Paths.get("/test/uri").toString()));
         assertThat(appBean.getManifest().getBuildpack(), is("test_buildpack"));
         assertThat(appBean.getManifest().getCommand(), is("test command"));
         assertThat(appBean.getManifest().getDisk(), is(1234));
