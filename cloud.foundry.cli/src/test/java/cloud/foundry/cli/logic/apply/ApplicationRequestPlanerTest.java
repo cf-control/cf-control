@@ -30,7 +30,7 @@ import java.util.LinkedList;
 class ApplicationRequestPlanerTest {
 
     @Test
-    void applyTest_WithSingleMultipleNewObject_AcceptMethodCallOnOnlyOne() {
+    void applyTest_WithMultipleNewObject_AcceptMethodCallOnOnlyOne() {
         // given
         ApplicationsOperations appOperations = Mockito.mock(ApplicationsOperations.class);
         String appName = "testApp";

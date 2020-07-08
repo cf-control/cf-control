@@ -39,7 +39,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -169,7 +168,7 @@ public class ApplyLogicTest {
 
     @Test
     public void testApplyApplicationsCreatesApplication() {
-        ApplicationManifest appManifest = createMockApplicationManifest("someApplicationName",
+        ApplicationManifest appManifest = createExampleApplicationManifest("someApplicationName",
                 "/some/path",
                 "someBuildpack");
         Metadata appMetadata = createMockMetadata("someApplicationName", "some/path");
@@ -209,7 +208,7 @@ public class ApplyLogicTest {
                 "app1meta");
 
         // mock-setup for ApplicationOperations.getAll() delivers 1 application
-        ApplicationManifest appManifest = createMockApplicationManifest("app1", "path", "someBuildpack");
+        ApplicationManifest appManifest = createExampleApplicationManifest("app1", "path", "someBuildpack");
         Metadata appMetadata = createMockMetadata("app1meta", "path");
 
         DefaultCloudFoundryOperations cfOperationsMock = createMockCloudFoundryOperations2(
@@ -236,11 +235,11 @@ public class ApplyLogicTest {
                 "app1meta");
 
         // mock-setup for ApplicationOperations.getAll() delivers 3 applications (app1, app2, app3)
-        ApplicationManifest appManifest1 = createMockApplicationManifest("app1", "/some/path", "someBuildpack");
+        ApplicationManifest appManifest1 = createExampleApplicationManifest("app1", "/some/path", "someBuildpack");
         Metadata app1Metadata = createMockMetadata("app1meta", "some/path");
-        ApplicationManifest appManifest2 = createMockApplicationManifest("app2", "/some/path", "someBuildpack");
+        ApplicationManifest appManifest2 = createExampleApplicationManifest("app2", "/some/path", "someBuildpack");
         Metadata app2Metadata = createMockMetadata("app2meta", "some/path");
-        ApplicationManifest appManifest3 = createMockApplicationManifest("app3", "/some/path", "someBuildpack");
+        ApplicationManifest appManifest3 = createExampleApplicationManifest("app3", "/some/path", "someBuildpack");
         Metadata app3Metadata = createMockMetadata("app3meta", "some/path");
 
         Map<String, ApplicationManifest> apps = new HashMap<String, ApplicationManifest>() {{
@@ -270,7 +269,7 @@ public class ApplyLogicTest {
     }
 
 
-    private ApplicationManifest createMockApplicationManifest(String appName, String path, String buildpack) {
+    private ApplicationManifest createExampleApplicationManifest(String appName, String path, String buildpack) {
 
         return ApplicationManifest.builder()
                 .name(appName)
@@ -328,7 +327,7 @@ public class ApplyLogicTest {
     }
 
     /**
-     * Creates an {@link Metadata} for testing purposes.
+     * Creates a {@link Metadata metadata instance} for testing purposes.
      *
      * @return metadata for an application
      */
