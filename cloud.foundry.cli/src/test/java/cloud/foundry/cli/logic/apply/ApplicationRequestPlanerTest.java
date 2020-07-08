@@ -17,6 +17,7 @@ import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
 import cloud.foundry.cli.logic.diff.change.CfChange;
 import cloud.foundry.cli.logic.diff.change.object.CfNewObject;
+import cloud.foundry.cli.logic.diff.change.object.CfRemovedObject;
 import cloud.foundry.cli.operations.ApplicationsOperations;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -31,7 +32,7 @@ class ApplicationRequestPlanerTest {
 
     @Test
     void applyTest_WithSingleChangeObject_AcceptMethodCalledOnChangeObject() {
-        //given
+        // given
         ApplicationsOperations appOperations = Mockito.mock(ApplicationsOperations.class);
         String appName = "testApp";
         LinkedList<CfChange> cfChanges = new LinkedList<>();
@@ -40,30 +41,30 @@ class ApplicationRequestPlanerTest {
         cfChanges.add(newObject);
         cfChanges.add(newObject2);
 
-        //when
-        ApplicationRequestsPlaner.create(appOperations, appName, cfChanges);
-        //then
+        // when
+        ApplicationRequestsPlaner.createApplyRequests(appOperations, appName, cfChanges);
+        // then
         verify(newObject, times(1)).accept(any());
         verify(newObject2, times(1)).accept(any());
     }
 
     @Test
     void applyTest_WithChangeObjectNotAppBeanOrAppManifestBean() {
-        //given
+        // given
         ApplicationsOperations appOperations = Mockito.mock(ApplicationsOperations.class);
         String appName = "testApp";
         LinkedList<CfChange> cfChanges = new LinkedList<>();
         ServiceBean serviceBeanMock = mock(ServiceBean.class);
         CfNewObject newObject = new CfNewObject(serviceBeanMock, "", Arrays.asList("path"));
         cfChanges.add(newObject);
-        //when
+        // when
         assertThrows(IllegalArgumentException.class,
-                () -> ApplicationRequestsPlaner.create(appOperations, appName, cfChanges));
+            () -> ApplicationRequestsPlaner.createApplyRequests(appOperations, appName, cfChanges));
     }
 
     @Test
     void applyTest_WithNewChangeObject_AppCreated() throws CreationException {
-        //given
+        // given
         ApplicationsOperations appOperations = Mockito.mock(ApplicationsOperations.class);
         String appName = "testApp";
         LinkedList<CfChange> cfChanges = new LinkedList<>();
@@ -74,19 +75,19 @@ class ApplicationRequestPlanerTest {
         Mono<Void> monoMock = Mono.just(voidMock);
         when(appOperations.create(appName, appBeanMock, false)).thenReturn(monoMock);
 
-        //when
-        Flux<Void> requests = ApplicationRequestsPlaner.create(appOperations, appName, cfChanges);
-        //then
+        // when
+        Flux<Void> requests = ApplicationRequestsPlaner.createApplyRequests(appOperations, appName, cfChanges);
+        // then
         verify(appOperations, times(1)).create(appName, appBeanMock, false);
         StepVerifier.create(requests)
-                .expectNext(voidMock)
-                .expectComplete()
-                .verify();
+            .expectNext(voidMock)
+            .expectComplete()
+            .verify();
     }
 
     @Test
     void applyTest_WithNewChangeObject_CreationException() throws CreationException {
-        //given
+        // given
         ApplicationsOperations appOperations = Mockito.mock(ApplicationsOperations.class);
         String appName = "testApp";
         LinkedList<CfChange> cfChanges = new LinkedList<>();
@@ -94,11 +95,52 @@ class ApplicationRequestPlanerTest {
         CfNewObject newObject = new CfNewObject(appBeanMock, "", Arrays.asList("path"));
         cfChanges.add(newObject);
         doThrow(new CreationException("Test")).when(appOperations).create(appName, appBeanMock, false);
-        //when
+        // when
         ApplyException applyException = assertThrows(ApplyException.class,
-                () -> ApplicationRequestsPlaner.create(appOperations, appName, cfChanges));
-        //then
+            () -> ApplicationRequestsPlaner.createApplyRequests(appOperations, appName, cfChanges));
+        // then
         assertThat(applyException.getCause(), is(instanceOf(CreationException.class)));
     }
+
+    @Test
+    void applyTest_WithRemovedObject_AppRemoved() throws CreationException {
+        // given
+        ApplicationsOperations appOperations = Mockito.mock(ApplicationsOperations.class);
+        String appName = "testApp";
+        LinkedList<CfChange> cfChanges = new LinkedList<>();
+        ApplicationBean appBeanMock = mock(ApplicationBean.class);
+        CfRemovedObject removedObject = new CfRemovedObject(appBeanMock, "propertyName", Arrays.asList("path"));
+        cfChanges.add(removedObject);
+
+        Void voidMock = mock(Void.class);
+        Mono<Void> monoMock = Mono.just(voidMock);
+        when(appOperations.remove(appName)).thenReturn(monoMock);
+
+        // when
+        Flux<Void> requests = ApplicationRequestsPlaner.createApplyRequests(appOperations, appName, cfChanges);
+
+        // then
+        verify(appOperations, times(1)).remove(appName);
+        StepVerifier.create(requests)
+            .expectNext(voidMock)
+            .expectComplete()
+            .verify();
+    }
+
+    @Test
+    void applyTest_WithRemovedObjectNotAppBeanOrAppManifestBean() {
+        // given
+        ApplicationsOperations appOperations = Mockito.mock(ApplicationsOperations.class);
+        String appName = "testApp";
+        LinkedList<CfChange> cfChanges = new LinkedList<>();
+        ServiceBean serviceBeanMock = mock(ServiceBean.class);
+        CfRemovedObject removedObject = new CfRemovedObject(serviceBeanMock, "propertyName", Arrays.asList("path"));
+        cfChanges.add(removedObject);
+
+        // when
+        assertThrows(IllegalArgumentException.class,
+            () -> ApplicationRequestsPlaner.createApplyRequests(appOperations, appName, cfChanges));
+    }
+
 
 }

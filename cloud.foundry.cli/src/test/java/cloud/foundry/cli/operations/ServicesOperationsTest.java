@@ -41,6 +41,7 @@ import reactor.test.StepVerifier;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -108,7 +109,7 @@ public class ServicesOperationsTest {
     public void testCreate() {
         // given
         String serviceInstanceName = "serviceInstanceName";
-        ServiceBean serviceBean = mockServiceBean();
+        ServiceBean serviceBeanMock = mockServiceBean();
         DefaultCloudFoundryOperations cfMock = Mockito.mock(DefaultCloudFoundryOperations.class);
         Services servicesMock = Mockito.mock(Services.class);
 
@@ -120,15 +121,30 @@ public class ServicesOperationsTest {
         ServicesOperations servicesOperations = new ServicesOperations(cfMock);
 
         // when
-        Mono<Void> actualMono = servicesOperations.create(serviceInstanceName, serviceBean);
+        Mono<Void> actualMono = servicesOperations.create(serviceInstanceName, serviceBeanMock);
         actualMono.block();
 
         // then
         assertThat(actualMono, notNullValue());
+        verify(serviceBeanMock, times(1)).getParams();
+        verify(serviceBeanMock, times(1)).getPlan();
+        verify(serviceBeanMock, times(1)).getTags();
+        verify(serviceBeanMock, times(1)).getService();
         verify(servicesMock, times(1)).createInstance(any(CreateServiceInstanceRequest.class));
         StepVerifier.create(actualMono)
                 .expectComplete()
                 .verify();
+    }
+
+    @Test
+    public void testCreateOnNullArgumentsThrowsException() {
+        // given
+        DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
+        ServicesOperations servicesOperations = new ServicesOperations(cfOperationsMock);
+
+        // when
+        assertThrows(NullPointerException.class, () -> servicesOperations.create(null, new ServiceBean()));
+        assertThrows(NullPointerException.class, () -> servicesOperations.create("oldname", null));
     }
 
     @Test
@@ -156,6 +172,17 @@ public class ServicesOperationsTest {
     }
 
     @Test
+    public void testUpdateOnNullArgumentsThrowsException() {
+        // given
+        DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
+        ServicesOperations servicesOperations = new ServicesOperations(cfOperationsMock);
+
+        // when
+        assertThrows(NullPointerException.class, () -> servicesOperations.update(null, new ServiceBean()));
+        assertThrows(NullPointerException.class, () -> servicesOperations.update("oldname", null));
+    }
+
+    @Test
     public void testRename() {
         // given
         DefaultCloudFoundryOperations cfMock = Mockito.mock(DefaultCloudFoundryOperations.class);
@@ -176,6 +203,17 @@ public class ServicesOperationsTest {
         StepVerifier.create(actualMono)
                 .expectComplete()
                 .verify();
+    }
+
+    @Test
+    public void testRenameOnNullNamesThrowsException() {
+        // given
+        DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
+        ServicesOperations servicesOperations = new ServicesOperations(cfOperationsMock);
+
+        // when
+        assertThrows(NullPointerException.class, () -> servicesOperations.rename(null, "newname"));
+        assertThrows(NullPointerException.class, () -> servicesOperations.rename("oldname", null));
     }
 
     @Test
@@ -270,6 +308,16 @@ public class ServicesOperationsTest {
                 .create(request)
                 .expectComplete()
                 .verify();
+    }
+
+    @Test
+    public void testRemoveOnNullNameThrowsException() {
+        // given
+        DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
+        ServicesOperations servicesOperations = new ServicesOperations(cfOperationsMock);
+
+        // when
+        assertThrows(NullPointerException.class, () -> servicesOperations.remove(null));
     }
 
     @Test
@@ -575,6 +623,11 @@ public class ServicesOperationsTest {
         when(serviceBean.getService()).thenReturn("elephantsql");
         when(serviceBean.getPlan()).thenReturn("standard");
         when(serviceBean.getTags()).thenReturn(Arrays.asList("Tag1", "Tag2"));
+        
+        Map<String, Object> params = new HashMap<String, Object>();
+        params.put("count", 5);
+        params.put("upgrade", true);
+        when(serviceBean.getParams()).thenReturn(params);
         return serviceBean;
     }
 

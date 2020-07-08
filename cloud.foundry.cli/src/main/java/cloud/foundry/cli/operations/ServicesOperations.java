@@ -71,19 +71,23 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
     }
 
     /**
-     * Prepares a request for creating a new service in the space and to bind apps to it.
+     * Prepares a request for creating a new service with specific tags, plan and parameters in the space.
      * The resulting mono is preconfigured such that it will perform logging.
      *
      * @param serviceBean serves as template for the service to create
      * @return mono which can be subscribed on to trigger the creation request to the cf instance
+     * @throws NullPointerException when one of the arguments was null
      */
     public Mono<Void> create(String serviceInstanceName, ServiceBean serviceBean) {
+        checkNotNull(serviceInstanceName);
+        checkNotNull(serviceBean);
 
         CreateServiceInstanceRequest createServiceRequest = CreateServiceInstanceRequest.builder()
                 .serviceName(serviceBean.getService())
                 .serviceInstanceName(serviceInstanceName)
                 .planName(serviceBean.getPlan())
                 .tags(serviceBean.getTags())
+                .parameters(serviceBean.getParams())
                 .build();
 
         return this.cloudFoundryOperations.services().createInstance(createServiceRequest)
@@ -91,7 +95,8 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
                     log.debug("Create service:", serviceInstanceName);
                     log.debug("Bean of the service:", serviceBean);
                 })
-                .doOnSuccess(aVoid -> log.info("Service created:", serviceInstanceName));
+                .doOnSuccess(aVoid -> log.info("Service created:", serviceInstanceName))
+                .onErrorStop();
     }
 
     /**
@@ -101,8 +106,12 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      * @param newName     new name of the service instance
      * @param currentName current name of the service instance
      * @return mono which can be subscribed on to trigger the renaming request to the cf instance
+     * @throws NullPointerException when one of the arguments was null
      */
     public Mono<Void> rename(String newName, String currentName) {
+        checkNotNull(newName);
+        checkNotNull(currentName);
+
         RenameServiceInstanceRequest renameServiceInstanceRequest = RenameServiceInstanceRequest.builder()
                 .name(currentName)
                 .newName(newName)
@@ -115,7 +124,8 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
                     log.debug("Rename service:", currentName);
                     log.debug("With new name:", newName);
                 })
-                .doOnSuccess(aVoid -> log.info("Service renamed from", currentName, "to", newName));
+                .doOnSuccess(aVoid -> log.info("Service renamed from", currentName, "to", newName))
+                .onErrorStop();
     }
 
     /**
@@ -125,21 +135,27 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      * @param serviceInstanceName name of a service instance
      * @param serviceBean         serves as template for the service to update
      * @return mono which can be subscribed on to trigger the update request to the cf instance
+     * @throws NullPointerException when one of the arguments was null
      */
     public Mono<Void> update(String serviceInstanceName, ServiceBean serviceBean) {
+        checkNotNull(serviceInstanceName);
+        checkNotNull(serviceBean);
+
         //TODO:move logs
         UpdateServiceInstanceRequest updateServiceInstanceRequest = UpdateServiceInstanceRequest.builder()
                 .serviceInstanceName(serviceInstanceName)
                 .tags(serviceBean.getTags())
                 .planName(serviceBean.getPlan())
                 .build();
-                return this.cloudFoundryOperations.services()
-                        .updateInstance(updateServiceInstanceRequest)
-                        .doOnSubscribe(subscription -> {
-                            log.debug("Update service Instance:", serviceInstanceName);
-                            log.debug("With the bean:", serviceBean);
-                        })
-                        .doOnSuccess(aVoid -> log.info("Service tags and plan updated:", serviceInstanceName));
+
+        return this.cloudFoundryOperations.services()
+                .updateInstance(updateServiceInstanceRequest)
+                .doOnSubscribe(subscription -> {
+                    log.debug("Update service Instance:", serviceInstanceName);
+                    log.debug("With the bean:", serviceBean);
+                })
+                .doOnSuccess(aVoid -> log.info("Service tags and plan updated:", serviceInstanceName))
+                .onErrorStop();
     }
 
     /**
@@ -149,8 +165,12 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      *
      * @param serviceInstanceName name of the service instance to remove
      * @return mono which can be subscribed on to trigger the service deletion
+     * @throws NullPointerException when the argument was null
+     * @throws UpdateException when a non recoverable error occurred
      */
     public Mono<Void> remove(String serviceInstanceName) {
+        checkNotNull(serviceInstanceName);
+
         try {
             return unbindApps(serviceInstanceName)
                     // and unbind keys
@@ -183,8 +203,11 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      *
      * @param serviceInstanceName name of the service instance to delete the keys from
      * @return flux which can be subscribed on to delete the keys
+     * @throws NullPointerException when the argument was null
      */
     public Flux<Void> deleteKeys(String serviceInstanceName) {
+        checkNotNull(serviceInstanceName);
+
         return getServiceInstance(serviceInstanceName)
                 .filter( serviceInstance -> !serviceInstance.getType()
                         .getValue()
@@ -212,7 +235,8 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
                 .services()
                 .deleteServiceKey(createDeleteServiceKeyRequest(serviceInstanceName, key))
                 .doOnSubscribe(subscription -> log.info("Deleting key " + key + " for " + serviceInstanceName))
-                .doOnSuccess(aVoid -> log.info("Deleted key " + key + " for service " + serviceInstanceName));
+                .doOnSuccess(aVoid -> log.info("Deleted key " + key + " for service " + serviceInstanceName))
+                .onErrorStop();
     }
 
     private DeleteServiceKeyRequest createDeleteServiceKeyRequest(String serviceInstanceName, ServiceKey key) {
@@ -253,7 +277,8 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
                 .doOnSubscribe(subscription -> log.info("Unbind app " + applicationName +
                         " for " + serviceInstanceName))
                 .doOnSuccess(subscription -> log.info("Unbound app " + applicationName +
-                        " for " + serviceInstanceName));
+                        " for " + serviceInstanceName))
+                .onErrorStop();
     }
 
     private UnbindServiceInstanceRequest createUnbindServiceInstanceRequest(String serviceInstanceName,
@@ -287,7 +312,8 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
         return this.cloudFoundryOperations
                 .services()
                 .unbindRoute(createRouteServiceInstanceRequest(route))
-                .doOnSubscribe(subscription -> log.info("unbind route " + route));
+                .doOnSubscribe(subscription -> log.info("unbind route " + route))
+                .onErrorStop();
     }
 
     private UnbindRouteServiceInstanceRequest createRouteServiceInstanceRequest(Route route) {

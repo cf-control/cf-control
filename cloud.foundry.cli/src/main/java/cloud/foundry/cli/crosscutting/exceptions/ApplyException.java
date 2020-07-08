@@ -8,4 +8,8 @@ public class ApplyException extends RuntimeException  {
     public ApplyException(Throwable e) {
         super(e);
     }
+
+    public ApplyException(String message) {
+        super(message);
+    }
 }

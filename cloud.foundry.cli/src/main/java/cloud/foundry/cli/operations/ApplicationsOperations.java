@@ -8,13 +8,7 @@ import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationManifestBean;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
-import org.cloudfoundry.operations.applications.ApplicationManifest;
-import org.cloudfoundry.operations.applications.ApplicationSummary;
-import org.cloudfoundry.operations.applications.DeleteApplicationRequest;
-import org.cloudfoundry.operations.applications.Docker;
-import org.cloudfoundry.operations.applications.GetApplicationManifestRequest;
-import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
-import org.cloudfoundry.operations.applications.Route;
+import org.cloudfoundry.operations.applications.*;
 import reactor.core.publisher.Mono;
 
 import java.nio.file.Paths;
@@ -89,7 +83,8 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
 
         return this.cloudFoundryOperations.applications()
                 .delete(request)
-                .doOnSuccess(aVoid -> log.info("Application " + applicationName + " has been successfully removed."));
+                .doOnSuccess(aVoid -> log.info("App removed: ",applicationName))
+                .onErrorStop();
     }
 
 
@@ -105,7 +100,7 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
      * @throws NullPointerException     when bean or app name is null
      *                                  or docker password was not set in environment variables when creating app via
      *                                  dockerImage and docker credentials
-     * @throws IllegalArgumentException    when neither a path nor a docker image were specified, or app name empty
+     * @throws IllegalArgumentException    when app name empty
      * @throws CreationException        when any fatal error occurs during creation of the app
      * @throws SecurityException        when there is no permission to access environment variable CF_DOCKER_PASSWORD
      * @return mono which can be subscribed on to trigger the creation of the app
@@ -122,6 +117,31 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
         }
     }
 
+    /**
+     * Prepares a request for renaming an application instance.
+     * The resulting mono is preconfigured such that it will perform logging.
+     *
+     * @param newName     new name of the application instance
+     * @param currentName current name of the application instance
+     * @return mono which can be subscribed on to trigger the renaming request to the cf instance
+     * @throws NullPointerException when one of the arguments was null
+     */
+    public Mono<Void> rename(String newName, String currentName) {
+        checkNotNull(newName);
+        checkNotNull(currentName);
+
+        RenameApplicationRequest renameApplicationRequest = RenameApplicationRequest.builder()
+                .name(currentName)
+                .newName(newName)
+                .build();
+
+        return this.cloudFoundryOperations.applications().rename(renameApplicationRequest)
+                .doOnSubscribe(aVoid -> {
+                    log.debug("Rename application:", currentName);
+                    log.debug("With new name:", newName); })
+                .doOnSuccess(aVoid -> log.info("Application renamed from", currentName, "to", newName));
+    }
+
     private Mono<Void> doCreate(String appName, ApplicationBean bean, boolean shouldStart) {
         return this.cloudFoundryOperations
                 .applications()
@@ -136,7 +156,8 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                     log.debug("Bean of the app:", bean);
                     log.debug("Should the app start:", shouldStart);
                 })
-                .doOnSuccess(aVoid -> log.info("App created:", appName));
+                .doOnSuccess(aVoid -> log.info("App created:", appName))
+                .onErrorStop();
     }
 
     private boolean whenServiceNotFound(Throwable throwable) {
@@ -200,5 +221,4 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                 .map(route -> Route.builder().route(route).build())
                 .collect(Collectors.toList());
     }
-
 }
