@@ -20,6 +20,7 @@ import cloud.foundry.cli.operations.ClientOperations;
 import cloud.foundry.cli.operations.ServicesOperations;
 import cloud.foundry.cli.operations.SpaceDevelopersOperations;
 import cloud.foundry.cli.services.LoginCommandOptions;
+import org.cloudfoundry.client.v3.Metadata;
 import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
 import org.cloudfoundry.operations.applications.ApplicationManifest;
 import org.cloudfoundry.operations.services.ServiceInstance;
@@ -110,7 +111,8 @@ public class GetLogicTest {
 
         assertThat(configBean.getSpec().getApps().size(), is(1));
         assertThat(configBean.getSpec().getApps().containsKey("testApp"), is(true));
-        assertThat(configBean.getSpec().getApps().get("testApp").getPath(), is(Paths.get("some/path").toString()));
+        assertThat(Paths.get(configBean.getSpec().getApps().get("testApp").getPath()).toString(),
+                is(Paths.get("some/path").toString()));
         ApplicationManifestBean appManifest = configBean.getSpec().getApps().get("testApp").getManifest();
         assertThat(appManifest.getBuildpack(), is("buildpack"));
         assertThat(appManifest.getDisk(), is(1024));
@@ -204,7 +206,8 @@ public class GetLogicTest {
         assertThat(applications, is(notNullValue()));
         assertThat(applications.size(), is(1));
         assertThat(applications.containsKey("testApp"), is(true));
-        assertThat(applications.get("testApp").getPath(), is(Paths.get("some/path").toString()));
+        assertThat(Paths.get(applications.get("testApp").getPath()).toString(),
+                is(Paths.get("some/path").toString()));
 
         ApplicationManifestBean appManifest = applications.get("testApp").getManifest();
         assertThat(appManifest.getBuildpack(), is("buildpack"));
@@ -276,12 +279,16 @@ public class GetLogicTest {
                 .healthCheckType(ApplicationHealthCheck.HTTP)
                 .instances(3)
                 .memory(1024)
-                .path(Paths.get("some/path"))
                 .randomRoute(true)
                 .services("appdynamics")
                 .build();
 
-        ApplicationBean bean = new ApplicationBean(applicationManifestMock);
+        Metadata metadata = Metadata
+                .builder()
+                .annotation(ApplicationBean.METADATA_KEY, "testApp, 1.0.1, some/branch")
+                .annotation(ApplicationBean.PATH_KEY, "some/path")
+                .build();
+        ApplicationBean bean = new ApplicationBean(applicationManifestMock, metadata);
 
         HashMap<String, ApplicationBean> map = new HashMap<String, ApplicationBean>() {{
             put("testApp", bean);
