@@ -155,8 +155,13 @@ public class SpaceManager implements AutoCloseable {
 
         cfOperations = CfOperationsCreator.createCfOperations(loginCommandOptions);
 
-        // needed for some reason
-        // TODO: find out why?!
+        // apparently, there are some strange race conditions with the login which we might run into when querying the
+        // spaces directly
+        // the CF client library is not the best quality and one can sink a lot of time into debugging these kinds of
+        // problems
+        // like in other modules, the problem can be "solved" by running different operations beforehand, or delaying
+        // the execution by >= 1 second with some sleep()
+        // TODO: find more elegant way to resolve issue
         cfOperations.spaces().list().blockLast();
 
         // time to create the space
