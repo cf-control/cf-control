@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.*;
 
 import cloud.foundry.cli.crosscutting.exceptions.ApplyException;
 import cloud.foundry.cli.crosscutting.logging.Log;
+import cloud.foundry.cli.crosscutting.mapping.validation.*;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.logic.diff.change.CfChange;
 import cloud.foundry.cli.logic.diff.change.object.CfNewObject;
@@ -12,10 +13,7 @@ import cloud.foundry.cli.logic.diff.change.object.CfRemovedObject;
 import cloud.foundry.cli.operations.ApplicationsOperations;
 import reactor.core.publisher.Flux;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import javax.annotation.Nonnull;
 
@@ -27,7 +25,22 @@ import javax.annotation.Nonnull;
 public class ApplicationRequestsPlaner extends RequestsPlaner {
 
     private static final Log log = Log.getLog(ApplicationRequestsPlaner.class);
-    private static final Set<String> FIELDS_REQUIRE_RESTART = new HashSet<>(Arrays.asList("meta", "path"));
+    private static final Map<String, Field> FIELDS_REQUIRE_RESTART = new HashMap<String, Field>(){{
+        put("meta", new ScalarField(ApplicationBean.class, "meta", String.class));
+        put("path", new ScalarField(ApplicationBean.class, "path", String.class));
+    }};
+
+    static {
+        for (Field field : FIELDS_REQUIRE_RESTART.values()) {
+            if(field instanceof MapField) {
+                ObjectPropertyValidation.checkMapExists((MapField)field);
+            } else if(field instanceof ListField) {
+                ObjectPropertyValidation.checkListExists((ListField)field);
+            } else {
+                ObjectPropertyValidation.checkFieldExists((ScalarField)field);
+            }
+        }
+    }
 
     private final ApplicationsOperations appOperations;
     private final String applicationName;
@@ -77,7 +90,7 @@ public class ApplicationRequestsPlaner extends RequestsPlaner {
         if (this.requestType == RequestType.CHANGE_RESTART) return;
 
         // if the field where the change as taken place can only be changed through restarting
-        if (FIELDS_REQUIRE_RESTART.contains(objectValueChanged.getPropertyName())) {
+        if (FIELDS_REQUIRE_RESTART.containsKey(objectValueChanged.getPropertyName())) {
             this.requestType = RequestType.CHANGE_RESTART;
             return;
         }
@@ -154,7 +167,7 @@ public class ApplicationRequestsPlaner extends RequestsPlaner {
                 log.debug("Add update with restart request for app: " + applicationName);
                 return Flux.merge(this.appOperations.create(this.applicationName, applicationBean, false));
             case CHANGE_INPLACE:
-                System.out.println("UPDATING APP INPLACE: " + applicationName);
+                System.out.println("Add in place updates for app: " + applicationName);
                 // TODO scale, env vars or healthcheck type
                 return Flux.empty();
             default:
