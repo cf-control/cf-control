@@ -30,7 +30,7 @@ public class CfOperationsCreator {
      * @throws MissingCredentialsException if either the username or the password cannot be determined
      */
     public static DefaultCloudFoundryOperations createCfOperations(LoginCommandOptions commandOptions) {
-        log.debug("Create the cfOperations object with your login command options...");
+        log.debug("Building CF operations object with your login command options...");
 
         DefaultConnectionContext connectionContext = createConnectionContext(commandOptions);
         PasswordGrantTokenProvider tokenProvider = createTokenProvider(commandOptions);

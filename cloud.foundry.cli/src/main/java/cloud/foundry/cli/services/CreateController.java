@@ -57,7 +57,7 @@ public class CreateController implements Callable<Integer> {
         @Override
         public Integer call() throws Exception {
             log.info("Interpreting YAML file...");
-            SpaceDevelopersBean spaceDevelopersBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(),
+            SpaceDevelopersBean spaceDevelopersBean = YamlMapper.loadBeanFromFile(yamlCommandOptions.getYamlFilePath(),
                     SpaceDevelopersBean.class);
             log.info("Loading YAML file...");
 
@@ -124,7 +124,7 @@ public class CreateController implements Callable<Integer> {
         @Override
         public Integer call() throws Exception {
             log.info("Creating service(s)...");
-            SpecBean specBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
+            SpecBean specBean = YamlMapper.loadBeanFromFile(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
 
             Map<String, ServiceBean> serviceBeans = specBean.getServices();
 
@@ -176,7 +176,7 @@ public class CreateController implements Callable<Integer> {
         @Override
         public Integer call() throws Exception {
             log.info("Creating application(s)...");
-            SpecBean specBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
+            SpecBean specBean = YamlMapper.loadBeanFromFile(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
 
             Map<String, ApplicationBean> applicationBeans = specBean.getApps();
 

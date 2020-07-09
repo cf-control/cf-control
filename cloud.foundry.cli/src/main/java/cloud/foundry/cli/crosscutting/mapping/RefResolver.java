@@ -91,7 +91,7 @@ public class RefResolver implements YamlTreeVisitor {
         log.debug("Reading content of", filePath);
         Object referredYamlTree;
         try {
-            referredYamlTree = YamlMapper.loadYamlTree(absoluteFilePath);
+            referredYamlTree = YamlMapper.loadYamlTreeFromFilePath(absoluteFilePath);
         } catch (IOException ioException) {
             throw new RefResolvingException("Unable to read a referenced file: " + ioException.getMessage(),
                     ioException);

@@ -64,7 +64,7 @@ public class UpdateController implements Callable<Integer> {
         @Override
         public Integer call() throws Exception {
             log.info("Interpreting YAML file...");
-            SpaceDevelopersBean spaceDevelopersBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(),
+            SpaceDevelopersBean spaceDevelopersBean = YamlMapper.loadBeanFromFile(yamlCommandOptions.getYamlFilePath(),
                     SpaceDevelopersBean.class);
             log.info("Loading YAML file...");
 
@@ -174,7 +174,7 @@ public class UpdateController implements Callable<Integer> {
         }
 
         private Map<String, ServiceBean> readServicesFromYamlFile() throws IOException {
-            SpecBean specBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
+            SpecBean specBean = YamlMapper.loadBeanFromFile(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
             return specBean.getServices();
         }
 
@@ -232,7 +232,7 @@ public class UpdateController implements Callable<Integer> {
         @Override
         public Integer call() throws Exception {
             log.info("Removing applications...");
-            SpecBean specBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
+            SpecBean specBean = YamlMapper.loadBeanFromFile(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
             Map<String, ApplicationBean> applicationBeans = specBean.getApps();
 
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
@@ -271,7 +271,7 @@ public class UpdateController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            SpecBean specBean = YamlMapper.loadBean(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
+            SpecBean specBean = YamlMapper.loadBeanFromFile(yamlCommandOptions.getYamlFilePath(), SpecBean.class);
             Map<String, ServiceBean> serviceBeans = specBean.getServices();
 
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
