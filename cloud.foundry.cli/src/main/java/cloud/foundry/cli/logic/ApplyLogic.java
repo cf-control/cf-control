@@ -2,6 +2,7 @@ package cloud.foundry.cli.logic;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import cloud.foundry.cli.crosscutting.exceptions.GetException;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
@@ -182,7 +183,8 @@ public class ApplyLogic {
      * @param desiredSpaceName the name of the desired space
      * @param spaceOperations the spacesOperations used to query and create spaces
      * @throws NullPointerException if the desired spaceName is null
-     * @throws ApplyException in case of any errors during the apply procedure
+     * @throws ApplyException in case of errors during the creation of the desired space
+     * @throws GetException in case of errors during querying the space names
      */
     public void applySpace(String desiredSpaceName, SpaceOperations spaceOperations) {
         checkNotNull(desiredSpaceName);
@@ -195,7 +197,7 @@ public class ApplyLogic {
             spaceNames = getAllRequest.block();
         }
         catch (Exception e) {
-            throw new ApplyException(e);
+            throw new GetException(e);
         }
 
         if (!spaceNames.contains(desiredSpaceName)) {
