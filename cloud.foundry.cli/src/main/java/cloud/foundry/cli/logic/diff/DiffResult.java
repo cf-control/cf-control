@@ -39,12 +39,23 @@ public class DiffResult {
 
     // ensure that the bean classes have fields with according names and types
     static {
-        ObjectPropertyValidation.checkFieldExists(new ScalarField(ConfigBean.class, TARGET_FIELD_NAME, TargetBean.class));
-        ObjectPropertyValidation.checkFieldExists(new ScalarField(ConfigBean.class, SPEC_FIELD_NAME, SpecBean.class));
-        ObjectPropertyValidation.checkMapExists(new MapField(SpecBean.class, APPS_FIELD_NAME, String.class, ApplicationBean.class));
-        ObjectPropertyValidation.checkMapExists(new MapField(SpecBean.class, SERVICES_FIELD_NAME, String.class, ServiceBean.class));
-        ObjectPropertyValidation.checkListExists(new ListField(SpecBean.class, SPACE_DEVELOPERS_PROPERTY_NAME, String.class));
-        ObjectPropertyValidation.checkFieldExists(new ScalarField(ConfigBean.class, API_VERSION_PROPERTY_NAME, String.class));
+        ObjectPropertyValidation.checkFieldExists(
+                new ScalarField(ConfigBean.class, TARGET_FIELD_NAME, TargetBean.class));
+
+        ObjectPropertyValidation.checkFieldExists(
+                new ScalarField(ConfigBean.class, SPEC_FIELD_NAME, SpecBean.class));
+
+        ObjectPropertyValidation.checkMapExists(
+                new MapField(SpecBean.class, APPS_FIELD_NAME, String.class, ApplicationBean.class));
+
+        ObjectPropertyValidation.checkMapExists(
+                new MapField(SpecBean.class, SERVICES_FIELD_NAME, String.class, ServiceBean.class));
+
+        ObjectPropertyValidation.checkListExists(
+                new ListField(SpecBean.class, SPACE_DEVELOPERS_PROPERTY_NAME, String.class));
+
+        ObjectPropertyValidation.checkFieldExists(
+                new ScalarField(ConfigBean.class, API_VERSION_PROPERTY_NAME, String.class));
     }
 
     private final DiffNode rootNode;

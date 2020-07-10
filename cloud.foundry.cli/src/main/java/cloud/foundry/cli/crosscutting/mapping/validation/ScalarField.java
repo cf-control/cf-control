@@ -1,6 +1,6 @@
 package cloud.foundry.cli.crosscutting.mapping.validation;
 
-public class ScalarField implements Field{
+public class ScalarField implements Field {
 
     public Class<?> classWithField;
     public String fieldName;

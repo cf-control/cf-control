@@ -25,16 +25,16 @@ import javax.annotation.Nonnull;
 public class ApplicationRequestsPlaner extends RequestsPlaner {
 
     private static final Log log = Log.getLog(ApplicationRequestsPlaner.class);
-    private static final Map<String, Field> FIELDS_REQUIRE_RESTART = new HashMap<String, Field>(){{
+    private static final Map<String, Field> FIELDS_REQUIRE_RESTART = new HashMap<String, Field>() {{
         put("meta", new ScalarField(ApplicationBean.class, "meta", String.class));
         put("path", new ScalarField(ApplicationBean.class, "path", String.class));
     }};
 
     static {
         for (Field field : FIELDS_REQUIRE_RESTART.values()) {
-            if(field instanceof MapField) {
+            if (field instanceof MapField) {
                 ObjectPropertyValidation.checkMapExists((MapField)field);
-            } else if(field instanceof ListField) {
+            } else if (field instanceof ListField) {
                 ObjectPropertyValidation.checkListExists((ListField)field);
             } else {
                 ObjectPropertyValidation.checkFieldExists((ScalarField)field);
