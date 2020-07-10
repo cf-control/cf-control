@@ -144,31 +144,6 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
         }
     }
 
-    /**
-     * Prepares a request for renaming an application instance.
-     * The resulting mono is preconfigured such that it will perform logging.
-     *
-     * @param newName     new name of the application instance
-     * @param currentName current name of the application instance
-     * @return mono which can be subscribed on to trigger the renaming request to the cf instance
-     * @throws NullPointerException when one of the arguments was null
-     */
-    public Mono<Void> rename(String newName, String currentName) {
-        checkNotNull(newName);
-        checkNotNull(currentName);
-
-        RenameApplicationRequest renameApplicationRequest = RenameApplicationRequest.builder()
-                .name(currentName)
-                .newName(newName)
-                .build();
-
-        return this.cloudFoundryOperations.applications().rename(renameApplicationRequest)
-                .doOnSubscribe(aVoid -> {
-                    log.debug("Rename application:", currentName);
-                    log.debug("With new name:", newName); })
-                .doOnSuccess(aVoid -> log.info("Application renamed from", currentName, "to", newName));
-    }
-
     private Mono<Void> doCreate(String appName, ApplicationBean bean, boolean shouldStart) {
         return this.cloudFoundryOperations
                 .applications()
@@ -272,6 +247,144 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                                 .annotation(ApplicationBean.PATH_KEY, applicationBean.getPath())
                                 .build()).build())
                 .doOnSubscribe(subscription -> log.debug("Update app meta for app: " + appId));
+    }
+
+    /**
+     * Prepares a request for renaming an application instance.
+     * The resulting mono is preconfigured such that it will perform logging.
+     *
+     * @param newName     new name of the application instance
+     * @param currentName current name of the application instance
+     * @return mono which can be subscribed on to trigger the renaming request to the cf instance
+     * @throws NullPointerException when one of the arguments was null
+     */
+    public Mono<Void> rename(String newName, String currentName) {
+        checkNotNull(newName);
+        checkNotNull(currentName);
+
+        RenameApplicationRequest renameApplicationRequest = RenameApplicationRequest.builder()
+                .name(currentName)
+                .newName(newName)
+                .build();
+
+        return this.cloudFoundryOperations.applications().rename(renameApplicationRequest)
+                .doOnSubscribe(aVoid -> {
+                    log.debug("Rename application:", currentName);
+                    log.debug("With new name:", newName); })
+                .doOnSuccess(aVoid -> log.info("Application renamed from", currentName, "to", newName));
+    }
+
+    /**
+     * Prepares a request for scaling properties of an application instance.
+     * The resulting mono is preconfigured such that it will perform logging.
+     *
+     * @param applicationName the name of the application to scale
+     * @param diskLimit the new disk limit
+     * @param memoryLimit the new memory limit
+     * @param instances the new number of instances
+     * @return mono which can be subscribed on to trigger the scale request to the cf instance
+     * @throws NullPointerException if the provided application name is null
+     */
+    public Mono<Void> scale(String applicationName, Integer diskLimit, Integer memoryLimit, Integer instances) {
+        checkNotNull(applicationName);
+
+        ScaleApplicationRequest scaleRequest = ScaleApplicationRequest.builder()
+                .name(applicationName)
+                .diskLimit(diskLimit)
+                .memoryLimit(memoryLimit)
+                .instances(instances)
+                .build();
+
+        return cloudFoundryOperations.applications().scale(scaleRequest)
+                .doOnSubscribe(aVoid -> {
+                    log.debug("Scale app:", applicationName);
+                    log.debug("With new disk limit:", diskLimit);
+                    log.debug("With new memory limit:", memoryLimit);
+                    log.debug("With new number of instances:", instances); })
+                .doOnSuccess(aVoid -> log.info("Application", applicationName, "was scaled"));
+    }
+
+    /**
+     * Prepares a request for adding an environment variable to an application instance.
+     * The resulting mono is preconfigured such that it will perform logging.
+     *
+     * @param applicationName the name of the application to add the environment variable for
+     * @param variableName the name of the environment variable to add
+     * @param variableValue the value of the environment variable to add
+     * @return mono which can be subscribed on to trigger the environment variable request to the cf instance
+     * @throws NullPointerException if any of the arguments are null
+     */
+    public Mono<Void> addEnvironmentVariable(String applicationName, String variableName, String variableValue) {
+        checkNotNull(applicationName);
+        checkNotNull(variableName);
+        checkNotNull(variableValue);
+
+        SetEnvironmentVariableApplicationRequest addEnvVarRequest = SetEnvironmentVariableApplicationRequest.builder()
+                .name(applicationName)
+                .variableName(variableName)
+                .variableValue(variableValue)
+                .build();
+
+        return cloudFoundryOperations.applications().setEnvironmentVariable(addEnvVarRequest)
+                .doOnSubscribe(aVoid -> {
+                    log.debug("Added environment variable for app:", applicationName);
+                    log.debug("With variable name:", variableName);
+                    log.debug("With variable value:", variableValue); })
+                .doOnSuccess(aVoid -> log.info("Environment variable", variableName, " with value",
+                        variableValue , "was added to the app", applicationName));
+    }
+
+    /**
+     * Prepares a request for removing an environment variable from an application instance.
+     * The resulting mono is preconfigured such that it will perform logging.
+     *
+     * @param applicationName the name of the application to remove the environment variable of
+     * @param variableName the name of the environment variable to remove
+     * @return mono which can be subscribed on to trigger the environment variable request to the cf instance
+     * @throws NullPointerException if any of the arguments are null
+     */
+    public Mono<Void> removeEnvironmentVariable(String applicationName, String variableName) {
+        checkNotNull(applicationName);
+        checkNotNull(variableName);
+
+        UnsetEnvironmentVariableApplicationRequest removeEnvVarRequest = UnsetEnvironmentVariableApplicationRequest
+                .builder()
+                .name(applicationName)
+                .variableName(variableName)
+                .build();
+
+        return cloudFoundryOperations.applications().unsetEnvironmentVariable(removeEnvVarRequest)
+                .doOnSubscribe(aVoid -> {
+                    log.debug("Removed environment variable for app:", applicationName);
+                    log.debug("With variable name:", variableName); })
+                .doOnSuccess(aVoid -> log.info("Environment variable", variableName,
+                            "was removed from the app", applicationName));
+    }
+
+    /**
+     * Prepares a request for setting the type of the health check of an application instance.
+     * The resulting mono is preconfigured such that it will perform logging.
+     *
+     * @param applicationName the name of the application to set the health check type of
+     * @param healthCheckType the health check type to set
+     * @return mono which can be subscribed on to trigger the health check type request to the cf instance
+     * @throws NullPointerException if any of the arguments are null
+     */
+    public Mono<Void> setHealthCheck(String applicationName, ApplicationHealthCheck healthCheckType) {
+        checkNotNull(applicationName);
+        checkNotNull(healthCheckType);
+
+        SetApplicationHealthCheckRequest setHealthCheckRequest = SetApplicationHealthCheckRequest.builder()
+                .name(applicationName)
+                .type(healthCheckType)
+                .build();
+
+        return cloudFoundryOperations.applications().setHealthCheck(setHealthCheckRequest)
+                .doOnSubscribe(aVoid -> {
+                    log.debug("Set health check type for app:", applicationName);
+                    log.debug("With health check type:", healthCheckType); })
+                .doOnSuccess(aVoid -> log.info("The health check type of the app", applicationName,
+                        "was set to", healthCheckType));
     }
 
 }

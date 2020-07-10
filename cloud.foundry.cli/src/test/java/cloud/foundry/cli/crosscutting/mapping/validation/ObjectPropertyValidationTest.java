@@ -1,11 +1,11 @@
 package cloud.foundry.cli.crosscutting.mapping.validation;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class ObjectPropertyValidationTest {
 

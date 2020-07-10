@@ -9,17 +9,7 @@ import cloud.foundry.cli.crosscutting.logging.Log;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.routes.ListRoutesRequest;
 import org.cloudfoundry.operations.routes.Route;
-import org.cloudfoundry.operations.services.CreateServiceInstanceRequest;
-import org.cloudfoundry.operations.services.DeleteServiceInstanceRequest;
-import org.cloudfoundry.operations.services.DeleteServiceKeyRequest;
-import org.cloudfoundry.operations.services.GetServiceInstanceRequest;
-import org.cloudfoundry.operations.services.ListServiceKeysRequest;
-import org.cloudfoundry.operations.services.RenameServiceInstanceRequest;
-import org.cloudfoundry.operations.services.ServiceInstance;
-import org.cloudfoundry.operations.services.ServiceKey;
-import org.cloudfoundry.operations.services.UnbindRouteServiceInstanceRequest;
-import org.cloudfoundry.operations.services.UnbindServiceInstanceRequest;
-import org.cloudfoundry.operations.services.UpdateServiceInstanceRequest;
+import org.cloudfoundry.operations.services.*;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -324,4 +314,26 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
                 .hostname(route.getHost())
                 .build();
     }
+
+    /**
+     * Prepares a request for binding an app to a service.
+     * The resulting mono is preconfigured such that it will perform logging.
+     *
+     * @param applicationName the app that should be bound to the service
+     * @param serviceName the service to which the app should be bound
+     * @return mono which can be subscribed on to trigger the app binding
+     * @throws NullPointerException if any of the arguments is null
+     */
+    public Mono<Void> bindApp(String applicationName, String serviceName) {
+        checkNotNull(applicationName);
+        checkNotNull(serviceName);
+
+        BindServiceInstanceRequest bindServiceRequest = BindServiceInstanceRequest.builder()
+                .applicationName(applicationName)
+                .serviceInstanceName(serviceName)
+                .build();
+
+        return cloudFoundryOperations.services().bind(bindServiceRequest);
+    }
+
 }

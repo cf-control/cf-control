@@ -1,10 +1,8 @@
 package cloud.foundry.cli.operations;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -22,14 +20,7 @@ import org.cloudfoundry.client.v3.applications.UpdateApplicationRequest;
 import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.client.v3.applications.ApplicationsV3;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
-import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
-import org.cloudfoundry.operations.applications.ApplicationManifest;
-import org.cloudfoundry.operations.applications.Applications;
-import org.cloudfoundry.operations.applications.DeleteApplicationRequest;
-import org.cloudfoundry.operations.applications.GetApplicationRequest;
-import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
-import org.cloudfoundry.operations.applications.RenameApplicationRequest;
-import org.cloudfoundry.operations.applications.Route;
+import org.cloudfoundry.operations.applications.*;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import reactor.core.publisher.Mono;
@@ -327,6 +318,83 @@ public class ApplicationsOperationsTest {
         Mockito.verify(applicationsMock, Mockito.times(1)).rename(renameRequest);
         assertThat(renameRequest.getName(), is(SOME_APPLICATION));
         assertThat(renameRequest.getNewName(), is("newName"));
+    }
+
+    @Test
+    public void testScaleSucceeds() {
+        // given
+        DefaultCloudFoundryOperations cfOperationsMock = Mockito.mock(DefaultCloudFoundryOperations.class);
+        Applications applicationsMock = Mockito.mock(Applications.class);
+        Mockito.when(cfOperationsMock.applications()).thenReturn(applicationsMock);
+
+        // this reference will point to the scale request that is passed to the applications mock
+        AtomicReference<ScaleApplicationRequest> scaleRequestReference = new AtomicReference<>(null);
+        Mockito.when(applicationsMock.scale(any(ScaleApplicationRequest.class)))
+                .then(invocation -> {
+                    scaleRequestReference.set(invocation.getArgument(0));
+                    return Mono.empty();
+                });
+
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperationsMock);
+
+        final Integer diskLimit = 42;
+        final Integer memoryLimit = 112;
+        final Integer instances = 3;
+
+        // when
+        Mono<Void> scaleResult = applicationsOperations.scale(SOME_APPLICATION, diskLimit, memoryLimit, instances);
+
+        // then
+        assertThat(scaleResult, is(notNullValue()));
+
+        ScaleApplicationRequest scaleRequest = scaleRequestReference.get();
+        Mockito.verify(applicationsMock, Mockito.times(1)).scale(scaleRequest);
+        assertThat(scaleRequest.getName(), is(SOME_APPLICATION));
+        assertThat(scaleRequest.getDiskLimit(), is(diskLimit));
+        assertThat(scaleRequest.getMemoryLimit(), is(memoryLimit));
+        assertThat(scaleRequest.getInstances(), is(instances));
+    }
+
+    @Test
+    public void testScaleSucceedsWithNullArguments() {
+        // given
+        DefaultCloudFoundryOperations cfOperationsMock = Mockito.mock(DefaultCloudFoundryOperations.class);
+        Applications applicationsMock = Mockito.mock(Applications.class);
+        Mockito.when(cfOperationsMock.applications()).thenReturn(applicationsMock);
+
+        // this reference will point to the scale request that is passed to the applications mock
+        AtomicReference<ScaleApplicationRequest> scaleRequestReference = new AtomicReference<>(null);
+        Mockito.when(applicationsMock.scale(any(ScaleApplicationRequest.class)))
+                .then(invocation -> {
+                    scaleRequestReference.set(invocation.getArgument(0));
+                    return Mono.empty();
+                });
+
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperationsMock);
+
+        // when
+        Mono<Void> scaleResult = applicationsOperations.scale(SOME_APPLICATION, null, null, null);
+
+        // then
+        assertThat(scaleResult, is(notNullValue()));
+
+        ScaleApplicationRequest scaleRequest = scaleRequestReference.get();
+        Mockito.verify(applicationsMock, Mockito.times(1)).scale(scaleRequest);
+        assertThat(scaleRequest.getName(), is(SOME_APPLICATION));
+        assertThat(scaleRequest.getDiskLimit(), is(nullValue()));
+        assertThat(scaleRequest.getMemoryLimit(), is(nullValue()));
+        assertThat(scaleRequest.getInstances(), is(nullValue()));
+    }
+
+    @Test
+    public void testScaleWithNullValueAsApplicationNameThrowsNullPointerException() {
+        //given
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(
+                Mockito.mock(DefaultCloudFoundryOperations.class));
+
+        //when + then
+        assertThrows(NullPointerException.class, () ->
+                applicationsOperations.scale(null, 12, 34, 56));
     }
 
     /**
