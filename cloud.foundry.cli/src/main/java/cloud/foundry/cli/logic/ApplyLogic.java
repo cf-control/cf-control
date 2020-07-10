@@ -182,12 +182,13 @@ public class ApplyLogic {
      * Creates a space with the desired name if a space with such a name does not exist in the live cf instance.
      * @param desiredSpaceName the name of the desired space
      * @param spaceOperations the spacesOperations used to query and create spaces
-     * @throws NullPointerException if the desired spaceName is null
+     * @throws NullPointerException if the desired paramerters are null
      * @throws ApplyException in case of errors during the creation of the desired space
      * @throws GetException in case of errors during querying the space names
      */
     public void applySpace(String desiredSpaceName, SpaceOperations spaceOperations) {
         checkNotNull(desiredSpaceName);
+        checkNotNull(spaceOperations);
 
         Mono<List<String>> getAllRequest = spaceOperations.getAll();
         List<String> spaceNames;

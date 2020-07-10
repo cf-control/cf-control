@@ -5,11 +5,10 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.*;
 
+import cloud.foundry.cli.crosscutting.exceptions.ApplyException;
+import cloud.foundry.cli.crosscutting.exceptions.GetException;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationManifestBean;
 
@@ -388,7 +387,7 @@ public class ApplyLogicTest {
     }
 
     @Test
-    public void testApplySpace(){
+    public void testApplySpaceWithSpaceNotExistingWillCreateSpace(){
 
         // given
         String desiredSpaceName = "testName";
@@ -409,5 +408,87 @@ public class ApplyLogicTest {
 
         // then
         verify(resultingMono).block();
+    }
+
+    @Test
+    public void testApplySpaceWithSpaceExistingWillNotCreateSpace(){
+        // given
+        String desiredSpaceName = "testName";
+        SpaceOperations spaceOperationsMock = mock(SpaceOperations.class);
+
+        List<String> presentSpaces = Arrays.asList("testName", "space2");
+        when(spaceOperationsMock.getAll()).thenReturn(Mono.just(presentSpaces));
+
+        Mono<Void> resultingMono = mock(Mono.class);
+        when(spaceOperationsMock.create(desiredSpaceName)).thenReturn(resultingMono);
+
+        // when
+
+        // the constructor paramteres won't be used by apply space method, because it uses DI
+        // regarding space operations.
+        ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
+        applyLogic.applySpace(desiredSpaceName, spaceOperationsMock);
+
+        // then
+        verify(resultingMono, never()).block();
+    }
+
+    @Test
+    public void testApplySpaceWithGetSpaceNamesFailingThrowsGetException(){
+        // given
+        String desiredSpaceName = "testName";
+        SpaceOperations spaceOperationsMock = mock(SpaceOperations.class);
+
+        Mono<List<String>> getRequestMock = mock(Mono.class);
+        when(spaceOperationsMock.getAll()).thenReturn(getRequestMock);
+        when(getRequestMock.block()).thenThrow(new RuntimeException("GetFailing"));
+
+        // when + then
+
+        // the constructor paramteres won't be used by apply space method, because it uses DI
+        // regarding space operations.
+        ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
+        assertThrows(GetException.class, () ->
+                applyLogic.applySpace(desiredSpaceName, spaceOperationsMock));
+    }
+
+    @Test
+    public void testApplySpaceWithCreateSpaceFailingThrowsApplyExcption(){
+
+        // given
+        String desiredSpaceName = "testName";
+        SpaceOperations spaceOperationsMock = mock(SpaceOperations.class);
+
+        List<String> presentSpaces = Arrays.asList("space1", "space2");
+        when(spaceOperationsMock.getAll()).thenReturn(Mono.just(presentSpaces));
+
+        Mono<Void> resultingMono = mock(Mono.class);
+        when(spaceOperationsMock.create(desiredSpaceName)).thenReturn(resultingMono);
+        when(resultingMono.block()).thenThrow(new RuntimeException("Create space failing"));
+
+        // when + then
+
+        // the constructor paramteres won't be used by apply space method, because it uses DI
+        // regarding space operations.
+        ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
+        assertThrows(ApplyException.class, () ->
+                applyLogic.applySpace(desiredSpaceName, spaceOperationsMock));
+    }
+
+    @Test
+    public void testApplySpaceWithDesiredSpaceNameNullThrowsNullptr() {
+        ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
+
+        SpaceOperations spaceOperationsMock = mock(SpaceOperations.class);
+        assertThrows(NullPointerException.class, () ->
+                applyLogic.applySpace(null, spaceOperationsMock));
+    }
+
+    @Test
+    public void testApplySpaceWithSpaceOperationsNullThrowsNullptr() {
+        ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
+
+        assertThrows(NullPointerException.class, () ->
+                applyLogic.applySpace("testName", null));
     }
 }
