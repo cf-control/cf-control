@@ -17,6 +17,7 @@ import cloud.foundry.cli.mocking.ApplicationsMockBuilder;
 import cloud.foundry.cli.mocking.ApplicationsV3MockBuilder;
 import cloud.foundry.cli.mocking.CloudFoundryClientMockBuilder;
 import cloud.foundry.cli.mocking.DefaultCloudFoundryOperationsMockBuilder;
+import cloud.foundry.cli.operations.SpaceOperations;
 import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperByUsernameRequest;
 import org.cloudfoundry.client.v2.spaces.RemoveSpaceDeveloperByUsernameRequest;
 import org.cloudfoundry.client.CloudFoundryClient;
@@ -35,13 +36,7 @@ import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 
 import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 
@@ -390,5 +385,29 @@ public class ApplyLogicTest {
         //this is called when you apply to the changes
         verify(entry).getKey();
         verify(entry).getValue();
+    }
+
+    @Test
+    public void testApplySpace(){
+
+        // given
+        String desiredSpaceName = "testName";
+        SpaceOperations spaceOperationsMock = mock(SpaceOperations.class);
+
+        List<String> presentSpaces = Arrays.asList("space1", "space2");
+        when(spaceOperationsMock.getAll()).thenReturn(Mono.just(presentSpaces));
+
+        Mono<Void> resultingMono = mock(Mono.class);
+        when(spaceOperationsMock.create(desiredSpaceName)).thenReturn(resultingMono);
+
+        // when
+
+        // the constructor paramteres won't be used by apply space method, because it uses DI
+        // regarding space operations.
+        ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
+        applyLogic.applySpace(desiredSpaceName, spaceOperationsMock);
+
+        // then
+        verify(resultingMono).block();
     }
 }
