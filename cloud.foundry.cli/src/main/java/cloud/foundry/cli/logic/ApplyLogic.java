@@ -17,8 +17,10 @@ import cloud.foundry.cli.logic.diff.change.container.CfContainerChange;
 import cloud.foundry.cli.operations.ApplicationsOperations;
 import cloud.foundry.cli.operations.ServicesOperations;
 import cloud.foundry.cli.operations.SpaceDevelopersOperations;
+import cloud.foundry.cli.operations.SpaceOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -173,6 +175,42 @@ public class ApplyLogic {
         serviceRequests.blockLast();
 
         log.info("Applying changes to services...");
+    }
+
+    /**
+     * Creates a space with the desired name if a space with such a name does not exist in the live cf instance.
+     * @param desiredSpaceName the name of the desired space
+     * @param spaceOperations the spacesOperations used to query and create spaces
+     * @throws NullPointerException if the desired spaceName is null
+     * @throws ApplyException in case of any errors during the apply procedure
+     */
+    public void applySpace(String desiredSpaceName, SpaceOperations spaceOperations) {
+        checkNotNull(desiredSpaceName);
+
+        Mono<List<String>> getAllRequest = spaceOperations.getAll();
+        List<String> spaceNames;
+
+        log.info("Fetching all space names...");
+        try {
+            spaceNames = getAllRequest.block();
+        }
+        catch (Exception e) {
+            throw new ApplyException(e);
+        }
+
+        if (!spaceNames.contains(desiredSpaceName)) {
+            log.info("Creating space with name:", desiredSpaceName);
+            Mono<Void> createRequest = spaceOperations.create(desiredSpaceName);
+            try {
+                createRequest.block();
+            }
+            catch (Exception e) {
+                throw new ApplyException(e);
+            }
+        }
+        else {
+            log.info("Space with name", desiredSpaceName, "already exists");
+        }
     }
 
 
