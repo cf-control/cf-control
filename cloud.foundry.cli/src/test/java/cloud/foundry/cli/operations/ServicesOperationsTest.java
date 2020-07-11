@@ -558,6 +558,41 @@ public class ServicesOperationsTest {
         assertThrows(NullPointerException.class, () -> servicesOperations.deleteKeys(null));
     }
 
+    @Test
+    public void testUnbindApp() {
+        // given
+        DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
+        Services servicesMock = mock(Services.class);
+        mockUnbindApp(cfOperationsMock, servicesMock);
+
+        ServicesOperations servicesOperations = new ServicesOperations(cfOperationsMock);
+        // when
+        Mono<Void> request = servicesOperations.unbindApp("someservice", "someapp");
+        request.block();
+
+        // then
+        UnbindServiceInstanceRequest unbindServiceInstanceRequest = UnbindServiceInstanceRequest
+                .builder()
+                .applicationName("someapp")
+                .serviceInstanceName("someservice")
+                .build();
+        verify(servicesMock, times(1)).unbind(unbindServiceInstanceRequest);
+        StepVerifier.create(request)
+                .expectComplete()
+                .verify();
+    }
+
+    @Test
+    public void testUnbindAppOnNullNameThrowsException() {
+        // given
+        DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
+        ServicesOperations servicesOperations = new ServicesOperations(cfOperationsMock);
+
+        // when
+        assertThrows(NullPointerException.class, () -> servicesOperations.unbindApp(null, "someapp"));
+        assertThrows(NullPointerException.class, () -> servicesOperations.unbindApp("someservice", null));
+    }
+
     private void mockListRoutes(DefaultCloudFoundryOperations cfOperationsMock, Routes routesMock, List<Route> routes) {
         when(cfOperationsMock.routes())
                 .thenReturn(routesMock);
@@ -623,7 +658,7 @@ public class ServicesOperationsTest {
         when(serviceBean.getService()).thenReturn("elephantsql");
         when(serviceBean.getPlan()).thenReturn("standard");
         when(serviceBean.getTags()).thenReturn(Arrays.asList("Tag1", "Tag2"));
-        
+
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("count", 5);
         params.put("upgrade", true);

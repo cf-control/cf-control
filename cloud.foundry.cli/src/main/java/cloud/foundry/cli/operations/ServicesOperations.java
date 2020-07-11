@@ -255,12 +255,23 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
                         return serviceInstance.getApplications();
                     }
                 })
-                .flatMap(appName -> doUnbindApp(serviceInstanceName, appName))
+                .flatMap(appName -> unbindApp(serviceInstanceName, appName))
                 .doOnComplete(() -> log.info("All applications of service instance "
                         + serviceInstanceName + " have been unbound."));
     }
 
-    private Mono<Void> doUnbindApp(String serviceInstanceName, String applicationName) {
+    /**
+     * Prepares a request for unbinding a service instance from an application.
+     * The resulting mono is preconfigured such that it will perform logging.
+     *
+     * @param serviceInstanceName name of the service instance to unbind the application from
+     * @param applicationName name of the application
+     * @return mono which can be subscribed on to unbind the application
+     */
+    public Mono<Void> unbindApp(String serviceInstanceName, String applicationName) {
+        checkNotNull(serviceInstanceName);
+        checkNotNull(applicationName);
+
         return this.cloudFoundryOperations
                 .services()
                 .unbind(createUnbindServiceInstanceRequest(serviceInstanceName, applicationName))
