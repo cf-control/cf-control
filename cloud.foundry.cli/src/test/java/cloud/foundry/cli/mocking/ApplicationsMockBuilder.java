@@ -5,14 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import org.cloudfoundry.operations.applications.ApplicationDetail;
-import org.cloudfoundry.operations.applications.ApplicationManifest;
-import org.cloudfoundry.operations.applications.ApplicationSummary;
-import org.cloudfoundry.operations.applications.Applications;
-import org.cloudfoundry.operations.applications.DeleteApplicationRequest;
-import org.cloudfoundry.operations.applications.GetApplicationManifestRequest;
-import org.cloudfoundry.operations.applications.GetApplicationRequest;
-import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
+import org.cloudfoundry.operations.applications.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -74,8 +67,20 @@ public class ApplicationsMockBuilder {
         mockPushManifest(applicationsMock);
         mockDelete(applicationsMock);
         mockGet(applicationsMock);
+        mockScale(applicationsMock);
+        mockRename(applicationsMock);
 
         return applicationsMock;
+    }
+
+    private void mockRename(Applications applicationsMock) {
+        when(applicationsMock.rename(any(RenameApplicationRequest.class)))
+                .thenReturn(Mono.just(mock(Void.class)));
+    }
+
+    private void mockScale(Applications applicationsMock) {
+        when(applicationsMock.scale(any(ScaleApplicationRequest.class)))
+                .thenReturn(Mono.just(mock(Void.class)));
     }
 
     private void mockGet(Applications applicationsMock) {

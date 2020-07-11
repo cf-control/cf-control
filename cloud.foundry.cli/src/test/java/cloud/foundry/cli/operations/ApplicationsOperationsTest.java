@@ -2,10 +2,10 @@ package cloud.foundry.cli.operations;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
-import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
 
 import cloud.foundry.cli.mocking.ApplicationsMockBuilder;
 import cloud.foundry.cli.mocking.ApplicationsV3MockBuilder;
@@ -28,7 +28,6 @@ import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Test for {@link ApplicationsOperations}
@@ -67,7 +66,7 @@ public class ApplicationsOperationsTest {
                 .annotation(ApplicationBean.PATH_KEY, "/test/uri")
                 .annotation(ApplicationBean.METADATA_KEY, "notyetrandomname,1.0.1,some/branch")
                 .build();
-        DefaultCloudFoundryOperations cfMock = getCloudFoundryOperations(
+        DefaultCloudFoundryOperations cfMock = getCloudFoundryOperationsMock(
                 Collections.singletonMap("notyetrandomname", appManifest),
                 Collections.singletonMap("notyetrandomname", metadata),
                 null
@@ -103,7 +102,7 @@ public class ApplicationsOperationsTest {
         assertThat(appBean.getManifest().getStack(), is("nope"));
         assertThat(appBean.getManifest().getTimeout(), is(987654321));
         assertThat(appBean.getMeta(), is("notyetrandomname,1.0.1,some/branch"));
-        Mockito.verify(cfMock.applications(), Mockito.times(1)).list();
+        Mockito.verify(cfMock.applications(), times(1)).list();
     }
 
     @Test
@@ -117,7 +116,7 @@ public class ApplicationsOperationsTest {
                 .annotation(ApplicationBean.METADATA_KEY, "somemeta")
                 .build();
 
-        DefaultCloudFoundryOperations cfoMock = getCloudFoundryOperations(
+        DefaultCloudFoundryOperations cfoMock = getCloudFoundryOperationsMock(
                 Collections.singletonMap("appId", appManifest),
                 Collections.emptyMap(),
                 null
@@ -135,9 +134,9 @@ public class ApplicationsOperationsTest {
 
         // then
         assertThat(request, notNullValue());
-        Mockito.verify(cfoMock.applications(), Mockito.times(1))
+        Mockito.verify(cfoMock.applications(), times(1))
                 .pushManifest(any(PushApplicationManifestRequest.class));
-        Mockito.verify(cfoMock.applications(), Mockito.times(1))
+        Mockito.verify(cfoMock.applications(), times(1))
                 .get(any(org.cloudfoundry.operations.applications.GetApplicationRequest.class));
         UpdateApplicationRequest updateRequest = UpdateApplicationRequest
                 .builder()
@@ -150,7 +149,7 @@ public class ApplicationsOperationsTest {
                         .annotation(ApplicationBean.DOCKER_USERNAME_KEY, applicationsBean.getDockerUsername())
                         .build())
                 .build();
-        Mockito.verify(cfoMock.getCloudFoundryClient().applicationsV3(), Mockito.times(1)).update(updateRequest);
+        Mockito.verify(cfoMock.getCloudFoundryClient().applicationsV3(), times(1)).update(updateRequest);
     }
 
     @Test
@@ -162,7 +161,7 @@ public class ApplicationsOperationsTest {
                 .annotation("path", "some/path")
                 .annotation(ApplicationBean.METADATA_KEY, "somemeta")
                 .build();
-        DefaultCloudFoundryOperations cfoMock = getCloudFoundryOperations(
+        DefaultCloudFoundryOperations cfoMock = getCloudFoundryOperationsMock(
                 Collections.singletonMap("appId", appManifest),
                 Collections.emptyMap(),
                 new Exception()
@@ -180,11 +179,11 @@ public class ApplicationsOperationsTest {
         //then
         assertThat(request, notNullValue());
         assertThrows(Exception.class, request::block);
-        Mockito.verify(cfoMock.applications(), Mockito.times(1))
+        Mockito.verify(cfoMock.applications(), times(1))
                 .pushManifest(any(PushApplicationManifestRequest.class));
-        Mockito.verify(cfoMock.applications(), Mockito.times(1))
+        Mockito.verify(cfoMock.applications(), times(1))
                 .get(any(GetApplicationRequest.class));
-        Mockito.verify(cfoMock.getCloudFoundryClient().applicationsV3(), Mockito.times(0))
+        Mockito.verify(cfoMock.getCloudFoundryClient().applicationsV3(), times(0))
                 .update(any(UpdateApplicationRequest.class));
     }
 
@@ -254,7 +253,7 @@ public class ApplicationsOperationsTest {
 
         // then
         assertThat(request, notNullValue());
-        Mockito.verify(cfoMock.applications(), Mockito.times(1)).delete(any(DeleteApplicationRequest.class));
+        Mockito.verify(cfoMock.applications(), times(1)).delete(any(DeleteApplicationRequest.class));
     }
 
     @Test
@@ -292,17 +291,9 @@ public class ApplicationsOperationsTest {
     @Test
     public void testRenameSucceeds() {
         // given
-        DefaultCloudFoundryOperations cfoMock = Mockito.mock(DefaultCloudFoundryOperations.class);
-        Applications applicationsMock = Mockito.mock(Applications.class);
-        Mockito.when(cfoMock.applications()).thenReturn(applicationsMock);
-
-        // this reference will point to the rename request that is passed to the applications mock
-        AtomicReference<RenameApplicationRequest> renameRequestReference = new AtomicReference<>(null);
-        Mockito.when(applicationsMock.rename(any(RenameApplicationRequest.class)))
-                .then(invocation -> {
-                    renameRequestReference.set(invocation.getArgument(0));
-                    return Mono.empty();
-                });
+        DefaultCloudFoundryOperations cfoMock = getCloudFoundryOperationsMock(Collections.emptyMap(),
+                Collections.emptyMap(),
+                null);
 
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfoMock);
 
@@ -312,26 +303,16 @@ public class ApplicationsOperationsTest {
         // then
         assertThat(requestResult, is(notNullValue()));
 
-        RenameApplicationRequest renameRequest = renameRequestReference.get();
-        Mockito.verify(applicationsMock, Mockito.times(1)).rename(renameRequest);
-        assertThat(renameRequest.getName(), is(SOME_APPLICATION));
-        assertThat(renameRequest.getNewName(), is("newName"));
+        RenameApplicationRequest renameRequest =  RenameApplicationRequest.builder().name(SOME_APPLICATION).newName("newName").build();
+        Mockito.verify(cfoMock.applications(), times(1)).rename(renameRequest);
     }
 
     @Test
     public void testScaleSucceeds() {
         // given
-        DefaultCloudFoundryOperations cfOperationsMock = Mockito.mock(DefaultCloudFoundryOperations.class);
-        Applications applicationsMock = Mockito.mock(Applications.class);
-        Mockito.when(cfOperationsMock.applications()).thenReturn(applicationsMock);
-
-        // this reference will point to the scale request that is passed to the applications mock
-        AtomicReference<ScaleApplicationRequest> scaleRequestReference = new AtomicReference<>(null);
-        Mockito.when(applicationsMock.scale(any(ScaleApplicationRequest.class)))
-                .then(invocation -> {
-                    scaleRequestReference.set(invocation.getArgument(0));
-                    return Mono.empty();
-                });
+        DefaultCloudFoundryOperations cfOperationsMock = getCloudFoundryOperationsMock(Collections.emptyMap(),
+                Collections.emptyMap(),
+                null);
 
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperationsMock);
 
@@ -345,28 +326,22 @@ public class ApplicationsOperationsTest {
         // then
         assertThat(scaleResult, is(notNullValue()));
 
-        ScaleApplicationRequest scaleRequest = scaleRequestReference.get();
-        Mockito.verify(applicationsMock, Mockito.times(1)).scale(scaleRequest);
-        assertThat(scaleRequest.getName(), is(SOME_APPLICATION));
-        assertThat(scaleRequest.getDiskLimit(), is(diskLimit));
-        assertThat(scaleRequest.getMemoryLimit(), is(memoryLimit));
-        assertThat(scaleRequest.getInstances(), is(instances));
+        ScaleApplicationRequest scaleApplicationRequest = ScaleApplicationRequest
+                .builder()
+                .name(SOME_APPLICATION)
+                .instances(instances)
+                .diskLimit(diskLimit)
+                .memoryLimit(memoryLimit)
+                .build();
+        Mockito.verify(cfOperationsMock.applications(), times(1)).scale(scaleApplicationRequest);
     }
 
     @Test
     public void testScaleSucceedsWithNullArguments() {
         // given
-        DefaultCloudFoundryOperations cfOperationsMock = Mockito.mock(DefaultCloudFoundryOperations.class);
-        Applications applicationsMock = Mockito.mock(Applications.class);
-        Mockito.when(cfOperationsMock.applications()).thenReturn(applicationsMock);
-
-        // this reference will point to the scale request that is passed to the applications mock
-        AtomicReference<ScaleApplicationRequest> scaleRequestReference = new AtomicReference<>(null);
-        Mockito.when(applicationsMock.scale(any(ScaleApplicationRequest.class)))
-                .then(invocation -> {
-                    scaleRequestReference.set(invocation.getArgument(0));
-                    return Mono.empty();
-                });
+        DefaultCloudFoundryOperations cfOperationsMock = getCloudFoundryOperationsMock(Collections.emptyMap(),
+                Collections.emptyMap(),
+                null);
 
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperationsMock);
 
@@ -376,12 +351,11 @@ public class ApplicationsOperationsTest {
         // then
         assertThat(scaleResult, is(notNullValue()));
 
-        ScaleApplicationRequest scaleRequest = scaleRequestReference.get();
-        Mockito.verify(applicationsMock, Mockito.times(1)).scale(scaleRequest);
-        assertThat(scaleRequest.getName(), is(SOME_APPLICATION));
-        assertThat(scaleRequest.getDiskLimit(), is(nullValue()));
-        assertThat(scaleRequest.getMemoryLimit(), is(nullValue()));
-        assertThat(scaleRequest.getInstances(), is(nullValue()));
+        ScaleApplicationRequest scaleRequest = ScaleApplicationRequest
+                .builder()
+                .name(SOME_APPLICATION)
+                .build();
+        Mockito.verify(cfOperationsMock.applications(), times(1)).scale(scaleRequest);
     }
 
     @Test
@@ -393,22 +367,6 @@ public class ApplicationsOperationsTest {
         //when + then
         assertThrows(NullPointerException.class, () ->
                 applicationsOperations.scale(null, 12, 34, 56));
-    }
-
-    /**
-     * Creates an {@link Metadata} for testing purposes.
-     *
-     * @return metadata for an application
-     */
-    private Metadata createMockMedatadata() {
-        Map<String, String> annotations = new HashMap<String, String>();
-        annotations.put(ApplicationBean.METADATA_KEY, "notyetrandomname,1.0.1,some/branch");
-        annotations.put("id", "1234");
-
-        Metadata metadata = Mockito.mock(Metadata.class);
-        Mockito.when(metadata.getAnnotations()).thenReturn(annotations);
-
-        return metadata;
     }
 
     /**
@@ -447,9 +405,9 @@ public class ApplicationsOperationsTest {
             .build();
     }
 
-    private DefaultCloudFoundryOperations getCloudFoundryOperations(Map<String, ApplicationManifest> apps,
-                                                                    Map<String, Metadata> metadata,
-                                                                    Throwable pushAppError) {
+    private DefaultCloudFoundryOperations getCloudFoundryOperationsMock(Map<String, ApplicationManifest> apps,
+                                                                        Map<String, Metadata> metadata,
+                                                                        Throwable pushAppError) {
         ApplicationsV3 applicationsV3Mock = ApplicationsV3MockBuilder
                 .get()
                 .setMetadata(metadata)
