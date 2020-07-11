@@ -12,7 +12,6 @@ import cloud.foundry.cli.mocking.ApplicationsV3MockBuilder;
 import cloud.foundry.cli.mocking.CloudFoundryClientMockBuilder;
 import cloud.foundry.cli.mocking.DefaultCloudFoundryOperationsMockBuilder;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
-import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationManifestBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import org.cloudfoundry.client.v3.Metadata;
 import org.cloudfoundry.client.v3.applications.UpdateApplicationRequest;
@@ -147,6 +146,8 @@ public class ApplicationsOperationsTest {
                         .builder()
                         .annotation(ApplicationBean.METADATA_KEY , applicationsBean.getMeta())
                         .annotation(ApplicationBean.PATH_KEY, applicationsBean.getPath())
+                        .annotation(ApplicationBean.DOCKER_IMAGE_KEY, applicationsBean.getDockerImage())
+                        .annotation(ApplicationBean.DOCKER_USERNAME_KEY, applicationsBean.getDockerUsername())
                         .build())
                 .build();
         Mockito.verify(cfoMock.getCloudFoundryClient().applicationsV3(), Mockito.times(1)).update(updateRequest);
@@ -194,11 +195,8 @@ public class ApplicationsOperationsTest {
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfoMock);
 
         ApplicationBean applicationsBean = new ApplicationBean();
-        ApplicationManifestBean applicationManifestBean = new ApplicationManifestBean();
-        applicationManifestBean.setDockerImage("some/image");
-        applicationManifestBean.setDockerUsername("username");
-
-        applicationsBean.setManifest(applicationManifestBean);
+        applicationsBean.setDockerImage("some/image");
+        applicationsBean.setDockerUsername("username");
 
         // when
         CreationException exception = assertThrows(CreationException.class,

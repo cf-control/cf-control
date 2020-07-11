@@ -184,18 +184,17 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
             .command(bean.getManifest().getCommand())
             .disk(bean.getManifest().getDisk())
             .docker(Docker.builder()
-                .image(bean.getPath() == null && bean.getManifest().getDockerImage() == null
+                .image(bean.getPath() == null && bean.getDockerImage() == null
                     ? ""
-                    : bean.getManifest().getDockerImage())
-                .username(bean.getManifest().getDockerUsername())
-                .password(getDockerPassword(bean.getManifest()))
+                    : bean.getDockerImage())
+                .username(bean.getDockerUsername())
+                .password(getDockerPassword(bean))
                 .build())
             .healthCheckHttpEndpoint(bean.getManifest().getHealthCheckHttpEndpoint())
             .healthCheckType(bean.getManifest().getHealthCheckType())
             .instances(bean.getManifest().getInstances())
             .memory(bean.getManifest().getMemory())
             .noRoute(bean.getManifest().getNoRoute())
-            .routePath(bean.getManifest().getRoutePath())
             .randomRoute(bean.getManifest().getRandomRoute())
             .routes(getAppRoutes(bean.getManifest().getRoutes()))
             .stack(bean.getManifest().getStack())
@@ -206,7 +205,7 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
             .build();
     }
 
-    private String getDockerPassword(ApplicationManifestBean bean) {
+    private String getDockerPassword(ApplicationBean bean) {
         if (bean.getDockerImage() == null || bean.getDockerUsername() == null) {
             return null;
         }
@@ -245,7 +244,10 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                         .metadata(Metadata.builder()
                                 .annotation(ApplicationBean.METADATA_KEY, applicationBean.getMeta())
                                 .annotation(ApplicationBean.PATH_KEY, applicationBean.getPath())
-                                .build()).build())
+                                .annotation(ApplicationBean.DOCKER_IMAGE_KEY, applicationBean.getDockerImage())
+                                .annotation(ApplicationBean.DOCKER_USERNAME_KEY, applicationBean.getDockerUsername())
+                                .build())
+                        .build())
                 .doOnSubscribe(subscription -> log.debug("Update app meta for app: " + appId));
     }
 
