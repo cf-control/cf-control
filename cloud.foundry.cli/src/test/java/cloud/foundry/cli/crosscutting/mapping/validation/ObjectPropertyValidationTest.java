@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -83,6 +84,42 @@ public class ObjectPropertyValidationTest {
         ListField listField = new ListField(DummyClass.class, "listField", Integer.class);
 
         assertThrows(AssertionError.class, () -> ObjectPropertyValidation.checkListExists(listField));
+    }
+
+    @Test
+    public void testCheckPropertiesExist() {
+        ScalarField scalarField = new ScalarField(DummyClass.class, "scalarField", String.class);
+        ListField listField = new ListField(DummyClass.class, "listField", String.class);
+        MapField mapField = new MapField(DummyClass.class, "mapField", String.class, String.class);
+
+        ObjectPropertyValidation.checkPropertiesExist(Arrays.asList(scalarField, listField, mapField));
+    }
+
+    @Test
+    public void testCheckPropertiesExistFailsWhenMissingMapField() {
+        ScalarField scalarField = new ScalarField(DummyClass.class, "scalarField", String.class);
+        ListField listField = new ListField(DummyClass.class, "listField", String.class);
+        MapField mapField = new MapField(DummyClass.class, "missingField", String.class, String.class);
+
+        assertThrows(AssertionError.class, () -> ObjectPropertyValidation.checkPropertiesExist(Arrays.asList(scalarField, listField, mapField)));
+    }
+
+    @Test
+    public void testCheckPropertiesExistFailsWhenMissingListField() {
+        ScalarField scalarField = new ScalarField(DummyClass.class, "scalarField", String.class);
+        ListField listField = new ListField(DummyClass.class, "missingField", String.class);
+        MapField mapField = new MapField(DummyClass.class, "mapField", String.class, String.class);
+
+        assertThrows(AssertionError.class, () -> ObjectPropertyValidation.checkPropertiesExist(Arrays.asList(scalarField, listField, mapField)));
+    }
+
+    @Test
+    public void testCheckPropertiesExistFailsWhenMissingScalarField() {
+        ScalarField scalarField = new ScalarField(DummyClass.class, "missingField", String.class);
+        ListField listField = new ListField(DummyClass.class, "listField", String.class);
+        MapField mapField = new MapField(DummyClass.class, "mapField", String.class, String.class);
+
+        assertThrows(AssertionError.class, () -> ObjectPropertyValidation.checkPropertiesExist(Arrays.asList(scalarField, listField, mapField)));
     }
 
 }
