@@ -387,7 +387,7 @@ public class ApplyLogicTest {
     }
 
     @Test
-    public void testApplySpaceWithSpaceNotExistingWillCreateSpace(){
+    public void testApplySpaceWithSpaceNotExistingWillCreateSpace() {
 
         // given
         String desiredSpaceName = "testName";
@@ -411,7 +411,7 @@ public class ApplyLogicTest {
     }
 
     @Test
-    public void testApplySpaceWithSpaceExistingWillNotCreateSpace(){
+    public void testApplySpaceWithSpaceExistingWillNotCreateSpace() {
         // given
         String desiredSpaceName = "testName";
         SpaceOperations spaceOperationsMock = mock(SpaceOperations.class);
@@ -434,7 +434,7 @@ public class ApplyLogicTest {
     }
 
     @Test
-    public void testApplySpaceWithGetSpaceNamesFailingThrowsGetException(){
+    public void testApplySpaceWithGetSpaceNamesFailingThrowsGetException() {
         // given
         String desiredSpaceName = "testName";
         SpaceOperations spaceOperationsMock = mock(SpaceOperations.class);
@@ -453,7 +453,7 @@ public class ApplyLogicTest {
     }
 
     @Test
-    public void testApplySpaceWithCreateSpaceFailingThrowsApplyExcption(){
+    public void testApplySpaceWithCreateSpaceFailingThrowsApplyExcption() {
 
         // given
         String desiredSpaceName = "testName";

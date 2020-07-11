@@ -1,5 +1,13 @@
 package cloud.foundry.cli.operations;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.spaces.CreateSpaceRequest;
 import org.cloudfoundry.operations.spaces.SpaceSummary;
@@ -11,13 +19,6 @@ import reactor.core.publisher.Mono;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class SpaceOperationsTest {
 
@@ -54,7 +55,7 @@ public class SpaceOperationsTest {
     }
 
     @Test
-    public void testCreateWithSpaceNameNullThrowsNullptr(){
+    public void testCreateWithSpaceNameNullThrowsNullptr() {
         DefaultCloudFoundryOperations cloudFoundryOperationsMock = mock(DefaultCloudFoundryOperations.class);
         SpaceOperations spaceOperations = new SpaceOperations(cloudFoundryOperationsMock);
         assertThrows(NullPointerException.class, () ->
@@ -62,7 +63,7 @@ public class SpaceOperationsTest {
     }
 
     @Test
-    public void testCreateSucceeds(){
+    public void testCreateSucceeds() {
         //given
         DefaultCloudFoundryOperations cloudFoundryOperationsMock = mock(DefaultCloudFoundryOperations.class);
         Spaces spacesMock = mock(Spaces.class);
