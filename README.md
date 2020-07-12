@@ -60,57 +60,13 @@ You can have the tool create a machine-readable log file by specifying the `--lo
 #### [COMMAND]
 
 ```
-  create          Create a new app, service instance or add a new space developer.
   get             Show all information of your cf instance.
   diff            Print the differences between the given yaml file and the configuration of your cf instance.
   apply           Apply the configuration from a given yaml file to your cf instance.
-  update          Update/Remove apps, service instances or space developers.
   rename          Rename an app or a service instance.
   dump            Read a configuration file, resolve all $refs and print the result to the console.
                   Helps users to understand how the tool resolves $ref and what the resulting config is
                   it would apply.
-```
-
-
-##### create [SUBCOMMAND]
-
-```
-  service          Create services in the target space.
-  space-developer  Assign users as space developers.
-  application      Create applications in the target space.
-```
-
-
-##### get [SUBCOMMAND]
-
-```
-  services          List all services in the target space.
-  space-developers  List all space developers in the target space.
-  applications      List all applications in the target space.
-```
-
-
-##### diff [SUBCOMMAND]
-
-```
-  applications      Print the differences between the apps given in the yaml file and
-                     the configuration of the apps of your cf instance.
-   space-developers  Print the differences between the space-developers given in the yaml file and
-                     the configuration of the space-developers of your cf instance.
-   services          Print the differences between the services given in the yaml file and
-                     the configuration of the services of your cf instance.
-    all              Print the differences between the configuration in the yaml file and
-                     the configuration of your cf instance.
-```
-
-##### update [SUBCOMMAND]
-
-```
-  remove-service          Remove service instances in the target space.
-  update-service          Update service instances in the target space.
-  remove-space-developer  Remove space developers in the target space.
-  update-application      Update applications in the target space.
-  remove-application      Remove applications in the target space.
 ```
 
 ##### apply [SUBCOMMAND]
@@ -165,7 +121,7 @@ Passed value -> overwrites default value
 No value -> default value is used 
 
   for example, you can run the command:   
-  ```java -jar cf-control.jar get services -a api.run.pivotal.io -o cloud.foundry.cli -s development -u mustermann@test.com -p somePassword;)```
+  ```java -jar cf-control.jar get -a api.run.pivotal.io -o cloud.foundry.cli -s development -u mustermann@test.com -p somePassword;)```
 
 
 ### Convenience features
