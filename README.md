@@ -145,15 +145,23 @@ You can have the tool create a machine-readable log file by specifying the `--lo
 
 ##### [HINT - DEFAULT VALUES FOR SOME PARAMS]
 
-Since the parameters `api`, `organization` and `space` are rarely changed, there is a property file 
-in the directory that defines default values   
-(see `cloud.foundry.cli/src/main/resources/cf_control.properties`).
+To reduce the number of the program parameters `api`, `organization` and `space`, there is a property file [cf_control.properties](cloud.foundry.cli/src/main/resources/cf_control.properties) that defines default values for the <code>get</code> command.
+For the <code>diff/apply</code> commands, the paramters can be fetched from the given YAML file.
 
-So the default values are:
+So the default values are defined in the cf_control.properties file:
+
 ```
   -a=api.run.pivotal.io
   -o=cloud.foundry.cli
   -s=development
+```
+the defined values in the given YAML file:
+
+```
+target:
+  endpoint=api.run.pivotal.io
+  org=cloud.foundry.cli
+  space=development
 ```
 
 This reduces the number of program parameters to be called.
@@ -164,10 +172,18 @@ this corresponding parameter can be set with its value in the program call.
 Passed value -> overwrites default value  
 No value -> default value is used 
 
-  for example, you can run the command:   
-  ```java -jar cf-control.jar get services -a api.run.pivotal.io -o cloud.foundry.cli -s development -u mustermann@test.com -p somePassword;)```
-
-
+  For example, you can run the following commands: 
+  
+ <code>get</code> command:
+ 
+ `java -jar cf-control.jar get -u mustermann@test.com -p somePassword`
+  
+ <code>diff</code> and <code>apply</code> commands:
+ 
+ `java -jar cf-control.jar diff -u mustermann@test.com -p somePassword -y pathToYamlFile`
+ 
+ `java -jar cf-control.jar apply -u mustermann@test.com -p somePassword -y pathToYamlFile`
+ 
 ### Convenience features
 
 You are able to include contents of other YAML files into the one that you pass as an argument to the tool. To do so, you have to use the so called **$ref-syntax**. A description on how to use it can be found [here](https://swagger.io/docs/specification/using-ref/).
