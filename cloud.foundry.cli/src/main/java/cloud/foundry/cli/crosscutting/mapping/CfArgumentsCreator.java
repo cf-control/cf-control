@@ -44,8 +44,9 @@ public class CfArgumentsCreator {
      */
     public static String[] determineCommandLine(CommandLine cli, String[] args, CommandLine.ParseResult subcommand) {
         // exclude commands which don't use the cloud.foundry.cli.services.LoginCommandOptions mixin
+        // if the subcommand is null, we're in the base controller (or its help options)
         // TODO: find out whether it's possible to recognize the LoginCommandOptions mixin with reflections only
-        if (subcommand != null && subcommand.commandSpec().userObject() instanceof DumpController) {
+        if (subcommand == null || subcommand.commandSpec().userObject() instanceof DumpController) {
             return args;
         }
 
