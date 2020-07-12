@@ -17,20 +17,7 @@ import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.routes.ListRoutesRequest;
 import org.cloudfoundry.operations.routes.Route;
 import org.cloudfoundry.operations.routes.Routes;
-import org.cloudfoundry.operations.services.CreateServiceInstanceRequest;
-import org.cloudfoundry.operations.services.DeleteServiceInstanceRequest;
-import org.cloudfoundry.operations.services.DeleteServiceKeyRequest;
-import org.cloudfoundry.operations.services.GetServiceInstanceRequest;
-import org.cloudfoundry.operations.services.ListServiceKeysRequest;
-import org.cloudfoundry.operations.services.RenameServiceInstanceRequest;
-import org.cloudfoundry.operations.services.ServiceInstance;
-import org.cloudfoundry.operations.services.ServiceInstanceSummary;
-import org.cloudfoundry.operations.services.ServiceInstanceType;
-import org.cloudfoundry.operations.services.ServiceKey;
-import org.cloudfoundry.operations.services.Services;
-import org.cloudfoundry.operations.services.UnbindRouteServiceInstanceRequest;
-import org.cloudfoundry.operations.services.UnbindServiceInstanceRequest;
-import org.cloudfoundry.operations.services.UpdateServiceInstanceRequest;
+import org.cloudfoundry.operations.services.*;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
@@ -44,6 +31,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class ServicesOperationsTest {
 
@@ -556,6 +544,49 @@ public class ServicesOperationsTest {
 
         // when
         assertThrows(NullPointerException.class, () -> servicesOperations.deleteKeys(null));
+    }
+
+    @Test
+    public void testBindAppSucceeds() {
+        // given
+        DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
+        Services servicesMock = mock(Services.class);
+        when(cfOperationsMock.services()).thenReturn(servicesMock);
+
+        // this reference will point to the bind service request that is passed to the applications mock
+        AtomicReference<BindServiceInstanceRequest> bindServiceRequestReference = new AtomicReference<>(null);
+        when(servicesMock.bind(any(BindServiceInstanceRequest.class)))
+                .then(invocation -> {
+                    bindServiceRequestReference.set(invocation.getArgument(0));
+                    return Mono.empty();
+                });
+
+        ServicesOperations servicesOperations = new ServicesOperations(cfOperationsMock);
+
+        // when
+        Mono<Void> bindAppResult = servicesOperations.bindApp("someApplication", "someService");
+
+        // then
+        assertThat(bindAppResult, is(notNullValue()));
+
+        BindServiceInstanceRequest bindServiceRequest = bindServiceRequestReference.get();
+        verify(servicesMock, times(1)).bind(bindServiceRequest);
+        assertThat(bindServiceRequest.getApplicationName(), is("someApplication"));
+        assertThat(bindServiceRequest.getServiceInstanceName(), is("someService"));
+    }
+
+    @Test
+    public void testBindAppWithNullValuesAsArgumentsThrowsNullPointerException() {
+        //given
+        ServicesOperations servicesOperations = new ServicesOperations(
+                mock(DefaultCloudFoundryOperations.class));
+
+        //when + then
+        assertThrows(NullPointerException.class, () ->
+                servicesOperations.bindApp(null, "someService"));
+
+        assertThrows(NullPointerException.class, () ->
+                servicesOperations.bindApp("someApp", null));
     }
 
     private void mockListRoutes(DefaultCloudFoundryOperations cfOperationsMock, Routes routesMock, List<Route> routes) {
