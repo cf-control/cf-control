@@ -1,0 +1,79 @@
+apiVersion: 2.151.0
+spec:
+  apps:
+    testAppdfdf:
+      manifest:
+        buildpack: python_buildpack
+        disk: 2048
+        healthCheckType: PORT
+        instances: 1
+        memory: 2048
+        routes:
+        - testApp-rayless-jargonization.cfapps.io
+        stack: cflinuxfs3
+    dockerApp7:
+      manifest:
+        disk: 512
+        dockerImage: gazgeek/springboot-helloworld
+        environmentVariables:
+          TEST: somval
+          PROD: someotherval
+        healthCheckHttpEndpoint: /health
+        healthCheckType: PORT
+        instances: 1
+        memory: 512
+        noRoute: true
+        stack: cflinuxfs3
+        timeout: 80
+    dockerApp999:
+      manifest:
+        disk: 512
+        dockerImage: gazgeek/springboot-helloworld
+        environmentVariables:
+          TEST: somval
+          PROD: someotherval
+        healthCheckHttpEndpoint: /health
+        healthCheckType: PORT
+        instances: 1
+        memory: 512
+        noRoute: true
+        stack: cflinuxfs3
+        timeout: 80
+    dockerApp6:
+      manifest:
+        disk: 512
+        dockerImage: gazgeek/springboot-helloworld
+        environmentVariables:
+          TEST: somval
+          PROD: someotherval
+        healthCheckHttpEndpoint: /health
+        healthCheckType: PORT
+        instances: 1
+        memory: 512
+        routes:
+        - spaceConfiguratorApp3.cfapps.io
+        stack: cflinuxfs3
+        timeout: 80
+  services:
+    newService:
+      plan: trial
+      service: p-config-server
+      tags:
+      - newTag1
+      - newTag2
+    newName4:
+      plan: turtle
+      service: elephantsql
+  spaceDevelopers:
+  - tobias.w.weber@googlemail.com
+  - thi.yen.le@fau.de
+  - daniel.schoemer@fau.de
+  - christopher.mohr@fau.de
+  - felix.quast@fau.de
+  - fabianmuniversitaet@gmail.com
+  - karim.g.awad@fau.de
+  - alexander.koltman@fau.de
+target:
+  endpoint: api.run.pivotal.io
+  org: cloud.foundry.cli
+  space: development
