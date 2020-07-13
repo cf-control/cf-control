@@ -26,6 +26,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -429,14 +430,14 @@ public class FileUtilsTest {
 
         final String existingFileRelativePath = "build.gradle";
         final String resolved = FileUtils.calculateAbsolutePath(existingFileRelativePath, "");
-        assertThat(resolved, is(currentWorkingDirectory + "/build.gradle"));
+        assertThat(resolved, is(Paths.get(currentWorkingDirectory + "/build.gradle").toString()));
     }
 
     @Test
     public void testCalculateAbsolutePathNonExistingFile() {
-        final String nonexistingFilePath = "../nonexistingFile";
+        final String nonexistingFilePath = Paths.get("../nonexistingFile").toString();
         final String resolved = FileUtils.calculateAbsolutePath(nonexistingFilePath, "/a/b/c/");
-        assertThat(resolved, is("/a/b/c/../nonexistingFile"));
+        assertThat(resolved, is(Paths.get("/a/b/c/../nonexistingFile").toAbsolutePath().toString()));
     }
 
     @Test
@@ -448,7 +449,7 @@ public class FileUtilsTest {
 
     @Test
     public void testCalculateAbsolutePathIgnoreAbsolutePath() {
-        final String alreadyAbsolutePath = "/absolute/path";
+        final String alreadyAbsolutePath = Paths.get("/absolute/path").toAbsolutePath().toString();
         final String resolved = FileUtils.calculateAbsolutePath(alreadyAbsolutePath, "/a/b/c");
         assertThat(resolved, is(alreadyAbsolutePath));
     }
