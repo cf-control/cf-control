@@ -411,7 +411,7 @@ public class ApplyLogicTest {
     }
 
     @Test
-    public void testApplySpaceWithSpaceExistingWillNotCreateSpace() {
+    public void testApplySpaceWithSpaceAlreadyExisting() {
         // given
         String desiredSpaceName = "testName";
         SpaceOperations spaceOperationsMock = mock(SpaceOperations.class);
