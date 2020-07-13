@@ -22,7 +22,7 @@ public class CfArgumentsCreatorTest {
         String[] result = CfArgumentsCreator.determineCommandLine(
                 cli,
                 new String[]{"diff", "services", "-y", "somePath"},
-                null
+                CommandLine.ParseResult.builder(CommandLine.Model.CommandSpec.create()).build()
         );
 
         // then
@@ -40,7 +40,7 @@ public class CfArgumentsCreatorTest {
         String[] result = CfArgumentsCreator.determineCommandLine(
                 cli,
                 new String[]{"diff", "services", "-s", "development", "-y", "somePath"},
-                null
+                CommandLine.ParseResult.builder(CommandLine.Model.CommandSpec.create()).build()
         );
 
         // then
