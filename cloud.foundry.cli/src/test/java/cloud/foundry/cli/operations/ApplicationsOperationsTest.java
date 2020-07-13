@@ -22,6 +22,8 @@ import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.client.v3.applications.ApplicationsV3;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.applications.*;
+import org.cloudfoundry.operations.services.BindServiceInstanceRequest;
+import org.cloudfoundry.operations.services.Services;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 
@@ -533,6 +535,49 @@ public class ApplicationsOperationsTest {
 
         assertThrows(NullPointerException.class, () ->
                 applicationsOperations.setHealthCheck("app", null));
+    }
+
+    @Test
+    public void testBindAppSucceeds() {
+        // given
+        DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
+        Services servicesMock = mock(Services.class);
+        when(cfOperationsMock.services()).thenReturn(servicesMock);
+
+        // this reference will point to the bind app request that is passed to the applications mock
+        AtomicReference<BindServiceInstanceRequest> bindToServiceRequestReference = new AtomicReference<>(null);
+        when(servicesMock.bind(any(BindServiceInstanceRequest.class)))
+                .then(invocation -> {
+                    bindToServiceRequestReference.set(invocation.getArgument(0));
+                    return Mono.empty();
+                });
+
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperationsMock);
+
+        // when
+        Mono<Void> bindToServiceResult = applicationsOperations.bindToService("someApplication", "someService");
+
+        // then
+        assertThat(bindToServiceResult, is(notNullValue()));
+
+        BindServiceInstanceRequest bindToServiceRequest = bindToServiceRequestReference.get();
+        verify(servicesMock, times(1)).bind(bindToServiceRequest);
+        assertThat(bindToServiceRequest.getApplicationName(), is("someApplication"));
+        assertThat(bindToServiceRequest.getServiceInstanceName(), is("someService"));
+    }
+
+    @Test
+    public void testBindAppWithNullValuesAsArgumentsThrowsNullPointerException() {
+        //given
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(
+                mock(DefaultCloudFoundryOperations.class));
+
+        //when + then
+        assertThrows(NullPointerException.class, () ->
+                applicationsOperations.bindToService(null, "someService"));
+
+        assertThrows(NullPointerException.class, () ->
+                applicationsOperations.bindToService("someApp", null));
     }
 
     /**

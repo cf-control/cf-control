@@ -16,6 +16,7 @@ import org.cloudfoundry.client.v3.applications.GetApplicationResponse;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.applications.*;
 
+import org.cloudfoundry.operations.services.BindServiceInstanceRequest;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -387,4 +388,24 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                         "was set to", healthCheckType));
     }
 
+    /**
+     * Prepares a request for binding an app to a service.
+     * The resulting mono is preconfigured such that it will perform logging.
+     *
+     * @param applicationName the app that should be bound to the service
+     * @param serviceName the service to which the app should be bound
+     * @return mono which can be subscribed on to trigger the app binding
+     * @throws NullPointerException if any of the arguments is null
+     */
+    public Mono<Void> bindToService(String applicationName, String serviceName) {
+        checkNotNull(applicationName);
+        checkNotNull(serviceName);
+
+        BindServiceInstanceRequest bindServiceRequest = BindServiceInstanceRequest.builder()
+                .applicationName(applicationName)
+                .serviceInstanceName(serviceName)
+                .build();
+
+        return cloudFoundryOperations.services().bind(bindServiceRequest);
+    }
 }

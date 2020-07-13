@@ -546,49 +546,6 @@ public class ServicesOperationsTest {
         assertThrows(NullPointerException.class, () -> servicesOperations.deleteKeys(null));
     }
 
-    @Test
-    public void testBindAppSucceeds() {
-        // given
-        DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
-        Services servicesMock = mock(Services.class);
-        when(cfOperationsMock.services()).thenReturn(servicesMock);
-
-        // this reference will point to the bind service request that is passed to the applications mock
-        AtomicReference<BindServiceInstanceRequest> bindServiceRequestReference = new AtomicReference<>(null);
-        when(servicesMock.bind(any(BindServiceInstanceRequest.class)))
-                .then(invocation -> {
-                    bindServiceRequestReference.set(invocation.getArgument(0));
-                    return Mono.empty();
-                });
-
-        ServicesOperations servicesOperations = new ServicesOperations(cfOperationsMock);
-
-        // when
-        Mono<Void> bindAppResult = servicesOperations.bindApp("someApplication", "someService");
-
-        // then
-        assertThat(bindAppResult, is(notNullValue()));
-
-        BindServiceInstanceRequest bindServiceRequest = bindServiceRequestReference.get();
-        verify(servicesMock, times(1)).bind(bindServiceRequest);
-        assertThat(bindServiceRequest.getApplicationName(), is("someApplication"));
-        assertThat(bindServiceRequest.getServiceInstanceName(), is("someService"));
-    }
-
-    @Test
-    public void testBindAppWithNullValuesAsArgumentsThrowsNullPointerException() {
-        //given
-        ServicesOperations servicesOperations = new ServicesOperations(
-                mock(DefaultCloudFoundryOperations.class));
-
-        //when + then
-        assertThrows(NullPointerException.class, () ->
-                servicesOperations.bindApp(null, "someService"));
-
-        assertThrows(NullPointerException.class, () ->
-                servicesOperations.bindApp("someApp", null));
-    }
-
     private void mockListRoutes(DefaultCloudFoundryOperations cfOperationsMock, Routes routesMock, List<Route> routes) {
         when(cfOperationsMock.routes())
                 .thenReturn(routesMock);
