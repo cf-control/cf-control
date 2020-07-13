@@ -492,6 +492,7 @@ public class ApplyLogicTest {
         // given
         ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
 
+        // when + then
         assertThrows(NullPointerException.class, () ->
                 applyLogic.applySpace("testName", null));
     }
