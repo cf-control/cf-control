@@ -56,8 +56,11 @@ public class SpaceOperationsTest {
 
     @Test
     public void testCreateWithSpaceNameNullThrowsNullptr() {
+        // given
         DefaultCloudFoundryOperations cloudFoundryOperationsMock = mock(DefaultCloudFoundryOperations.class);
         SpaceOperations spaceOperations = new SpaceOperations(cloudFoundryOperationsMock);
+        
+        // when + then
         assertThrows(NullPointerException.class, () ->
                 spaceOperations.create(null));
     }
