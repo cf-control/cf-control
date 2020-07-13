@@ -10,7 +10,6 @@ import cloud.foundry.cli.services.LoginCommandOptions;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.routes.DeleteOrphanedRoutesRequest;
-import org.cloudfoundry.operations.spaces.CreateSpaceRequest;
 import org.cloudfoundry.operations.spaces.DeleteSpaceRequest;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;

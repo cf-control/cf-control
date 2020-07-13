@@ -173,9 +173,9 @@ public class ApplyLogicTest {
 
         // from now on: setup application to apply
         Map<String, ApplicationBean> applicationsToApply = createDesiredApplications("someApplicationName",
-            "/some/path",
-            "someBuildpack",
-            "app1meta");
+                "/some/path",
+                "someBuildpack",
+                "app1meta");
 
         ApplyLogic applyLogic = new ApplyLogic(cfMock);
 
@@ -297,27 +297,27 @@ public class ApplyLogicTest {
         return appconfig;
     }
 
-  private DefaultCloudFoundryOperations createMockCloudFoundryOperations2(Map<String, ApplicationManifest> apps,
-                                                                          Map<String, Metadata> metadata) {
-      Applications applicationsMock = ApplicationsMockBuilder
-              .get()
-              .setApps(apps)
-              .build();
-      ApplicationsV3 applicationsV3Mock = ApplicationsV3MockBuilder
-              .get()
-              .setMetadata(metadata)
-              .build();
-      CloudFoundryClient cloudFoundryClientMock = CloudFoundryClientMockBuilder
-              .get()
-              .setApplicationsV3(applicationsV3Mock)
-              .build();
-      DefaultCloudFoundryOperations cfOperationsMock = DefaultCloudFoundryOperationsMockBuilder
-              .get()
-              .setApplications(applicationsMock)
-              .setCloudFoundryClient(cloudFoundryClientMock)
-              .build();
+    private DefaultCloudFoundryOperations createMockCloudFoundryOperations2(Map<String, ApplicationManifest> apps,
+                                                                            Map<String, Metadata> metadata) {
+        Applications applicationsMock = ApplicationsMockBuilder
+                .get()
+                .setApps(apps)
+                .build();
+        ApplicationsV3 applicationsV3Mock = ApplicationsV3MockBuilder
+                .get()
+                .setMetadata(metadata)
+                .build();
+        CloudFoundryClient cloudFoundryClientMock = CloudFoundryClientMockBuilder
+                .get()
+                .setApplicationsV3(applicationsV3Mock)
+                .build();
+        DefaultCloudFoundryOperations cfOperationsMock = DefaultCloudFoundryOperationsMockBuilder
+                .get()
+                .setApplications(applicationsMock)
+                .setCloudFoundryClient(cloudFoundryClientMock)
+                .build();
 
-      return cfOperationsMock;
+        return cfOperationsMock;
     }
 
     /**
@@ -443,7 +443,7 @@ public class ApplyLogicTest {
         when(spaceOperationsMock.getAll()).thenReturn(getRequestMock);
         when(getRequestMock.block()).thenThrow(new RuntimeException("Get Space Names Failing"));
 
-        // the constructor paramteres won't be used by apply space method, because it uses DI
+        // the constructor parameters won't be used by apply space method, because it uses DI
         // regarding space operations.
         ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
 
@@ -466,11 +466,11 @@ public class ApplyLogicTest {
         when(spaceOperationsMock.create(desiredSpaceName)).thenReturn(resultingMono);
         when(resultingMono.block()).thenThrow(new RuntimeException("Create space failing"));
 
-        // the constructor paramteres won't be used by apply space method, because it uses DI
+        // the constructor parameters won't be used by apply space method, because it uses DI
         // regarding space operations.
         ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
-         
-         // when + then
+
+        // when + then
         assertThrows(ApplyException.class, () ->
                 applyLogic.applySpace(desiredSpaceName, spaceOperationsMock));
     }
@@ -481,7 +481,7 @@ public class ApplyLogicTest {
         ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
 
         SpaceOperations spaceOperationsMock = mock(SpaceOperations.class);
-        
+
         // when + then
         assertThrows(NullPointerException.class, () ->
                 applyLogic.applySpace(null, spaceOperationsMock));

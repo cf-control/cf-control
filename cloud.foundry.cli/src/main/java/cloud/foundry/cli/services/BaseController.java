@@ -32,11 +32,9 @@ import java.util.logging.FileHandler;
         mixinStandardHelpOptions = true,
         version = "1.0",
         subcommands = {
-                CreateController.class,
                 GetController.class,
                 DiffController.class,
                 ApplyController.class,
-                UpdateController.class,
                 RenameController.class,
                 DumpController.class})
 public class BaseController implements Callable<Integer> {

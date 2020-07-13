@@ -21,12 +21,11 @@ public class CfArgumentsCreatorTest {
         // when
         String[] result = CfArgumentsCreator.determineCommandLine(
                 cli,
-                new String[]{"diff", "services", "-y", "somePath"},
-                CommandLine.ParseResult.builder(CommandLine.Model.CommandSpec.create()).build()
-        );
+                new String[]{"diff", "-y", "somePath"},
+                CommandLine.ParseResult.builder(CommandLine.Model.CommandSpec.create()).build());
 
         // then
-        assertThat(result, arrayContaining("diff", "services", "-y", "somePath", "-a",
+        assertThat(result, arrayContaining("diff", "-y", "somePath", "-a",
                 "api.run.pivotal.io", "-o", "cloud.foundry.cli", "-s", "development"));
     }
 
@@ -39,12 +38,11 @@ public class CfArgumentsCreatorTest {
         // when
         String[] result = CfArgumentsCreator.determineCommandLine(
                 cli,
-                new String[]{"diff", "services", "-s", "development", "-y", "somePath"},
-                CommandLine.ParseResult.builder(CommandLine.Model.CommandSpec.create()).build()
-        );
+                new String[]{"diff", "-s", "development", "-y", "somePath"},
+                CommandLine.ParseResult.builder(CommandLine.Model.CommandSpec.create()).build());
 
         // then
-        assertThat(result, arrayContaining("diff", "services", "-s", "development", "-y", "somePath", "-a",
+        assertThat(result, arrayContaining("diff", "-s", "development", "-y", "somePath", "-a",
                 "api.run.pivotal.io", "-o", "cloud.foundry.cli"));
     }
 
@@ -54,7 +52,7 @@ public class CfArgumentsCreatorTest {
         BaseController controller = new BaseController();
         CommandLine cli = new CommandLine(controller);
 
-        String[] args = {"diff", "services", "-y", "somePath", "-a", "api.run.pivotal.io",
+        String[] args = {"diff", "-y", "somePath", "-a", "api.run.pivotal.io",
                 "-o", "cloud.foundry.cli", "-s", "development"};
 
         // when
@@ -65,3 +63,4 @@ public class CfArgumentsCreatorTest {
     }
 
 }
+
