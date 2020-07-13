@@ -401,8 +401,8 @@ public class ApplyLogicTest {
 
         // when
 
-        // the constructor paramteres won't be used by apply space method, because it uses DI
-        // regarding space operations.
+        // the constructor paramteres won't be used by apply space method, because it uses
+        // dependency injection regarding space operations
         ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
         applyLogic.applySpace(desiredSpaceName, spaceOperationsMock);
 
