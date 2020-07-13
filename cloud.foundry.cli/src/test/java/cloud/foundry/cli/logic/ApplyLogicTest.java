@@ -387,7 +387,7 @@ public class ApplyLogicTest {
     }
 
     @Test
-    public void testApplySpaceWithSpaceNotExistingWillCreateSpace() {
+    public void testApplySpaceCreatesSpace() {
 
         // given
         String desiredSpaceName = "testName";
