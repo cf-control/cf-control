@@ -205,8 +205,7 @@ public class ApplyLogic {
             Mono<Void> createRequest = spaceOperations.create(desiredSpaceName);
             try {
                 createRequest.block();
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 throw new ApplyException(e);
             }
         }
