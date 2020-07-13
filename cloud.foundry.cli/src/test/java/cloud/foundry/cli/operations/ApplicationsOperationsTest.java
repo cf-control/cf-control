@@ -22,8 +22,12 @@ import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.client.v3.applications.ApplicationsV3;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.applications.*;
+import org.cloudfoundry.operations.routes.MapRouteRequest;
+import org.cloudfoundry.operations.routes.Routes;
+import org.cloudfoundry.operations.routes.UnmapRouteRequest;
 import org.cloudfoundry.operations.services.BindServiceInstanceRequest;
 import org.cloudfoundry.operations.services.Services;
+import org.cloudfoundry.operations.services.UnbindServiceInstanceRequest;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 
@@ -544,7 +548,7 @@ public class ApplicationsOperationsTest {
         Services servicesMock = mock(Services.class);
         when(cfOperationsMock.services()).thenReturn(servicesMock);
 
-        // this reference will point to the bind app request that is passed to the applications mock
+        // this reference will point to the bind app request that is passed to the services mock
         AtomicReference<BindServiceInstanceRequest> bindToServiceRequestReference = new AtomicReference<>(null);
         when(servicesMock.bind(any(BindServiceInstanceRequest.class)))
                 .then(invocation -> {
@@ -578,6 +582,135 @@ public class ApplicationsOperationsTest {
 
         assertThrows(NullPointerException.class, () ->
                 applicationsOperations.bindToService("someApp", null));
+    }
+
+    @Test
+    public void testUnbindAppSucceeds() {
+        // given
+        DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
+        Services servicesMock = mock(Services.class);
+        when(cfOperationsMock.services()).thenReturn(servicesMock);
+
+        // this reference will point to the unbind app request that is passed to the services mock
+        AtomicReference<UnbindServiceInstanceRequest> unbindFromServiceRequestReference = new AtomicReference<>(null);
+        when(servicesMock.unbind(any(UnbindServiceInstanceRequest.class)))
+                .then(invocation -> {
+                    unbindFromServiceRequestReference.set(invocation.getArgument(0));
+                    return Mono.empty();
+                });
+
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperationsMock);
+
+        // when
+        Mono<Void> unbindFromServiceResult = applicationsOperations.unbindFromService("someApplication", "someService");
+
+        // then
+        assertThat(unbindFromServiceResult, is(notNullValue()));
+
+        UnbindServiceInstanceRequest unbindFromServiceRequest = unbindFromServiceRequestReference.get();
+        verify(servicesMock, times(1)).unbind(unbindFromServiceRequest);
+        assertThat(unbindFromServiceRequest.getApplicationName(), is("someApplication"));
+        assertThat(unbindFromServiceRequest.getServiceInstanceName(), is("someService"));
+    }
+
+    @Test
+    public void testUnbindAppWithNullValuesAsArgumentsThrowsNullPointerException() {
+        //given
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(
+                mock(DefaultCloudFoundryOperations.class));
+
+        //when + then
+        assertThrows(NullPointerException.class, () ->
+                applicationsOperations.unbindFromService(null, "someService"));
+
+        assertThrows(NullPointerException.class, () ->
+                applicationsOperations.unbindFromService("someApp", null));
+    }
+
+    @Test
+    public void testAddRouteToAppSucceeds() {
+        // given
+        DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
+        Routes routesMock = mock(Routes.class);
+        when(cfOperationsMock.routes()).thenReturn(routesMock);
+
+        // this reference will point to the map route request that is passed to the routes mock
+        AtomicReference<MapRouteRequest> mapRouteRequestReference = new AtomicReference<>(null);
+        when(routesMock.map(any(MapRouteRequest.class)))
+                .then(invocation -> {
+                    mapRouteRequestReference.set(invocation.getArgument(0));
+                    return Mono.just(42);
+                });
+
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperationsMock);
+
+        // when
+        Mono<Integer> addRouteResult = applicationsOperations.addRoute("someApplication", "someDomain");
+
+        // then
+        assertThat(addRouteResult.block(), is(42));
+
+        MapRouteRequest mapRouteRequest = mapRouteRequestReference.get();
+        verify(routesMock, times(1)).map(mapRouteRequest);
+        assertThat(mapRouteRequest.getApplicationName(), is("someApplication"));
+        assertThat(mapRouteRequest.getDomain(), is("someDomain"));
+    }
+
+    @Test
+    public void testAddRouteToAppWithNullValuesAsArgumentsThrowsNullPointerException() {
+        //given
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(
+                mock(DefaultCloudFoundryOperations.class));
+
+        //when + then
+        assertThrows(NullPointerException.class, () ->
+                applicationsOperations.addRoute(null, "someDomain"));
+
+        assertThrows(NullPointerException.class, () ->
+                applicationsOperations.addRoute("someApp", null));
+    }
+
+    @Test
+    public void testRemoveRouteFromAppSucceeds() {
+        // given
+        DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
+        Routes routesMock = mock(Routes.class);
+        when(cfOperationsMock.routes()).thenReturn(routesMock);
+
+        // this reference will point to the unmap route request that is passed to the routes mock
+        AtomicReference<UnmapRouteRequest> unmapRouteRequestReference = new AtomicReference<>(null);
+        when(routesMock.unmap(any(UnmapRouteRequest.class)))
+                .then(invocation -> {
+                    unmapRouteRequestReference.set(invocation.getArgument(0));
+                    return Mono.empty();
+                });
+
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperationsMock);
+
+        // when
+        Mono<Void> addRouteResult = applicationsOperations.removeRoute("someApplication", "someDomain");
+
+        // then
+        assertThat(addRouteResult, is(notNullValue()));
+
+        UnmapRouteRequest unmapRouteRequest = unmapRouteRequestReference.get();
+        verify(routesMock, times(1)).unmap(unmapRouteRequest);
+        assertThat(unmapRouteRequest.getApplicationName(), is("someApplication"));
+        assertThat(unmapRouteRequest.getDomain(), is("someDomain"));
+    }
+
+    @Test
+    public void testRemoveRouteFromAppWithNullValuesAsArgumentsThrowsNullPointerException() {
+        //given
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(
+                mock(DefaultCloudFoundryOperations.class));
+
+        //when + then
+        assertThrows(NullPointerException.class, () ->
+                applicationsOperations.removeRoute(null, "someDomain"));
+
+        assertThrows(NullPointerException.class, () ->
+                applicationsOperations.removeRoute("someApp", null));
     }
 
     /**

@@ -16,7 +16,10 @@ import org.cloudfoundry.client.v3.applications.GetApplicationResponse;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.applications.*;
 
+import org.cloudfoundry.operations.routes.MapRouteRequest;
+import org.cloudfoundry.operations.routes.UnmapRouteRequest;
 import org.cloudfoundry.operations.services.BindServiceInstanceRequest;
+import org.cloudfoundry.operations.services.UnbindServiceInstanceRequest;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -406,6 +409,89 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                 .serviceInstanceName(serviceName)
                 .build();
 
-        return cloudFoundryOperations.services().bind(bindServiceRequest);
+        return cloudFoundryOperations.services().bind(bindServiceRequest)
+                .doOnSuccess(aVoid -> {
+                    log.debug("Bind app:", applicationName);
+                    log.debug("To service:", serviceName); })
+                .doOnSuccess(aVoid -> log.info("Bound the app", applicationName,
+                        "to the service", serviceName));
+    }
+
+    /**
+     * Prepares a request for unbinding an app from a service.
+     * The resulting mono is preconfigured such that it will perform logging.
+     *
+     * @param applicationName the app that should be unbound from the service
+     * @param serviceName the service from which the app should be unbound
+     * @return mono which can be subscribed on to trigger the app unbinding
+     * @throws NullPointerException if any of the arguments is null
+     */
+    public Mono<Void> unbindFromService(String applicationName, String serviceName) {
+        checkNotNull(applicationName);
+        checkNotNull(serviceName);
+
+        UnbindServiceInstanceRequest unbindServiceRequest = UnbindServiceInstanceRequest.builder()
+                .applicationName(applicationName)
+                .serviceInstanceName(serviceName)
+                .build();
+
+        return cloudFoundryOperations.services().unbind(unbindServiceRequest)
+                .doOnSuccess(aVoid -> {
+                    log.debug("Unbind app:", applicationName);
+                    log.debug("From service:", serviceName); })
+                .doOnSuccess(aVoid -> log.info("Unbound the app", applicationName,
+                        "from the service", serviceName));
+    }
+
+    /**
+     * Prepares a request for adding a route to an app.
+     * The resulting mono is preconfigured such that it will perform logging.
+     *
+     * @param applicationName the app to which the route should be added
+     * @param routeDomain the domain of the route to add to the app
+     * @return mono which can be subscribed on to trigger the route addition, that delivers the port number of the route
+     * @throws NullPointerException if any of the arguments is null
+     */
+    public Mono<Integer> addRoute(String applicationName, String routeDomain) {
+        checkNotNull(applicationName);
+        checkNotNull(routeDomain);
+
+        MapRouteRequest mapRouteRequest = MapRouteRequest.builder()
+                        .applicationName(applicationName)
+                        .domain(routeDomain)
+                        .build();
+
+        return cloudFoundryOperations.routes().map(mapRouteRequest)
+                .doOnSuccess(aVoid -> {
+                    log.debug("Add route:", routeDomain);
+                    log.debug("To app:", applicationName); })
+                .doOnSuccess(aVoid -> log.info("Added the route", routeDomain,
+                        "to the application", applicationName));
+    }
+
+    /**
+     * Prepares a request for removing a route of an app.
+     * The resulting mono is preconfigured such that it will perform logging.
+     *
+     * @param applicationName the app of which the route should be removed
+     * @param routeDomain the domain of the route to remove from the app
+     * @return mono which can be subscribed on to trigger the route removal
+     * @throws NullPointerException if any of the arguments is null
+     */
+    public Mono<Void> removeRoute(String applicationName, String routeDomain) {
+        checkNotNull(applicationName);
+        checkNotNull(routeDomain);
+
+        UnmapRouteRequest unmapRouteRequest = UnmapRouteRequest.builder()
+                .applicationName(applicationName)
+                .domain(routeDomain)
+                .build();
+
+        return cloudFoundryOperations.routes().unmap(unmapRouteRequest)
+                .doOnSuccess(aVoid -> {
+                    log.debug("Remove route:", routeDomain);
+                    log.debug("From app:", applicationName); })
+                .doOnSuccess(aVoid -> log.info("Removed the route", routeDomain,
+                        "from the application", applicationName));
     }
 }
