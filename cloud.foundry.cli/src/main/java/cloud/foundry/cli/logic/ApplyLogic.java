@@ -196,8 +196,7 @@ public class ApplyLogic {
         List<String> spaceNames;
         try {
             spaceNames = getAllRequest.block();
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new GetException(e);
         }
 
