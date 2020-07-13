@@ -466,11 +466,11 @@ public class ApplyLogicTest {
         when(spaceOperationsMock.create(desiredSpaceName)).thenReturn(resultingMono);
         when(resultingMono.block()).thenThrow(new RuntimeException("Create space failing"));
 
-        // when + then
-
         // the constructor paramteres won't be used by apply space method, because it uses DI
         // regarding space operations.
         ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
+         
+         // when + then
         assertThrows(ApplyException.class, () ->
                 applyLogic.applySpace(desiredSpaceName, spaceOperationsMock));
     }
