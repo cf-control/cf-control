@@ -387,7 +387,7 @@ public class ApplyLogicTest {
     }
 
     @Test
-    public void testApplySpaceWithSpaceNotExistingWillCreateSpace() {
+    public void testApplySpaceCreatesSpace() {
 
         // given
         String desiredSpaceName = "testName";
@@ -399,8 +399,8 @@ public class ApplyLogicTest {
         Mono<Void> resultingMono = mock(Mono.class);
         when(spaceOperationsMock.create(desiredSpaceName)).thenReturn(resultingMono);
 
-        // the constructor paramteres won't be used by apply space method, because it uses DI
-        // regarding space operations.
+        // the constructor paramteres won't be used by apply space method, because it uses
+        // dependency injection regarding space operations
         ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
 
         // when
@@ -411,12 +411,12 @@ public class ApplyLogicTest {
     }
 
     @Test
-    public void testApplySpaceWithSpaceExistingWillNotCreateSpace() {
+    public void testApplySpaceWithSpaceAlreadyExisting() {
         // given
         String desiredSpaceName = "testName";
         SpaceOperations spaceOperationsMock = mock(SpaceOperations.class);
 
-        List<String> presentSpaces = Arrays.asList("testName", "space2");
+        List<String> presentSpaces = Arrays.asList("testName", "otherSpace");
         when(spaceOperationsMock.getAll()).thenReturn(Mono.just(presentSpaces));
 
         Mono<Void> resultingMono = mock(Mono.class);
