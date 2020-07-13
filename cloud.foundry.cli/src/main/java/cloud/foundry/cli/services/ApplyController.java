@@ -141,8 +141,7 @@ public class ApplyController implements Callable<Integer> {
 
             if (desiredSpace != null) {
                 applyLogic.applySpace(desiredSpace, spaceOperations);
-            }
-            else {
+            } else {
                 log.info("No space specified.");
             }
 
