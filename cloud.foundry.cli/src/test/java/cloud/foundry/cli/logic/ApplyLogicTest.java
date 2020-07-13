@@ -416,7 +416,7 @@ public class ApplyLogicTest {
         String desiredSpaceName = "testName";
         SpaceOperations spaceOperationsMock = mock(SpaceOperations.class);
 
-        List<String> presentSpaces = Arrays.asList("testName", "space2");
+        List<String> presentSpaces = Arrays.asList("testName", "otherSpace");
         when(spaceOperationsMock.getAll()).thenReturn(Mono.just(presentSpaces));
 
         Mono<Void> resultingMono = mock(Mono.class);
