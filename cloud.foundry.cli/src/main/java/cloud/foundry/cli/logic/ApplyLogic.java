@@ -191,9 +191,9 @@ public class ApplyLogic {
         checkNotNull(spaceOperations);
 
         Mono<List<String>> getAllRequest = spaceOperations.getAll();
-        List<String> spaceNames;
-
         log.info("Fetching all space names...");
+
+        List<String> spaceNames;
         try {
             spaceNames = getAllRequest.block();
         }
