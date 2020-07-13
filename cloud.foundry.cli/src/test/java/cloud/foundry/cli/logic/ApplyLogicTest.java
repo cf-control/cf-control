@@ -399,11 +399,11 @@ public class ApplyLogicTest {
         Mono<Void> resultingMono = mock(Mono.class);
         when(spaceOperationsMock.create(desiredSpaceName)).thenReturn(resultingMono);
 
-        // when
-
         // the constructor paramteres won't be used by apply space method, because it uses DI
         // regarding space operations.
         ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
+
+        // when
         applyLogic.applySpace(desiredSpaceName, spaceOperationsMock);
 
         // then
@@ -476,7 +476,7 @@ public class ApplyLogicTest {
     }
 
     @Test
-    public void testApplySpaceWithDesiredSpaceNameNullThrowsNullptr() {
+    public void testApplySpaceWithNullValuesAsArgumentsThrowsNullPointerException() {
         // given
         ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
 
@@ -485,15 +485,9 @@ public class ApplyLogicTest {
         // when + then
         assertThrows(NullPointerException.class, () ->
                 applyLogic.applySpace(null, spaceOperationsMock));
-    }
 
-    @Test
-    public void testApplySpaceWithSpaceOperationsNullThrowsNullptr() {
-        // given
-        ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
-
-        // when + then
         assertThrows(NullPointerException.class, () ->
                 applyLogic.applySpace("testName", null));
     }
+
 }
