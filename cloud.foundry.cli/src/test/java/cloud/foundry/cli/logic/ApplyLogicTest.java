@@ -441,7 +441,7 @@ public class ApplyLogicTest {
 
         Mono<List<String>> getRequestMock = mock(Mono.class);
         when(spaceOperationsMock.getAll()).thenReturn(getRequestMock);
-        when(getRequestMock.block()).thenThrow(new RuntimeException("GetFailing"));
+        when(getRequestMock.block()).thenThrow(new RuntimeException("Get Space Names Failing"));
 
         // when + then
 
