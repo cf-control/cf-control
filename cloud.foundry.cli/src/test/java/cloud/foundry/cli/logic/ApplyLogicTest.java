@@ -477,6 +477,7 @@ public class ApplyLogicTest {
 
     @Test
     public void testApplySpaceWithDesiredSpaceNameNullThrowsNullptr() {
+        // given
         ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
 
         SpaceOperations spaceOperationsMock = mock(SpaceOperations.class);
