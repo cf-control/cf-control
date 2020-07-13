@@ -326,25 +326,4 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
                 .build();
     }
 
-    /**
-     * Prepares a request for binding an app to a service.
-     * The resulting mono is preconfigured such that it will perform logging.
-     *
-     * @param applicationName the app that should be bound to the service
-     * @param serviceName the service to which the app should be bound
-     * @return mono which can be subscribed on to trigger the app binding
-     * @throws NullPointerException if any of the arguments is null
-     */
-    public Mono<Void> bindApp(String applicationName, String serviceName) {
-        checkNotNull(applicationName);
-        checkNotNull(serviceName);
-
-        BindServiceInstanceRequest bindServiceRequest = BindServiceInstanceRequest.builder()
-                .applicationName(applicationName)
-                .serviceInstanceName(serviceName)
-                .build();
-
-        return cloudFoundryOperations.services().bind(bindServiceRequest);
-    }
-
 }
