@@ -208,8 +208,7 @@ public class ApplyLogic {
             } catch (Exception e) {
                 throw new ApplyException(e);
             }
-        }
-        else {
+        } else {
             log.info("Space with name", desiredSpaceName, "already exists");
         }
     }
