@@ -453,7 +453,7 @@ public class ApplyLogicTest {
     }
 
     @Test
-    public void testApplySpaceWithCreateSpaceFailingThrowsApplyExcption() {
+    public void testApplySpaceWithCreateSpaceFailingThrowsApplyException() {
 
         // given
         String desiredSpaceName = "testName";
