@@ -489,6 +489,7 @@ public class ApplyLogicTest {
 
     @Test
     public void testApplySpaceWithSpaceOperationsNullThrowsNullptr() {
+        // given
         ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
 
         assertThrows(NullPointerException.class, () ->
