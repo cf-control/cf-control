@@ -111,9 +111,7 @@ public class RefResolverTest {
         String rootPath = Paths.get(RESOURCES_PATH, REFRESOLVER_FOLDER, "WronglyFormattedUrlRef.yaml").toString();
         Object treeRoot = parseYamlFileAsTree(rootPath);
 
-        RefResolvingException refResolvingException = assertThrows(RefResolvingException.class,
-                () -> RefResolver.resolveRefs(treeRoot, rootPath));
-        assertThat(refResolvingException.getCause(), is(instanceOf(IOException.class)));
+        assertThrows(RefResolvingException.class, () -> RefResolver.resolveRefs(treeRoot, rootPath));
     }
 
     @Test
