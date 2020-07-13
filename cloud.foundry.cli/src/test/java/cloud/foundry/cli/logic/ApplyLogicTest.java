@@ -422,11 +422,11 @@ public class ApplyLogicTest {
         Mono<Void> resultingMono = mock(Mono.class);
         when(spaceOperationsMock.create(desiredSpaceName)).thenReturn(resultingMono);
 
-        // when
-
         // the constructor paramteres won't be used by apply space method, because it uses DI
         // regarding space operations.
         ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
+
+        // when
         applyLogic.applySpace(desiredSpaceName, spaceOperationsMock);
 
         // then
@@ -443,11 +443,11 @@ public class ApplyLogicTest {
         when(spaceOperationsMock.getAll()).thenReturn(getRequestMock);
         when(getRequestMock.block()).thenThrow(new RuntimeException("Get Space Names Failing"));
 
-        // when + then
-
         // the constructor paramteres won't be used by apply space method, because it uses DI
         // regarding space operations.
         ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
+
+        // when + then
         assertThrows(GetException.class, () ->
                 applyLogic.applySpace(desiredSpaceName, spaceOperationsMock));
     }
