@@ -9,6 +9,7 @@ import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
 import cloud.foundry.cli.crosscutting.mapping.YamlMapper;
 import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
 import cloud.foundry.cli.logic.ApplyLogic;
+import cloud.foundry.cli.operations.SpaceOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 
 import java.util.concurrent.Callable;
@@ -24,7 +25,8 @@ import java.util.concurrent.Callable;
         subcommands = {
                 ApplyController.ApplyServiceCommand.class,
                 ApplyController.ApplySpaceDevelopersCommand.class,
-                ApplyController.ApplyApplicationCommand.class})
+                ApplyController.ApplyApplicationCommand.class,
+                ApplyController.ApplySpaceCommand.class})
 
 public class ApplyController implements Callable<Integer> {
 
@@ -116,6 +118,32 @@ public class ApplyController implements Callable<Integer> {
             log.verbose("YAML file interpreted.");
 
             applyLogic.applyServices(desiredSpecBean.getServices());
+
+            return 0;
+        }
+    }
+
+    @Command(name = "space", description = "Create a space if it is not present in your cf instance.")
+    static class ApplySpaceCommand implements Callable<Integer> {
+
+        private static final Log log = Log.getLog(ApplySpaceCommand.class);
+
+        @Mixin
+        private LoginCommandOptions loginOptions;
+
+        @Override
+        public Integer call() throws Exception {
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+            SpaceOperations spaceOperations = new SpaceOperations(cfOperations);
+
+            ApplyLogic applyLogic = new ApplyLogic(cfOperations);
+            String desiredSpace = loginOptions.getSpace();
+
+            if (desiredSpace != null) {
+                applyLogic.applySpace(desiredSpace, spaceOperations);
+            } else {
+                log.info("No space specified.");
+            }
 
             return 0;
         }

@@ -22,8 +22,7 @@ public class CfArgumentsCreatorTest {
         String[] result = CfArgumentsCreator.determineCommandLine(
                 cli,
                 new String[]{"diff", "-y", "somePath"},
-                null
-        );
+                CommandLine.ParseResult.builder(CommandLine.Model.CommandSpec.create()).build());
 
         // then
         assertThat(result, arrayContaining("diff", "-y", "somePath", "-a",
@@ -40,8 +39,7 @@ public class CfArgumentsCreatorTest {
         String[] result = CfArgumentsCreator.determineCommandLine(
                 cli,
                 new String[]{"diff", "-s", "development", "-y", "somePath"},
-                null
-        );
+                CommandLine.ParseResult.builder(CommandLine.Model.CommandSpec.create()).build());
 
         // then
         assertThat(result, arrayContaining("diff", "-s", "development", "-y", "somePath", "-a",
@@ -65,3 +63,4 @@ public class CfArgumentsCreatorTest {
     }
 
 }
+
