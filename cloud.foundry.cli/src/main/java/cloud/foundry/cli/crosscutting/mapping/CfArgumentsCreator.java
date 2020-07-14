@@ -1,5 +1,7 @@
 package cloud.foundry.cli.crosscutting.mapping;
 
+import static java.util.Arrays.asList;
+
 import cloud.foundry.cli.services.DumpController;
 import picocli.CommandLine;
 import picocli.CommandLine.ParseResult;
@@ -7,10 +9,12 @@ import picocli.CommandLine.ParseResult;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
+
+import org.yaml.snakeyaml.parser.ParserException;
+import org.yaml.snakeyaml.scanner.ScannerException;
 
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
@@ -34,17 +38,18 @@ public class CfArgumentsCreator {
      * This method reads in arguments passed on the command line. The tool uses
      * default values unless the user overwrites them by passing parameters on the
      * CLI. For <code>get</code> command, the default values are defined in a
-     * properties file. Otherwise for the <code>diff</code>/<code>apply</code> command,
-     * the default values can be fetched from the given YAML file.
+     * properties file. Otherwise for the <code>diff</code>/<code>apply</code>
+     * command, the default values can be fetched from the taget section of the
+     * given YAML file.
      * 
      * Example: A call "get -s <space name> -a <API endpoint>" would be extended to
-     * "get -s <space name> -a <API endpoint> -o <default organization name>",
-     * where the default organization name is taken from the properties file.
+     * "get -s <space name> -a <API endpoint> -o <default organization name>", where
+     * the default organization name is taken from the properties file.
      * 
      * A call "diff -s <space name> -a <API endpoint> -y <Path to YAML file>" would
-     * be extended to "diff -s <space name> -a <API endpoint> -y <Path to YAML File> -o <default organization name>",
-     * where the default organization name is taken
-     * from the given YAML file.
+     * be extended to "diff -s <space name> -a <API endpoint> -y <Path to YAML File>
+     * -o <default organization name>", where the default organization name is taken
+     * from the taget section of the given YAML file.
      * 
      *
      * @param cli  CommandLine interpreter
@@ -53,17 +58,20 @@ public class CfArgumentsCreator {
      * @throws picocli.CommandLine.ParameterException if the arguments are invalid
      */
     public static String[] determineCommandLine(CommandLine cli, String[] args, CommandLine.ParseResult subcommand) {
-        // exclude commands which don't use the cloud.foundry.cli.services.LoginCommandOptions mixin
+        // exclude commands which don't use the
+        // cloud.foundry.cli.services.LoginCommandOptions mixin
         // if the subcommand is null, we're in the base controller (or its help options)
-        // TODO: find out whether it's possible to recognize the LoginCommandOptions mixin with reflections only
+        // TODO: find out whether it's possible to recognize the LoginCommandOptions
+        // mixin with reflections only
         if (subcommand == null || subcommand.commandSpec().userObject() instanceof DumpController) {
             return args;
         }
 
-        List<String> optionNames = Arrays.asList("-a", "-o", "-s");
+        List<String> optionNames = asList("-a", "-o", "-s");
         List<String> missingOptions = new ArrayList<>();
 
-        // to receive the options of the command, you have to go down until the last 'subcommand'
+        // to receive the options of the command, you have to go down until the last
+        // 'subcommand'
         ParseResult parseResult = cli.parseArgs(args);
         while (parseResult.hasSubcommand()) {
             parseResult = parseResult.subcommand();
@@ -77,15 +85,12 @@ public class CfArgumentsCreator {
 
         log.verbose("User has not passed values for arguments ", missingOptions, ", using default values");
 
-        // get missing values from config-properties File and extend to get command
-        if (Arrays.asList(args).contains("get")) {
-
-            return extendForGetCommand(missingOptions, new LinkedList<>(Arrays.asList(args)));
-        }
-        // get missing values from the given YAML File and extend to diff/apply command
-        else {
-
-            return extendForDiffAndApplyCommand(missingOptions, new LinkedList<>(Arrays.asList(args)));
+        if (asList(args).contains("get")) {
+            // get missing values from config-properties File and extend to get command
+            return extendForGetCommand(missingOptions, new LinkedList<>(asList(args)));
+        } else {
+            // get missing values from the given YAML File and extend to diff/apply command
+            return extendForDiffAndApplyCommand(missingOptions, new LinkedList<>(asList(args)));
         }
     }
 
@@ -121,7 +126,8 @@ public class CfArgumentsCreator {
     }
 
     /**
-     * Extends the commandLine with the missing options by reading the given yaml file.
+     * Extends the commandLine with the missing options by reading the given yaml
+     * file.
      *
      * @param missingOptions missing Options like -s, -a, -o
      * @param args           Commandline arguments
@@ -149,12 +155,12 @@ public class CfArgumentsCreator {
                 default:
                     break;
                 }
-                
+
                 args.add(value);
                 log.info("Extended CommandLine Argument with the Option: " + key +
                     " and value " + "'" + value + "'");
             });
-        } catch (IOException ex) {
+        } catch (IOException | ParserException | ScannerException ex) {
             log.error(ex.getMessage());
             System.exit(1);
         }

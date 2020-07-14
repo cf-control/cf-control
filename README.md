@@ -102,7 +102,7 @@ You can have the tool create a machine-readable log file by specifying the `--lo
 ##### [HINT - DEFAULT VALUES FOR SOME PARAMS]
 
 To reduce the number of the program parameters `api`, `organization` and `space`, there is a property file [cf_control.properties](cloud.foundry.cli/src/main/resources/cf_control.properties) that defines default values for the <code>get</code> command.
-For the <code>diff/apply</code> commands, the paramters can be fetched from the given YAML file.
+For the <code>diff/apply</code> commands, the paramters can be fetched from the target section of the given YAML file.
 
 So the default values are defined in the cf_control.properties file:
 
@@ -111,7 +111,7 @@ So the default values are defined in the cf_control.properties file:
   -o=cloud.foundry.cli
   -s=development
 ```
-the defined values in the given YAML file:
+the defined values in a given YAML file could be:
 
 ```
 target:
