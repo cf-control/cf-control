@@ -69,7 +69,6 @@ public class DiffLogic {
     private String doCreateDiffOutput(Bean liveConfig, Bean desiredConfig) {
         Differ differ = new Differ();
         differ.ignoreSpecBeanMapChange();
-        differ.ignoreRemovedObjects();
 
         DiffNode diffNode = differ.createDiffTree(liveConfig, desiredConfig);
         DiffOutput diffOutput = new DiffOutput();
