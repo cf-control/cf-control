@@ -136,36 +136,39 @@ public class CfArgumentsCreator {
      * @return Commandline arguments
      */
     private static String[] extendForDiffAndApplyCommand(List<String> missingOptions, LinkedList<String> args) {
+
+        String yamlPath = args.get(args.indexOf("-y") + 1);
+        ConfigBean configBean =  new ConfigBean();
+
         try {
-            String yamlPath = args.get(args.indexOf("-y") + 1);
-            ConfigBean configBean = YamlMapper.loadBeanFromFile(yamlPath, ConfigBean.class);
-            TargetBean targetBean = configBean.getTarget();
-
-            missingOptions.forEach(key -> {
-                args.add(key);
-                String value = "";
-                switch (key) {
-                case "-a":
-                    value = targetBean.getEndpoint();
-                    break;
-                case "-o":
-                    value = targetBean.getOrg();
-                    break;
-                case "-s":
-                    value = targetBean.getSpace();
-                    break;
-                default:
-                    break;
-                }
-
-                args.add(value);
-                log.info("Extended CommandLine Argument with the Option: " + key +
-                    " and value " + "'" + value + "'");
-            });
+            configBean = YamlMapper.loadBeanFromFile(yamlPath, ConfigBean.class);
         } catch (IOException | ParserException | ScannerException | RefResolvingException | ConstructorException ex) {
             log.error(ex.getMessage());
             System.exit(1);
         }
+
+        TargetBean targetBean = configBean.getTarget();
+        missingOptions.forEach(key -> {
+            args.add(key);
+            String value = "";
+            switch (key) {
+            case "-a":
+                value = targetBean.getEndpoint();
+                break;
+            case "-o":
+                value = targetBean.getOrg();
+                break;
+            case "-s":
+                value = targetBean.getSpace();
+                break;
+            default:
+                break;
+            }
+
+            args.add(value);
+            log.info("Extended CommandLine Argument with the Option: " + key +
+                " and value " + "'" + value + "'");
+        });
 
         return args.toArray(new String[0]);
     }
