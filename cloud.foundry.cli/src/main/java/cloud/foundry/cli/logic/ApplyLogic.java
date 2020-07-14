@@ -132,7 +132,7 @@ public class ApplyLogic {
         Map<String, List<CfChange>> allApplicationChanges = diffResult.getApplicationChanges();
 
         if (allApplicationChanges == null || allApplicationChanges.isEmpty()) {
-            log.info("There is no difference to apply.");
+            log.info("There are no differences to apply.");
         } else {
             ApplicationRequestsPlaner requestsPlaner = new ApplicationRequestsPlaner(applicationsOperations);
 

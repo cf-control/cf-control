@@ -350,7 +350,7 @@ class ApplicationRequestPlanerTest {
         // then
         assertThat(requests, notNullValue());
         verify(appOperations, times(0)).create(anyString(), any(), anyBoolean());
-        verify(appOperations, times(1)).update("testApp", applicationBean, true);
+        verify(appOperations, times(1)).update("testApp", applicationBean, false);
         verify(appOperations, times(0)).remove(anyString());
         verify(appOperations, times(0)).scale(anyString(), anyInt(), anyInt(), anyInt());
         verify(appOperations, times(0)).addEnvironmentVariable(anyString(), anyString(), anyString());
@@ -416,7 +416,7 @@ class ApplicationRequestPlanerTest {
         // then
         assertThat(requests, notNullValue());
         verify(appOperations, times(0)).create(anyString(), any(), anyBoolean());
-        verify(appOperations, times(1)).update("testApp", applicationBean, true);
+        verify(appOperations, times(1)).update("testApp", applicationBean, false);
         verify(appOperations, times(0)).remove(anyString());
         verify(appOperations, times(0)).scale(anyString(), anyInt(), anyInt(), anyInt());
         verify(appOperations, times(0)).addEnvironmentVariable("testApp", "addedKey", "added");

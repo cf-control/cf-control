@@ -114,7 +114,7 @@ public class ApplicationRequestsPlaner {
             }
 
             ApplicationBean bean = (ApplicationBean) changes.get(0).getAffectedObject();
-            return Flux.concat(appOperations.update(applicationName, bean, true));
+            return Flux.concat(appOperations.update(applicationName, bean, false));
         } else if (changes.size() > 0) {
             log.debug("Add rolling update requests for app: " + applicationName);
             requests.add(getScaleInstancesRequest(changes));

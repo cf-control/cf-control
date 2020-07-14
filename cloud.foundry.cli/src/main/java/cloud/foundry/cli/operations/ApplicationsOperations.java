@@ -170,7 +170,14 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                 .flatMap(spaceId -> this.cloudFoundryOperations
                         .getCloudFoundryClient()
                         .applicationsV3()
-                        .create(buildCreateApplicationRequest(spaceId, appName, bean)))
+                        .create(buildCreateApplicationRequest(spaceId, appName, bean))
+                        .doOnSubscribe(subscription -> {
+                            log.debug("Create app:", appName);
+                            log.debug("Bean of the app:", bean);
+                            log.debug("Should the app start:", shouldStart);
+                        })
+                        .doOnSuccess(aVoid -> log.info("App created:", appName))
+                        .then())
                 .then(this.cloudFoundryOperations
                 .applications()
                 .pushManifest(PushApplicationManifestRequest
@@ -179,12 +186,9 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                         .noStart(!shouldStart)
                         .build())
                 .onErrorContinue(this::whenServiceNotFound, log::warning)
-                .doOnSubscribe(subscription -> {
-                    log.debug("Create app:", appName);
-                    log.debug("Bean of the app:", bean);
-                    log.debug("Should the app start:", shouldStart);
-                })
-                .doOnSuccess(aVoid -> log.info("App created:", appName)));
+                .doOnSubscribe(subscription -> log.debug("Pushing app manifest for:", appName))
+                .doOnSuccess(aVoid -> log.info("App manifest pushed for:", appName)));
+
     }
 
     private boolean whenServiceNotFound(Throwable throwable) {
@@ -232,6 +236,13 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
             bean.setManifest(new ApplicationManifestBean());
         }
 
+        boolean noRoute = false;
+        if (bean.getManifest().getRandomRoute() == null || !bean.getManifest().getRandomRoute()) {
+            if (bean.getManifest().getRoutes() == null || bean.getManifest().getRoutes().size() == 0) {
+                noRoute = true;
+            }
+        }
+
         return ApplicationManifest.builder()
                 .name(appName)
                 .path(bean.getPath() != null ? Paths.get(bean.getPath()) : Paths.get(""))
@@ -242,7 +253,7 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                 .healthCheckType(bean.getManifest().getHealthCheckType())
                 .instances(bean.getManifest().getInstances())
                 .memory(bean.getManifest().getMemory())
-                .noRoute(bean.getManifest().getNoRoute())
+                .noRoute(noRoute)
                 .randomRoute(bean.getManifest().getRandomRoute())
                 .routes(getAppRoutes(bean.getManifest().getRoutes()))
                 .stack(bean.getManifest().getStack())
