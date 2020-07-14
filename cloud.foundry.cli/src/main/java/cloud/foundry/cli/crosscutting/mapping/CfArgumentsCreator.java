@@ -13,9 +13,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 
+import org.yaml.snakeyaml.constructor.ConstructorException;
 import org.yaml.snakeyaml.parser.ParserException;
 import org.yaml.snakeyaml.scanner.ScannerException;
 
+import cloud.foundry.cli.crosscutting.exceptions.RefResolvingException;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.TargetBean;
@@ -160,7 +162,7 @@ public class CfArgumentsCreator {
                 log.info("Extended CommandLine Argument with the Option: " + key +
                     " and value " + "'" + value + "'");
             });
-        } catch (IOException | ParserException | ScannerException ex) {
+        } catch (IOException | ParserException | ScannerException | RefResolvingException | ConstructorException ex) {
             log.error(ex.getMessage());
             System.exit(1);
         }
