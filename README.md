@@ -166,7 +166,53 @@ No value -> default value is used
 
   for example, you can run the command:   
   ```java -jar cf-control.jar get services -a api.run.pivotal.io -o cloud.foundry.cli -s development -u mustermann@test.com -p somePassword;)```
+  
+  
+### YAML Specification Reference
 
+```
+apiVersion: 1.0                           # the version of this yaml specification
+target:
+  endpoint: api.run.pivotal.io            # the host of your cloud foundry instance
+  org: cloud.foundry.cli                  # the organization on your cloud foundry instance
+  space: test                             # the space on your organization
+spec:
+  spaceDevelopers:                        # list of space developers on your cloud foundry instance
+    - max.mustermann@emailservice.de
+    ...
+  services:
+    sqlService:                           # name of your service instance
+      service: mySQL                      # service type
+      plan: free-plan                     # plan that your service uses
+      tags:                               # list of tags that the service instance should have
+        - development
+    scalingService:
+      ...
+  apps:
+    springApp:                            # name of the app
+      path: ../sources/app                # the path to the the app source (can be a folder or a file)
+      meta: SNAPSHOT-1.0                  # provides a way to specify user provided meta info
+      manifest:
+        buildpack: java_buildpack         # buildpack that should be used when deploying the app
+        command: ./gradlew run            # custom command to start the app
+        disk: 512                         # disk space per instance in MB
+        memory: 512                       # amount of memory per instance in MB
+        instances: 4                      # number of instances that should run
+        environmentVariables:             # user specified environment variables the app can use
+          APP_ENVIRONMENT: TEST
+        healthCheckHttpEndpoint: /health  # sets the endpoint when health check type HTTP was used
+        healthCheckType: HTTP             # sets the health check type [PORT, HTTP, PROCESS] 
+        noRoute: false                    # overrides other routes settings when set to true
+        randomRoute: false                # creates a random route (for testing purposes useful)
+        routes:                           # list of routes the app should be mapped to
+          -development.mycf.io
+        services:                         # list of services the app should be bind to
+          - sqlService
+        stack: cflinuxfs3                 # species which stack to deploy your app to
+        timeout: 80                       # number of seconds the cf allocates for starting the app
+    pythonApp:
+      ...
+```
 
 ### Convenience features
 
