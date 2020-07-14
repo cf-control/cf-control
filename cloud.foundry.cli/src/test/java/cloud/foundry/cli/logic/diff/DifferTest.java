@@ -99,8 +99,9 @@ public class DifferTest {
     public void testCreateDiffTreeSucceedsWithoutSpecBeanMapChangeAndWithoutRemovedObjects() throws IOException {
         // given
         String filePath = "./src/test/resources/basic/";
-        ConfigBean configLive = YamlMapper.loadBean(filePath + "configLive.yml", ConfigBean.class);
-        ConfigBean configDesired = YamlMapper.loadBean(filePath + "configDesired.yml", ConfigBean.class);
+        ConfigBean configLive = YamlMapper.loadBeanFromFile(filePath + "configLive.yml", ConfigBean.class);
+        ConfigBean configDesired = YamlMapper.loadBeanFromFile(filePath + "configDesired.yml", ConfigBean.class);
+
         Differ differ = new Differ();
         differ.ignoreSpecBeanMapChange();
         differ.ignoreRemovedObjects();

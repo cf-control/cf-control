@@ -1,0 +1,12 @@
+apiVersion: 2.151.0
+spec:
+  apps:
+  services:
+  spaceDevelopers:
+    - dev1@mail.com
+    - dev2@mail.de
+target:
+  endpoint: api.run.pivotal.io
+  org: cloud.foundry.cli
+  space: development
+  

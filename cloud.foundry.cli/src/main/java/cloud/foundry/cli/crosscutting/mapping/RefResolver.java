@@ -5,6 +5,7 @@ import cloud.foundry.cli.crosscutting.exceptions.YamlTreeNodeNotFoundException;
 import cloud.foundry.cli.crosscutting.logging.Log;
 
 import java.io.IOException;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
@@ -86,12 +87,20 @@ public class RefResolver implements YamlTreeVisitor {
         YamlPointer yamlPointer = extractYamlPointer(refValue);
 
         String parentYamlFileDirectoryPath = Paths.get(parentYamlFilePath).getParent().toAbsolutePath().toString();
-        String absoluteFilePath = FileUtils.calculateAbsolutePath(filePath, parentYamlFileDirectoryPath);
+        String absoluteFilePath;
+
+        try {
+            absoluteFilePath = FileUtils.calculateAbsolutePath(filePath, parentYamlFileDirectoryPath);
+        }
+        catch (InvalidPathException e) {
+            String message = "Unable to interpret path: " + e.getMessage();
+            throw new RefResolvingException(message, e);
+        }
 
         log.debug("Reading content of", filePath);
         Object referredYamlTree;
         try {
-            referredYamlTree = YamlMapper.loadYamlTree(absoluteFilePath);
+            referredYamlTree = YamlMapper.loadYamlTreeFromFilePath(absoluteFilePath);
         } catch (IOException ioException) {
             throw new RefResolvingException("Unable to read a referenced file: " + ioException.getMessage(),
                     ioException);

@@ -4,12 +4,16 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.times;
 
+import cloud.foundry.cli.crosscutting.exceptions.ApplyException;
+import cloud.foundry.cli.crosscutting.exceptions.GetException;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationManifestBean;
 
@@ -17,6 +21,7 @@ import cloud.foundry.cli.mocking.ApplicationsMockBuilder;
 import cloud.foundry.cli.mocking.ApplicationsV3MockBuilder;
 import cloud.foundry.cli.mocking.CloudFoundryClientMockBuilder;
 import cloud.foundry.cli.mocking.DefaultCloudFoundryOperationsMockBuilder;
+import cloud.foundry.cli.operations.SpaceOperations;
 import cloud.foundry.cli.operations.ApplicationsOperations;
 import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperByUsernameRequest;
 import org.cloudfoundry.client.v2.spaces.RemoveSpaceDeveloperByUsernameRequest;
@@ -36,13 +41,7 @@ import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 
 import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 
@@ -397,4 +396,109 @@ public class ApplyLogicTest {
         verify(entry).getKey();
         verify(entry).getValue();
     }
+
+    @Test
+    public void testApplySpaceCreatesSpace() {
+
+        // given
+        String desiredSpaceName = "testName";
+        SpaceOperations spaceOperationsMock = mock(SpaceOperations.class);
+
+        List<String> presentSpaces = Arrays.asList("space1", "space2");
+        when(spaceOperationsMock.getAll()).thenReturn(Mono.just(presentSpaces));
+
+        Mono<Void> resultingMono = mock(Mono.class);
+        when(spaceOperationsMock.create(desiredSpaceName)).thenReturn(resultingMono);
+
+        // the constructor paramteres won't be used by apply space method, because it uses
+        // dependency injection regarding space operations
+        ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
+
+        // when
+        applyLogic.applySpace(desiredSpaceName, spaceOperationsMock);
+
+        // then
+        verify(resultingMono).block();
+    }
+
+    @Test
+    public void testApplySpaceWithSpaceAlreadyExisting() {
+        // given
+        String desiredSpaceName = "testName";
+        SpaceOperations spaceOperationsMock = mock(SpaceOperations.class);
+
+        List<String> presentSpaces = Arrays.asList("testName", "otherSpace");
+        when(spaceOperationsMock.getAll()).thenReturn(Mono.just(presentSpaces));
+
+        Mono<Void> resultingMono = mock(Mono.class);
+        when(spaceOperationsMock.create(desiredSpaceName)).thenReturn(resultingMono);
+
+        // the constructor paramteres won't be used by apply space method, because it uses DI
+        // regarding space operations.
+        ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
+
+        // when
+        applyLogic.applySpace(desiredSpaceName, spaceOperationsMock);
+
+        // then
+        verify(resultingMono, never()).block();
+    }
+
+    @Test
+    public void testApplySpaceWithGetSpaceNamesFailingThrowsGetException() {
+        // given
+        String desiredSpaceName = "testName";
+        SpaceOperations spaceOperationsMock = mock(SpaceOperations.class);
+
+        Mono<List<String>> getRequestMock = mock(Mono.class);
+        when(spaceOperationsMock.getAll()).thenReturn(getRequestMock);
+        when(getRequestMock.block()).thenThrow(new RuntimeException("Get Space Names Failing"));
+
+        // the constructor parameters won't be used by apply space method, because it uses DI
+        // regarding space operations.
+        ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
+
+        // when + then
+        assertThrows(GetException.class, () ->
+                applyLogic.applySpace(desiredSpaceName, spaceOperationsMock));
+    }
+
+    @Test
+    public void testApplySpaceWithCreateSpaceFailingThrowsApplyException() {
+
+        // given
+        String desiredSpaceName = "testName";
+        SpaceOperations spaceOperationsMock = mock(SpaceOperations.class);
+
+        List<String> presentSpaces = Arrays.asList("space1", "space2");
+        when(spaceOperationsMock.getAll()).thenReturn(Mono.just(presentSpaces));
+
+        Mono<Void> resultingMono = mock(Mono.class);
+        when(spaceOperationsMock.create(desiredSpaceName)).thenReturn(resultingMono);
+        when(resultingMono.block()).thenThrow(new RuntimeException("Create space failing"));
+
+        // the constructor parameters won't be used by apply space method, because it uses DI
+        // regarding space operations.
+        ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
+
+        // when + then
+        assertThrows(ApplyException.class, () ->
+                applyLogic.applySpace(desiredSpaceName, spaceOperationsMock));
+    }
+
+    @Test
+    public void testApplySpaceWithNullValuesAsArgumentsThrowsNullPointerException() {
+        // given
+        ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
+
+        SpaceOperations spaceOperationsMock = mock(SpaceOperations.class);
+
+        // when + then
+        assertThrows(NullPointerException.class, () ->
+                applyLogic.applySpace(null, spaceOperationsMock));
+
+        assertThrows(NullPointerException.class, () ->
+                applyLogic.applySpace("testName", null));
+    }
+
 }

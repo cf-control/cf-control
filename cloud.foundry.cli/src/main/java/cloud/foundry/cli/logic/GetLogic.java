@@ -76,7 +76,7 @@ public class GetLogic {
      * @return List of space-developers.
      * @throws GetException if an error occurs during the information retrieving
      */
-    public List<String> getSpaceDevelopers(SpaceDevelopersOperations spaceDevelopersOperations) {
+    List<String> getSpaceDevelopers(SpaceDevelopersOperations spaceDevelopersOperations) {
         Mono<List<String>> getSpaceDevelopersRequest = spaceDevelopersOperations.getAll();
 
         try {
@@ -92,7 +92,7 @@ public class GetLogic {
      * @return Map of services.
      * @throws GetException if an error occurs during the information retrieving
      */
-    public Map<String, ServiceBean> getServices(ServicesOperations servicesOperations) {
+    Map<String, ServiceBean> getServices(ServicesOperations servicesOperations) {
         Mono<Map<String, ServiceBean>> getServicesRequest = servicesOperations.getAll();
 
         try {
@@ -108,7 +108,7 @@ public class GetLogic {
      * @return Map of applications.
      * @throws GetException if an error occurs during the information retrieving
      */
-    public Map<String, ApplicationBean> getApplications(ApplicationsOperations applicationsOperations) {
+    Map<String, ApplicationBean> getApplications(ApplicationsOperations applicationsOperations) {
         Mono<Map<String, ApplicationBean>> getApplicationsRequest = applicationsOperations.getAll();
 
         try {

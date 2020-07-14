@@ -13,55 +13,112 @@ import picocli.CommandLine;
 public class CfArgumentsCreatorTest {
 
     @Test
-    public void determineCommandLineShouldExtendTheCommandLineArgumentsIfAllRelevantOptionsAreMissing() {
+    public void determineCommandLineForGetCommand_withAllMissingOptions() {
         // given
         BaseController controller = new BaseController();
         CommandLine cli = new CommandLine(controller);
 
         // when
         String[] result = CfArgumentsCreator.determineCommandLine(
-                cli,
-                new String[]{"diff", "services", "-y", "somePath"},
-                null
-        );
+            cli,
+            new String[] { "get" },
+                CommandLine.ParseResult.builder(CommandLine.Model.CommandSpec.create()).build());
 
         // then
-        assertThat(result, arrayContaining("diff", "services", "-y", "somePath", "-a",
-                "api.run.pivotal.io", "-o", "cloud.foundry.cli", "-s", "development"));
+        assertThat(result,
+            arrayContaining("get", "-a", "api.run.pivotal.io", "-o", "cloud.foundry.cli", "-s", "development"));
     }
 
     @Test
-    public void determineCommandLineShouldExtendTheCommandLineArgumentsIfOneRelevantOptionIsMissing() {
+    public void determineCommandLineForGetCommand_withOneMissingOption() {
         // given
         BaseController controller = new BaseController();
         CommandLine cli = new CommandLine(controller);
 
         // when
         String[] result = CfArgumentsCreator.determineCommandLine(
-                cli,
-                new String[]{"diff", "services", "-s", "development", "-y", "somePath"},
-                null
-        );
+            cli,
+            new String[] { "get", "-s", "development", "-a", "api.run.pivotal.io" },
+            CommandLine.ParseResult.builder(CommandLine.Model.CommandSpec.create()).build());
 
         // then
-        assertThat(result, arrayContaining("diff", "services", "-s", "development", "-y", "somePath", "-a",
-                "api.run.pivotal.io", "-o", "cloud.foundry.cli"));
+        assertThat(result,
+            arrayContaining("get", "-s", "development", "-a", "api.run.pivotal.io", "-o", "cloud.foundry.cli"));
+
     }
 
     @Test
-    public void determineCommandLineShouldNotExtendTheCommandLineArgumentsIfAllRelevantOptionsArePassed() {
+    public void determineCommandLineForGetCommand_withOutMissingOptions() {
         // given
         BaseController controller = new BaseController();
         CommandLine cli = new CommandLine(controller);
 
-        String[] args = {"diff", "services", "-y", "somePath", "-a", "api.run.pivotal.io",
+        // when
+        String[] result = CfArgumentsCreator.determineCommandLine(
+            cli,
+            new String[] { "get", "-s", "development", "-a", "api.run.pivotal.io", "-o", "cloud.foundry.cli" },
+            CommandLine.ParseResult.builder(CommandLine.Model.CommandSpec.create()).build());
+
+        // then
+        assertThat(result,
+            arrayContaining("get", "-s", "development", "-a", "api.run.pivotal.io", "-o", "cloud.foundry.cli"));
+    }
+
+    @Test
+    public void determineCommandLineForDiffApplyCommand_withAllMissingOptions() {
+        // given
+        BaseController controller = new BaseController();
+        CommandLine cli = new CommandLine(controller);
+        String configFilePath = "./src/test/resources/basic/configBean.yml";
+
+        // when
+        String[] result = CfArgumentsCreator.determineCommandLine(
+            cli,
+            new String[] { "diff",  "-y", configFilePath },
+            CommandLine.ParseResult.builder(CommandLine.Model.CommandSpec.create()).build());
+
+        // then
+        assertThat(result,
+            arrayContaining("diff",  "-y", configFilePath, "-a", "api.run.pivotal.io", 
+                            "-o", "cloud.foundry.cli", "-s", "development"));
+    }
+
+    @Test
+    public void determineCommandLineForDiffApplyCommand_withOneMissingOption() {
+        // given
+        BaseController controller = new BaseController();
+        CommandLine cli = new CommandLine(controller);
+        String configFilePath = "./src/test/resources/basic/configBean.yml";
+
+        // when
+        String[] result = CfArgumentsCreator.determineCommandLine(
+            cli,
+            new String[] { "diff",  "-y", configFilePath, "-a", "api.run.pivotal.io", "-o","cloud.foundry.cli"},
+            CommandLine.ParseResult.builder(CommandLine.Model.CommandSpec.create()).build());
+
+        // then
+        assertThat(result, 
+            arrayContaining("diff",  "-y", configFilePath, "-a",
+                            "api.run.pivotal.io", "-o","cloud.foundry.cli", "-s", "development"));
+    }
+
+    @Test
+    public void determineCommandLineForDiffApplyCommand_withoutMissingOptions() {
+        // given
+        BaseController controller = new BaseController();
+        CommandLine cli = new CommandLine(controller);
+        String configFilePath = "./src/test/resources/basic/configBean.yml";
+        String[] args = {"diff", "-y", configFilePath, "-a", "api.run.pivotal.io",
                 "-o", "cloud.foundry.cli", "-s", "development"};
 
         // when
-        String[] result = CfArgumentsCreator.determineCommandLine(cli, args, null);
+        String[] result = CfArgumentsCreator.determineCommandLine(cli,
+            args,
+            CommandLine.ParseResult.builder(CommandLine.Model.CommandSpec.create()).build());
 
         // then
         assertThat(result, arrayContaining(args));
     }
 
 }
+

@@ -60,57 +60,13 @@ You can have the tool create a machine-readable log file by specifying the `--lo
 #### [COMMAND]
 
 ```
-  create          Create a new app, service instance or add a new space developer.
   get             Show all information of your cf instance.
   diff            Print the differences between the given yaml file and the configuration of your cf instance.
   apply           Apply the configuration from a given yaml file to your cf instance.
-  update          Update/Remove apps, service instances or space developers.
   rename          Rename an app or a service instance.
   dump            Read a configuration file, resolve all $refs and print the result to the console.
                   Helps users to understand how the tool resolves $ref and what the resulting config is
                   it would apply.
-```
-
-
-##### create [SUBCOMMAND]
-
-```
-  service          Create services in the target space.
-  space-developer  Assign users as space developers.
-  application      Create applications in the target space.
-```
-
-
-##### get [SUBCOMMAND]
-
-```
-  services          List all services in the target space.
-  space-developers  List all space developers in the target space.
-  applications      List all applications in the target space.
-```
-
-
-##### diff [SUBCOMMAND]
-
-```
-  applications      Print the differences between the apps given in the yaml file and
-                     the configuration of the apps of your cf instance.
-   space-developers  Print the differences between the space-developers given in the yaml file and
-                     the configuration of the space-developers of your cf instance.
-   services          Print the differences between the services given in the yaml file and
-                     the configuration of the services of your cf instance.
-    all              Print the differences between the configuration in the yaml file and
-                     the configuration of your cf instance.
-```
-
-##### update [SUBCOMMAND]
-
-```
-  remove-service          Remove service instances in the target space.
-  update-service          Update service instances in the target space.
-  remove-space-developer  Remove space developers in the target space.
-  update-application      Update applications in the target space.
-  remove-application      Remove applications in the target space.
 ```
 
 ##### apply [SUBCOMMAND]
@@ -145,15 +101,23 @@ You can have the tool create a machine-readable log file by specifying the `--lo
 
 ##### [HINT - DEFAULT VALUES FOR SOME PARAMS]
 
-Since the parameters `api`, `organization` and `space` are rarely changed, there is a property file 
-in the directory that defines default values   
-(see `cloud.foundry.cli/src/main/resources/cf_control.properties`).
+To reduce the number of the program parameters `api`, `organization` and `space`, there is a property file [cf_control.properties](cloud.foundry.cli/src/main/resources/cf_control.properties) that defines default values for the <code>get</code> command.
+For the <code>diff/apply</code> commands, the paramters can be fetched from the target section of the given YAML file.
 
-So the default values are:
+So the default values are defined in the cf_control.properties file:
+
 ```
   -a=api.run.pivotal.io
   -o=cloud.foundry.cli
   -s=development
+```
+the defined values in a given YAML file could be:
+
+```
+target:
+  endpoint=api.run.pivotal.io
+  org=cloud.foundry.cli
+  space=development
 ```
 
 This reduces the number of program parameters to be called.
@@ -214,6 +178,18 @@ spec:
       ...
 ```
 
+  For example, you can run the following commands: 
+  
+ <code>get</code> command:
+ 
+ `java -jar cf-control.jar get -u mustermann@test.com -p somePassword`
+  
+ <code>diff</code> and <code>apply</code> commands:
+ 
+ `java -jar cf-control.jar diff -u mustermann@test.com -p somePassword -y pathToYamlFile`
+ 
+ `java -jar cf-control.jar apply -u mustermann@test.com -p somePassword -y pathToYamlFile`
+ 
 ### Convenience features
 
 You are able to include contents of other YAML files into the one that you pass as an argument to the tool. To do so, you have to use the so called **$ref-syntax**. A description on how to use it can be found [here](https://swagger.io/docs/specification/using-ref/).
@@ -226,18 +202,9 @@ You are able to include contents of other YAML files into the one that you pass 
 In this [folder](cloud.foundry.cli/src/test/resources/demo/) we provide example YAML files that may help in
 understanding how to use our tool. What can I use the files for?
 
-* [appJava.yml](cloud.foundry.cli/src/test/resources/demo/appJava.yml): Reference for create/update/remove of an 
-application.
-* [appPython.yml](cloud.foundry.cli/src/test/resources/demo/appPython.yml): Reference for create/update/remove of an
-application.
-* [getAll.yml](cloud.foundry.cli/src/test/resources/demo/appJava.yml): Example output of the **get** command. 
-In this exmaple you can see how you have to structure the yml Files in general.
+* [getAll.yml](cloud.foundry.cli/src/test/resources/demo/getAll.yml): Example output of the **get** command. 
+In this example you can see how you have to structure the yml Files in general.
 * [refDemo.yml](cloud.foundry.cli/src/test/resources/demo/refDemo.yml) & 
-:[referred.yml](cloud.foundry.cli/src/test/resources/demo/referred.yml) Example how you can use the ref syntax in the 
-context of creating services (command: create services)
-* [removeServices.yml](cloud.foundry.cli/src/test/resources/demo/removeServices.yml): Reference for removing of the services.
-* [createServices.yaml](cloud.foundry.cli/src/test/resources/demo/createServices.yaml): Reference for creation of the services.
-* [spaceDeveloper.yml](cloud.foundry.cli/src/test/resources/demo/spaceDeveloper.yml):  Reference for create/remove of 
-space developers.
+[referred.yml](cloud.foundry.cli/src/test/resources/demo/referred.yml) Example how you can use the `$ref` syntax
 
 __Happy coding!__
