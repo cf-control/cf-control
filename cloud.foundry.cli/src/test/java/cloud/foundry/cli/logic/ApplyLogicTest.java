@@ -4,7 +4,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
@@ -17,6 +17,7 @@ import cloud.foundry.cli.mocking.ApplicationsMockBuilder;
 import cloud.foundry.cli.mocking.ApplicationsV3MockBuilder;
 import cloud.foundry.cli.mocking.CloudFoundryClientMockBuilder;
 import cloud.foundry.cli.mocking.DefaultCloudFoundryOperationsMockBuilder;
+import cloud.foundry.cli.operations.ApplicationsOperations;
 import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperByUsernameRequest;
 import org.cloudfoundry.client.v2.spaces.RemoveSpaceDeveloperByUsernameRequest;
 import org.cloudfoundry.client.CloudFoundryClient;
@@ -173,29 +174,33 @@ public class ApplyLogicTest {
                 "someBuildpack");
         Metadata appMetadata = createMockMetadata("someApplicationName", "some/path");
 
-        DefaultCloudFoundryOperations cfMock = createMockCloudFoundryOperations2(
-                Collections.singletonMap("someApplicationName", appManifest),
-                Collections.singletonMap("someApplicationName", appMetadata));
+        Map<String, ApplicationBean> appsOnLiveSystem = Collections.singletonMap("someApplicationName",
+                new ApplicationBean(appManifest, appMetadata));
 
         // from now on: setup application to apply
-        Map<String, ApplicationBean> applicationsToApply = createDesiredApplications("someApplicationName",
+        Map<String, ApplicationBean> applicationsToApply = createDesiredApplications("otherApplication",
             "/some/path",
             "someBuildpack",
             "app1meta");
 
-        ApplyLogic applyLogic = new ApplyLogic(cfMock);
+        ApplicationsOperations applicationsOperationsMock = mock(ApplicationsOperations.class);
+        when(applicationsOperationsMock.create(anyString(), any(ApplicationBean.class), anyBoolean()))
+                .thenReturn(Mono.just(mock(Void.class)));
+
+        GetLogic getLogicMock = mock(GetLogic.class);
+        when(getLogicMock.getApplications(applicationsOperationsMock))
+                .thenReturn(appsOnLiveSystem);
+
+        ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
+        applyLogic.setApplicationsOperations(applicationsOperationsMock);
+        applyLogic.setGetLogic(getLogicMock);
 
         // when
         applyLogic.applyApplications(applicationsToApply);
 
         // then
-        verify(cfMock.applications()).list();
-        PushApplicationManifestRequest request = PushApplicationManifestRequest
-                .builder()
-                .manifest(appManifest)
-                .noStart(true)
-                .build();
-        verify(cfMock.applications(), times(1)).pushManifest(request);
+        verify(getLogicMock, times(1)).getApplications(applicationsOperationsMock);
+        verify(applicationsOperationsMock, times(1)).create(eq("otherApplication"), any(ApplicationBean.class), anyBoolean());
     }
 
 
@@ -211,7 +216,7 @@ public class ApplyLogicTest {
         ApplicationManifest appManifest = createExampleApplicationManifest("app1", "path", "someBuildpack");
         Metadata appMetadata = createMockMetadata("app1meta", "path");
 
-        DefaultCloudFoundryOperations cfOperationsMock = createMockCloudFoundryOperations2(
+        DefaultCloudFoundryOperations cfOperationsMock = createMockCloudFoundryOperations(
                 Collections.singletonMap("app1", appManifest),
                 Collections.singletonMap("app1", appMetadata)
         );
@@ -253,7 +258,7 @@ public class ApplyLogicTest {
             put("app3", app3Metadata);
         }};
 
-        DefaultCloudFoundryOperations cfOperationsMock = createMockCloudFoundryOperations2(apps, metadata);
+        DefaultCloudFoundryOperations cfOperationsMock = createMockCloudFoundryOperations(apps, metadata);
 
         ApplyLogic applyLogic = new ApplyLogic(cfOperationsMock);
 
@@ -303,8 +308,8 @@ public class ApplyLogicTest {
         return appconfig;
     }
 
-  private DefaultCloudFoundryOperations createMockCloudFoundryOperations2(Map<String, ApplicationManifest> apps,
-                                                                          Map<String, Metadata> metadata) {
+  private DefaultCloudFoundryOperations createMockCloudFoundryOperations(Map<String, ApplicationManifest> apps,
+                                                                         Map<String, Metadata> metadata) {
       Applications applicationsMock = ApplicationsMockBuilder
               .get()
               .setApps(apps)
