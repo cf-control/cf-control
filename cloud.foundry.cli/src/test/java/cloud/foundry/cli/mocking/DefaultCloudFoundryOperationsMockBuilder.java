@@ -7,6 +7,7 @@ import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.applications.Applications;
 import org.mockito.Mockito;
+import reactor.core.publisher.Mono;
 
 /**
  * Builder class that creates a mock instance for the {@link DefaultCloudFoundryOperations} class
@@ -15,6 +16,7 @@ public class DefaultCloudFoundryOperationsMockBuilder {
 
     private Applications applications;
     private CloudFoundryClient cloudFoundryClient;
+    private String spaceId;
 
     private DefaultCloudFoundryOperationsMockBuilder() {
 
@@ -52,6 +54,18 @@ public class DefaultCloudFoundryOperationsMockBuilder {
     }
 
     /**
+     * Set the spaceId of the mock object
+     * @param spaceId mock of the {@link CloudFoundryClient}
+     * @return the builder instance
+     */
+    public DefaultCloudFoundryOperationsMockBuilder setSpaceId(String spaceId) {
+        checkNotNull(spaceId);
+
+        this.spaceId = spaceId;
+        return this;
+    }
+
+    /**
      * @return a mock of the {@link DefaultCloudFoundryOperations}
      */
     public DefaultCloudFoundryOperations build() {
@@ -59,8 +73,14 @@ public class DefaultCloudFoundryOperationsMockBuilder {
 
         mockApplications(cfOperationsMock);
         mockCloudFoundryClient(cfOperationsMock);
+        mockGetSpaceId(cfOperationsMock);
 
         return cfOperationsMock;
+    }
+
+    private void mockGetSpaceId(DefaultCloudFoundryOperations cfOperationsMock) {
+        when(cfOperationsMock.getSpaceId())
+                .thenReturn(spaceId != null ? Mono.just(spaceId) : Mono.empty());
     }
 
     private void mockCloudFoundryClient(DefaultCloudFoundryOperations cfOperationsMock) {
