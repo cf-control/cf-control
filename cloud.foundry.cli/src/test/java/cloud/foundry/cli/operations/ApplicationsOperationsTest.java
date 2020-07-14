@@ -141,20 +141,10 @@ public class ApplicationsOperationsTest {
         assertThat(request, notNullValue());
         verify(cfoMock.applications(), times(1))
                 .pushManifest(any(PushApplicationManifestRequest.class));
-        verify(cfoMock.applications(), times(1))
-                .get(any(org.cloudfoundry.operations.applications.GetApplicationRequest.class));
-        UpdateApplicationRequest updateRequest = UpdateApplicationRequest
-                .builder()
-                .applicationId("appId")
-                .metadata(Metadata
-                        .builder()
-                        .annotation(ApplicationBean.METADATA_KEY , applicationsBean.getMeta())
-                        .annotation(ApplicationBean.PATH_KEY, applicationsBean.getPath())
-                        .annotation(ApplicationBean.DOCKER_IMAGE_KEY, applicationsBean.getDockerImage())
-                        .annotation(ApplicationBean.DOCKER_USERNAME_KEY, applicationsBean.getDockerUsername())
-                        .build())
-                .build();
-        verify(cfoMock.getCloudFoundryClient().applicationsV3(), times(1)).update(updateRequest);
+        verify(applicationsV3Mock, times(1))
+                .create(any(CreateApplicationRequest.class));
+        verify(dcfoMock, times(1))
+                .getSpaceId();
     }
 
     @Test
@@ -190,22 +180,6 @@ public class ApplicationsOperationsTest {
                 .get(any(GetApplicationRequest.class));
         verify(cfoMock.getCloudFoundryClient().applicationsV3(), times(0))
                 .update(any(UpdateApplicationRequest.class));
-    }
-
-    @Test
-    public void testCreateApplicationsOnMissingDockerPasswordThrowsCreationException() {
-        //given
-        DefaultCloudFoundryOperations cfoMock = DefaultCloudFoundryOperationsMockBuilder.get().build();
-        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfoMock);
-
-        ApplicationBean applicationsBean = new ApplicationBean();
-        applicationsBean.setDockerImage("some/image");
-        applicationsBean.setDockerUsername("username");
-
-        // when
-        CreationException exception = assertThrows(CreationException.class,
-            () -> applicationsOperations.create("appName", applicationsBean, false));
-        assertThat(exception.getMessage(), containsString("Docker password is not set"));
     }
 
     @Test

@@ -20,29 +20,15 @@ public class ApplicationBean implements Bean {
      */
     public static final String PATH_KEY = "CF_CONTROL_PATH";
 
-    /**
-     * The key for the custom Docker Image annotation.
-     */
-
-    public static final String DOCKER_IMAGE_KEY = "CF_CONTROL_DOCKER_IMAGE";
-    /**
-     * The key for the custom Docker Username annotation.
-     */
-    public static final String DOCKER_USERNAME_KEY = "CF_DOCKER_USERNAME";
-
     private ApplicationManifestBean manifest;
     private String path;
     private String meta;
-    private String dockerImage;
-    private String dockerUsername;
 
     public ApplicationBean(ApplicationManifest manifest, Metadata meta) {
         this.path = manifest.getPath() == null ? null : manifest.getPath().toString();
         this.manifest = new ApplicationManifestBean(manifest);
         this.meta = meta.getAnnotations().get(METADATA_KEY);
         this.path = meta.getAnnotations().get(PATH_KEY);
-        this.dockerImage =  meta.getAnnotations().get(DOCKER_IMAGE_KEY);
-        this.dockerUsername =  meta.getAnnotations().get(DOCKER_USERNAME_KEY);
     }
 
     public ApplicationBean() {
@@ -71,22 +57,6 @@ public class ApplicationBean implements Bean {
 
     public void setMeta(String meta) {
         this.meta = meta;
-    }
-
-    public String getDockerImage() {
-        return dockerImage;
-    }
-
-    public void setDockerImage(String dockerImage) {
-        this.dockerImage = dockerImage;
-    }
-
-    public String getDockerUsername() {
-        return dockerUsername;
-    }
-
-    public void setDockerUsername(String dockerUsername) {
-        this.dockerUsername = dockerUsername;
     }
 
     @Override

@@ -44,11 +44,6 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
 
     private static final Log log = Log.getLog(ApplicationsOperations.class);
 
-    /**
-     * Name of the environment variable that hold the docker password.
-     */
-    private static final String DOCKER_PASSWORD_VAR_NAME = "CF_DOCKER_PASSWORD";
-
     public ApplicationsOperations(DefaultCloudFoundryOperations cloudFoundryOperations) {
         super(cloudFoundryOperations);
     }
@@ -182,45 +177,22 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
         }
 
         return ApplicationManifest.builder()
-            .name(appName)
-            .path(bean.getPath() == null ? null : Paths.get(bean.getPath()))
-            .buildpack(bean.getManifest().getBuildpack())
-            .command(bean.getManifest().getCommand())
-            .disk(bean.getManifest().getDisk())
-            .docker(Docker.builder()
-                .image(bean.getPath() == null && bean.getDockerImage() == null
-                    ? ""
-                    : bean.getDockerImage())
-                .username(bean.getDockerUsername())
-                .password(getDockerPassword(bean))
-                .build())
-            .healthCheckHttpEndpoint(bean.getManifest().getHealthCheckHttpEndpoint())
-            .healthCheckType(bean.getManifest().getHealthCheckType())
-            .instances(bean.getManifest().getInstances())
-            .memory(bean.getManifest().getMemory())
-            .noRoute(bean.getManifest().getNoRoute())
-            .randomRoute(bean.getManifest().getRandomRoute())
-            .routes(getAppRoutes(bean.getManifest().getRoutes()))
-            .stack(bean.getManifest().getStack())
-            .timeout(bean.getManifest().getTimeout())
-            .putAllEnvironmentVariables(Optional.ofNullable(bean.getManifest().getEnvironmentVariables())
-                .orElse(Collections.emptyMap()))
-            .services(bean.getManifest().getServices())
-            .build();
-    }
-
-    private String getDockerPassword(ApplicationBean bean) {
-        if (bean.getDockerImage() == null || bean.getDockerUsername() == null) {
-            return null;
-        }
-
-        // TODO: Maybe outsource retrieving env variables to a dedicated class in a future feature.
-        String password = System.getenv(DOCKER_PASSWORD_VAR_NAME);
-        if (password == null) {
-            throw new NullPointerException("Docker password is not set in environment variable: "
-                + DOCKER_PASSWORD_VAR_NAME);
-        }
-        return password;
+                .name(appName)
+                .path(bean.getPath() != null ? Paths.get(bean.getPath()) : Paths.get(""))
+                .buildpack(bean.getManifest().getBuildpack())
+                .command(bean.getManifest().getCommand())
+                .disk(bean.getManifest().getDisk())
+                .healthCheckHttpEndpoint(bean.getManifest().getHealthCheckHttpEndpoint())
+                .healthCheckType(bean.getManifest().getHealthCheckType())
+                .instances(bean.getManifest().getInstances())
+                .memory(bean.getManifest().getMemory())
+                .noRoute(bean.getManifest().getNoRoute())
+                .randomRoute(bean.getManifest().getRandomRoute())
+                .routes(getAppRoutes(bean.getManifest().getRoutes()))
+                .stack(bean.getManifest().getStack())
+                .timeout(bean.getManifest().getTimeout())
+                .services(bean.getManifest().getServices())
+                .build();
     }
 
     private List<Route> getAppRoutes(List<String> routes) {
