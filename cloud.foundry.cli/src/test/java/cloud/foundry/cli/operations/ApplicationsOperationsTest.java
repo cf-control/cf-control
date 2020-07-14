@@ -15,10 +15,8 @@ import cloud.foundry.cli.mocking.CloudFoundryClientMockBuilder;
 import cloud.foundry.cli.mocking.DefaultCloudFoundryOperationsMockBuilder;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
-import org.cloudfoundry.client.v2.domains.ListDomainsRequest;
 import org.cloudfoundry.client.v3.Metadata;
 import org.cloudfoundry.client.v3.applications.CreateApplicationRequest;
-import org.cloudfoundry.client.v3.applications.UpdateApplicationRequest;
 
 import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.client.v3.applications.ApplicationsV3;
@@ -27,7 +25,6 @@ import org.cloudfoundry.operations.applications.*;
 import org.cloudfoundry.operations.domains.Domain;
 import org.cloudfoundry.operations.domains.Domains;
 import org.cloudfoundry.operations.domains.Status;
-import org.cloudfoundry.operations.routes.ListRoutesRequest;
 import org.cloudfoundry.operations.routes.MapRouteRequest;
 import org.cloudfoundry.operations.routes.Routes;
 import org.cloudfoundry.operations.routes.UnmapRouteRequest;
@@ -35,7 +32,6 @@ import org.cloudfoundry.operations.services.BindServiceInstanceRequest;
 import org.cloudfoundry.operations.services.Services;
 import org.cloudfoundry.operations.services.UnbindServiceInstanceRequest;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -179,7 +175,8 @@ public class ApplicationsOperationsTest {
         applicationsBean.getManifest().setBuildpack(null);
 
         //when
-        assertThrows(CreationException.class, () -> applicationsOperations.create(appManifest.getName(), applicationsBean, false));
+        assertThrows(CreationException.class,
+                () -> applicationsOperations.create(appManifest.getName(), applicationsBean, false));
     }
 
     @Test
@@ -282,7 +279,10 @@ public class ApplicationsOperationsTest {
         // then
         assertThat(requestResult, is(notNullValue()));
 
-        RenameApplicationRequest renameRequest =  RenameApplicationRequest.builder().name(SOME_APPLICATION).newName("newName").build();
+        RenameApplicationRequest renameRequest =  RenameApplicationRequest.builder()
+                .name(SOME_APPLICATION)
+                .newName("newName")
+                .build();
         verify(cfoMock.applications(), times(1)).rename(renameRequest);
     }
 

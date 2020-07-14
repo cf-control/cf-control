@@ -27,7 +27,6 @@ import cloud.foundry.cli.logic.diff.change.object.CfNewObject;
 import cloud.foundry.cli.logic.diff.change.object.CfObjectValueChanged;
 import cloud.foundry.cli.logic.diff.change.object.CfRemovedObject;
 import cloud.foundry.cli.operations.ApplicationsOperations;
-import cloud.foundry.cli.operations.ServicesOperations;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import reactor.core.publisher.Flux;
@@ -227,9 +226,18 @@ class ApplicationRequestPlanerTest {
         LinkedList<CfChange> cfChanges = new LinkedList<>();
         ApplicationBean applicationBean = new ApplicationBean();
 
-        CfMapValueChanged mapValueAdded = new CfMapValueChanged("addedKey", "", "added", ChangeType.ADDED);
-        CfMapValueChanged mapValueRemoved = new CfMapValueChanged("removedKey", "", "removed", ChangeType.REMOVED);
-        CfMapValueChanged mapValueChanged = new CfMapValueChanged("changedKey", "before", "changed", ChangeType.CHANGED);
+        CfMapValueChanged mapValueAdded = new CfMapValueChanged("addedKey",
+                "",
+                "added",
+                ChangeType.ADDED);
+        CfMapValueChanged mapValueRemoved = new CfMapValueChanged("removedKey",
+                "",
+                "removed",
+                ChangeType.REMOVED);
+        CfMapValueChanged mapValueChanged = new CfMapValueChanged("changedKey",
+                "before",
+                "changed",
+                ChangeType.CHANGED);
 
         CfMapChange envVarsChange = new CfMapChange(applicationBean,
                 "environmentVariables",
@@ -279,8 +287,10 @@ class ApplicationRequestPlanerTest {
         LinkedList<CfChange> cfChanges = new LinkedList<>();
         ApplicationBean applicationBean = new ApplicationBean();
 
-        CfContainerValueChanged containerValueAdded = new CfContainerValueChanged("serviceAdded", ChangeType.ADDED);
-        CfContainerValueChanged containerValueRemoved = new CfContainerValueChanged("serviceRemoved", ChangeType.REMOVED);
+        CfContainerValueChanged containerValueAdded = new CfContainerValueChanged("serviceAdded",
+                ChangeType.ADDED);
+        CfContainerValueChanged containerValueRemoved = new CfContainerValueChanged("serviceRemoved",
+                ChangeType.REMOVED);
 
         CfContainerChange servicesChanges = new CfContainerChange(applicationBean,
                 "services",
@@ -378,9 +388,18 @@ class ApplicationRequestPlanerTest {
 
         cfChanges.add(healthCheckTypeChange);
 
-        CfMapValueChanged mapValueAdded = new CfMapValueChanged("addedKey", "", "added", ChangeType.ADDED);
-        CfMapValueChanged mapValueRemoved = new CfMapValueChanged("removedKey", "", "removed", ChangeType.REMOVED);
-        CfMapValueChanged mapValueChanged = new CfMapValueChanged("changedKey", "before", "changed", ChangeType.CHANGED);
+        CfMapValueChanged mapValueAdded = new CfMapValueChanged("addedKey",
+                "",
+                "added",
+                ChangeType.ADDED);
+        CfMapValueChanged mapValueRemoved = new CfMapValueChanged("removedKey",
+                "",
+                "removed",
+                ChangeType.REMOVED);
+        CfMapValueChanged mapValueChanged = new CfMapValueChanged("changedKey",
+                "before",
+                "changed",
+                ChangeType.CHANGED);
 
         CfMapChange envVarsChange = new CfMapChange(applicationBean,
                 "environmentVariables",

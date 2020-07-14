@@ -200,7 +200,8 @@ public class ApplyLogicTest {
 
         // then
         verify(getLogicMock, times(1)).getApplications(applicationsOperationsMock);
-        verify(applicationsOperationsMock, times(1)).create(eq("otherApplication"), any(ApplicationBean.class), anyBoolean());
+        verify(applicationsOperationsMock, times(1))
+                .create(eq("otherApplication"), any(ApplicationBean.class), anyBoolean());
     }
 
 

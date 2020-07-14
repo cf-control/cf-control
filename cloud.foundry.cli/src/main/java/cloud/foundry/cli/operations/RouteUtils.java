@@ -70,7 +70,8 @@ final class RouteUtils {
         }
 
         List<DomainSummary> sortedDomains = availableDomains.stream()
-                .sorted(Comparator.<DomainSummary>comparingInt(domainSummary -> domainSummary.getName().length()).reversed())
+                .sorted(Comparator.<DomainSummary>comparingInt(
+                        domainSummary -> domainSummary.getName().length()).reversed())
                 .collect(Collectors.toList());
 
         if (route.contains("/")) {
@@ -93,11 +94,13 @@ final class RouteUtils {
         }
 
         if (domain == null) {
-            throw new IllegalArgumentException(String.format("The route %s did not match any existing domains", route));
+            throw new IllegalArgumentException(
+                    String.format("The route %s did not match any existing domains", route));
         }
 
         if ((host != null || path != null) && port != null) {
-            throw new IllegalArgumentException(String.format("The route %s is invalid: Host/path cannot be set with port", route));
+            throw new IllegalArgumentException(
+                    String.format("The route %s is invalid: Host/path cannot be set with port", route));
         }
 
         return Mono.just(DecomposedRoute.builder()
@@ -124,7 +127,8 @@ final class RouteUtils {
     }
 
     private static boolean isDomainMatch(String route, String domain) {
-        return route.equals(domain) || route.endsWith(domain) && route.charAt(route.length() - domain.length() - 1) == '.';
+        return route.equals(domain) || route.endsWith(domain)
+                && route.charAt(route.length() - domain.length() - 1) == '.';
     }
 
 }

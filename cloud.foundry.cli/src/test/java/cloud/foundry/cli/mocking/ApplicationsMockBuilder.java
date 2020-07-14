@@ -88,13 +88,21 @@ public class ApplicationsMockBuilder {
                 .thenAnswer(invocation -> {
                     GetApplicationRequest request = invocation.getArgument(0);
 
-                    if (this.apps.values().stream().anyMatch(appManifest -> appManifest.getName().equals(request.getName()))) {
-                        Map.Entry<String, ApplicationManifest> appEntry = this.apps.entrySet().stream().filter(entry -> entry.getValue().getName().equals(request.getName())).findFirst().get();
+                    if (appExists(request.getName())) {
+                        Map.Entry<String, ApplicationManifest> appEntry = this.apps.entrySet()
+                                .stream()
+                                .filter(entry -> entry.getValue().getName().equals(request.getName()))
+                                .findFirst()
+                                .get();
                         return Mono.just(toApplicationDetail(appEntry.getKey(), appEntry.getValue()));
                     }
 
                     return Mono.empty();
                 });
+    }
+
+    private boolean appExists(String name) {
+        return this.apps.values().stream().anyMatch(appManifest -> appManifest.getName().equals(name));
     }
 
     private void mockDelete(Applications applicationsMock) {

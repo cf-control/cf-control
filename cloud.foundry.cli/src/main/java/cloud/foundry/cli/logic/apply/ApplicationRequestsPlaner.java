@@ -1,11 +1,12 @@
 package cloud.foundry.cli.logic.apply;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import cloud.foundry.cli.crosscutting.exceptions.ApplyException;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationManifestBean;
 import cloud.foundry.cli.crosscutting.mapping.validation.Field;
-import cloud.foundry.cli.crosscutting.mapping.validation.ListField;
 import cloud.foundry.cli.crosscutting.mapping.validation.ObjectPropertyValidation;
 import cloud.foundry.cli.crosscutting.mapping.validation.ScalarField;
 import cloud.foundry.cli.logic.diff.change.CfChange;
@@ -17,7 +18,6 @@ import cloud.foundry.cli.logic.diff.change.map.CfMapValueChanged;
 import cloud.foundry.cli.logic.diff.change.object.CfNewObject;
 import cloud.foundry.cli.logic.diff.change.object.CfRemovedObject;
 import cloud.foundry.cli.operations.ApplicationsOperations;
-import cloud.foundry.cli.operations.ServicesOperations;
 import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
 import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
@@ -26,10 +26,6 @@ import reactor.core.publisher.Mono;
 import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
 
 /**
  * This class is responsible to build the requests in the context of
@@ -46,8 +42,13 @@ public class ApplicationRequestsPlaner {
         put("buildpack", new ScalarField(ApplicationManifestBean.class, "buildpack", String.class));
         put("command", new ScalarField(ApplicationManifestBean.class, "command", String.class));
         put("stack", new ScalarField(ApplicationManifestBean.class, "stack", String.class));
-        put("healthCheckType", new ScalarField(ApplicationManifestBean.class, "healthCheckType", ApplicationHealthCheck.class));
-        put("healthCheckHttpEndpoint", new ScalarField(ApplicationManifestBean.class, "healthCheckHttpEndpoint", String.class));
+        put("healthCheckType", new ScalarField(ApplicationManifestBean.class,
+                "healthCheckType",
+                ApplicationHealthCheck.class));
+        put("healthCheckHttpEndpoint",
+                new ScalarField(ApplicationManifestBean.class,
+                "healthCheckHttpEndpoint",
+                        String.class));
         put("memory", new ScalarField(ApplicationManifestBean.class, "memory", Integer.class));
         put("disk", new ScalarField(ApplicationManifestBean.class, "disk", Integer.class));
     }};
@@ -93,7 +94,7 @@ public class ApplicationRequestsPlaner {
     private Flux<Void> doCreateApplyRequests(List<CfChange> changes) {
         List<Publisher<Void>> requests = new LinkedList<>();
 
-        if(hasNewObject(changes)) {
+        if (hasNewObject(changes)) {
             log.debug("Add create app request for app: " + applicationName);
 
             ApplicationBean bean = (ApplicationBean) getChange(changes, change -> change instanceof CfNewObject)
@@ -101,14 +102,14 @@ public class ApplicationRequestsPlaner {
                     .getAffectedObject();
 
             return Flux.merge(this.appOperations.create(applicationName, bean, false));
-        } else if(hasRemovedObject(changes)) {
+        } else if (hasRemovedObject(changes)) {
             log.debug("Add remove app request for app: " + applicationName);
 
             return Flux.merge(this.appOperations.remove(applicationName));
-        } else if(hasFieldsThatRequireRestart(changes)) {
+        } else if (hasFieldsThatRequireRestart(changes)) {
             log.debug("Add redeploying update request for app: " + applicationName);
 
-            for(CfChange change : changes) {
+            for (CfChange change : changes) {
                 logChange(change);
             }
 
@@ -142,12 +143,12 @@ public class ApplicationRequestsPlaner {
                 change -> change.getPropertyName().equals("services"));
         List<Mono<Void>> requests = new LinkedList<>();
 
-        if(optionalServicesChange.isPresent()) {
+        if (optionalServicesChange.isPresent()) {
 
             CfContainerChange servicesChange = (CfContainerChange) optionalServicesChange.get();
             logChange(servicesChange);
 
-            for(CfContainerValueChanged valueChanged : servicesChange.getValueChangesBy(ChangeType.ADDED)) {
+            for (CfContainerValueChanged valueChanged : servicesChange.getValueChangesBy(ChangeType.ADDED)) {
                 log.debug("Adding request to bind service",
                         valueChanged.getValue(),
                         "to application",
@@ -155,7 +156,7 @@ public class ApplicationRequestsPlaner {
                 requests.add(this.appOperations.bindToService(applicationName, valueChanged.getValue()));
             }
 
-            for(CfContainerValueChanged valueChanged : servicesChange.getValueChangesBy(ChangeType.REMOVED)) {
+            for (CfContainerValueChanged valueChanged : servicesChange.getValueChangesBy(ChangeType.REMOVED)) {
                 log.debug("Adding request to unbind service",
                         valueChanged.getValue(),
                         "from application",
@@ -171,13 +172,13 @@ public class ApplicationRequestsPlaner {
         Optional<CfChange> optionalEnvVarsChange = getChange(changes,
                 change -> change.getPropertyName().equals("environmentVariables"));
 
-        if(optionalEnvVarsChange.isPresent()) {
+        if (optionalEnvVarsChange.isPresent()) {
             List<Mono<Void>> requests = new LinkedList<>();
             CfMapChange enVarsChange = (CfMapChange) optionalEnvVarsChange.get();
             logChange(enVarsChange);
 
-            for(CfMapValueChanged valueChanged : enVarsChange.getChangedValues()) {
-                if(valueChanged.getChangeType() == ChangeType.ADDED) {
+            for (CfMapValueChanged valueChanged : enVarsChange.getChangedValues()) {
+                if (valueChanged.getChangeType() == ChangeType.ADDED) {
                     log.debug("Adding request to add environment variable",
                             valueChanged.getKey(),
                             "with value",
@@ -187,7 +188,7 @@ public class ApplicationRequestsPlaner {
                     requests.add(this.appOperations.addEnvironmentVariable(applicationName,
                             valueChanged.getKey(),
                             valueChanged.getValueAfter()));
-                } else if(valueChanged.getChangeType() == ChangeType.CHANGED) {
+                } else if (valueChanged.getChangeType() == ChangeType.CHANGED) {
                     log.debug("Adding request to change environment variable",
                             valueChanged.getKey(),
                             "from value",
@@ -218,11 +219,11 @@ public class ApplicationRequestsPlaner {
                 change -> change.getPropertyName().equals("routes"));
         List<Mono<Void>> requests = new LinkedList<>();
 
-        if(optionalRoutesChange.isPresent()) {
+        if (optionalRoutesChange.isPresent()) {
             CfContainerChange routesChanges = (CfContainerChange) optionalRoutesChange.get();
             logChange(routesChanges);
 
-            for(CfContainerValueChanged valueChanged : routesChanges.getValueChangesBy(ChangeType.ADDED)) {
+            for (CfContainerValueChanged valueChanged : routesChanges.getValueChangesBy(ChangeType.ADDED)) {
                 log.debug("Adding request to add route",
                         valueChanged.getValue(),
                         "to application",
@@ -230,7 +231,7 @@ public class ApplicationRequestsPlaner {
                 requests.add(this.appOperations.addRoute(applicationName, valueChanged.getValue()));
             }
 
-            for(CfContainerValueChanged valueChanged : routesChanges.getValueChangesBy(ChangeType.REMOVED)) {
+            for (CfContainerValueChanged valueChanged : routesChanges.getValueChangesBy(ChangeType.REMOVED)) {
                 log.debug("Adding request to remove route",
                         valueChanged.getValue(),
                         "from application",
@@ -247,7 +248,7 @@ public class ApplicationRequestsPlaner {
         Optional<CfChange> instancesChange = getChange(changes,
                 change -> change.getPropertyName().equals("instances"));
 
-        if(instancesChange.isPresent()){
+        if (instancesChange.isPresent()) {
             logChange(instancesChange.get());
 
             ApplicationBean bean = (ApplicationBean) instancesChange.get().getAffectedObject();

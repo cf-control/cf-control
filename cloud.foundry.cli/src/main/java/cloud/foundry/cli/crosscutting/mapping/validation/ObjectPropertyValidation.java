@@ -41,7 +41,8 @@ public class ObjectPropertyValidation {
         assert genericTypes[1].equals(mapField.valueType);
     }
 
-    public static void checkPropertiesExist(Collection<cloud.foundry.cli.crosscutting.mapping.validation.Field> fields) {
+    public static void checkPropertiesExist(
+            Collection<cloud.foundry.cli.crosscutting.mapping.validation.Field> fields) {
         for (cloud.foundry.cli.crosscutting.mapping.validation.Field field : fields) {
             if (field instanceof MapField) {
                 ObjectPropertyValidation.checkMapExists((MapField)field);

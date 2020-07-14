@@ -101,7 +101,8 @@ public class ObjectPropertyValidationTest {
         ListField listField = new ListField(DummyClass.class, "listField", String.class);
         MapField mapField = new MapField(DummyClass.class, "missingField", String.class, String.class);
 
-        assertThrows(AssertionError.class, () -> ObjectPropertyValidation.checkPropertiesExist(Arrays.asList(scalarField, listField, mapField)));
+        assertThrows(AssertionError.class,
+                () -> ObjectPropertyValidation.checkPropertiesExist(Arrays.asList(scalarField, listField, mapField)));
     }
 
     @Test
@@ -110,7 +111,8 @@ public class ObjectPropertyValidationTest {
         ListField listField = new ListField(DummyClass.class, "missingField", String.class);
         MapField mapField = new MapField(DummyClass.class, "mapField", String.class, String.class);
 
-        assertThrows(AssertionError.class, () -> ObjectPropertyValidation.checkPropertiesExist(Arrays.asList(scalarField, listField, mapField)));
+        assertThrows(AssertionError.class,
+                () -> ObjectPropertyValidation.checkPropertiesExist(Arrays.asList(scalarField, listField, mapField)));
     }
 
     @Test
@@ -119,7 +121,8 @@ public class ObjectPropertyValidationTest {
         ListField listField = new ListField(DummyClass.class, "listField", String.class);
         MapField mapField = new MapField(DummyClass.class, "mapField", String.class, String.class);
 
-        assertThrows(AssertionError.class, () -> ObjectPropertyValidation.checkPropertiesExist(Arrays.asList(scalarField, listField, mapField)));
+        assertThrows(AssertionError.class,
+                () -> ObjectPropertyValidation.checkPropertiesExist(Arrays.asList(scalarField, listField, mapField)));
     }
 
 }

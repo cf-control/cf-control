@@ -27,8 +27,6 @@ import reactor.core.publisher.Mono;
 
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -195,9 +193,11 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
             && throwable.getMessage().contains("could not be found");
     }
 
-    private CreateApplicationRequest buildCreateApplicationRequest(String spaceId, String appName, ApplicationBean bean) {
+    private CreateApplicationRequest buildCreateApplicationRequest(String spaceId,
+                                                                   String appName,
+                                                                   ApplicationBean bean) {
         Map<String,? extends String> envVars = Collections.emptyMap();
-        if(bean.getManifest() != null && bean.getManifest().getEnvironmentVariables() != null) {
+        if (bean.getManifest() != null && bean.getManifest().getEnvironmentVariables() != null) {
             envVars = bean.getManifest().getEnvironmentVariables().entrySet()
                     .stream()
                     .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().toString()));
@@ -208,8 +208,11 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                 .build();
 
         Lifecycle lifecycle = null;
-        if(bean.getPath() != null || bean.getManifest() != null) {
-            lifecycle = Lifecycle.builder().type(LifecycleType.BUILDPACK).data(BuildpackData.builder().buildpacks(bean.getManifest().getBuildpack()).build()).build();
+        if (bean.getPath() != null || bean.getManifest() != null) {
+            lifecycle = Lifecycle.builder()
+                    .type(LifecycleType.BUILDPACK)
+                    .data(BuildpackData.builder().buildpacks(bean.getManifest().getBuildpack()).build())
+                    .build();
         }
 
         return CreateApplicationRequest.builder()
@@ -371,9 +374,14 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                 .build();
 
         return cloudFoundryOperations.applications().unsetEnvironmentVariable(removeEnvVarRequest)
-                .doOnSubscribe(aVoid -> log.debug("Removing environment variable", variableName, "for app:", applicationName))
-                .doOnSuccess(aVoid -> log.info("Environment variable", variableName,
-                            "was removed from the app", applicationName));
+                .doOnSubscribe(aVoid -> log.debug("Removing environment variable",
+                        variableName,
+                        "for app:",
+                        applicationName))
+                .doOnSuccess(aVoid -> log.info("Environment variable",
+                        variableName,
+                            "was removed from the app",
+                        applicationName));
     }
 
     /**
