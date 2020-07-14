@@ -15,6 +15,7 @@ import org.apache.hc.core5.http.HttpStatus;
 import javax.annotation.Nonnull;
 import java.io.*;
 import java.net.URI;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -133,6 +134,8 @@ public class FileUtils {
      * @param potentiallyRelativePath a path that might be absolute
      * @param parentDirectoryPath directory from which to resolve the file path
      * @return absolute path
+     * @throws NullPointerException if one of the arguments is null
+     * @throws InvalidPathException if any of the arguments is not a path
      */
     public static String calculateAbsolutePath(
             @Nonnull final String potentiallyRelativePath,

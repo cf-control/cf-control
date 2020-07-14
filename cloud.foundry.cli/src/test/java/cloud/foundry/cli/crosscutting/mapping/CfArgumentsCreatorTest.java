@@ -22,7 +22,7 @@ public class CfArgumentsCreatorTest {
         String[] result = CfArgumentsCreator.determineCommandLine(
             cli,
             new String[] { "get" },
-            null);
+                CommandLine.ParseResult.builder(CommandLine.Model.CommandSpec.create()).build());
 
         // then
         assertThat(result,
@@ -39,11 +39,12 @@ public class CfArgumentsCreatorTest {
         String[] result = CfArgumentsCreator.determineCommandLine(
             cli,
             new String[] { "get", "-s", "development", "-a", "api.run.pivotal.io" },
-            null);
+            CommandLine.ParseResult.builder(CommandLine.Model.CommandSpec.create()).build());
 
         // then
         assertThat(result,
             arrayContaining("get", "-s", "development", "-a", "api.run.pivotal.io", "-o", "cloud.foundry.cli"));
+
     }
 
     @Test
@@ -56,7 +57,7 @@ public class CfArgumentsCreatorTest {
         String[] result = CfArgumentsCreator.determineCommandLine(
             cli,
             new String[] { "get", "-s", "development", "-a", "api.run.pivotal.io", "-o", "cloud.foundry.cli" },
-            null);
+            CommandLine.ParseResult.builder(CommandLine.Model.CommandSpec.create()).build());
 
         // then
         assertThat(result,
@@ -73,12 +74,12 @@ public class CfArgumentsCreatorTest {
         // when
         String[] result = CfArgumentsCreator.determineCommandLine(
             cli,
-            new String[] { "diff", "all", "-y", configFilePath },
-            null);
+            new String[] { "diff",  "-y", configFilePath },
+            CommandLine.ParseResult.builder(CommandLine.Model.CommandSpec.create()).build());
 
         // then
         assertThat(result,
-            arrayContaining("diff", "all", "-y", configFilePath, "-a", "api.run.pivotal.io", 
+            arrayContaining("diff",  "-y", configFilePath, "-a", "api.run.pivotal.io", 
                             "-o", "cloud.foundry.cli", "-s", "development"));
     }
 
@@ -92,12 +93,12 @@ public class CfArgumentsCreatorTest {
         // when
         String[] result = CfArgumentsCreator.determineCommandLine(
             cli,
-            new String[] { "diff", "all", "-y", configFilePath, "-a", "api.run.pivotal.io", "-o","cloud.foundry.cli"},
-            null);
+            new String[] { "diff",  "-y", configFilePath, "-a", "api.run.pivotal.io", "-o","cloud.foundry.cli"},
+            CommandLine.ParseResult.builder(CommandLine.Model.CommandSpec.create()).build());
 
         // then
         assertThat(result, 
-            arrayContaining("diff", "all", "-y", configFilePath, "-a",
+            arrayContaining("diff",  "-y", configFilePath, "-a",
                             "api.run.pivotal.io", "-o","cloud.foundry.cli", "-s", "development"));
     }
 
@@ -107,15 +108,17 @@ public class CfArgumentsCreatorTest {
         BaseController controller = new BaseController();
         CommandLine cli = new CommandLine(controller);
         String configFilePath = "./src/test/resources/basic/configBean.yml";
-
-        String[] args = { "diff", "all", "-y", configFilePath, "-a", "api.run.pivotal.io",
-            "-o", "cloud.foundry.cli", "-s", "development" };
+        String[] args = {"diff", "-y", configFilePath, "-a", "api.run.pivotal.io",
+                "-o", "cloud.foundry.cli", "-s", "development"};
 
         // when
-        String[] result = CfArgumentsCreator.determineCommandLine(cli, args, null);
+        String[] result = CfArgumentsCreator.determineCommandLine(cli,
+            args,
+            CommandLine.ParseResult.builder(CommandLine.Model.CommandSpec.create()).build());
 
         // then
         assertThat(result, arrayContaining(args));
     }
 
 }
+

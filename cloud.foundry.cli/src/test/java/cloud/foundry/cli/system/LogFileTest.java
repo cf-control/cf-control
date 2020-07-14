@@ -2,7 +2,6 @@ package cloud.foundry.cli.system;
 
 import cloud.foundry.cli.system.util.ArgumentsBuilder;
 import cloud.foundry.cli.system.util.RunResult;
-import cloud.foundry.cli.system.SystemTestBase;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.xml.sax.InputSource;
@@ -15,8 +14,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Integration test for --log-file feature.
@@ -29,8 +26,6 @@ public class LogFileTest extends SystemTestBase {
 
     @Test
     public void testBaseController() throws ParserConfigurationException, IOException, SAXException {
-        final List<String> args = new ArrayList<>();
-
         // we expect the application to write to this log file
         final File logFile = Paths.get(tempDir.toString(), "test.log").toFile();
 
@@ -42,7 +37,6 @@ public class LogFileTest extends SystemTestBase {
 
                 // first random command; doesn't really matter, it won't work anyway
                 .addArgument("get")
-                .addArgument("space-developers")
 
                 // need to provide *all* required CLI options, otherwise the tool will error out even _before_ the log
                 // file parameter could be evaluated
