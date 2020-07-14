@@ -208,6 +208,8 @@ class ApplicationRequestPlanerTest {
         verify(appOperations, times(0)).removeEnvironmentVariable(anyString(), anyString());
         verify(appOperations, times(0)).bindToService(anyString(), anyString());
         verify(appOperations, times(0)).unbindFromService(anyString(), anyString());
+        verify(appOperations, times(0)).addRoute(anyString(), anyString());
+        verify(appOperations, times(0)).removeRoute(anyString(), anyString());
 
     }
 
@@ -262,6 +264,8 @@ class ApplicationRequestPlanerTest {
         verify(appOperations, times(1)).removeEnvironmentVariable("testApp", "removedKey");
         verify(appOperations, times(0)).bindToService(anyString(), anyString());
         verify(appOperations, times(0)).unbindFromService(anyString(), anyString());
+        verify(appOperations, times(0)).addRoute(anyString(), anyString());
+        verify(appOperations, times(0)).removeRoute(anyString(), anyString());
         StepVerifier.create(requests)
                 .expectNext(voidMockAdded)
                 .expectNext(voidMockRemoved)
@@ -314,6 +318,60 @@ class ApplicationRequestPlanerTest {
         verify(appOperations, times(0)).removeEnvironmentVariable(anyString(), anyString());
         verify(appOperations, times(1)).bindToService("testApp", "serviceAdded");
         verify(appOperations, times(1)).unbindFromService("testApp", "serviceRemoved");
+        verify(appOperations, times(0)).addRoute(anyString(), anyString());
+        verify(appOperations, times(0)).removeRoute(anyString(), anyString());
+        StepVerifier.create(requests)
+                .expectNext(voidMockAdded)
+                .expectNext(voidMockRemoved)
+                .expectComplete()
+                .verify();
+    }
+
+    @Test
+    void applyTest_OnlyRoutes() {
+        // given
+        ApplicationsOperations appOperations = Mockito.mock(ApplicationsOperations.class);
+
+        Void voidMockAdded = mock(Void.class);
+        when(appOperations.addRoute(anyString(), anyString()))
+                .thenReturn(Mono.just(voidMockAdded));
+        Void voidMockRemoved = mock(Void.class);
+        when(appOperations.removeRoute(anyString(), anyString()))
+                .thenReturn(Mono.just(voidMockRemoved));
+
+        String appName = "testApp";
+        LinkedList<CfChange> cfChanges = new LinkedList<>();
+        ApplicationBean applicationBean = new ApplicationBean();
+
+        CfContainerValueChanged containerValueAdded = new CfContainerValueChanged("routeAdded",
+                ChangeType.ADDED);
+        CfContainerValueChanged containerValueRemoved = new CfContainerValueChanged("routeRemoved",
+                ChangeType.REMOVED);
+
+        CfContainerChange servicesChanges = new CfContainerChange(applicationBean,
+                "routes",
+                Arrays.asList("path"),
+                Arrays.asList(containerValueAdded, containerValueRemoved));
+
+        cfChanges.add(servicesChanges);
+
+        ApplicationRequestsPlaner requestsPlaner = new ApplicationRequestsPlaner(appOperations);
+
+        // when
+        Flux<Void> requests = requestsPlaner.createApplyRequests(appName, cfChanges);
+
+        // then
+        assertThat(requests, notNullValue());
+        verify(appOperations, times(0)).create(anyString(), any(), anyBoolean());
+        verify(appOperations, times(0)).update(anyString(), any(), anyBoolean());
+        verify(appOperations, times(0)).remove(anyString());
+        verify(appOperations, times(0)).scale(anyString(), anyInt(), anyInt(), anyInt());
+        verify(appOperations, times(0)).addEnvironmentVariable(anyString(), anyString(), anyString());
+        verify(appOperations, times(0)).removeEnvironmentVariable(anyString(), anyString());
+        verify(appOperations, times(0)).bindToService(anyString(), anyString());
+        verify(appOperations, times(0)).unbindFromService(anyString(), anyString());
+        verify(appOperations, times(1)).addRoute("testApp", "routeAdded");
+        verify(appOperations, times(1)).removeRoute("testApp", "routeRemoved");
         StepVerifier.create(requests)
                 .expectNext(voidMockAdded)
                 .expectNext(voidMockRemoved)
@@ -356,6 +414,8 @@ class ApplicationRequestPlanerTest {
         verify(appOperations, times(0)).addEnvironmentVariable(anyString(), anyString(), anyString());
         verify(appOperations, times(0)).bindToService(anyString(), anyString());
         verify(appOperations, times(0)).unbindFromService(anyString(), anyString());
+        verify(appOperations, times(0)).addRoute(anyString(), anyString());
+        verify(appOperations, times(0)).removeRoute(anyString(), anyString());
         StepVerifier.create(requests)
                 .expectNext(voidMock)
                 .expectComplete()
@@ -424,6 +484,8 @@ class ApplicationRequestPlanerTest {
         verify(appOperations, times(0)).removeEnvironmentVariable("testApp", "removedKey");
         verify(appOperations, times(0)).bindToService(anyString(), anyString());
         verify(appOperations, times(0)).unbindFromService(anyString(), anyString());
+        verify(appOperations, times(0)).addRoute(anyString(), anyString());
+        verify(appOperations, times(0)).removeRoute(anyString(), anyString());
     }
 
     @Test
@@ -451,6 +513,8 @@ class ApplicationRequestPlanerTest {
         verify(appOperations, times(0)).addEnvironmentVariable(anyString(), anyString(), anyString());
         verify(appOperations, times(0)).bindToService(anyString(), anyString());
         verify(appOperations, times(0)).unbindFromService(anyString(), anyString());
+        verify(appOperations, times(0)).addRoute(anyString(), anyString());
+        verify(appOperations, times(0)).removeRoute(anyString(), anyString());
         assertThat(requests.count().block(), is(0L));
     }
 
