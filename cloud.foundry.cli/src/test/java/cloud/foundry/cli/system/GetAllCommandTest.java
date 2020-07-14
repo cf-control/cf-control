@@ -105,10 +105,8 @@ public class GetAllCommandTest extends SystemTestBase {
             ApplicationBean application = new ApplicationBean();
 
             ApplicationManifestBean manifest = new ApplicationManifestBean();
-            // just some random web service
-            manifest.setDockerImage("kennethreitz/httpbin");
-
             application.setManifest(manifest);
+            manifest.setBuildpack("https://github.com/cloudfoundry/java-buildpack.git");
 
             // note: the application name must be unique, it'll be used as domain
             String appName = spaceManager.requestCreationOfApplication(application);
@@ -131,9 +129,9 @@ public class GetAllCommandTest extends SystemTestBase {
             assert spec.getApps().size() == 1;
             ApplicationBean parsedApplication = spec.getApps().get(appName);
             assert parsedApplication.getPath() == null;
-            ApplicationManifestBean parsedManifest = parsedApplication.getManifest();
-            assert parsedManifest.getDockerImage().equals(manifest.getDockerImage());
 
+            String buildpack = parsedApplication.getManifest().getBuildpack();
+            assert buildpack.equals("https://github.com/cloudfoundry/java-buildpack.git");
             // there's no log messages >= INFO we could test against, only from setup/teardown, so we just check
             // there's *some* contents
             String errContent = runResult.getStreamContents().getStderrContent();
