@@ -1,5 +1,6 @@
 package cloud.foundry.cli.operations;
 
+import static cloud.foundry.cli.operations.RouteUtils.decomposeRoute;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -7,28 +8,27 @@ import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationManifestBean;
-import org.cloudfoundry.client.v3.Metadata;
-import org.cloudfoundry.client.v3.applications.UpdateApplicationRequest;
-import org.cloudfoundry.client.v3.applications.UpdateApplicationResponse;
+import org.cloudfoundry.client.v3.*;
+import org.cloudfoundry.client.v3.applications.*;
 
 import org.cloudfoundry.client.v3.applications.GetApplicationRequest;
-import org.cloudfoundry.client.v3.applications.GetApplicationResponse;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
-import org.cloudfoundry.operations.applications.*;
 
-import org.cloudfoundry.operations.routes.MapRouteRequest;
-import org.cloudfoundry.operations.routes.UnmapRouteRequest;
+import org.cloudfoundry.operations.applications.*;
+import org.cloudfoundry.operations.applications.DeleteApplicationRequest;
+import org.cloudfoundry.operations.applications.Route;
+import org.cloudfoundry.operations.applications.ScaleApplicationRequest;
+import org.cloudfoundry.operations.domains.Domain;
+import org.cloudfoundry.operations.routes.*;
 import org.cloudfoundry.operations.services.BindServiceInstanceRequest;
 import org.cloudfoundry.operations.services.UnbindServiceInstanceRequest;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -115,6 +115,31 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
      * Prepares a request for pushing an app to the cloud foundry instance specified
      * within the cloud foundry operations instance. The resulting mono is
      * preconfigured such that it will perform logging.
+     * Essentially this method is equivalent to the create method.
+     *
+     * @param appName     name of the application
+     * @param bean        application bean that holds the configuration settings to
+     *                    deploy the app to the cloud foundry instance
+     *  @param shouldStart if the app should start after being created
+     * @throws NullPointerException     when bean or app name is null or docker
+     *                                  password was not set in environment
+     *                                  variables when creating app via dockerImage
+     *                                  and docker credentials
+     * @throws IllegalArgumentException when app name empty
+     * @throws CreationException        when any fatal error occurs during creation
+     *                                  of the app
+     * @return mono which can be subscribed on to trigger the creation of the app
+     */
+    public Mono<Void> update(String appName, ApplicationBean bean, boolean shouldStart) {
+        return this.remove(appName)
+                .then(this.create(appName, bean, shouldStart));
+    }
+
+
+    /**
+     * Prepares a request for pushing an app to the cloud foundry instance specified
+     * within the cloud foundry operations instance. The resulting mono is
+     * preconfigured such that it will perform logging.
      *
      * @param appName     name of the application
      * @param bean        application bean that holds the configuration settings to
@@ -127,8 +152,6 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
      * @throws IllegalArgumentException when app name empty
      * @throws CreationException        when any fatal error occurs during creation
      *                                  of the app
-     * @throws SecurityException        when there is no permission to access
-     *                                  environment variable CF_DOCKER_PASSWORD
      * @return mono which can be subscribed on to trigger the creation of the app
      */
     public Mono<Void> create(String appName, ApplicationBean bean, boolean shouldStart) {
@@ -145,6 +168,12 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
 
     private Mono<Void> doCreate(String appName, ApplicationBean bean, boolean shouldStart) {
         return this.cloudFoundryOperations
+                .getSpaceId()
+                .flatMap(spaceId -> this.cloudFoundryOperations
+                        .getCloudFoundryClient()
+                        .applicationsV3()
+                        .create(buildCreateApplicationRequest(spaceId, appName, bean)))
+                .then(this.cloudFoundryOperations
                 .applications()
                 .pushManifest(PushApplicationManifestRequest
                         .builder()
@@ -157,18 +186,42 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                     log.debug("Bean of the app:", bean);
                     log.debug("Should the app start:", shouldStart);
                 })
-                .doOnSuccess(aVoid -> log.info("App created:", appName))
-                .then(getApplicationDetail(appName)
-                        .flatMap(applicationDetail -> updateAppMeta(applicationDetail.getId(), bean)))
-                .doOnError(throwable -> log.warning(throwable, "test"))
-                .onErrorStop()
-                .then();
+                .doOnSuccess(aVoid -> log.info("App created:", appName)));
     }
 
     private boolean whenServiceNotFound(Throwable throwable) {
         return throwable instanceof IllegalArgumentException
             && throwable.getMessage().contains("Service instance")
             && throwable.getMessage().contains("could not be found");
+    }
+
+    private CreateApplicationRequest buildCreateApplicationRequest(String spaceId, String appName, ApplicationBean bean) {
+        Map<String,? extends String> envVars = Collections.emptyMap();
+        if(bean.getManifest() != null && bean.getManifest().getEnvironmentVariables() != null) {
+            envVars = bean.getManifest().getEnvironmentVariables().entrySet()
+                    .stream()
+                    .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().toString()));
+        }
+
+        ToOneRelationship spaceRelationship = ToOneRelationship.builder()
+                .data(Relationship.builder().id(spaceId).build())
+                .build();
+
+        Lifecycle lifecycle = null;
+        if(bean.getPath() != null || bean.getManifest() != null) {
+            lifecycle = Lifecycle.builder().type(LifecycleType.BUILDPACK).data(BuildpackData.builder().buildpacks(bean.getManifest().getBuildpack()).build()).build();
+        }
+
+        return CreateApplicationRequest.builder()
+                .environmentVariables(envVars)
+                .lifecycle(lifecycle)
+                .metadata(Metadata.builder()
+                        .annotation(ApplicationBean.METADATA_KEY, bean.getMeta())
+                        .annotation(ApplicationBean.PATH_KEY, bean.getPath())
+                        .build())
+                .name(appName)
+                .relationships(ApplicationRelationships.builder().space(spaceRelationship).build())
+                .build();
     }
 
     private ApplicationManifest buildApplicationManifest(String appName, ApplicationBean bean) {
@@ -202,29 +255,6 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                 .filter(Objects::nonNull)
                 .map(route -> Route.builder().route(route).build())
                 .collect(Collectors.toList());
-    }
-
-    private Mono<ApplicationDetail> getApplicationDetail(String appName) {
-        return this.cloudFoundryOperations
-                .applications()
-                .get(org.cloudfoundry.operations.applications.GetApplicationRequest.builder().name(appName).build())
-                .doOnSubscribe(subscription -> log.debug("Getting app detail for app: " + appName));
-    }
-
-    private Mono<UpdateApplicationResponse> updateAppMeta(String appId, ApplicationBean applicationBean) {
-        return this.cloudFoundryOperations
-                .getCloudFoundryClient()
-                .applicationsV3()
-                .update(UpdateApplicationRequest.builder()
-                        .applicationId(appId)
-                        .metadata(Metadata.builder()
-                                .annotation(ApplicationBean.METADATA_KEY, applicationBean.getMeta())
-                                .annotation(ApplicationBean.PATH_KEY, applicationBean.getPath())
-                                .annotation(ApplicationBean.DOCKER_IMAGE_KEY, applicationBean.getDockerImage())
-                                .annotation(ApplicationBean.DOCKER_USERNAME_KEY, applicationBean.getDockerUsername())
-                                .build())
-                        .build())
-                .doOnSubscribe(subscription -> log.debug("Update app meta for app: " + appId));
     }
 
     /**
@@ -279,7 +309,9 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                     log.debug("With new disk limit:", diskLimit);
                     log.debug("With new memory limit:", memoryLimit);
                     log.debug("With new number of instances:", instances); })
-                .doOnSuccess(aVoid -> log.info("Application", applicationName, "was scaled"));
+                .doOnSuccess(aVoid -> log.info("Application", applicationName, "was scaled"))
+                .onErrorStop()
+                .then();
     }
 
     /**
@@ -305,11 +337,18 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
 
         return cloudFoundryOperations.applications().setEnvironmentVariable(addEnvVarRequest)
                 .doOnSubscribe(aVoid -> {
-                    log.debug("Added environment variable for app:", applicationName);
-                    log.debug("With variable name:", variableName);
-                    log.debug("With variable value:", variableValue); })
-                .doOnSuccess(aVoid -> log.info("Environment variable", variableName, " with value",
-                        variableValue , "was added to the app", applicationName));
+                    log.debug("Adding environment variable",
+                            variableName,
+                            "with value",
+                            variableValue,
+                            "for app:",
+                            applicationName); })
+                .doOnSuccess(aVoid -> log.info("Environment variable",
+                        variableName,
+                        "with value",
+                        variableValue ,
+                        "was added to the app",
+                        applicationName));
     }
 
     /**
@@ -332,9 +371,7 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                 .build();
 
         return cloudFoundryOperations.applications().unsetEnvironmentVariable(removeEnvVarRequest)
-                .doOnSubscribe(aVoid -> {
-                    log.debug("Removed environment variable for app:", applicationName);
-                    log.debug("With variable name:", variableName); })
+                .doOnSubscribe(aVoid -> log.debug("Removing environment variable", variableName, "for app:", applicationName))
                 .doOnSuccess(aVoid -> log.info("Environment variable", variableName,
                             "was removed from the app", applicationName));
     }
@@ -422,25 +459,33 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
      * The resulting mono is preconfigured such that it will perform logging.
      *
      * @param applicationName the app to which the route should be added
-     * @param routeDomain the domain of the route to add to the app
+     * @param route the domain of the route to add to the app
      * @return mono which can be subscribed on to trigger the route addition, that delivers the port number of the route
      * @throws NullPointerException if any of the arguments is null
      */
-    public Mono<Integer> addRoute(String applicationName, String routeDomain) {
+    public Mono<Void> addRoute(String applicationName, String route) {
         checkNotNull(applicationName);
-        checkNotNull(routeDomain);
+        checkNotNull(route);
 
-        MapRouteRequest mapRouteRequest = MapRouteRequest.builder()
+        return this.cloudFoundryOperations
+                .domains()
+                .list()
+                .map(this::createDomainSummary)
+                .collectList()
+                .flatMap(domainSummaries -> decomposeRoute(domainSummaries, route, route))
+                .flatMap(decomposedRoute -> cloudFoundryOperations.routes().map(MapRouteRequest.builder()
                         .applicationName(applicationName)
-                        .domain(routeDomain)
-                        .build();
-
-        return cloudFoundryOperations.routes().map(mapRouteRequest)
-                .doOnSuccess(aVoid -> {
-                    log.debug("Add route:", routeDomain);
-                    log.debug("To app:", applicationName); })
-                .doOnSuccess(aVoid -> log.info("Added the route", routeDomain,
-                        "to the application", applicationName));
+                        .domain(decomposedRoute.getDomain())
+                        .host(decomposedRoute.getHost())
+                        .path(decomposedRoute.getPath())
+                        .build())
+                        .doOnSuccess(aVoid -> {
+                            log.debug("Add route:", route);
+                            log.debug("To app:", applicationName); })
+                        .doOnSuccess(aVoid -> log.info("Added the route", route,
+                                "to the application", applicationName)))
+                .onErrorStop()
+                .then();
     }
 
     /**
@@ -448,24 +493,40 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
      * The resulting mono is preconfigured such that it will perform logging.
      *
      * @param applicationName the app of which the route should be removed
-     * @param routeDomain the domain of the route to remove from the app
+     * @param route the domain of the route to remove from the app
      * @return mono which can be subscribed on to trigger the route removal
      * @throws NullPointerException if any of the arguments is null
      */
-    public Mono<Void> removeRoute(String applicationName, String routeDomain) {
+    public Mono<Void> removeRoute(String applicationName, String route) {
         checkNotNull(applicationName);
-        checkNotNull(routeDomain);
+        checkNotNull(route);
 
-        UnmapRouteRequest unmapRouteRequest = UnmapRouteRequest.builder()
-                .applicationName(applicationName)
-                .domain(routeDomain)
-                .build();
-
-        return cloudFoundryOperations.routes().unmap(unmapRouteRequest)
-                .doOnSuccess(aVoid -> {
-                    log.debug("Remove route:", routeDomain);
-                    log.debug("From app:", applicationName); })
-                .doOnSuccess(aVoid -> log.info("Removed the route", routeDomain,
-                        "from the application", applicationName));
+        return this.cloudFoundryOperations
+                .domains()
+                .list()
+                .map(this::createDomainSummary)
+                .collectList()
+                .flatMap(domainSummaries -> decomposeRoute(domainSummaries, route, route))
+                .flatMap(decomposedRoute -> cloudFoundryOperations.routes().unmap(UnmapRouteRequest.builder()
+                        .applicationName(applicationName)
+                        .domain(decomposedRoute.getDomain())
+                        .path(decomposedRoute.getPath())
+                        .host(decomposedRoute.getHost())
+                        .build())
+                        .doOnSuccess(aVoid -> {
+                            log.debug("Remove route:", route);
+                            log.debug("From app:", applicationName); })
+                        .doOnSuccess(aVoid -> log.info("Removed the route", route,
+                                "from the application", applicationName)));
     }
+
+    private DomainSummary createDomainSummary(Domain domain) {
+        return DomainSummary
+                .builder()
+                .id(domain.getId())
+                .name(domain.getName())
+                .type(domain.getType())
+                .build();
+    }
+
 }
