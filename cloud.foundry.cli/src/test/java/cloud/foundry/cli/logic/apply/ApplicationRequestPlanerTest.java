@@ -6,11 +6,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import cloud.foundry.cli.crosscutting.exceptions.ApplyException;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
@@ -204,13 +200,7 @@ class ApplicationRequestPlanerTest {
         // then
         assertThat(requests, notNullValue());
         verify(appOperations, times(1)).scale("testApp", null, null, 4);
-        verify(appOperations, times(0)).addEnvironmentVariable(anyString(), anyString(), anyString());
-        verify(appOperations, times(0)).removeEnvironmentVariable(anyString(), anyString());
-        verify(appOperations, times(0)).bindToService(anyString(), anyString());
-        verify(appOperations, times(0)).unbindFromService(anyString(), anyString());
-        verify(appOperations, times(0)).addRoute(anyString(), anyString());
-        verify(appOperations, times(0)).removeRoute(anyString(), anyString());
-
+        verifyNoMoreInteractions(appOperations);
     }
 
     @Test
@@ -255,17 +245,10 @@ class ApplicationRequestPlanerTest {
 
         // then
         assertThat(requests, notNullValue());
-        verify(appOperations, times(0)).create(anyString(), any(), anyBoolean());
-        verify(appOperations, times(0)).update(anyString(), any(), anyBoolean());
-        verify(appOperations, times(0)).remove(anyString());
-        verify(appOperations, times(0)).scale(anyString(), anyInt(), anyInt(), anyInt());
         verify(appOperations, times(1)).addEnvironmentVariable("testApp", "addedKey", "added");
         verify(appOperations, times(1)).addEnvironmentVariable("testApp", "changedKey", "changed");
         verify(appOperations, times(1)).removeEnvironmentVariable("testApp", "removedKey");
-        verify(appOperations, times(0)).bindToService(anyString(), anyString());
-        verify(appOperations, times(0)).unbindFromService(anyString(), anyString());
-        verify(appOperations, times(0)).addRoute(anyString(), anyString());
-        verify(appOperations, times(0)).removeRoute(anyString(), anyString());
+        verifyNoMoreInteractions(appOperations);
         StepVerifier.create(requests)
                 .expectNext(voidMockAdded)
                 .expectNext(voidMockRemoved)
@@ -310,16 +293,9 @@ class ApplicationRequestPlanerTest {
 
         // then
         assertThat(requests, notNullValue());
-        verify(appOperations, times(0)).create(anyString(), any(), anyBoolean());
-        verify(appOperations, times(0)).update(anyString(), any(), anyBoolean());
-        verify(appOperations, times(0)).remove(anyString());
-        verify(appOperations, times(0)).scale(anyString(), anyInt(), anyInt(), anyInt());
-        verify(appOperations, times(0)).addEnvironmentVariable(anyString(), anyString(), anyString());
-        verify(appOperations, times(0)).removeEnvironmentVariable(anyString(), anyString());
         verify(appOperations, times(1)).bindToService("testApp", "serviceAdded");
         verify(appOperations, times(1)).unbindFromService("testApp", "serviceRemoved");
-        verify(appOperations, times(0)).addRoute(anyString(), anyString());
-        verify(appOperations, times(0)).removeRoute(anyString(), anyString());
+        verifyNoMoreInteractions(appOperations);
         StepVerifier.create(requests)
                 .expectNext(voidMockAdded)
                 .expectNext(voidMockRemoved)
@@ -362,16 +338,9 @@ class ApplicationRequestPlanerTest {
 
         // then
         assertThat(requests, notNullValue());
-        verify(appOperations, times(0)).create(anyString(), any(), anyBoolean());
-        verify(appOperations, times(0)).update(anyString(), any(), anyBoolean());
-        verify(appOperations, times(0)).remove(anyString());
-        verify(appOperations, times(0)).scale(anyString(), anyInt(), anyInt(), anyInt());
-        verify(appOperations, times(0)).addEnvironmentVariable(anyString(), anyString(), anyString());
-        verify(appOperations, times(0)).removeEnvironmentVariable(anyString(), anyString());
-        verify(appOperations, times(0)).bindToService(anyString(), anyString());
-        verify(appOperations, times(0)).unbindFromService(anyString(), anyString());
         verify(appOperations, times(1)).addRoute("testApp", "routeAdded");
         verify(appOperations, times(1)).removeRoute("testApp", "routeRemoved");
+        verifyNoMoreInteractions(appOperations);
         StepVerifier.create(requests)
                 .expectNext(voidMockAdded)
                 .expectNext(voidMockRemoved)
@@ -407,15 +376,8 @@ class ApplicationRequestPlanerTest {
 
         // then
         assertThat(requests, notNullValue());
-        verify(appOperations, times(0)).create(anyString(), any(), anyBoolean());
         verify(appOperations, times(1)).update("testApp", applicationBean, false);
-        verify(appOperations, times(0)).remove(anyString());
-        verify(appOperations, times(0)).scale(anyString(), anyInt(), anyInt(), anyInt());
-        verify(appOperations, times(0)).addEnvironmentVariable(anyString(), anyString(), anyString());
-        verify(appOperations, times(0)).bindToService(anyString(), anyString());
-        verify(appOperations, times(0)).unbindFromService(anyString(), anyString());
-        verify(appOperations, times(0)).addRoute(anyString(), anyString());
-        verify(appOperations, times(0)).removeRoute(anyString(), anyString());
+        verifyNoMoreInteractions(appOperations);
         StepVerifier.create(requests)
                 .expectNext(voidMock)
                 .expectComplete()
@@ -475,17 +437,8 @@ class ApplicationRequestPlanerTest {
 
         // then
         assertThat(requests, notNullValue());
-        verify(appOperations, times(0)).create(anyString(), any(), anyBoolean());
         verify(appOperations, times(1)).update("testApp", applicationBean, false);
-        verify(appOperations, times(0)).remove(anyString());
-        verify(appOperations, times(0)).scale(anyString(), anyInt(), anyInt(), anyInt());
-        verify(appOperations, times(0)).addEnvironmentVariable("testApp", "addedKey", "added");
-        verify(appOperations, times(0)).addEnvironmentVariable("testApp", "changedKey", "changed");
-        verify(appOperations, times(0)).removeEnvironmentVariable("testApp", "removedKey");
-        verify(appOperations, times(0)).bindToService(anyString(), anyString());
-        verify(appOperations, times(0)).unbindFromService(anyString(), anyString());
-        verify(appOperations, times(0)).addRoute(anyString(), anyString());
-        verify(appOperations, times(0)).removeRoute(anyString(), anyString());
+        verifyNoMoreInteractions(appOperations);
     }
 
     @Test
@@ -506,15 +459,7 @@ class ApplicationRequestPlanerTest {
 
         // then
         assertThat(requests, notNullValue());
-        verify(appOperations, times(0)).create(anyString(), any(), anyBoolean());
-        verify(appOperations, times(0)).update(anyString(), any(), anyBoolean());
-        verify(appOperations, times(0)).remove(anyString());
-        verify(appOperations, times(0)).scale(anyString(), anyInt(), anyInt(), anyInt());
-        verify(appOperations, times(0)).addEnvironmentVariable(anyString(), anyString(), anyString());
-        verify(appOperations, times(0)).bindToService(anyString(), anyString());
-        verify(appOperations, times(0)).unbindFromService(anyString(), anyString());
-        verify(appOperations, times(0)).addRoute(anyString(), anyString());
-        verify(appOperations, times(0)).removeRoute(anyString(), anyString());
+        verifyNoMoreInteractions(appOperations);
         assertThat(requests.count().block(), is(0L));
     }
 
