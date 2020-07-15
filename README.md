@@ -128,14 +128,23 @@ this corresponding parameter can be set with its value in the program call.
 Passed value -> overwrites default value  
 No value -> default value is used 
 
-  for example, you can run the command:   
-  ```java -jar cf-control.jar get services -a api.run.pivotal.io -o cloud.foundry.cli -s development -u mustermann@test.com -p somePassword;)```
+  For example, you can run the following commands: 
   
+ <code>get</code> command:
+ 
+ `java -jar cf-control.jar get -u mustermann@test.com -p somePassword`
   
+ <code>diff</code> and <code>apply</code> commands:
+ 
+ `java -jar cf-control.jar diff -u mustermann@test.com -p somePassword -y pathToYamlFile`
+ 
+ `java -jar cf-control.jar apply -u mustermann@test.com -p somePassword -y pathToYamlFile`
+ 
+ 
 ### YAML Specification Reference
 
 ```
-apiVersion: 1.0                           # the version of this yaml specification
+apiVersion: 1.0                           # the version of the yaml specification
 target:
   endpoint: api.run.pivotal.io            # the host of your cloud foundry instance
   org: cloud.foundry.cli                  # the organization on your cloud foundry instance
@@ -170,7 +179,7 @@ spec:
         randomRoute: false                # creates a random route (for testing purposes useful)
         routes:                           # list of routes the app should be mapped to
           -development.mycf.io
-        services:                         # list of services the app should be bind to
+        services:                         # list of services the app should be bound to
           - sqlService
         stack: cflinuxfs3                 # species which stack to deploy your app to
         timeout: 80                       # number of seconds the cf allocates for starting the app
@@ -178,18 +187,6 @@ spec:
       ...
 ```
 
-  For example, you can run the following commands: 
-  
- <code>get</code> command:
- 
- `java -jar cf-control.jar get -u mustermann@test.com -p somePassword`
-  
- <code>diff</code> and <code>apply</code> commands:
- 
- `java -jar cf-control.jar diff -u mustermann@test.com -p somePassword -y pathToYamlFile`
- 
- `java -jar cf-control.jar apply -u mustermann@test.com -p somePassword -y pathToYamlFile`
- 
 ### Convenience features
 
 You are able to include contents of other YAML files into the one that you pass as an argument to the tool. To do so, you have to use the so called **$ref-syntax**. A description on how to use it can be found [here](https://swagger.io/docs/specification/using-ref/).
