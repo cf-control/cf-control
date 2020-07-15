@@ -53,11 +53,21 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+/**
+ * Utility class for processing cloud foundry routes
+ */
 final class RouteUtils {
 
     private RouteUtils() {
     }
 
+    /**
+     * Decomposes a route into its component parts host, domain, path and port.
+     * @param availableDomains all domains that exist on the cloud foundry instance
+     * @param route the route that should be decomposed
+     * @param routePath the path of the route
+     * @return a DecomposedRoute object
+     */
     static Mono<DecomposedRoute> decomposeRoute(List<DomainSummary> availableDomains, String route, String routePath) {
         String domain = null;
         String host = null;
