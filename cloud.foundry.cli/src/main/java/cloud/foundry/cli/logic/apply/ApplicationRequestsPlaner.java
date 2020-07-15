@@ -136,7 +136,7 @@ public class ApplicationRequestsPlaner {
             requests.add(getChangedRoutesRequests(changes));
         }
 
-        return Flux.concat(requests);
+        return Flux.merge(requests);
     }
 
     private boolean hasFieldsThatRequireRestart(List<CfChange> changes) {
