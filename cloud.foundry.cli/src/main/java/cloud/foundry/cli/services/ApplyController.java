@@ -7,7 +7,7 @@ import static picocli.CommandLine.usage;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
 import cloud.foundry.cli.crosscutting.mapping.YamlMapper;
-import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
 import cloud.foundry.cli.logic.ApplyLogic;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 
@@ -52,13 +52,18 @@ public class ApplyController implements Callable<Integer> {
         @Override
         public Integer call() throws Exception {
             log.info("Interpreting YAML file...");
-            SpecBean desiredSpecBean = YamlMapper.loadBeanFromFile(yamlCommandOptions.getYamlFilePath(),
-                    SpecBean.class);
+            ConfigBean desiredConfigBean = YamlMapper.loadBeanFromFile(yamlCommandOptions.getYamlFilePath(),
+                    ConfigBean.class);
             log.verbose("YAML file interpreted.");
+
+            if(desiredConfigBean.getSpec() == null) {
+                log.info("No spec node specified in the yaml file. Nothing to apply...");
+                return 0;
+            }
 
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             ApplyLogic applyLogic = new ApplyLogic(cfOperations);
-            applyLogic.applySpaceDevelopers(desiredSpecBean.getSpaceDevelopers());
+            applyLogic.applySpaceDevelopers(desiredConfigBean.getSpec().getSpaceDevelopers());
 
             return 0;
         }
@@ -83,11 +88,16 @@ public class ApplyController implements Callable<Integer> {
             ApplyLogic applyLogic = new ApplyLogic(cfOperations);
 
             log.info("Interpreting YAML file...");
-            SpecBean desiredSpecBean = YamlMapper.loadBeanFromFile(yamlCommandOptions.getYamlFilePath(),
-                    SpecBean.class);
+            ConfigBean desiredConfigBean = YamlMapper.loadBeanFromFile(yamlCommandOptions.getYamlFilePath(),
+                    ConfigBean.class);
             log.verbose("YAML file interpreted.");
 
-            applyLogic.applyApplications(desiredSpecBean.getApps());
+            if(desiredConfigBean.getSpec() == null) {
+                log.info("No spec node specified in the yaml file. Nothing to apply...");
+                return 0;
+            }
+
+            applyLogic.applyApplications(desiredConfigBean.getSpec().getApps());
 
             return 0;
         }
@@ -112,11 +122,16 @@ public class ApplyController implements Callable<Integer> {
             ApplyLogic applyLogic = new ApplyLogic(cfOperations);
 
             log.verbose("Interpreting YAML file...");
-            SpecBean desiredSpecBean = YamlMapper.loadBeanFromFile(yamlCommandOptions.getYamlFilePath(),
-                    SpecBean.class);
+            ConfigBean desiredConfigBean = YamlMapper.loadBeanFromFile(yamlCommandOptions.getYamlFilePath(),
+                    ConfigBean.class);
             log.verbose("YAML file interpreted.");
 
-            applyLogic.applyServices(desiredSpecBean.getServices());
+            if(desiredConfigBean.getSpec() == null) {
+                log.info("No spec node specified in the yaml file. Nothing to apply...");
+                return 0;
+            }
+
+            applyLogic.applyServices(desiredConfigBean.getSpec().getServices());
 
             return 0;
         }
@@ -131,7 +146,7 @@ public class ApplyController implements Callable<Integer> {
         private LoginCommandOptions loginOptions;
 
         @Override
-        public Integer call() throws Exception {
+        public Integer call() {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             ApplyLogic applyLogic = new ApplyLogic(cfOperations);
             String desiredSpace = loginOptions.getSpace();
