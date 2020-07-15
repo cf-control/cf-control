@@ -9,7 +9,6 @@ import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
 import cloud.foundry.cli.crosscutting.mapping.YamlMapper;
 import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
 import cloud.foundry.cli.logic.ApplyLogic;
-import cloud.foundry.cli.operations.SpaceOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 
 import java.util.concurrent.Callable;

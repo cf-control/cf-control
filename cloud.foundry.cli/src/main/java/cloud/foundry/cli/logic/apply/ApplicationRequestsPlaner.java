@@ -48,8 +48,8 @@ public class ApplicationRequestsPlaner {
     private static final String INSTANCES_FIELD_NAME = "instances";
 
 
-    // stores field-names related to applications that require an app restart when their values in the configuration are changed
-
+    // stores field-names related to applications that require an app restart when
+    // their values in the configuration are changed
     private static final Set<String> FIELDS_REQUIRE_RESTART = new HashSet<String>() {{
         add(META_FIELD_NAME);
         add(PATH_FIELD_NAME);
@@ -69,14 +69,21 @@ public class ApplicationRequestsPlaner {
         ObjectPropertyValidation.checkFieldExists(ApplicationManifestBean.class, BUILDPACK_FIELD_NAME, String.class);
         ObjectPropertyValidation.checkFieldExists(ApplicationManifestBean.class, COMMAND_FIELD_NAME, String.class);
         ObjectPropertyValidation.checkFieldExists(ApplicationManifestBean.class, STACK_FIELD_NAME, String.class);
-        ObjectPropertyValidation.checkFieldExists(ApplicationManifestBean.class, HEALTH_CHECK_TYPE_FIELD_NAME, ApplicationHealthCheck.class);
-        ObjectPropertyValidation.checkFieldExists(ApplicationManifestBean.class, HEALTH_CHECK_HTTP_ENDPOINT_FIELD_NAME, String.class);
+        ObjectPropertyValidation.checkFieldExists(ApplicationManifestBean.class,
+                HEALTH_CHECK_TYPE_FIELD_NAME,
+                ApplicationHealthCheck.class);
+        ObjectPropertyValidation.checkFieldExists(ApplicationManifestBean.class,
+                HEALTH_CHECK_HTTP_ENDPOINT_FIELD_NAME,
+                String.class);
         ObjectPropertyValidation.checkFieldExists(ApplicationManifestBean.class, MEMORY_FIELD_NAME, Integer.class);
         ObjectPropertyValidation.checkFieldExists(ApplicationManifestBean.class, DISK_FIELD_NAME, Integer.class);
         ObjectPropertyValidation.checkListExists(ApplicationManifestBean.class, SERVICES_FIELD_NAME, String.class);
         ObjectPropertyValidation.checkListExists(ApplicationManifestBean.class, ROUTES_FIELD_NAME, String.class);
         ObjectPropertyValidation.checkFieldExists(ApplicationManifestBean.class, INSTANCES_FIELD_NAME, Integer.class);
-        ObjectPropertyValidation.checkMapExists(ApplicationManifestBean.class, ENVIRONMENT_VARIABLES_FIELD_NAME, String.class, Object.class);
+        ObjectPropertyValidation.checkMapExists(ApplicationManifestBean.class,
+                ENVIRONMENT_VARIABLES_FIELD_NAME,
+                String.class,
+                Object.class);
     }
 
     private final ApplicationsOperations appOperations;

@@ -24,7 +24,6 @@ import cloud.foundry.cli.logic.diff.change.object.CfObjectValueChanged;
 import cloud.foundry.cli.logic.diff.change.object.CfRemovedObject;
 import cloud.foundry.cli.operations.ApplicationsOperations;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
