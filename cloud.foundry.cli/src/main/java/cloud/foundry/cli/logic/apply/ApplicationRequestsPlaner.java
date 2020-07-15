@@ -43,6 +43,8 @@ public class ApplicationRequestsPlaner {
     private static final String MEMORY_FIELD_NAME = "memory";
     private static final String DISK_FIELD_NAME = "disk";
 
+    // stores field-names related to applications that require an app restart when their values in the configuration are changed
+
     private static final Set<String> FIELDS_REQUIRE_RESTART = new HashSet<String>() {{
         add(META_FIELD_NAME);
         add(PATH_FIELD_NAME);
@@ -55,6 +57,7 @@ public class ApplicationRequestsPlaner {
         add(DISK_FIELD_NAME);
     }};
 
+    // assertion checks to make sure fields actually exist
     static {
         ObjectPropertyValidation.checkFieldExists(ApplicationBean.class, META_FIELD_NAME, String.class);
         ObjectPropertyValidation.checkFieldExists(ApplicationBean.class, PATH_FIELD_NAME, String.class);
