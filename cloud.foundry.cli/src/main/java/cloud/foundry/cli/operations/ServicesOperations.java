@@ -9,17 +9,7 @@ import cloud.foundry.cli.crosscutting.logging.Log;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.routes.ListRoutesRequest;
 import org.cloudfoundry.operations.routes.Route;
-import org.cloudfoundry.operations.services.CreateServiceInstanceRequest;
-import org.cloudfoundry.operations.services.DeleteServiceInstanceRequest;
-import org.cloudfoundry.operations.services.DeleteServiceKeyRequest;
-import org.cloudfoundry.operations.services.GetServiceInstanceRequest;
-import org.cloudfoundry.operations.services.ListServiceKeysRequest;
-import org.cloudfoundry.operations.services.RenameServiceInstanceRequest;
-import org.cloudfoundry.operations.services.ServiceInstance;
-import org.cloudfoundry.operations.services.ServiceKey;
-import org.cloudfoundry.operations.services.UnbindRouteServiceInstanceRequest;
-import org.cloudfoundry.operations.services.UnbindServiceInstanceRequest;
-import org.cloudfoundry.operations.services.UpdateServiceInstanceRequest;
+import org.cloudfoundry.operations.services.*;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -265,12 +255,23 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
                         return serviceInstance.getApplications();
                     }
                 })
-                .flatMap(appName -> doUnbindApp(serviceInstanceName, appName))
+                .flatMap(appName -> unbindApp(serviceInstanceName, appName))
                 .doOnComplete(() -> log.info("All applications of service instance "
                         + serviceInstanceName + " have been unbound."));
     }
 
-    private Mono<Void> doUnbindApp(String serviceInstanceName, String applicationName) {
+    /**
+     * Prepares a request for unbinding a service instance from an application.
+     * The resulting mono is preconfigured such that it will perform logging.
+     *
+     * @param serviceInstanceName name of the service instance to unbind the application from
+     * @param applicationName name of the application
+     * @return mono which can be subscribed on to unbind the application
+     */
+    public Mono<Void> unbindApp(String serviceInstanceName, String applicationName) {
+        checkNotNull(serviceInstanceName);
+        checkNotNull(applicationName);
+
         return this.cloudFoundryOperations
                 .services()
                 .unbind(createUnbindServiceInstanceRequest(serviceInstanceName, applicationName))
@@ -324,4 +325,5 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
                 .hostname(route.getHost())
                 .build();
     }
+
 }

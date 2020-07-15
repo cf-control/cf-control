@@ -41,6 +41,12 @@ public class ApplyLogic {
 
     private DiffLogic diffLogic;
 
+    private SpaceDevelopersOperations spaceDevelopersOperations;
+    private ServicesOperations servicesOperations;
+    private ApplicationsOperations applicationsOperations;
+    private SpaceOperations spaceOperations;
+
+
     /**
      * Creates a new instance that will use the provided cf operations internally.
      * @param cfOperations the cf operations that should be used to communicate with
@@ -51,8 +57,20 @@ public class ApplyLogic {
         checkNotNull(cfOperations);
 
         this.cfOperations = cfOperations;
+        this.spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
+        this.servicesOperations = new ServicesOperations(cfOperations);
+        this.applicationsOperations = new ApplicationsOperations(cfOperations);
+        this.spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
         this.getLogic = new GetLogic();
         this.diffLogic = new DiffLogic();
+    }
+
+    public void setApplicationsOperations(ApplicationsOperations applicationsOperations) {
+        this.applicationsOperations = applicationsOperations;
+    }
+
+    public void setSpaceOperations(SpaceOperations spaceOperations) {
+        this.spaceOperations = spaceOperations;
     }
 
     /**
@@ -68,7 +86,6 @@ public class ApplyLogic {
     public void applySpaceDevelopers(@Nonnull List<String> desiredSpaceDevelopers) {
         checkNotNull(desiredSpaceDevelopers);
 
-        SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
         log.info("Fetching information about space developers...");
         List<String> liveSpaceDevelopers = this.getLogic.getSpaceDevelopers(spaceDevelopersOperations);
         log.info("Information fetched.");
@@ -108,7 +125,6 @@ public class ApplyLogic {
     public void applyApplications(@Nonnull Map<String, ApplicationBean> desiredApplications) {
         checkNotNull(desiredApplications);
 
-        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
         log.info("Fetching information about applications...");
         Map<String, ApplicationBean> liveApplications = this.getLogic.getApplications(applicationsOperations);
         log.info("Information fetched.");
@@ -125,15 +141,14 @@ public class ApplyLogic {
         Map<String, List<CfChange>> allApplicationChanges = diffResult.getApplicationChanges();
 
         if (allApplicationChanges == null || allApplicationChanges.isEmpty()) {
-            log.info("There is no difference to apply.");
+            log.info("There are no differences to apply.");
         } else {
-            ApplicationsOperations appOperations = new ApplicationsOperations(cfOperations);
+            ApplicationRequestsPlaner requestsPlaner = new ApplicationRequestsPlaner(applicationsOperations);
 
-        Flux<Void> applicationRequests = Flux.fromIterable(allApplicationChanges.entrySet())
-                .flatMap(appChangeEntry -> ApplicationRequestsPlaner.createApplyRequests(appOperations,
-                        appChangeEntry.getKey(),
-                        appChangeEntry.getValue()))
-                .onErrorContinue(log::warning);
+            Flux<Void> applicationRequests = Flux.fromIterable(allApplicationChanges.entrySet())
+                    .flatMap(appChangeEntry -> requestsPlaner.createApplyRequests(appChangeEntry.getKey(),
+                            appChangeEntry.getValue()))
+                    .onErrorContinue(log::warning);
 
             log.info("Applying changes to applications...");
 
@@ -151,7 +166,6 @@ public class ApplyLogic {
     public void applyServices(@Nonnull Map<String, ServiceBean> desiredServices) {
         checkNotNull(desiredServices);
 
-        ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
         log.info("Fetching information about services...");
         Map<String, ServiceBean> liveServices = this.getLogic.getServices(servicesOperations);
         log.info("Information fetched.");
@@ -181,14 +195,12 @@ public class ApplyLogic {
     /**
      * Creates a space with the desired name if a space with such a name does not exist in the live cf instance.
      * @param desiredSpaceName the name of the desired space
-     * @param spaceOperations the spacesOperations used to query and create spaces
-     * @throws NullPointerException if the desired paramerters are null
+     * @throws NullPointerException if the desired paramerter is null
      * @throws ApplyException in case of errors during the creation of the desired space
      * @throws GetException in case of errors during querying the space names
      */
-    public void applySpace(String desiredSpaceName, SpaceOperations spaceOperations) {
+    public void applySpace(String desiredSpaceName) {
         checkNotNull(desiredSpaceName);
-        checkNotNull(spaceOperations);
 
         Mono<List<String>> getAllRequest = spaceOperations.getAll();
         log.info("Fetching all space names...");

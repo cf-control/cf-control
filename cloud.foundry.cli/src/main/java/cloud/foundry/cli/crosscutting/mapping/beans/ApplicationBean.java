@@ -24,6 +24,22 @@ public class ApplicationBean implements Bean {
     private String path;
     private String meta;
 
+    /**
+     *
+     * @param manifest the application manifest data
+     * @param meta {@link Metadata} which can contain the meta data field value and the path value
+     */
+    public ApplicationBean(ApplicationManifest manifest, Metadata meta) {
+        this.path = manifest.getPath() == null ? null : manifest.getPath().toString();
+        this.manifest = new ApplicationManifestBean(manifest);
+        this.meta = meta.getAnnotations().get(METADATA_KEY);
+        this.path = meta.getAnnotations().get(PATH_KEY);
+    }
+
+    public ApplicationBean() {
+    }
+
+
     public ApplicationManifestBean getManifest() {
         return manifest;
     }
@@ -46,16 +62,6 @@ public class ApplicationBean implements Bean {
 
     public void setMeta(String meta) {
         this.meta = meta;
-    }
-
-    public ApplicationBean(ApplicationManifest manifest, Metadata meta) {
-        this.path = manifest.getPath() == null ? null : manifest.getPath().toString();
-        this.manifest = new ApplicationManifestBean(manifest);
-        this.meta = meta.getAnnotations().get(METADATA_KEY);
-        this.path = meta.getAnnotations().get(PATH_KEY);
-    }
-
-    public ApplicationBean() {
     }
 
     @Override

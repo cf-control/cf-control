@@ -17,20 +17,7 @@ import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.routes.ListRoutesRequest;
 import org.cloudfoundry.operations.routes.Route;
 import org.cloudfoundry.operations.routes.Routes;
-import org.cloudfoundry.operations.services.CreateServiceInstanceRequest;
-import org.cloudfoundry.operations.services.DeleteServiceInstanceRequest;
-import org.cloudfoundry.operations.services.DeleteServiceKeyRequest;
-import org.cloudfoundry.operations.services.GetServiceInstanceRequest;
-import org.cloudfoundry.operations.services.ListServiceKeysRequest;
-import org.cloudfoundry.operations.services.RenameServiceInstanceRequest;
-import org.cloudfoundry.operations.services.ServiceInstance;
-import org.cloudfoundry.operations.services.ServiceInstanceSummary;
-import org.cloudfoundry.operations.services.ServiceInstanceType;
-import org.cloudfoundry.operations.services.ServiceKey;
-import org.cloudfoundry.operations.services.Services;
-import org.cloudfoundry.operations.services.UnbindRouteServiceInstanceRequest;
-import org.cloudfoundry.operations.services.UnbindServiceInstanceRequest;
-import org.cloudfoundry.operations.services.UpdateServiceInstanceRequest;
+import org.cloudfoundry.operations.services.*;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
@@ -558,6 +545,41 @@ public class ServicesOperationsTest {
         assertThrows(NullPointerException.class, () -> servicesOperations.deleteKeys(null));
     }
 
+    @Test
+    public void testUnbindApp() {
+        // given
+        DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
+        Services servicesMock = mock(Services.class);
+        mockUnbindApp(cfOperationsMock, servicesMock);
+
+        ServicesOperations servicesOperations = new ServicesOperations(cfOperationsMock);
+        // when
+        Mono<Void> request = servicesOperations.unbindApp("someservice", "someapp");
+        request.block();
+
+        // then
+        UnbindServiceInstanceRequest unbindServiceInstanceRequest = UnbindServiceInstanceRequest
+                .builder()
+                .applicationName("someapp")
+                .serviceInstanceName("someservice")
+                .build();
+        verify(servicesMock, times(1)).unbind(unbindServiceInstanceRequest);
+        StepVerifier.create(request)
+                .expectComplete()
+                .verify();
+    }
+
+    @Test
+    public void testUnbindAppOnNullNameThrowsException() {
+        // given
+        DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
+        ServicesOperations servicesOperations = new ServicesOperations(cfOperationsMock);
+
+        // when
+        assertThrows(NullPointerException.class, () -> servicesOperations.unbindApp(null, "someapp"));
+        assertThrows(NullPointerException.class, () -> servicesOperations.unbindApp("someservice", null));
+    }
+
     private void mockListRoutes(DefaultCloudFoundryOperations cfOperationsMock, Routes routesMock, List<Route> routes) {
         when(cfOperationsMock.routes())
                 .thenReturn(routesMock);
@@ -623,7 +645,7 @@ public class ServicesOperationsTest {
         when(serviceBean.getService()).thenReturn("elephantsql");
         when(serviceBean.getPlan()).thenReturn("standard");
         when(serviceBean.getTags()).thenReturn(Arrays.asList("Tag1", "Tag2"));
-        
+
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("count", 5);
         params.put("upgrade", true);

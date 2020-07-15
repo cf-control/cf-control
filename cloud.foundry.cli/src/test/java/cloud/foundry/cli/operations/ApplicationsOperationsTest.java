@@ -1,44 +1,44 @@
 package cloud.foundry.cli.operations;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import cloud.foundry.cli.mocking.ApplicationsMockBuilder;
 import cloud.foundry.cli.mocking.ApplicationsV3MockBuilder;
 import cloud.foundry.cli.mocking.CloudFoundryClientMockBuilder;
 import cloud.foundry.cli.mocking.DefaultCloudFoundryOperationsMockBuilder;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
-import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationManifestBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import org.cloudfoundry.client.v3.Metadata;
-import org.cloudfoundry.client.v3.applications.UpdateApplicationRequest;
+import org.cloudfoundry.client.v3.applications.CreateApplicationRequest;
 
 import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.client.v3.applications.ApplicationsV3;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
-import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
-import org.cloudfoundry.operations.applications.ApplicationManifest;
-import org.cloudfoundry.operations.applications.Applications;
-import org.cloudfoundry.operations.applications.DeleteApplicationRequest;
-import org.cloudfoundry.operations.applications.GetApplicationRequest;
-import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
-import org.cloudfoundry.operations.applications.RenameApplicationRequest;
-import org.cloudfoundry.operations.applications.Route;
+import org.cloudfoundry.operations.applications.*;
+import org.cloudfoundry.operations.domains.Domain;
+import org.cloudfoundry.operations.domains.Domains;
+import org.cloudfoundry.operations.domains.Status;
+import org.cloudfoundry.operations.routes.MapRouteRequest;
+import org.cloudfoundry.operations.routes.Routes;
+import org.cloudfoundry.operations.routes.UnmapRouteRequest;
+import org.cloudfoundry.operations.services.BindServiceInstanceRequest;
+import org.cloudfoundry.operations.services.Services;
+import org.cloudfoundry.operations.services.UnbindServiceInstanceRequest;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Test for {@link ApplicationsOperations}
@@ -77,7 +77,7 @@ public class ApplicationsOperationsTest {
                 .annotation(ApplicationBean.PATH_KEY, "/test/uri")
                 .annotation(ApplicationBean.METADATA_KEY, "notyetrandomname,1.0.1,some/branch")
                 .build();
-        DefaultCloudFoundryOperations cfMock = getCloudFoundryOperations(
+        DefaultCloudFoundryOperations cfMock = getCloudFoundryOperationsMock(
                 Collections.singletonMap("notyetrandomname", appManifest),
                 Collections.singletonMap("notyetrandomname", metadata),
                 null
@@ -106,34 +106,36 @@ public class ApplicationsOperationsTest {
         assertThat(appBean.getManifest().getMemory(), is(Integer.MAX_VALUE));
         assertThat(appBean.getManifest().getNoRoute(), is(false));
         assertThat(appBean.getManifest().getRandomRoute(), is(true));
-        assertThat(appBean.getManifest().getRoutes().size(), is(2));
         assertThat(appBean.getManifest().getRoutes(), contains("route1", "route2"));
-        assertThat(appBean.getManifest().getServices().size(), is(1));
-        assertThat(appBean.getManifest().getServices(), contains("serviceomega"));
+        assertThat(appBean.getManifest().getServices(), contains("servicealpha", "serviceomega"));
         assertThat(appBean.getManifest().getStack(), is("nope"));
         assertThat(appBean.getManifest().getTimeout(), is(987654321));
         assertThat(appBean.getMeta(), is("notyetrandomname,1.0.1,some/branch"));
-        Mockito.verify(cfMock.applications(), Mockito.times(1)).list();
+        verify(cfMock.applications(), times(1)).list();
     }
 
     @Test
-    public void testCreateApplicationsPushesAppManifestSucceeds() throws CreationException {
+    public void testCreateSucceeds() throws CreationException {
         // given
-
         ApplicationManifest appManifest = createMockApplicationManifest();
         Metadata metadata = Metadata
                 .builder()
-                .annotation("path", "some/path")
+                .annotation(ApplicationBean.PATH_KEY, "some/path")
                 .annotation(ApplicationBean.METADATA_KEY, "somemeta")
                 .build();
 
-        DefaultCloudFoundryOperations cfoMock = getCloudFoundryOperations(
-                Collections.singletonMap("appId", appManifest),
-                Collections.emptyMap(),
-                null
-        );
+        Applications applicationsMock = ApplicationsMockBuilder.get().build();
+        ApplicationsV3 applicationsV3Mock = ApplicationsV3MockBuilder.get().build();
+        CloudFoundryClient cfcMock = CloudFoundryClientMockBuilder.get()
+                .setApplicationsV3(applicationsV3Mock)
+                .build();
+        DefaultCloudFoundryOperations dcfoMock = DefaultCloudFoundryOperationsMockBuilder.get()
+                .setApplications(applicationsMock)
+                .setSpaceId("spaceId")
+                .setCloudFoundryClient(cfcMock)
+                .build();
 
-        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfoMock);
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(dcfoMock);
 
         ApplicationBean applicationsBean = new ApplicationBean(appManifest, metadata);
         applicationsBean.setPath("some/path");
@@ -144,75 +146,37 @@ public class ApplicationsOperationsTest {
         request.block();
 
         // then
-        assertThat(request, notNullValue());
-        Mockito.verify(cfoMock.applications(), Mockito.times(1))
+        verify(dcfoMock.applications(), times(1))
                 .pushManifest(any(PushApplicationManifestRequest.class));
-        Mockito.verify(cfoMock.applications(), Mockito.times(1))
-                .get(any(org.cloudfoundry.operations.applications.GetApplicationRequest.class));
-        UpdateApplicationRequest updateRequest = UpdateApplicationRequest
-                .builder()
-                .applicationId("appId")
-                .metadata(Metadata
-                        .builder()
-                        .annotation(ApplicationBean.METADATA_KEY , applicationsBean.getMeta())
-                        .annotation(ApplicationBean.PATH_KEY, applicationsBean.getPath())
-                        .build())
-                .build();
-        Mockito.verify(cfoMock.getCloudFoundryClient().applicationsV3(), Mockito.times(1)).update(updateRequest);
+        verify(applicationsV3Mock, times(1))
+                .create(any(CreateApplicationRequest.class));
+        verify(dcfoMock, times(1))
+                .getSpaceId();
     }
 
     @Test
-    public void testCreateThrowsExceptionWhenPushAppManifestFails() {
+    public void testCreateThrowsCreationExceptionWhenNonRecoverableErrorOccurs() {
         //given
         ApplicationManifest appManifest = createMockApplicationManifest();
         Metadata metadata = Metadata
                 .builder()
-                .annotation("path", "some/path")
+                .annotation(ApplicationBean.PATH_KEY, "some/path")
                 .annotation(ApplicationBean.METADATA_KEY, "somemeta")
                 .build();
-        DefaultCloudFoundryOperations cfoMock = getCloudFoundryOperations(
-                Collections.singletonMap("appId", appManifest),
-                Collections.emptyMap(),
-                new Exception()
-        );
 
-        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfoMock);
+        DefaultCloudFoundryOperations dcfoMock = DefaultCloudFoundryOperationsMockBuilder.get()
+                .build();
+
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(dcfoMock);
 
         ApplicationBean applicationsBean = new ApplicationBean(appManifest, metadata);
-        applicationsBean.setPath("some/path");
-        applicationsBean.setMeta("somemeta");
+        // create error condition
+        applicationsBean.setPath(null);
+        applicationsBean.getManifest().setBuildpack(null);
 
         //when
-        Mono<Void> request = applicationsOperations.create(appManifest.getName(), applicationsBean, false);
-
-        //then
-        assertThat(request, notNullValue());
-        assertThrows(Exception.class, request::block);
-        Mockito.verify(cfoMock.applications(), Mockito.times(1))
-                .pushManifest(any(PushApplicationManifestRequest.class));
-        Mockito.verify(cfoMock.applications(), Mockito.times(1))
-                .get(any(GetApplicationRequest.class));
-        Mockito.verify(cfoMock.getCloudFoundryClient().applicationsV3(), Mockito.times(0))
-                .update(any(UpdateApplicationRequest.class));
-    }
-
-    @Test
-    public void testCreateApplicationsOnMissingDockerPasswordThrowsCreationException() {
-        //given
-        DefaultCloudFoundryOperations cfoMock = DefaultCloudFoundryOperationsMockBuilder.get().build();
-        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfoMock);
-
-        ApplicationBean applicationsBean = new ApplicationBean();
-        ApplicationManifestBean applicationManifestBean = new ApplicationManifestBean();
-        applicationManifestBean.setDockerImage("some/image");
-        applicationManifestBean.setDockerUsername("username");
-
-        applicationsBean.setManifest(applicationManifestBean);
-
-        // when
-        CreationException exception = assertThrows(CreationException.class,
-            () -> applicationsOperations.create("appName", applicationsBean, false));
-        assertThat(exception.getMessage(), containsString("Docker password is not set"));
+        assertThrows(CreationException.class,
+                () -> applicationsOperations.create(appManifest.getName(), applicationsBean, false));
     }
 
     @Test
@@ -265,7 +229,7 @@ public class ApplicationsOperationsTest {
 
         // then
         assertThat(request, notNullValue());
-        Mockito.verify(cfoMock.applications(), Mockito.times(1)).delete(any(DeleteApplicationRequest.class));
+        verify(cfoMock.applications(), times(1)).delete(any(DeleteApplicationRequest.class));
     }
 
     @Test
@@ -282,7 +246,7 @@ public class ApplicationsOperationsTest {
     public void testRenameWithNullValueForCurrentNameThrowsNullPointerExceptionn() {
         //given
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(
-                Mockito.mock(DefaultCloudFoundryOperations.class));
+                mock(DefaultCloudFoundryOperations.class));
 
         //when + then
         assertThrows(NullPointerException.class, () ->
@@ -293,7 +257,7 @@ public class ApplicationsOperationsTest {
     public void testRenameWithNullValueForNewNameThrowsNullPointerException() {
         //given
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(
-                Mockito.mock(DefaultCloudFoundryOperations.class));
+                mock(DefaultCloudFoundryOperations.class));
 
         //when + then
         assertThrows(NullPointerException.class, () ->
@@ -303,17 +267,9 @@ public class ApplicationsOperationsTest {
     @Test
     public void testRenameSucceeds() {
         // given
-        DefaultCloudFoundryOperations cfoMock = Mockito.mock(DefaultCloudFoundryOperations.class);
-        Applications applicationsMock = Mockito.mock(Applications.class);
-        Mockito.when(cfoMock.applications()).thenReturn(applicationsMock);
-
-        // this reference will point to the rename request that is passed to the applications mock
-        AtomicReference<RenameApplicationRequest> renameRequestReference = new AtomicReference<>(null);
-        Mockito.when(applicationsMock.rename(any(RenameApplicationRequest.class)))
-                .then(invocation -> {
-                    renameRequestReference.set(invocation.getArgument(0));
-                    return Mono.empty();
-                });
+        DefaultCloudFoundryOperations cfoMock = getCloudFoundryOperationsMock(Collections.emptyMap(),
+                Collections.emptyMap(),
+                null);
 
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfoMock);
 
@@ -323,26 +279,373 @@ public class ApplicationsOperationsTest {
         // then
         assertThat(requestResult, is(notNullValue()));
 
-        RenameApplicationRequest renameRequest = renameRequestReference.get();
-        Mockito.verify(applicationsMock, Mockito.times(1)).rename(renameRequest);
-        assertThat(renameRequest.getName(), is(SOME_APPLICATION));
-        assertThat(renameRequest.getNewName(), is("newName"));
+        RenameApplicationRequest renameRequest =  RenameApplicationRequest.builder()
+                .name(SOME_APPLICATION)
+                .newName("newName")
+                .build();
+        verify(cfoMock.applications(), times(1)).rename(renameRequest);
     }
 
-    /**
-     * Creates an {@link Metadata} for testing purposes.
-     *
-     * @return metadata for an application
-     */
-    private Metadata createMockMedatadata() {
-        Map<String, String> annotations = new HashMap<String, String>();
-        annotations.put(ApplicationBean.METADATA_KEY, "notyetrandomname,1.0.1,some/branch");
-        annotations.put("id", "1234");
+    @Test
+    public void testScaleSucceeds() {
+        // given
+        DefaultCloudFoundryOperations cfOperationsMock = getCloudFoundryOperationsMock(Collections.emptyMap(),
+                Collections.emptyMap(),
+                null);
 
-        Metadata metadata = Mockito.mock(Metadata.class);
-        Mockito.when(metadata.getAnnotations()).thenReturn(annotations);
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperationsMock);
 
-        return metadata;
+        final Integer diskLimit = 42;
+        final Integer memoryLimit = 112;
+        final Integer instances = 3;
+
+        // when
+        Mono<Void> scaleResult = applicationsOperations.scale(SOME_APPLICATION, diskLimit, memoryLimit, instances);
+
+        // then
+        assertThat(scaleResult, is(notNullValue()));
+
+        ScaleApplicationRequest scaleApplicationRequest = ScaleApplicationRequest
+                .builder()
+                .name(SOME_APPLICATION)
+                .instances(instances)
+                .diskLimit(diskLimit)
+                .memoryLimit(memoryLimit)
+                .build();
+        verify(cfOperationsMock.applications(), times(1)).scale(scaleApplicationRequest);
+    }
+
+    @Test
+    public void testScaleSucceedsWithNullArguments() {
+        // given
+        DefaultCloudFoundryOperations cfOperationsMock = getCloudFoundryOperationsMock(Collections.emptyMap(),
+                Collections.emptyMap(),
+                null);
+
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperationsMock);
+
+        // when
+        Mono<Void> scaleResult = applicationsOperations.scale(SOME_APPLICATION, null, null, null);
+
+        // then
+        assertThat(scaleResult, is(notNullValue()));
+
+        ScaleApplicationRequest scaleRequest = ScaleApplicationRequest
+                .builder()
+                .name(SOME_APPLICATION)
+                .build();
+        verify(cfOperationsMock.applications(), times(1)).scale(scaleRequest);
+    }
+
+    @Test
+    public void testScaleWithNullValueAsApplicationNameThrowsNullPointerException() {
+        //given
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(
+                mock(DefaultCloudFoundryOperations.class));
+
+        //when + then
+        assertThrows(NullPointerException.class, () ->
+                applicationsOperations.scale(null, 12, 34, 56));
+    }
+
+    @Test
+    public void testAddEnvironmentVariableSucceeds() {
+        // given
+        DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
+        Applications applicationsMock = mock(Applications.class);
+        when(cfOperationsMock.applications()).thenReturn(applicationsMock);
+        when(applicationsMock.setEnvironmentVariable(any(SetEnvironmentVariableApplicationRequest.class)))
+                .thenReturn(Mono.just(mock(Void.class)));
+
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperationsMock);
+
+        // when
+        Mono<Void> addEnvVarResult = applicationsOperations
+                .addEnvironmentVariable(SOME_APPLICATION, "newVar", "newVal");
+
+        // then
+        assertThat(addEnvVarResult, is(notNullValue()));
+
+        SetEnvironmentVariableApplicationRequest request = SetEnvironmentVariableApplicationRequest
+                .builder()
+                .name(SOME_APPLICATION)
+                .variableName("newVar")
+                .variableValue("newVal")
+                .build();
+        verify(applicationsMock, times(1)).setEnvironmentVariable(request);
+    }
+
+    @Test
+    public void testAddEnvironmentVariableWithNullValuesAsArgumentsThrowsNullPointerException() {
+        //given
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(
+                mock(DefaultCloudFoundryOperations.class));
+
+        //when + then
+        assertThrows(NullPointerException.class, () ->
+                applicationsOperations.addEnvironmentVariable(null, "var", "val"));
+
+        assertThrows(NullPointerException.class, () ->
+                applicationsOperations.addEnvironmentVariable("app", null, "val"));
+
+        assertThrows(NullPointerException.class, () ->
+                applicationsOperations.addEnvironmentVariable("app", "var", null));
+    }
+
+    @Test
+    public void testRemoveEnvironmentVariableSucceeds() {
+        // given
+        DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
+        Applications applicationsMock = mock(Applications.class);
+        when(cfOperationsMock.applications()).thenReturn(applicationsMock);
+        when(applicationsMock.unsetEnvironmentVariable(any(UnsetEnvironmentVariableApplicationRequest.class)))
+                .thenReturn(Mono.just(mock(Void.class)));
+
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperationsMock);
+
+        // when
+        Mono<Void> removeEnvVarResult = applicationsOperations
+                .removeEnvironmentVariable(SOME_APPLICATION, "varToRemove");
+
+        // then
+        assertThat(removeEnvVarResult, is(notNullValue()));
+
+        UnsetEnvironmentVariableApplicationRequest request = UnsetEnvironmentVariableApplicationRequest
+                .builder()
+                .name(SOME_APPLICATION)
+                .variableName("varToRemove")
+                .build();
+        verify(applicationsMock, times(1)).unsetEnvironmentVariable(request);
+    }
+
+    @Test
+    public void testRemoveEnvironmentVariableWithNullValuesAsArgumentsThrowsNullPointerException() {
+        //given
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(
+                mock(DefaultCloudFoundryOperations.class));
+
+        //when + then
+        assertThrows(NullPointerException.class, () ->
+                applicationsOperations.removeEnvironmentVariable(null, "varToRemove"));
+
+        assertThrows(NullPointerException.class, () ->
+                applicationsOperations.removeEnvironmentVariable("app", null));
+    }
+
+    @Test
+    public void testSetHealthCheckSucceeds() {
+        // given
+        DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
+        Applications applicationsMock = mock(Applications.class);
+        when(cfOperationsMock.applications()).thenReturn(applicationsMock);
+        when(applicationsMock.setHealthCheck(any(SetApplicationHealthCheckRequest.class)))
+                .thenReturn(Mono.just(mock(Void.class)));
+
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperationsMock);
+
+        ApplicationHealthCheck desiredHealthCheckType = mock(ApplicationHealthCheck.class);
+
+        // when
+        Mono<Void> setHealthCheckResult = applicationsOperations
+                .setHealthCheck(SOME_APPLICATION, desiredHealthCheckType);
+
+        // then
+        assertThat(setHealthCheckResult, is(notNullValue()));
+
+        SetApplicationHealthCheckRequest healthCheckRequest = SetApplicationHealthCheckRequest
+                .builder()
+                .name(SOME_APPLICATION)
+                .type(desiredHealthCheckType)
+                .build();
+        verify(applicationsMock, times(1)).setHealthCheck(healthCheckRequest);
+    }
+
+    @Test
+    public void testSetHealthCheckWithNullValuesAsArgumentsThrowsNullPointerException() {
+        //given
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(
+                mock(DefaultCloudFoundryOperations.class));
+
+        //when + then
+        assertThrows(NullPointerException.class, () ->
+                applicationsOperations.setHealthCheck(null, mock(ApplicationHealthCheck.class)));
+
+        assertThrows(NullPointerException.class, () ->
+                applicationsOperations.setHealthCheck("app", null));
+    }
+
+    @Test
+    public void testBindAppSucceeds() {
+        // given
+        DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
+        Services servicesMock = mock(Services.class);
+        when(cfOperationsMock.services()).thenReturn(servicesMock);
+        when(servicesMock.bind(any(BindServiceInstanceRequest.class)))
+                .thenReturn(Mono.just(mock(Void.class)));
+
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperationsMock);
+
+        // when
+        Mono<Void> bindToServiceResult = applicationsOperations.bindToService("someApplication", "someService");
+
+        // then
+        assertThat(bindToServiceResult, is(notNullValue()));
+
+        BindServiceInstanceRequest request = BindServiceInstanceRequest
+                .builder()
+                .applicationName("someApplication")
+                .serviceInstanceName("someService")
+                .build();
+        verify(servicesMock, times(1)).bind(request);
+    }
+
+    @Test
+    public void testBindAppWithNullValuesAsArgumentsThrowsNullPointerException() {
+        //given
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(
+                mock(DefaultCloudFoundryOperations.class));
+
+        //when + then
+        assertThrows(NullPointerException.class, () ->
+                applicationsOperations.bindToService(null, "someService"));
+
+        assertThrows(NullPointerException.class, () ->
+                applicationsOperations.bindToService("someApp", null));
+    }
+
+    @Test
+    public void testUnbindAppSucceeds() {
+        // given
+        DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
+        Services servicesMock = mock(Services.class);
+        when(cfOperationsMock.services()).thenReturn(servicesMock);
+        when(servicesMock.unbind(any(UnbindServiceInstanceRequest.class)))
+                .thenReturn(Mono.just(mock(Void.class)));
+
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperationsMock);
+
+        // when
+        Mono<Void> unbindFromServiceResult = applicationsOperations.unbindFromService("someApplication", "someService");
+
+        // then
+        assertThat(unbindFromServiceResult, is(notNullValue()));
+
+        UnbindServiceInstanceRequest unbindFromServiceRequest = UnbindServiceInstanceRequest
+                .builder()
+                .applicationName("someApplication")
+                .serviceInstanceName("someService")
+                .build();
+        verify(servicesMock, times(1)).unbind(unbindFromServiceRequest);
+    }
+
+    @Test
+    public void testUnbindAppWithNullValuesAsArgumentsThrowsNullPointerException() {
+        //given
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(
+                mock(DefaultCloudFoundryOperations.class));
+
+        //when + then
+        assertThrows(NullPointerException.class, () ->
+                applicationsOperations.unbindFromService(null, "someService"));
+
+        assertThrows(NullPointerException.class, () ->
+                applicationsOperations.unbindFromService("someApp", null));
+    }
+
+    @Test
+    public void testAddRouteToAppSucceeds() {
+        // given
+        DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
+        Routes routesMock = mock(Routes.class);
+        when(cfOperationsMock.routes()).thenReturn(routesMock);
+        when(routesMock.map(any(MapRouteRequest.class))).thenReturn(Mono.just(2));
+
+        Domains domainMock = mock(Domains.class);
+        when(cfOperationsMock.domains()).thenReturn(domainMock);
+        when(domainMock.list()).thenReturn(Flux.just(Domain.builder()
+                .id("domainId")
+                .status(Status.OWNED)
+                .name("cfapps.io").build()));
+
+
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperationsMock);
+
+        // when
+        Mono<Void> addRouteResult = applicationsOperations.addRoute("someApplication", "testRoute.cfapps.io");
+        addRouteResult.block();
+
+        // then
+        assertThat(addRouteResult, notNullValue());
+
+        MapRouteRequest mapRouteRequest = MapRouteRequest
+                .builder()
+                .applicationName("someApplication")
+                .domain("cfapps.io")
+                .host("testRoute")
+                .build();
+        verify(domainMock, times(1)).list();
+        verify(routesMock, times(1)).map(mapRouteRequest);
+    }
+
+    @Test
+    public void testAddRouteToAppWithNullValuesAsArgumentsThrowsNullPointerException() {
+        //given
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(
+                mock(DefaultCloudFoundryOperations.class));
+
+        //when + then
+        assertThrows(NullPointerException.class, () ->
+                applicationsOperations.addRoute(null, "someDomain"));
+
+        assertThrows(NullPointerException.class, () ->
+                applicationsOperations.addRoute("someApp", null));
+    }
+
+    @Test
+    public void testRemoveRouteFromAppSucceeds() {
+        // given
+        DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
+        Routes routesMock = mock(Routes.class);
+        when(cfOperationsMock.routes()).thenReturn(routesMock);
+        when(routesMock.unmap(any(UnmapRouteRequest.class))).thenReturn(Mono.just(mock(Void.class)));
+
+        Domains domainMock = mock(Domains.class);
+        when(cfOperationsMock.domains()).thenReturn(domainMock);
+        when(domainMock.list()).thenReturn(Flux.just(Domain.builder()
+                .id("domainId")
+                .status(Status.OWNED)
+                .name("cfapps.io").build()));
+
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperationsMock);
+
+        // when
+        Mono<Void> addRouteResult = applicationsOperations.removeRoute("someApplication", "test.cfapps.io");
+        addRouteResult.block();
+
+        // then
+        assertThat(addRouteResult, is(notNullValue()));
+
+        UnmapRouteRequest unmapRouteRequest = UnmapRouteRequest
+                .builder()
+                .applicationName("someApplication")
+                .domain("cfapps.io")
+                .host("test")
+                .build();
+        verify(routesMock, times(1)).unmap(unmapRouteRequest);
+    }
+
+    @Test
+    public void testRemoveRouteFromAppWithNullValuesAsArgumentsThrowsNullPointerException() {
+        //given
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(
+                mock(DefaultCloudFoundryOperations.class));
+
+        //when + then
+        assertThrows(NullPointerException.class, () ->
+                applicationsOperations.removeRoute(null, "someDomain"));
+
+        assertThrows(NullPointerException.class, () ->
+                applicationsOperations.removeRoute("someApp", null));
     }
 
     /**
@@ -375,15 +678,15 @@ public class ApplicationsOperationsTest {
             .randomRoute(true)
             .routes(Route.builder().route("route1").build(),
                 Route.builder().route("route2").build())
-            .services("serviceomega")
+            .services("servicealpha", "serviceomega")
             .stack("nope")
             .timeout(987654321)
             .build();
     }
 
-    private DefaultCloudFoundryOperations getCloudFoundryOperations(Map<String, ApplicationManifest> apps,
-                                                                    Map<String, Metadata> metadata,
-                                                                    Throwable pushAppError) {
+    private DefaultCloudFoundryOperations getCloudFoundryOperationsMock(Map<String, ApplicationManifest> apps,
+                                                                        Map<String, Metadata> metadata,
+                                                                        Throwable pushAppError) {
         ApplicationsV3 applicationsV3Mock = ApplicationsV3MockBuilder
                 .get()
                 .setMetadata(metadata)

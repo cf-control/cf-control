@@ -5,14 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import org.cloudfoundry.operations.applications.ApplicationDetail;
-import org.cloudfoundry.operations.applications.ApplicationManifest;
-import org.cloudfoundry.operations.applications.ApplicationSummary;
-import org.cloudfoundry.operations.applications.Applications;
-import org.cloudfoundry.operations.applications.DeleteApplicationRequest;
-import org.cloudfoundry.operations.applications.GetApplicationManifestRequest;
-import org.cloudfoundry.operations.applications.GetApplicationRequest;
-import org.cloudfoundry.operations.applications.PushApplicationManifestRequest;
+import org.cloudfoundry.operations.applications.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -74,8 +67,20 @@ public class ApplicationsMockBuilder {
         mockPushManifest(applicationsMock);
         mockDelete(applicationsMock);
         mockGet(applicationsMock);
+        mockScale(applicationsMock);
+        mockRename(applicationsMock);
 
         return applicationsMock;
+    }
+
+    private void mockRename(Applications applicationsMock) {
+        when(applicationsMock.rename(any(RenameApplicationRequest.class)))
+                .thenReturn(Mono.just(mock(Void.class)));
+    }
+
+    private void mockScale(Applications applicationsMock) {
+        when(applicationsMock.scale(any(ScaleApplicationRequest.class)))
+                .thenReturn(Mono.just(mock(Void.class)));
     }
 
     private void mockGet(Applications applicationsMock) {
@@ -83,17 +88,21 @@ public class ApplicationsMockBuilder {
                 .thenAnswer(invocation -> {
                     GetApplicationRequest request = invocation.getArgument(0);
 
-                    if (this.apps.containsKey(request.getName())) {
-                        ApplicationManifest appManifest = this.apps.get(request.getName());
-                        return Mono.just(toApplicationDetail(request.getName(), appManifest));
+                    if (appExists(request.getName())) {
+                        Map.Entry<String, ApplicationManifest> appEntry = this.apps.entrySet()
+                                .stream()
+                                .filter(entry -> entry.getValue().getName().equals(request.getName()))
+                                .findFirst()
+                                .get();
+                        return Mono.just(toApplicationDetail(appEntry.getKey(), appEntry.getValue()));
                     }
-                    Map.Entry<String, ApplicationManifest> appManifestEntry = this.apps.entrySet()
-                            .stream()
-                            .filter(entry -> entry.getValue().getName().equals(request.getName()))
-                            .findFirst()
-                            .get();
-                    return Mono.just(toApplicationDetail(appManifestEntry.getKey(), appManifestEntry.getValue()));
+
+                    return Mono.empty();
                 });
+    }
+
+    private boolean appExists(String name) {
+        return this.apps.values().stream().anyMatch(appManifest -> appManifest.getName().equals(name));
     }
 
     private void mockDelete(Applications applicationsMock) {

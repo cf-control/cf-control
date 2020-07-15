@@ -9,12 +9,7 @@ import org.cloudfoundry.client.v3.Lifecycle;
 import org.cloudfoundry.client.v3.LifecycleData;
 import org.cloudfoundry.client.v3.LifecycleType;
 import org.cloudfoundry.client.v3.Metadata;
-import org.cloudfoundry.client.v3.applications.ApplicationState;
-import org.cloudfoundry.client.v3.applications.ApplicationsV3;
-import org.cloudfoundry.client.v3.applications.GetApplicationRequest;
-import org.cloudfoundry.client.v3.applications.GetApplicationResponse;
-import org.cloudfoundry.client.v3.applications.UpdateApplicationRequest;
-import org.cloudfoundry.client.v3.applications.UpdateApplicationResponse;
+import org.cloudfoundry.client.v3.applications.*;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import reactor.core.publisher.Mono;
 
@@ -59,8 +54,14 @@ public class ApplicationsV3MockBuilder {
 
         mockUpdate(applicationsV3Mock);
         mockGet(applicationsV3Mock);
+        mockCreate(applicationsV3Mock);
 
         return applicationsV3Mock;
+    }
+
+    private void mockCreate(ApplicationsV3 applicationsV3Mock) {
+        when(applicationsV3Mock.create(any(CreateApplicationRequest.class)))
+                .thenReturn(Mono.just(mock(CreateApplicationResponse.class)));
     }
 
     private void mockGet(ApplicationsV3 applicationsV3Mock) {

@@ -9,7 +9,6 @@ import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
 import cloud.foundry.cli.crosscutting.mapping.YamlMapper;
 import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
 import cloud.foundry.cli.logic.ApplyLogic;
-import cloud.foundry.cli.operations.SpaceOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 
 import java.util.concurrent.Callable;
@@ -134,13 +133,11 @@ public class ApplyController implements Callable<Integer> {
         @Override
         public Integer call() throws Exception {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
-            SpaceOperations spaceOperations = new SpaceOperations(cfOperations);
-
             ApplyLogic applyLogic = new ApplyLogic(cfOperations);
             String desiredSpace = loginOptions.getSpace();
 
             if (desiredSpace != null) {
-                applyLogic.applySpace(desiredSpace, spaceOperations);
+                applyLogic.applySpace(desiredSpace);
             } else {
                 log.info("No space specified.");
             }
