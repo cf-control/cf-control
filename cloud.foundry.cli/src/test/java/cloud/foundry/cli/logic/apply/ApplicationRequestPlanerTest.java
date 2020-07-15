@@ -60,7 +60,7 @@ class ApplicationRequestPlanerTest {
 
         // then
         assertThat(requests, notNullValue());
-        verify(appOperations, times(1)).create("testApp", applicationBean, false);
+        verify(appOperations, times(1)).create("testApp", applicationBean, true);
     }
 
     @Test
@@ -91,7 +91,7 @@ class ApplicationRequestPlanerTest {
         cfChanges.add(newObject);
         Void voidMock = mock(Void.class);
         Mono<Void> monoMock = Mono.just(voidMock);
-        when(appOperations.create(appName, appBeanMock, false)).thenReturn(monoMock);
+        when(appOperations.create(anyString(), any(), anyBoolean())).thenReturn(monoMock);
 
         ApplicationRequestsPlaner requestsPlaner = new ApplicationRequestsPlaner(appOperations);
 
@@ -99,7 +99,7 @@ class ApplicationRequestPlanerTest {
         Flux<Void> requests = requestsPlaner.createApplyRequests(appName, cfChanges);
 
         // then
-        verify(appOperations, times(1)).create(appName, appBeanMock, false);
+        verify(appOperations, times(1)).create(appName, appBeanMock, true);
         StepVerifier.create(requests)
             .expectNext(voidMock)
             .expectComplete()
@@ -115,7 +115,7 @@ class ApplicationRequestPlanerTest {
         ApplicationBean appBeanMock = mock(ApplicationBean.class);
         CfNewObject newObject = new CfNewObject(appBeanMock, "", Arrays.asList("path"));
         cfChanges.add(newObject);
-        doThrow(new CreationException("Test")).when(appOperations).create(appName, appBeanMock, false);
+        doThrow(new CreationException("Test")).when(appOperations).create(appName, appBeanMock, true);
 
         ApplicationRequestsPlaner requestsPlaner = new ApplicationRequestsPlaner(appOperations);
 
@@ -375,7 +375,7 @@ class ApplicationRequestPlanerTest {
 
         // then
         assertThat(requests, notNullValue());
-        verify(appOperations, times(1)).update("testApp", applicationBean, false);
+        verify(appOperations, times(1)).update("testApp", applicationBean, true);
         verifyNoMoreInteractions(appOperations);
         StepVerifier.create(requests)
                 .expectNext(voidMock)
@@ -436,7 +436,7 @@ class ApplicationRequestPlanerTest {
 
         // then
         assertThat(requests, notNullValue());
-        verify(appOperations, times(1)).update("testApp", applicationBean, false);
+        verify(appOperations, times(1)).update("testApp", applicationBean, true);
         verifyNoMoreInteractions(appOperations);
     }
 

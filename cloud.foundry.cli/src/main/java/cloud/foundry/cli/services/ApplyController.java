@@ -56,7 +56,7 @@ public class ApplyController implements Callable<Integer> {
                     ConfigBean.class);
             log.verbose("YAML file interpreted.");
 
-            if(desiredConfigBean.getSpec() == null || desiredConfigBean.getSpec().getSpaceDevelopers() == null) {
+            if (desiredConfigBean.getSpec() == null || desiredConfigBean.getSpec().getSpaceDevelopers() == null) {
                 log.info("No spaceDevelopers node specified in the yaml file. Nothing to apply...");
                 return 0;
             }
@@ -92,7 +92,7 @@ public class ApplyController implements Callable<Integer> {
                     ConfigBean.class);
             log.verbose("YAML file interpreted.");
 
-            if(desiredConfigBean.getSpec() == null || desiredConfigBean.getSpec().getApps() == null) {
+            if (desiredConfigBean.getSpec() == null || desiredConfigBean.getSpec().getApps() == null) {
                 log.info("No apps node specified in the yaml file. Nothing to apply...");
                 return 0;
             }
@@ -126,7 +126,7 @@ public class ApplyController implements Callable<Integer> {
                     ConfigBean.class);
             log.verbose("YAML file interpreted.");
 
-            if(desiredConfigBean.getSpec() == null || desiredConfigBean.getSpec().getServices() == null) {
+            if (desiredConfigBean.getSpec() == null || desiredConfigBean.getSpec().getServices() == null) {
                 log.info("No services node specified in the yaml file. Nothing to apply...");
                 return 0;
             }
