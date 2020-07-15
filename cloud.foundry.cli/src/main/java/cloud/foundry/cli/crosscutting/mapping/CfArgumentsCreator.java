@@ -86,8 +86,10 @@ public class CfArgumentsCreator {
         }
 
         log.verbose("User has not passed values for arguments ", missingOptions, ", using default values");
-
-        if (asList(args).contains("get")) {
+        // In apply space we don't have a yaml file. Should behave in the same way as the get command
+        //TODO: Remove the contains space condition after creating apply all US is done
+        //and apply subcommands are removed
+        if (asList(args).contains("get") || asList(args).contains("space")) {
             // get missing values from config-properties File and extend to get command
             return extendForGetCommand(missingOptions, new LinkedList<>(asList(args)));
         } else {
