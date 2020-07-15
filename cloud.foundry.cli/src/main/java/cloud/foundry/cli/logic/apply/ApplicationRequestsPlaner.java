@@ -6,9 +6,7 @@ import cloud.foundry.cli.crosscutting.exceptions.ApplyException;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationManifestBean;
-import cloud.foundry.cli.crosscutting.mapping.validation.Field;
 import cloud.foundry.cli.crosscutting.mapping.validation.ObjectPropertyValidation;
-import cloud.foundry.cli.crosscutting.mapping.validation.ScalarField;
 import cloud.foundry.cli.logic.diff.change.CfChange;
 import cloud.foundry.cli.logic.diff.change.ChangeType;
 import cloud.foundry.cli.logic.diff.change.container.CfContainerChange;
@@ -29,32 +27,44 @@ import java.util.function.Predicate;
 
 /**
  * This class is responsible to build the requests in the context of
- * applications according to the CfChanges. The class does create the request
- * tasks by implementing the {@link CfChangeVisitor} interface.
+ * applications according to the CfChanges.
  */
 public class ApplicationRequestsPlaner {
 
     private static final Log log = Log.getLog(ApplicationRequestsPlaner.class);
 
-    private static final Map<String, Field> FIELDS_REQUIRE_RESTART = new HashMap<String, Field>() {{
-        put("meta", new ScalarField(ApplicationBean.class, "meta", String.class));
-        put("path", new ScalarField(ApplicationBean.class, "path", String.class));
-        put("buildpack", new ScalarField(ApplicationManifestBean.class, "buildpack", String.class));
-        put("command", new ScalarField(ApplicationManifestBean.class, "command", String.class));
-        put("stack", new ScalarField(ApplicationManifestBean.class, "stack", String.class));
-        put("healthCheckType", new ScalarField(ApplicationManifestBean.class,
-                "healthCheckType",
-                ApplicationHealthCheck.class));
-        put("healthCheckHttpEndpoint",
-                new ScalarField(ApplicationManifestBean.class,
-                "healthCheckHttpEndpoint",
-                        String.class));
-        put("memory", new ScalarField(ApplicationManifestBean.class, "memory", Integer.class));
-        put("disk", new ScalarField(ApplicationManifestBean.class, "disk", Integer.class));
+    private static final String META_FIELD_NAME = "meta";
+    private static final String PATH_FIELD_NAME = "path";
+    private static final String BUILDPACK_FIELD_NAME = "buildpack";
+    private static final String COMMAND_FIELD_NAME = "command";
+    private static final String STACK_FIELD_NAME = "stack";
+    private static final String HEALTH_CHECK_TYPE_FIELD_NAME = "healthCheckType";
+    private static final String HEALTH_CHECK_HTTP_ENDPOINT_FIELD_NAME = "healthCheckHttpEndpoint";
+    private static final String MEMORY_FIELD_NAME = "memory";
+    private static final String DISK_FIELD_NAME = "disk";
+
+    private static final Set<String> FIELDS_REQUIRE_RESTART = new HashSet<String>() {{
+        add(META_FIELD_NAME);
+        add(PATH_FIELD_NAME);
+        add(BUILDPACK_FIELD_NAME);
+        add(COMMAND_FIELD_NAME);
+        add(STACK_FIELD_NAME);
+        add(HEALTH_CHECK_TYPE_FIELD_NAME);
+        add(HEALTH_CHECK_HTTP_ENDPOINT_FIELD_NAME);
+        add(MEMORY_FIELD_NAME);
+        add(DISK_FIELD_NAME);
     }};
 
     static {
-        ObjectPropertyValidation.checkPropertiesExist(FIELDS_REQUIRE_RESTART.values());
+        ObjectPropertyValidation.checkFieldExists(ApplicationBean.class, META_FIELD_NAME, String.class);
+        ObjectPropertyValidation.checkFieldExists(ApplicationBean.class, PATH_FIELD_NAME, String.class);
+        ObjectPropertyValidation.checkFieldExists(ApplicationManifestBean.class, BUILDPACK_FIELD_NAME, String.class);
+        ObjectPropertyValidation.checkFieldExists(ApplicationManifestBean.class, COMMAND_FIELD_NAME, String.class);
+        ObjectPropertyValidation.checkFieldExists(ApplicationManifestBean.class, STACK_FIELD_NAME, String.class);
+        ObjectPropertyValidation.checkFieldExists(ApplicationManifestBean.class, HEALTH_CHECK_TYPE_FIELD_NAME, ApplicationHealthCheck.class);
+        ObjectPropertyValidation.checkFieldExists(ApplicationManifestBean.class, HEALTH_CHECK_HTTP_ENDPOINT_FIELD_NAME, String.class);
+        ObjectPropertyValidation.checkFieldExists(ApplicationManifestBean.class, MEMORY_FIELD_NAME, Integer.class);
+        ObjectPropertyValidation.checkFieldExists(ApplicationManifestBean.class, DISK_FIELD_NAME, Integer.class);
     }
 
     private final ApplicationsOperations appOperations;
@@ -127,7 +137,7 @@ public class ApplicationRequestsPlaner {
     }
 
     private boolean hasFieldsThatRequireRestart(List<CfChange> changes) {
-        return changes.stream().anyMatch(change -> FIELDS_REQUIRE_RESTART.containsKey(change.getPropertyName()));
+        return changes.stream().anyMatch(change -> FIELDS_REQUIRE_RESTART.contains(change.getPropertyName()));
     }
 
     private boolean hasRemovedObject(List<CfChange> changes) {

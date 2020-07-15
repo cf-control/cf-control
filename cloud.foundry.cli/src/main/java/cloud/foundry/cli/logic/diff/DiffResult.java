@@ -2,15 +2,12 @@ package cloud.foundry.cli.logic.diff;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import cloud.foundry.cli.crosscutting.mapping.validation.ListField;
-import cloud.foundry.cli.crosscutting.mapping.validation.MapField;
 import cloud.foundry.cli.crosscutting.mapping.validation.ObjectPropertyValidation;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.TargetBean;
-import cloud.foundry.cli.crosscutting.mapping.validation.ScalarField;
 import cloud.foundry.cli.logic.diff.change.CfChange;
 import cloud.foundry.cli.logic.diff.change.container.CfContainerChange;
 import cloud.foundry.cli.logic.diff.change.object.CfObjectValueChanged;
@@ -39,23 +36,12 @@ public class DiffResult {
 
     // ensure that the bean classes have fields with according names and types
     static {
-        ObjectPropertyValidation.checkFieldExists(
-                new ScalarField(ConfigBean.class, TARGET_FIELD_NAME, TargetBean.class));
-
-        ObjectPropertyValidation.checkFieldExists(
-                new ScalarField(ConfigBean.class, SPEC_FIELD_NAME, SpecBean.class));
-
-        ObjectPropertyValidation.checkMapExists(
-                new MapField(SpecBean.class, APPS_FIELD_NAME, String.class, ApplicationBean.class));
-
-        ObjectPropertyValidation.checkMapExists(
-                new MapField(SpecBean.class, SERVICES_FIELD_NAME, String.class, ServiceBean.class));
-
-        ObjectPropertyValidation.checkListExists(
-                new ListField(SpecBean.class, SPACE_DEVELOPERS_PROPERTY_NAME, String.class));
-
-        ObjectPropertyValidation.checkFieldExists(
-                new ScalarField(ConfigBean.class, API_VERSION_PROPERTY_NAME, String.class));
+        ObjectPropertyValidation.checkFieldExists(ConfigBean.class, TARGET_FIELD_NAME, TargetBean.class);
+        ObjectPropertyValidation.checkFieldExists(ConfigBean.class, SPEC_FIELD_NAME, SpecBean.class);
+        ObjectPropertyValidation.checkMapExists(SpecBean.class, APPS_FIELD_NAME, String.class, ApplicationBean.class);
+        ObjectPropertyValidation.checkMapExists(SpecBean.class, SERVICES_FIELD_NAME, String.class, ServiceBean.class);
+        ObjectPropertyValidation.checkListExists(SpecBean.class, SPACE_DEVELOPERS_PROPERTY_NAME, String.class);
+        ObjectPropertyValidation.checkFieldExists(ConfigBean.class, API_VERSION_PROPERTY_NAME, String.class);
     }
 
     private final DiffNode rootNode;
