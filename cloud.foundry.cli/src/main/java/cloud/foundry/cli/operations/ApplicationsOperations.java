@@ -110,10 +110,10 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
     }
 
     /**
-     * Prepares a request for pushing an app to the cloud foundry instance specified
+     * Prepares a request for updating the app to the cloud foundry instance specified
      * within the cloud foundry operations instance. The resulting mono is
      * preconfigured such that it will perform logging.
-     * Essentially this method is equivalent to the create method.
+     * Currently implemented by removing the app and afterwards newly creating it.
      *
      * @param appName     name of the application
      * @param bean        application bean that holds the configuration settings to
@@ -475,11 +475,12 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
 
     /**
      * Prepares a request for adding a route to an app.
+     * This process will create the route.
      * The resulting mono is preconfigured such that it will perform logging.
      *
      * @param applicationName the app to which the route should be added
-     * @param route the domain of the route to add to the app
-     * @return mono which can be subscribed on to trigger the route addition, that delivers the port number of the route
+     * @param route the route to be added from the app
+     * @return mono which can be subscribed on to trigger the route addition
      * @throws NullPointerException if any of the arguments is null
      */
     public Mono<Void> addRoute(String applicationName, String route) {
@@ -509,10 +510,11 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
 
     /**
      * Prepares a request for removing a route of an app.
+     * This process will also remove the route itself.
      * The resulting mono is preconfigured such that it will perform logging.
      *
      * @param applicationName the app of which the route should be removed
-     * @param route the domain of the route to remove from the app
+     * @param route the route to be removed from the app
      * @return mono which can be subscribed on to trigger the route removal
      * @throws NullPointerException if any of the arguments is null
      */
