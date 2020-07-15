@@ -413,9 +413,10 @@ public class ApplyLogicTest {
         // the constructor paramteres won't be used by apply space method, because it uses
         // dependency injection regarding space operations
         ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
+        applyLogic.setSpaceOperations(spaceOperationsMock);
 
         // when
-        applyLogic.applySpace(desiredSpaceName, spaceOperationsMock);
+        applyLogic.applySpace(desiredSpaceName);
 
         // then
         verify(resultingMono).block();
@@ -436,9 +437,10 @@ public class ApplyLogicTest {
         // the constructor paramteres won't be used by apply space method, because it uses DI
         // regarding space operations.
         ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
+        applyLogic.setSpaceOperations(spaceOperationsMock);
 
         // when
-        applyLogic.applySpace(desiredSpaceName, spaceOperationsMock);
+        applyLogic.applySpace(desiredSpaceName);
 
         // then
         verify(resultingMono, never()).block();
@@ -457,10 +459,11 @@ public class ApplyLogicTest {
         // the constructor parameters won't be used by apply space method, because it uses DI
         // regarding space operations.
         ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
+        applyLogic.setSpaceOperations(spaceOperationsMock);
 
         // when + then
         assertThrows(GetException.class, () ->
-                applyLogic.applySpace(desiredSpaceName, spaceOperationsMock));
+                applyLogic.applySpace(desiredSpaceName));
     }
 
     @Test
@@ -480,10 +483,11 @@ public class ApplyLogicTest {
         // the constructor parameters won't be used by apply space method, because it uses DI
         // regarding space operations.
         ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
+        applyLogic.setSpaceOperations(spaceOperationsMock);
 
         // when + then
         assertThrows(ApplyException.class, () ->
-                applyLogic.applySpace(desiredSpaceName, spaceOperationsMock));
+                applyLogic.applySpace(desiredSpaceName));
     }
 
     @Test
@@ -492,13 +496,11 @@ public class ApplyLogicTest {
         ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
 
         SpaceOperations spaceOperationsMock = mock(SpaceOperations.class);
+        applyLogic.setSpaceOperations(spaceOperationsMock);
 
         // when + then
         assertThrows(NullPointerException.class, () ->
-                applyLogic.applySpace(null, spaceOperationsMock));
-
-        assertThrows(NullPointerException.class, () ->
-                applyLogic.applySpace("testName", null));
+                applyLogic.applySpace(null));
     }
 
 }

@@ -134,13 +134,11 @@ public class ApplyController implements Callable<Integer> {
         @Override
         public Integer call() throws Exception {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
-            SpaceOperations spaceOperations = new SpaceOperations(cfOperations);
-
             ApplyLogic applyLogic = new ApplyLogic(cfOperations);
             String desiredSpace = loginOptions.getSpace();
 
             if (desiredSpace != null) {
-                applyLogic.applySpace(desiredSpace, spaceOperations);
+                applyLogic.applySpace(desiredSpace);
             } else {
                 log.info("No space specified.");
             }

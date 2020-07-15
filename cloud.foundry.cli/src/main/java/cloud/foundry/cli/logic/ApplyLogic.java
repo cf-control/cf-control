@@ -44,6 +44,7 @@ public class ApplyLogic {
     private SpaceDevelopersOperations spaceDevelopersOperations;
     private ServicesOperations servicesOperations;
     private ApplicationsOperations applicationsOperations;
+    private SpaceOperations spaceOperations;
 
 
     /**
@@ -59,12 +60,17 @@ public class ApplyLogic {
         this.spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
         this.servicesOperations = new ServicesOperations(cfOperations);
         this.applicationsOperations = new ApplicationsOperations(cfOperations);
+        this.spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
         this.getLogic = new GetLogic();
         this.diffLogic = new DiffLogic();
     }
 
     public void setApplicationsOperations(ApplicationsOperations applicationsOperations) {
         this.applicationsOperations = applicationsOperations;
+    }
+
+    public void setSpaceOperations(SpaceOperations spaceOperations) {
+        this.spaceOperations = spaceOperations;
     }
 
     /**
@@ -189,14 +195,12 @@ public class ApplyLogic {
     /**
      * Creates a space with the desired name if a space with such a name does not exist in the live cf instance.
      * @param desiredSpaceName the name of the desired space
-     * @param spaceOperations the spacesOperations used to query and create spaces
-     * @throws NullPointerException if the desired paramerters are null
+     * @throws NullPointerException if the desired paramerter is null
      * @throws ApplyException in case of errors during the creation of the desired space
      * @throws GetException in case of errors during querying the space names
      */
-    public void applySpace(String desiredSpaceName, SpaceOperations spaceOperations) {
+    public void applySpace(String desiredSpaceName) {
         checkNotNull(desiredSpaceName);
-        checkNotNull(spaceOperations);
 
         Mono<List<String>> getAllRequest = spaceOperations.getAll();
         log.info("Fetching all space names...");
