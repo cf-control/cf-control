@@ -37,19 +37,19 @@ class ApplicationRequestPlanerTest {
     @Test
     void applyTest_WithMultipleNewObject_AcceptMethodCallOnOnlyOne() {
         // given
-        ApplicationsOperations appOperations = Mockito.mock(ApplicationsOperations.class);
+        ApplicationsOperations appOperations = mock(ApplicationsOperations.class);
         when(appOperations.create(any(String.class), any(ApplicationBean.class), any(boolean.class)))
                 .thenReturn(Mono.just(mock(Void.class)));
 
         String appName = "testApp";
 
         LinkedList<CfChange> cfChanges = new LinkedList<>();
-        CfNewObject newObject = Mockito.mock(CfNewObject.class);
+        CfNewObject newObject = mock(CfNewObject.class);
         ApplicationBean applicationBean = new ApplicationBean();
         when(newObject.getAffectedObject())
                 .thenReturn(applicationBean);
 
-        CfNewObject newObject2 = Mockito.mock(CfNewObject.class);
+        CfNewObject newObject2 = mock(CfNewObject.class);
 
         cfChanges.add(newObject);
         cfChanges.add(newObject2);
@@ -67,7 +67,7 @@ class ApplicationRequestPlanerTest {
     @Test
     void applyTest_WithChangeObjectNotAppBeanOrAppManifestBean() {
         // given
-        ApplicationsOperations appOperations = Mockito.mock(ApplicationsOperations.class);
+        ApplicationsOperations appOperations = mock(ApplicationsOperations.class);
         String appName = "testApp";
         LinkedList<CfChange> cfChanges = new LinkedList<>();
         ServiceBean serviceBeanMock = mock(ServiceBean.class);
@@ -84,7 +84,7 @@ class ApplicationRequestPlanerTest {
     @Test
     void applyTest_WithNewChangeObject_AppCreated() throws CreationException {
         // given
-        ApplicationsOperations appOperations = Mockito.mock(ApplicationsOperations.class);
+        ApplicationsOperations appOperations = mock(ApplicationsOperations.class);
         String appName = "testApp";
         LinkedList<CfChange> cfChanges = new LinkedList<>();
         ApplicationBean appBeanMock = mock(ApplicationBean.class);
@@ -110,7 +110,7 @@ class ApplicationRequestPlanerTest {
     @Test
     void applyTest_WithNewChangeObject_CreationException() throws CreationException {
         // given
-        ApplicationsOperations appOperations = Mockito.mock(ApplicationsOperations.class);
+        ApplicationsOperations appOperations = mock(ApplicationsOperations.class);
         String appName = "testApp";
         LinkedList<CfChange> cfChanges = new LinkedList<>();
         ApplicationBean appBeanMock = mock(ApplicationBean.class);
@@ -130,7 +130,7 @@ class ApplicationRequestPlanerTest {
     @Test
     void applyTest_WithRemovedObject_AppRemoved() throws CreationException {
         // given
-        ApplicationsOperations appOperations = Mockito.mock(ApplicationsOperations.class);
+        ApplicationsOperations appOperations = mock(ApplicationsOperations.class);
         String appName = "testApp";
         LinkedList<CfChange> cfChanges = new LinkedList<>();
         ApplicationBean appBeanMock = mock(ApplicationBean.class);
@@ -157,7 +157,7 @@ class ApplicationRequestPlanerTest {
     @Test
     void applyTest_WithRemovedObjectNotAppBeanOrAppManifestBean() {
         // given
-        ApplicationsOperations appOperations = Mockito.mock(ApplicationsOperations.class);
+        ApplicationsOperations appOperations = mock(ApplicationsOperations.class);
         String appName = "testApp";
         LinkedList<CfChange> cfChanges = new LinkedList<>();
         ServiceBean serviceBeanMock = mock(ServiceBean.class);
@@ -175,7 +175,7 @@ class ApplicationRequestPlanerTest {
     @Test
     void applyTest_OnlyScalableField() {
         // given
-        ApplicationsOperations appOperations = Mockito.mock(ApplicationsOperations.class);
+        ApplicationsOperations appOperations = mock(ApplicationsOperations.class);
         when(appOperations.scale(any(), any(), any(), any()))
                 .thenReturn(Mono.just(mock(Void.class)));
 
@@ -206,7 +206,7 @@ class ApplicationRequestPlanerTest {
     @Test
     void applyTest_OnlyEnvironmentVariables() {
         // given
-        ApplicationsOperations appOperations = Mockito.mock(ApplicationsOperations.class);
+        ApplicationsOperations appOperations = mock(ApplicationsOperations.class);
         Void voidMockAdded = mock(Void.class);
         when(appOperations.addEnvironmentVariable(any(), any(), any()))
                 .thenReturn(Mono.just(voidMockAdded));
@@ -261,7 +261,7 @@ class ApplicationRequestPlanerTest {
     @Test
     void applyTest_OnlyServices() {
         // given
-        ApplicationsOperations appOperations = Mockito.mock(ApplicationsOperations.class);
+        ApplicationsOperations appOperations = mock(ApplicationsOperations.class);
 
         Void voidMockAdded = mock(Void.class);
         when(appOperations.bindToService(anyString(), anyString()))
@@ -306,7 +306,7 @@ class ApplicationRequestPlanerTest {
     @Test
     void applyTest_OnlyRoutes() {
         // given
-        ApplicationsOperations appOperations = Mockito.mock(ApplicationsOperations.class);
+        ApplicationsOperations appOperations = mock(ApplicationsOperations.class);
 
         Void voidMockAdded = mock(Void.class);
         when(appOperations.addRoute(anyString(), anyString()))
@@ -352,7 +352,7 @@ class ApplicationRequestPlanerTest {
     @Test
     void applyTest_OnFieldThatRequiresRestartUpdatesTheApp() {
         // given
-        ApplicationsOperations appOperations = Mockito.mock(ApplicationsOperations.class);
+        ApplicationsOperations appOperations = mock(ApplicationsOperations.class);
         Void voidMock = mock(Void.class);
         when(appOperations.update(anyString(), any(), anyBoolean()))
                 .thenReturn(Mono.just(voidMock));
@@ -387,7 +387,7 @@ class ApplicationRequestPlanerTest {
     @Test
     void applyTest_FieldThatRequiresRestartAndFieldThatDoesNotRequireRestart() {
         // given
-        ApplicationsOperations appOperations = Mockito.mock(ApplicationsOperations.class);
+        ApplicationsOperations appOperations = mock(ApplicationsOperations.class);
         Void voidUpdateMock = mock(Void.class);
         when(appOperations.update(anyString(), any(), anyBoolean()))
                 .thenReturn(Mono.just(voidUpdateMock));
@@ -444,7 +444,7 @@ class ApplicationRequestPlanerTest {
     @Test
     void applyTest_EmptyChanges() {
         // given
-        ApplicationsOperations appOperations = Mockito.mock(ApplicationsOperations.class);
+        ApplicationsOperations appOperations = mock(ApplicationsOperations.class);
         Void voidMock = mock(Void.class);
         when(appOperations.update(anyString(), any(), anyBoolean()))
                 .thenReturn(Mono.just(voidMock));
