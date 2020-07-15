@@ -42,6 +42,11 @@ public class ApplicationRequestsPlaner {
     private static final String HEALTH_CHECK_HTTP_ENDPOINT_FIELD_NAME = "healthCheckHttpEndpoint";
     private static final String MEMORY_FIELD_NAME = "memory";
     private static final String DISK_FIELD_NAME = "disk";
+    private static final String SERVICES_FIELD_NAME = "services";
+    private static final String ENVIRONMENT_VARIABLES_FIELD_NAME = "environmentVariables";
+    private static final String ROUTES_FIELD_NAME = "routes";
+    private static final String INSTANCES_FIELD_NAME = "instances";
+
 
     // stores field-names related to applications that require an app restart when their values in the configuration are changed
 
@@ -68,6 +73,10 @@ public class ApplicationRequestsPlaner {
         ObjectPropertyValidation.checkFieldExists(ApplicationManifestBean.class, HEALTH_CHECK_HTTP_ENDPOINT_FIELD_NAME, String.class);
         ObjectPropertyValidation.checkFieldExists(ApplicationManifestBean.class, MEMORY_FIELD_NAME, Integer.class);
         ObjectPropertyValidation.checkFieldExists(ApplicationManifestBean.class, DISK_FIELD_NAME, Integer.class);
+        ObjectPropertyValidation.checkListExists(ApplicationManifestBean.class, SERVICES_FIELD_NAME, String.class);
+        ObjectPropertyValidation.checkListExists(ApplicationManifestBean.class, ROUTES_FIELD_NAME, String.class);
+        ObjectPropertyValidation.checkFieldExists(ApplicationManifestBean.class, INSTANCES_FIELD_NAME, Integer.class);
+        ObjectPropertyValidation.checkMapExists(ApplicationManifestBean.class, ENVIRONMENT_VARIABLES_FIELD_NAME, String.class, Object.class);
     }
 
     private final ApplicationsOperations appOperations;
@@ -153,7 +162,7 @@ public class ApplicationRequestsPlaner {
 
     private Flux<Void> getChangedServicesRequests(List<CfChange> changes) {
         Optional<CfChange> optionalServicesChange = getChange(changes,
-                change -> change.getPropertyName().equals("services"));
+                change -> change.getPropertyName().equals(SERVICES_FIELD_NAME));
         List<Mono<Void>> requests = new LinkedList<>();
 
         if (optionalServicesChange.isPresent()) {
@@ -183,7 +192,7 @@ public class ApplicationRequestsPlaner {
 
     private Flux<Void> getChangedEnvironmentVariablesRequests(List<CfChange> changes) {
         Optional<CfChange> optionalEnvVarsChange = getChange(changes,
-                change -> change.getPropertyName().equals("environmentVariables"));
+                change -> change.getPropertyName().equals(ENVIRONMENT_VARIABLES_FIELD_NAME));
 
         if (optionalEnvVarsChange.isPresent()) {
             List<Mono<Void>> requests = new LinkedList<>();
@@ -229,7 +238,7 @@ public class ApplicationRequestsPlaner {
 
     private Publisher<Void> getChangedRoutesRequests(List<CfChange> changes) {
         Optional<CfChange> optionalRoutesChange = getChange(changes,
-                change -> change.getPropertyName().equals("routes"));
+                change -> change.getPropertyName().equals(ROUTES_FIELD_NAME));
         List<Mono<Void>> requests = new LinkedList<>();
 
         if (optionalRoutesChange.isPresent()) {
@@ -259,12 +268,13 @@ public class ApplicationRequestsPlaner {
 
     private Mono<Void> getScaleInstancesRequest(List<CfChange> changes) {
         Optional<CfChange> instancesChange = getChange(changes,
-                change -> change.getPropertyName().equals("instances"));
+                change -> change.getPropertyName().equals(INSTANCES_FIELD_NAME));
 
         if (instancesChange.isPresent()) {
             logChange(instancesChange.get());
 
             ApplicationBean bean = (ApplicationBean) instancesChange.get().getAffectedObject();
+            // only changing instances can be done inplace
             return this.appOperations.scale(applicationName,
                     null,
                     null,
