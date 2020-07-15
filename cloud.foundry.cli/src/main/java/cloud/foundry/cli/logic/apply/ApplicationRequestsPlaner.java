@@ -178,34 +178,41 @@ public class ApplicationRequestsPlaner {
             logChange(enVarsChange);
 
             for (CfMapValueChanged valueChanged : enVarsChange.getChangedValues()) {
-                if (valueChanged.getChangeType() == ChangeType.ADDED) {
-                    log.debug("Adding request to add environment variable",
-                            valueChanged.getKey(),
-                            "with value",
-                            valueChanged.getValueAfter(),
-                            "to application",
-                            applicationName);
-                    requests.add(this.appOperations.addEnvironmentVariable(applicationName,
-                            valueChanged.getKey(),
-                            valueChanged.getValueAfter()));
-                } else if (valueChanged.getChangeType() == ChangeType.CHANGED) {
-                    log.debug("Adding request to change environment variable",
-                            valueChanged.getKey(),
-                            "from value",
-                            valueChanged.getValueBefore(),
-                            "to value",
-                            valueChanged.getValueAfter(),
-                            "for  application",
-                            applicationName);
-                    requests.add(this.appOperations.addEnvironmentVariable(applicationName,
-                            valueChanged.getKey(),
-                            valueChanged.getValueAfter()));
-                } else {
-                    log.debug("Adding request to remove environment variable",
-                            valueChanged.getKey(),
-                            "from application",
-                            applicationName);
-                    requests.add(this.appOperations.removeEnvironmentVariable(applicationName, valueChanged.getKey()));
+                switch (valueChanged.getChangeType()) {
+                    case ADDED:
+                        log.debug("Adding request to add environment variable",
+                                valueChanged.getKey(),
+                                "with value",
+                                valueChanged.getValueAfter(),
+                                "to application",
+                                applicationName);
+                        requests.add(this.appOperations.addEnvironmentVariable(applicationName,
+                                valueChanged.getKey(),
+                                valueChanged.getValueAfter()));
+                        break;
+                    case CHANGED:
+                        log.debug("Adding request to change environment variable",
+                                valueChanged.getKey(),
+                                "from value",
+                                valueChanged.getValueBefore(),
+                                "to value",
+                                valueChanged.getValueAfter(),
+                                "for  application",
+                                applicationName);
+                        requests.add(this.appOperations.addEnvironmentVariable(applicationName,
+                                valueChanged.getKey(),
+                                valueChanged.getValueAfter()));
+                        break;
+                    case REMOVED:
+                        log.debug("Adding request to remove environment variable",
+                                valueChanged.getKey(),
+                                "from application",
+                                applicationName);
+                        requests.add(this.appOperations.removeEnvironmentVariable(applicationName,
+                                valueChanged.getKey()));
+                        break;
+                    default:
+                        throw new AssertionError("Encountered an unknown change type");
                 }
             }
             return Flux.concat(requests);
