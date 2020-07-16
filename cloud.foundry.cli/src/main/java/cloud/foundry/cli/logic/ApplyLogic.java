@@ -15,10 +15,8 @@ import cloud.foundry.cli.logic.apply.SpaceDevelopersRequestsPlaner;
 import cloud.foundry.cli.logic.diff.DiffResult;
 import cloud.foundry.cli.logic.diff.change.CfChange;
 import cloud.foundry.cli.logic.diff.change.container.CfContainerChange;
-import cloud.foundry.cli.operations.ApplicationsOperations;
-import cloud.foundry.cli.operations.ServicesOperations;
-import cloud.foundry.cli.operations.SpaceDevelopersOperations;
-import cloud.foundry.cli.operations.SpaceOperations;
+import cloud.foundry.cli.operations.*;
+import cloud.foundry.cli.services.LoginCommandOptions;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -45,6 +43,7 @@ public class ApplyLogic {
     private ServicesOperations servicesOperations;
     private ApplicationsOperations applicationsOperations;
     private SpaceOperations spaceOperations;
+    private ClientOperations clientOperations;
 
 
     /**
@@ -61,6 +60,8 @@ public class ApplyLogic {
         this.servicesOperations = new ServicesOperations(cfOperations);
         this.applicationsOperations = new ApplicationsOperations(cfOperations);
         this.spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
+        this.clientOperations = new ClientOperations(cfOperations);
+
         this.getLogic = new GetLogic();
         this.diffLogic = new DiffLogic();
     }
@@ -71,6 +72,24 @@ public class ApplyLogic {
 
     public void setSpaceOperations(SpaceOperations spaceOperations) {
         this.spaceOperations = spaceOperations;
+    }
+
+    public void applyAll(ConfigBean desiredConfigBean, LoginCommandOptions loginCommandOptions) {
+        ConfigBean liveConfigBean = getLogic.getAll(spaceDevelopersOperations, servicesOperations, applicationsOperations,
+                clientOperations, loginCommandOptions);
+        DiffResult wrappedDiff = this.diffLogic.createDiffResult(liveConfigBean, desiredConfigBean);
+
+        ApplicationRequestsPlaner applicationRequestsPlaner
+                = new ApplicationRequestsPlaner(applicationsOperations);
+
+        SpaceDevelopersRequestsPlaner.createSpaceDevelopersRequests(spaceDevelopersOperations,
+                wrappedDiff.getSpaceDevelopersChange()).mergeWith(
+        Flux.fromIterable(wrappedDiff.getServiceChanges().entrySet())
+                .flatMap(element -> ServiceRequestsPlaner.createApplyRequests(servicesOperations, element.getKey(), element.getValue())
+        )).concatWith(Flux.fromIterable(wrappedDiff.getApplicationChanges().entrySet()).flatMap(
+                element -> applicationRequestsPlaner.createApplyRequests(element.getKey(), element.getValue()
+        )));
+
     }
 
     /**
