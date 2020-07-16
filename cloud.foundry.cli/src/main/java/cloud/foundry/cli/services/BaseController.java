@@ -106,24 +106,24 @@ public class BaseController implements Callable<Integer> {
             } else if (ex instanceof UnsupportedOperationException) {
                 log.error("Operation not supported/implemented:", ex.getMessage());
             } else if (ex instanceof MissingCredentialsException) {
-                log.error("Missing credentials were detected:", ex.getMessage());
+                log.error("Credentials missing:", ex.getMessage());
             } else if (ex instanceof RefResolvingException) {
-                log.error("Failed to resolve " + RefResolver.REF_KEY + "-occurrences:", ex.getMessage());
+                log.error("Failed to resolve " + RefResolver.REF_KEY, "occurrences:", ex.getMessage());
             } else if (ex instanceof ConstructorException) {
-                log.error("Cannot interpret yaml contents:", ex.getMessage());
+                log.error("Failed to interpret YAML file contents:", ex.getMessage());
             } else if (ex instanceof ParserException || ex instanceof ScannerException) {
-                log.error("Cannot parse file contents:", ex.getMessage());
+                log.error("Failed to parse file contents:", ex.getMessage());
             } else if (ex instanceof DiffException) {
                 log.error("Unable to perform the diff:", ex.getMessage());
             } else if (ex instanceof ApplyException) {
-                log.error("An error occurred while processing the apply command:", ex.getMessage());
+                log.error("Apply command failed due to unexpected error", ex.getMessage());
             } else if (ex instanceof GetException) {
                 Throwable getExceptionCause = ex.getCause();
 
                 // the cases that are hard to identify are all wrapped in a GetException
                 if (getExceptionCause.getCause() instanceof UnknownHostException) {
                     // wrapped unknown host exceptions stand for unreachable hosts
-                    log.error("Unable to connect to the CF API host:", getExceptionCause.getMessage());
+                    log.error("Failed to connect to CF API: unknown host:", getExceptionCause.getMessage());
                 } else if (getExceptionCause instanceof IllegalArgumentException) {
                     // illegal argument exceptions seem to denote invalid organizations and spaces
                     log.error("Wrong arguments provided:", getExceptionCause.getMessage());
@@ -136,9 +136,9 @@ public class BaseController implements Callable<Integer> {
                     // it creates lambda class instances which are hard to test on...
                     // by these checks we can make sure, that the exception was caused by invalid credentials
                     log.error("Request to CF API failed: Invalid username or password " +
-                                "(your account might be locked due to too many login attempts with a wrong password)");
+                              "(your account might be locked due to too many login attempts with a wrong password)");
                 } else {
-                    log.error("An unexpected error occurred while processing the get command:", ex.getMessage());
+                    log.error("Get command failed due to unexpected error:", ex.getMessage());
                 }
 
             } else {
@@ -173,7 +173,7 @@ public class BaseController implements Callable<Integer> {
                 try {
                     fileHandler = new FileHandler(controller.logFile);
                 } catch (IOException e) {
-                    log.error("Could not open log file", controller.logFile);
+                    log.error("Failed to open log file", controller.logFile);
                     System.exit(1);
                 }
             }
@@ -188,11 +188,11 @@ public class BaseController implements Callable<Integer> {
             }
             if (controller.loggingOptions.isVerbose()) {
                 Log.setVerboseLogLevel();
-                log.verbose("enabling verbose logging");
+                log.verbose("Enabling verbose logging");
             }
             if (controller.loggingOptions.isDebug()) {
                 Log.setDebugLogLevel();
-                log.debug("enabling debug logging");
+                log.debug("Enabling debug logging");
             }
         }
 

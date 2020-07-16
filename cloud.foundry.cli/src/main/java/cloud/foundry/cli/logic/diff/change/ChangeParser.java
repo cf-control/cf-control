@@ -50,7 +50,7 @@ public class ChangeParser {
             return parsers.get(change.getClass()).parse(change);
         }
 
-        log.debug("Change type " + change.getClass() + " is not supported for parsing. Ignoring it.");
+        log.debug("Ignoring unsupported change type", change.getClass());
         return Collections.emptyList();
     }
 

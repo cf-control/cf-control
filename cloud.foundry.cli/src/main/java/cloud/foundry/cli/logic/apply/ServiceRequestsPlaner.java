@@ -133,7 +133,7 @@ public class ServiceRequestsPlaner extends RequestsPlaner {
         }
 
         try {
-            log.info("Adding remove request for service " + serviceName);
+            log.info("Requesting removal of service", serviceName);
             this.addRequest(servicesOperations.remove(serviceName));
         } catch (UpdateException | NullPointerException e) {
             throw new ApplyException(e);
