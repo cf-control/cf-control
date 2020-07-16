@@ -29,9 +29,9 @@ import java.util.function.Predicate;
  * This class is responsible to build the requests in the context of
  * applications according to the CfChanges.
  */
-public class ApplicationRequestsPlaner {
+public class ApplicationRequestsPlanner {
 
-    private static final Log log = Log.getLog(ApplicationRequestsPlaner.class);
+    private static final Log log = Log.getLog(ApplicationRequestsPlanner.class);
 
     private static final String META_FIELD_NAME = "meta";
     private static final String PATH_FIELD_NAME = "path";
@@ -93,7 +93,7 @@ public class ApplicationRequestsPlaner {
      *
      * @param appOperations the ApplicationOperations object used for
      */
-    public ApplicationRequestsPlaner(ApplicationsOperations appOperations) {
+    public ApplicationRequestsPlanner(ApplicationsOperations appOperations) {
         this.appOperations = appOperations;
     }
 

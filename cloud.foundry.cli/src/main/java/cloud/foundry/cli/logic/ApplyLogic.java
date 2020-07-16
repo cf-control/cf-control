@@ -9,9 +9,9 @@ import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
 import cloud.foundry.cli.crosscutting.exceptions.ApplyException;
-import cloud.foundry.cli.logic.apply.ApplicationRequestsPlaner;
-import cloud.foundry.cli.logic.apply.ServiceRequestsPlaner;
-import cloud.foundry.cli.logic.apply.SpaceDevelopersRequestsPlaner;
+import cloud.foundry.cli.logic.apply.ApplicationRequestsPlanner;
+import cloud.foundry.cli.logic.apply.ServiceRequestsPlanner;
+import cloud.foundry.cli.logic.apply.SpaceDevelopersRequestsPlanner;
 import cloud.foundry.cli.logic.diff.DiffResult;
 import cloud.foundry.cli.logic.diff.change.CfChange;
 import cloud.foundry.cli.logic.diff.change.container.CfContainerChange;
@@ -104,7 +104,7 @@ public class ApplyLogic {
             log.info("No changes detected, nothing to apply");
         } else {
             Flux<Void> spaceDevelopersRequests = Flux.just(spaceDevelopersChange)
-                    .flatMap(spaceDeveloperChange -> SpaceDevelopersRequestsPlaner
+                    .flatMap(spaceDeveloperChange -> SpaceDevelopersRequestsPlanner
                             .createSpaceDevelopersRequests(spaceDevelopersOperations, spaceDeveloperChange))
                     .onErrorContinue(log::warning);
             
@@ -145,10 +145,10 @@ public class ApplyLogic {
         if (allApplicationChanges == null || allApplicationChanges.isEmpty()) {
             log.info("No changes detected, nothing to apply");
         } else {
-            ApplicationRequestsPlaner requestsPlaner = new ApplicationRequestsPlaner(applicationsOperations);
+            ApplicationRequestsPlanner requestsPlanner = new ApplicationRequestsPlanner(applicationsOperations);
 
             Flux<Void> applicationRequests = Flux.fromIterable(allApplicationChanges.entrySet())
-                    .flatMap(appChangeEntry -> requestsPlaner.createApplyRequests(appChangeEntry.getKey(),
+                    .flatMap(appChangeEntry -> requestsPlanner.createApplyRequests(appChangeEntry.getKey(),
                             appChangeEntry.getValue()))
                     .onErrorContinue(log::warning);
 
@@ -187,7 +187,7 @@ public class ApplyLogic {
         log.info("Applying changes to applications");
         Flux<Void> serviceRequests = Flux.fromIterable(allServicesChanges.entrySet())
                 .flatMap( serviceChangeEntry ->
-                        ServiceRequestsPlaner.createApplyRequests(servicesOperations,
+                        ServiceRequestsPlanner.createApplyRequests(servicesOperations,
                                 serviceChangeEntry.getKey(),
                                 serviceChangeEntry.getValue()))
                 .onErrorContinue(log::warning);

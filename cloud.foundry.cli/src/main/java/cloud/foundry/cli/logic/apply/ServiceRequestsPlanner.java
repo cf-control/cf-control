@@ -23,14 +23,14 @@ import java.util.List;
  * according to the CfChanges. The class does create the request tasks by
  * implementing the {@link CfChangeVisitor} interface.
  */
-public class ServiceRequestsPlaner extends RequestsPlaner {
+public class ServiceRequestsPlanner extends RequestsPlanner {
 
-    private static final Log log = Log.getLog(ServiceRequestsPlaner.class);
+    private static final Log log = Log.getLog(ServiceRequestsPlanner.class);
 
     private final ServicesOperations servicesOperations;
     private final String serviceName;
 
-    private ServiceRequestsPlaner(ServicesOperations servicesOperations, String serviceName) {
+    private ServiceRequestsPlanner(ServicesOperations servicesOperations, String serviceName) {
         this.servicesOperations = servicesOperations;
         this.serviceName = serviceName;
     }
@@ -159,13 +159,13 @@ public class ServiceRequestsPlaner extends RequestsPlaner {
         checkNotNull(serviceName);
         checkNotNull(serviceChanges);
 
-        ServiceRequestsPlaner serviceRequestsPlaner = new ServiceRequestsPlaner(servicesOperations,
+        ServiceRequestsPlanner serviceRequestsPlanner = new ServiceRequestsPlanner(servicesOperations,
                 serviceName);
         for (CfChange applicationChange : serviceChanges) {
-            applicationChange.accept(serviceRequestsPlaner);
+            applicationChange.accept(serviceRequestsPlanner);
         }
 
-        return Flux.merge(serviceRequestsPlaner.getRequests());
+        return Flux.merge(serviceRequestsPlanner.getRequests());
     }
 
 }

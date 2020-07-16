@@ -35,7 +35,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-public class ServicesRequestsPlanerTest {
+public class ServicesRequestsPlannerTest {
 
     @Test
     public void testCreateWithNewObjectSucceeds() {
@@ -48,7 +48,7 @@ public class ServicesRequestsPlanerTest {
         List<CfChange> cfChanges = new LinkedList<>();
         cfChanges.add(newChange);
         // when
-        Flux<Void> requests = ServiceRequestsPlaner.createApplyRequests(servicesOperations,
+        Flux<Void> requests = ServiceRequestsPlanner.createApplyRequests(servicesOperations,
                 "someservice",
                 cfChanges);
 
@@ -73,7 +73,7 @@ public class ServicesRequestsPlanerTest {
         cfChanges.add(newChange);
         // when
         assertThrows(ApplyException.class,
-                () -> ServiceRequestsPlaner.createApplyRequests(servicesOperations, "someservice", cfChanges));
+                () -> ServiceRequestsPlanner.createApplyRequests(servicesOperations, "someservice", cfChanges));
     }
 
     @Test
@@ -87,22 +87,22 @@ public class ServicesRequestsPlanerTest {
         cfChanges.add(newChange);
         // when
         assertThrows(IllegalArgumentException.class,
-                () -> ServiceRequestsPlaner.createApplyRequests(servicesOperations, "someservice", cfChanges));
+                () -> ServiceRequestsPlanner.createApplyRequests(servicesOperations, "someservice", cfChanges));
     }
 
     @Test
     public void testCreateOnNullArgumentsThrowsNullPointerException() {
         // when and then
         assertThrows(NullPointerException.class,
-                () -> ServiceRequestsPlaner.createApplyRequests(null,
+                () -> ServiceRequestsPlanner.createApplyRequests(null,
                         "someservice",
                         Collections.emptyList()));
         assertThrows(NullPointerException.class,
-                () -> ServiceRequestsPlaner.createApplyRequests(mock(ServicesOperations.class),
+                () -> ServiceRequestsPlanner.createApplyRequests(mock(ServicesOperations.class),
                         null,
                         Collections.emptyList()));
         assertThrows(NullPointerException.class,
-                () -> ServiceRequestsPlaner.createApplyRequests(mock(ServicesOperations.class),
+                () -> ServiceRequestsPlanner.createApplyRequests(mock(ServicesOperations.class),
                         "someservice",
                         null));
     }
@@ -118,7 +118,7 @@ public class ServicesRequestsPlanerTest {
 
         // when and then
         assertThrows(IllegalArgumentException.class,
-                () -> ServiceRequestsPlaner.createApplyRequests(servicesOperations,
+                () -> ServiceRequestsPlanner.createApplyRequests(servicesOperations,
                         "someservice",
                         Arrays.asList(remove1, remove2)));
     }
@@ -132,7 +132,7 @@ public class ServicesRequestsPlanerTest {
 
         // when and then
         assertThrows(IllegalArgumentException.class,
-                () -> ServiceRequestsPlaner.createApplyRequests(servicesOperations,
+                () -> ServiceRequestsPlanner.createApplyRequests(servicesOperations,
                         "someservice",
                         Arrays.asList(remove1)));
     }
@@ -147,7 +147,7 @@ public class ServicesRequestsPlanerTest {
 
         // when and then
         assertThrows(ApplyException.class,
-                () -> ServiceRequestsPlaner.createApplyRequests(servicesOperations,
+                () -> ServiceRequestsPlanner.createApplyRequests(servicesOperations,
                         "someservice",
                         Arrays.asList(remove1)));
     }
@@ -161,7 +161,7 @@ public class ServicesRequestsPlanerTest {
         Mockito.when(servicesOperations.remove("someservice")).thenReturn(Mono.just(voidMock));
 
         // when
-        Flux<Void> requests = ServiceRequestsPlaner.createApplyRequests(servicesOperations,
+        Flux<Void> requests = ServiceRequestsPlanner.createApplyRequests(servicesOperations,
                 "someservice",
                 Arrays.asList(remove1));
 
@@ -184,7 +184,7 @@ public class ServicesRequestsPlanerTest {
 
         // when
         ApplyException exception = assertThrows(ApplyException.class,
-                () -> ServiceRequestsPlaner.createApplyRequests(servicesOperations,
+                () -> ServiceRequestsPlanner.createApplyRequests(servicesOperations,
                         "someservice",
                         Arrays.asList(mapchange)));
 
@@ -206,7 +206,7 @@ public class ServicesRequestsPlanerTest {
         cfChanges.add(objectChanged);
 
         // when
-        Flux<Void> requests = ServiceRequestsPlaner.createApplyRequests(servicesOperations,
+        Flux<Void> requests = ServiceRequestsPlanner.createApplyRequests(servicesOperations,
                 serviceName,
                 cfChanges);
 
@@ -234,7 +234,7 @@ public class ServicesRequestsPlanerTest {
 
         // then - when
         assertThrows(ApplyException.class,
-                () -> ServiceRequestsPlaner.createApplyRequests(servicesOperations, serviceName, cfChanges));
+                () -> ServiceRequestsPlanner.createApplyRequests(servicesOperations, serviceName, cfChanges));
     }
 
     @Test
@@ -251,7 +251,7 @@ public class ServicesRequestsPlanerTest {
 
         // then - when
         assertThrows(IllegalArgumentException.class,
-                () -> ServiceRequestsPlaner.createApplyRequests(servicesOperations, serviceName, cfChanges));
+                () -> ServiceRequestsPlanner.createApplyRequests(servicesOperations, serviceName, cfChanges));
     }
 
     @Test
@@ -272,7 +272,7 @@ public class ServicesRequestsPlanerTest {
         cfChanges.add(newChange);
 
         // when
-        Flux<Void> requests = ServiceRequestsPlaner.createApplyRequests(servicesOperations,
+        Flux<Void> requests = ServiceRequestsPlanner.createApplyRequests(servicesOperations,
                 serviceName,
                 cfChanges);
 
@@ -301,7 +301,7 @@ public class ServicesRequestsPlanerTest {
 
         // then - when
         assertThrows(IllegalArgumentException.class,
-                () -> ServiceRequestsPlaner.createApplyRequests(servicesOperations, serviceName, cfChanges));
+                () -> ServiceRequestsPlanner.createApplyRequests(servicesOperations, serviceName, cfChanges));
     }
 
     @Test
@@ -327,7 +327,7 @@ public class ServicesRequestsPlanerTest {
         cfChanges.add(objectChanged);
 
         // when
-        Flux<Void> requests = ServiceRequestsPlaner.createApplyRequests(servicesOperations,
+        Flux<Void> requests = ServiceRequestsPlanner.createApplyRequests(servicesOperations,
                 serviceName,
                 cfChanges);
 
