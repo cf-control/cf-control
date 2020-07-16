@@ -3,7 +3,6 @@ package cloud.foundry.cli.logic;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import cloud.foundry.cli.crosscutting.exceptions.UpdateException;
-import cloud.foundry.cli.operations.AbstractOperations;
 import cloud.foundry.cli.operations.ApplicationsOperations;
 import cloud.foundry.cli.operations.ServicesOperations;
 import reactor.core.publisher.Mono;
@@ -23,7 +22,7 @@ public class RenameLogic {
      * @throws NullPointerException when newName, currentName or applicationsOperations is null
      */
     public void renameApplication(ApplicationsOperations applicationsOperations, String newName, String currentName) {
-        checkArgumentsNotNull((AbstractOperations) applicationsOperations, newName, currentName);
+        checkArgumentsNotNull( applicationsOperations, newName, currentName);
 
         Mono<Void> toRename = applicationsOperations.rename(newName, currentName);
         try {
@@ -43,7 +42,7 @@ public class RenameLogic {
      * @throws NullPointerException when newName, currentName or servicesOperations is null
      */
     public void renameService(ServicesOperations servicesOperations, String newName, String currentName) {
-        checkArgumentsNotNull((AbstractOperations)servicesOperations, newName, currentName);
+        checkArgumentsNotNull(servicesOperations, newName, currentName);
 
         Mono<Void> toRename = servicesOperations.rename(newName, currentName);
         try {
@@ -54,7 +53,7 @@ public class RenameLogic {
     }
 
 
-    private void checkArgumentsNotNull(AbstractOperations operationsObject, String newName, String currentName) {
+    private void checkArgumentsNotNull(Object operationsObject, Object newName, Object currentName) {
         checkNotNull(newName);
         checkNotNull(currentName);
         checkNotNull(operationsObject);

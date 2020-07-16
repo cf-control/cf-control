@@ -10,11 +10,6 @@ import cloud.foundry.cli.crosscutting.mapping.YamlMapper;
 import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
 import cloud.foundry.cli.logic.DiffLogic;
 import cloud.foundry.cli.logic.GetLogic;
-import cloud.foundry.cli.operations.ApplicationsOperations;
-import cloud.foundry.cli.operations.ClientOperations;
-import cloud.foundry.cli.operations.SpaceDevelopersOperations;
-import cloud.foundry.cli.operations.ServicesOperations;
-import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 
 import java.io.IOException;
 import java.util.concurrent.Callable;
@@ -41,21 +36,15 @@ public class DiffController implements Callable<Integer> {
 
     @Override
     public Integer call() throws IOException {
-        DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
         ConfigBean desiredConfigBean = YamlMapper.loadBeanFromFile(yamlCommandOptions.getYamlFilePath(),
                 ConfigBean.class);
+        OperationsFactory.setInstance(new DefaultOperationsFactory(CfOperationsCreator.createCfOperations(loginOptions)));
 
         log.debug("Desired config:", desiredConfigBean);
         log.info("Fetching all information for target space...");
 
-        SpaceDevelopersOperations spaceDevelopersOperations = OperationsFactory.getInstance().createSpaceDevelopersOperations();
-        ServicesOperations servicesOperations = OperationsFactory.getInstance().createServiceOperations();
-        ApplicationsOperations applicationsOperations = OperationsFactory.getInstance().createApplicationsOperations();
-        ClientOperations clientOperations = OperationsFactory.getInstance().createClientOperations();
-
-        GetLogic getLogic = new GetLogic();
-        ConfigBean currentConfigBean = getLogic.getAll(spaceDevelopersOperations, servicesOperations,
-                applicationsOperations, clientOperations, loginOptions);
+        GetLogic getLogic = new GetLogic(OperationsFactory.getInstance());
+        ConfigBean currentConfigBean = getLogic.getAll(loginOptions);
 
         log.debug("Current Config:", currentConfigBean);
         log.info("Diffing ...");

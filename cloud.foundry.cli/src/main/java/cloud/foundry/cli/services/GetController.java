@@ -5,12 +5,7 @@ import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
 import cloud.foundry.cli.crosscutting.mapping.YamlMapper;
 import cloud.foundry.cli.logic.GetLogic;
-import cloud.foundry.cli.operations.ApplicationsOperations;
-import cloud.foundry.cli.operations.ClientOperations;
-import cloud.foundry.cli.operations.OperationsFactory;
-import cloud.foundry.cli.operations.ServicesOperations;
-import cloud.foundry.cli.operations.SpaceDevelopersOperations;
-import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
+import cloud.foundry.cli.operations.*;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
 
@@ -31,17 +26,12 @@ public class GetController implements Callable<Integer> {
 
     @Override
     public Integer call() {
-        DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
-        GetLogic getLogic = new GetLogic();
+        OperationsFactory.setInstance(new DefaultOperationsFactory(CfOperationsCreator.createCfOperations(loginOptions)));
+        GetLogic getLogic = new GetLogic(OperationsFactory.getInstance());
+
         log.info("Fetching all information for target space...");
 
-        SpaceDevelopersOperations spaceDevelopersOperations = OperationsFactory.getInstance().createSpaceDevelopersOperations();
-        ServicesOperations servicesOperations = OperationsFactory.getInstance().createServiceOperations();
-        ApplicationsOperations applicationsOperations = OperationsFactory.getInstance().createApplicationsOperations();
-        ClientOperations clientOperations = OperationsFactory.getInstance().createClientOperations();
-
-        ConfigBean allInformation = getLogic.getAll(spaceDevelopersOperations, servicesOperations,
-                applicationsOperations, clientOperations, loginOptions);
+        ConfigBean allInformation = getLogic.getAll(loginOptions);
 
         System.out.println(YamlMapper.dump(allInformation));
         return 0;

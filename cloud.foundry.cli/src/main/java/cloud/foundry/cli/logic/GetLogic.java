@@ -11,13 +11,14 @@ import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
 import java.util.List;
 import java.util.Map;
 
-import cloud.foundry.cli.operations.ApplicationsOperations;
-import cloud.foundry.cli.operations.ServicesOperations;
-import cloud.foundry.cli.operations.SpaceDevelopersOperations;
-import cloud.foundry.cli.operations.ClientOperations;
+import cloud.foundry.cli.operations.*;
 import cloud.foundry.cli.services.LoginCommandOptions;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import javax.annotation.Nonnull;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Handles the operations to receive all configuration-information from a cloud
@@ -27,24 +28,34 @@ public class GetLogic {
 
     private static final Log log = Log.getLog(GetLogic.class);
 
+    private SpaceDevelopersOperations spaceDevelopersOperations;
+    private ServicesOperations servicesOperations;
+    private ApplicationsOperations applicationsOperations;
+    private ClientOperations clientOperations;
+
+    /**
+     * Creates a new instance that will use the provided cf operations internally.
+     *
+     * @param operationsFactory the factory that should be used to create the operations objects
+     * @throws NullPointerException if the argument is null
+     */
+    public GetLogic(@Nonnull OperationsFactory operationsFactory) {
+        checkNotNull(operationsFactory);
+
+        this.applicationsOperations = operationsFactory.createApplicationsOperations();
+        this.servicesOperations = operationsFactory.createServiceOperations();
+        this.spaceDevelopersOperations = operationsFactory.createSpaceDevelopersOperations();
+        this.clientOperations = operationsFactory.createClientOperations();
+    }
 
     /**
      * Gets all the necessary configuration-information from a cloud foundry
      * instance.
-     *
-     * @param spaceDevelopersOperations SpaceDevelopersOperations
-     * @param servicesOperations ServicesOperations
-     * @param applicationsOperations ApplicationsOperations
-     * @param clientOperations ClientOperations
      * @param loginOptions LoginCommandOptions
      * @return ConfigBean
      * @throws GetException if an error occurs during the information retrieving
      */
-    public ConfigBean getAll(SpaceDevelopersOperations spaceDevelopersOperations,
-                             ServicesOperations servicesOperations,
-                             ApplicationsOperations applicationsOperations,
-                             ClientOperations clientOperations,
-                             LoginCommandOptions loginOptions) {
+    public ConfigBean getAll(LoginCommandOptions loginOptions) {
 
         Mono<String> apiVersion = clientOperations.determineApiVersion();
         Mono<List<String>> spaceDevelopers = spaceDevelopersOperations.getAll();
@@ -76,7 +87,7 @@ public class GetLogic {
      * @return List of space-developers.
      * @throws GetException if an error occurs during the information retrieving
      */
-    List<String> getSpaceDevelopers(SpaceDevelopersOperations spaceDevelopersOperations) {
+    List<String> getSpaceDevelopers() {
         Mono<List<String>> getSpaceDevelopersRequest = spaceDevelopersOperations.getAll();
 
         try {
@@ -92,7 +103,7 @@ public class GetLogic {
      * @return Map of services.
      * @throws GetException if an error occurs during the information retrieving
      */
-    Map<String, ServiceBean> getServices(ServicesOperations servicesOperations) {
+    Map<String, ServiceBean> getServices() {
         Mono<Map<String, ServiceBean>> getServicesRequest = servicesOperations.getAll();
 
         try {
@@ -108,7 +119,7 @@ public class GetLogic {
      * @return Map of applications.
      * @throws GetException if an error occurs during the information retrieving
      */
-    Map<String, ApplicationBean> getApplications(ApplicationsOperations applicationsOperations) {
+    Map<String, ApplicationBean> getApplications() {
         Mono<Map<String, ApplicationBean>> getApplicationsRequest = applicationsOperations.getAll();
 
         try {

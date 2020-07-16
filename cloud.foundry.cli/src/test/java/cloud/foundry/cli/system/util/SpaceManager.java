@@ -8,7 +8,7 @@ import cloud.foundry.cli.operations.ServicesOperations;
 import cloud.foundry.cli.operations.SpaceOperations;
 import cloud.foundry.cli.operations.applications.DefaultApplicationsOperations;
 import cloud.foundry.cli.operations.services.DefaultServicesOperations;
-import cloud.foundry.cli.services.LoginMixin;
+import cloud.foundry.cli.services.LoginCommandOptions;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.routes.DeleteOrphanedRoutesRequest;
@@ -148,7 +148,7 @@ public class SpaceManager implements AutoCloseable {
         }
 
         // setup login command options for initialization of the cloud foundry operations instance
-        LoginMixin loginMixin = new LoginMixin();
+        LoginCommandOptions loginMixin = new LoginCommandOptions();
         loginMixin.setUserName(getCfUsername());
         loginMixin.setPassword(getCfPassword());
         loginMixin.setOrganization(getCfOrganization());

@@ -6,8 +6,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import cloud.foundry.cli.crosscutting.exceptions.GetException;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
@@ -15,57 +14,70 @@ import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationManifestBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
 
 import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
-import cloud.foundry.cli.operations.ApplicationsOperations;
-import cloud.foundry.cli.operations.ClientOperations;
-import cloud.foundry.cli.operations.ServicesOperations;
-import cloud.foundry.cli.operations.SpaceDevelopersOperations;
-import cloud.foundry.cli.services.LoginMixin;
+import cloud.foundry.cli.operations.*;
+import cloud.foundry.cli.services.LoginCommandOptions;
 import org.cloudfoundry.client.v3.Metadata;
 import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
 import org.cloudfoundry.operations.applications.ApplicationManifest;
 import org.cloudfoundry.operations.services.ServiceInstance;
 import org.cloudfoundry.operations.services.ServiceInstanceType;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import reactor.core.publisher.Mono;
 
 import java.nio.file.Paths;
 
-import java.util.List;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Collections;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Test for {@link GetLogic}
  */
 public class GetLogicTest {
 
+    private GetLogic getLogic;
+    private OperationsFactory operationsFactory;
+    private ApplicationsOperations applicationsOperationsMock;
+    private ServicesOperations servicesOperationsMock;
+    private SpaceDevelopersOperations spaceDevelopersOperationsMock;
+    private SpaceOperations spaceOperationsMock;
+    private ClientOperations clientOperations;
+
+    @BeforeEach
+    void setup() {
+        this.applicationsOperationsMock = mock(ApplicationsOperations.class);
+        this.servicesOperationsMock = mock(ServicesOperations.class);
+        this.spaceDevelopersOperationsMock = mock(SpaceDevelopersOperations.class);
+        this.spaceOperationsMock = mock(SpaceOperations.class);
+        this.clientOperations = mock(ClientOperations.class);
+        this.operationsFactory = mock(OperationsFactory.class);
+
+        when(operationsFactory.createApplicationsOperations()).thenReturn(applicationsOperationsMock);
+        when(operationsFactory.createServiceOperations()).thenReturn(servicesOperationsMock);
+        when(operationsFactory.createSpaceDevelopersOperations()).thenReturn(spaceDevelopersOperationsMock);
+        when(operationsFactory.createSpaceOperations()).thenReturn(spaceOperationsMock);
+        when(operationsFactory.createClientOperations()).thenReturn(clientOperations);
+
+        getLogic = new GetLogic(operationsFactory);
+    }
+
     @Test
     public void testGetAllWithoutConfigurationData() {
         // given
-        GetLogic getLogic = new GetLogic();
+        when(spaceDevelopersOperationsMock.getAll()).thenReturn(Mono.just(Collections.emptyList()));
 
-        SpaceDevelopersOperations mockSpaceDevelopers = mock(SpaceDevelopersOperations.class);
-        when(mockSpaceDevelopers.getAll()).thenReturn(Mono.just(Collections.emptyList()));
+        Mono monoServices = Mono.just(new HashMap<Object, ServiceBean>());
+        when(servicesOperationsMock.getAll()).thenReturn(monoServices);
 
-        Mono monoServices = Mono.just(new HashMap<Object, ServiceBean>() {
-        });
-        ServicesOperations mockServices = mock(ServicesOperations.class);
-        when(mockServices.getAll()).thenReturn(monoServices);
+        Mono monoApplications = Mono.just(new HashMap<Object, ApplicationBean>());
+        when(applicationsOperationsMock.getAll()).thenReturn(monoApplications);
 
-        Mono monoApplications = Mono.just(new HashMap<Object, ApplicationBean>() {
-        });
-        ApplicationsOperations mockApplications = mock(ApplicationsOperations.class);
-        when(mockApplications.getAll()).thenReturn(monoApplications);
+        when(clientOperations.determineApiVersion()).thenReturn(mockClientMono());
 
-        ClientOperations mockClientOperations = mockClientOperations();
-        LoginMixin mockLoginCommandOptions = mockLoginCommandOptions();
+        LoginCommandOptions mockLoginCommandOptions = mockLoginCommandOptions();
 
         // when
-        ConfigBean configBean = getLogic.getAll(mockSpaceDevelopers, mockServices, mockApplications,
-                mockClientOperations, mockLoginCommandOptions);
+        ConfigBean configBean = getLogic.getAll(mockLoginCommandOptions);
 
         // then
         assertThat(configBean.getApiVersion(), is("API VERSION"));
@@ -82,17 +94,15 @@ public class GetLogicTest {
     @Test
     public void testGetAllWithConfigurationData() {
         // given
-        SpaceDevelopersOperations mockSpaceDevelopers = mockSpaceDevelopersOperations();
-        ServicesOperations mockServices = mockServicesOperations();
-        ApplicationsOperations mockApplications = mockApplicationOperations();
-        ClientOperations mockClientOperations = mockClientOperations();
-        LoginMixin mockLoginCommandOptions = mockLoginCommandOptions();
+        LoginCommandOptions mockLoginCommandOptions = mockLoginCommandOptions();
 
-        GetLogic getLogic = new GetLogic();
+        when(applicationsOperationsMock.getAll()).thenReturn(mockApplicationMono());
+        when(servicesOperationsMock.getAll()).thenReturn(mockServiceMono());
+        when(spaceDevelopersOperationsMock.getAll()).thenReturn(mockSpaceDevelopersMono());
+        when(clientOperations.determineApiVersion()).thenReturn(mockClientMono());
 
         // when
-        ConfigBean configBean = getLogic.getAll(mockSpaceDevelopers, mockServices,
-                mockApplications, mockClientOperations, mockLoginCommandOptions);
+        ConfigBean configBean = getLogic.getAll(mockLoginCommandOptions);
 
         // then
         assertThat(configBean.getApiVersion(), is("API VERSION"));
@@ -128,12 +138,11 @@ public class GetLogicTest {
 
     @Test
     public void testGetSpaceDevelopers() {
-        // given
-        SpaceDevelopersOperations mockSpaceDevelopers = mockSpaceDevelopersOperations();
-        GetLogic getLogic = new GetLogic();
+        when(spaceDevelopersOperationsMock.getAll())
+                .thenReturn(mockSpaceDevelopersMono());
 
         // when
-        List<String> spaceDevelopers = getLogic.getSpaceDevelopers(mockSpaceDevelopers);
+        List<String> spaceDevelopers = getLogic.getSpaceDevelopers();
 
         // then
         assertThat(spaceDevelopers, is(notNullValue()));
@@ -144,29 +153,24 @@ public class GetLogicTest {
     @Test
     public void testGetSpaceDevelopersThrowsException() {
         // given
-        SpaceDevelopersOperations spaceDevelopersMock = mock(SpaceDevelopersOperations.class);
-
         Mono spaceDevelopersMonoMock = mock(Mono.class);
         RuntimeException thrownException = new RuntimeException();
         when(spaceDevelopersMonoMock.block()).thenThrow(thrownException);
-        when(spaceDevelopersMock.getAll()).thenReturn(spaceDevelopersMonoMock);
+        when(spaceDevelopersOperationsMock.getAll()).thenReturn(spaceDevelopersMonoMock);
 
-        GetLogic getLogic = new GetLogic();
 
         // when then
         GetException getException = assertThrows(GetException.class,
-                () -> getLogic.getSpaceDevelopers(spaceDevelopersMock));
+                () -> getLogic.getSpaceDevelopers());
         assertThat(getException.getCause(), is(thrownException));
     }
 
     @Test
     public void testGetServices() {
-        // given
-        ServicesOperations mockServices = mockServicesOperations();
-        GetLogic getLogic = new GetLogic();
+        when(servicesOperationsMock.getAll()).thenReturn(mockServiceMono());
 
         // when
-        Map<String, ServiceBean> services = getLogic.getServices(mockServices);
+        Map<String, ServiceBean> services = getLogic.getServices();
 
         // then
         assertThat(services, is(notNullValue()));
@@ -179,74 +183,49 @@ public class GetLogicTest {
     @Test
     public void testGetServicesThrowsException() {
         // given
-        ServicesOperations servicesMock = mock(ServicesOperations.class);
-
         Mono servicesMonoMock = mock(Mono.class);
         RuntimeException thrownException = new RuntimeException();
         when(servicesMonoMock.block()).thenThrow(thrownException);
-        when(servicesMock.getAll()).thenReturn(servicesMonoMock);
+        when(servicesOperationsMock.getAll()).thenReturn(servicesMonoMock);
 
-        GetLogic getLogic = new GetLogic();
 
         // when then
-        GetException getException = assertThrows(GetException.class, () -> getLogic.getServices(servicesMock));
+        GetException getException = assertThrows(GetException.class, () -> getLogic.getServices());
         assertThat(getException.getCause(), is(thrownException));
     }
 
     @Test
     public void testGetApplications() {
         // given
-        ApplicationsOperations mockApplications = mockApplicationOperations();
-        GetLogic getLogic = new GetLogic();
+        when(applicationsOperationsMock.getAll())
+                .thenReturn(Mono.just(Collections.emptyMap()));
 
         // when
-        Map<String, ApplicationBean> applications = getLogic.getApplications(mockApplications);
+        Map<String, ApplicationBean> applications = getLogic.getApplications();
 
-        // then
-        assertThat(applications, is(notNullValue()));
-        assertThat(applications.size(), is(1));
-        assertThat(applications.containsKey("testApp"), is(true));
-        assertThat(Paths.get(applications.get("testApp").getPath()).toString(),
-                is(Paths.get("some/path").toString()));
-
-        ApplicationManifestBean appManifest = applications.get("testApp").getManifest();
-        assertThat(appManifest.getBuildpack(), is("buildpack"));
-        assertThat(appManifest.getDisk(), is(1024));
-        assertThat(appManifest.getEnvironmentVariables().size(), is(1));
-        assertThat(appManifest.getEnvironmentVariables().get("key"), is("value"));
-        assertThat(appManifest.getHealthCheckType(), is(ApplicationHealthCheck.HTTP));
-        assertThat(appManifest.getInstances(), is(3));
-        assertThat(appManifest.getMemory(), is(1024));
-        assertThat(appManifest.getRandomRoute(), is(true));
-        assertThat(appManifest.getServices().size(), is(1));
-        assertThat(appManifest.getServices().get(0), is("appdynamics"));
+        assertThat(applications, notNullValue());
+        verify(applicationsOperationsMock, times(1)).getAll();
     }
 
     @Test
     public void testGetApplicationsThrowsException() {
         // given
-        ApplicationsOperations applicationsMock = mock(ApplicationsOperations.class);
-
         Mono applicationsMonoMock = mock(Mono.class);
         RuntimeException thrownException = new RuntimeException();
         when(applicationsMonoMock.block()).thenThrow(thrownException);
-        when(applicationsMock.getAll()).thenReturn(applicationsMonoMock);
-
-        GetLogic getLogic = new GetLogic();
+        when(applicationsOperationsMock.getAll())
+                .thenReturn(applicationsMonoMock);
 
         // when then
-        GetException getException = assertThrows(GetException.class, () -> getLogic.getApplications(applicationsMock));
+        GetException getException = assertThrows(GetException.class, () -> getLogic.getApplications());
         assertThat(getException.getCause(), is(thrownException));
     }
 
-    private SpaceDevelopersOperations mockSpaceDevelopersOperations() {
-        SpaceDevelopersOperations mockSpaceDevelopers = mock(SpaceDevelopersOperations.class);
-        when(mockSpaceDevelopers.getAll()).thenReturn(Mono.just(Arrays.asList("spaceDeveloper1", "spaceDeveloper2")));
-
-        return mockSpaceDevelopers;
+    private Mono<List<String>> mockSpaceDevelopersMono() {
+        return Mono.just(Arrays.asList("spaceDeveloper1", "spaceDeveloper2"));
     }
 
-    private ServicesOperations mockServicesOperations() {
+    private Mono<Map<String, ServiceBean>> mockServiceMono() {
         ServiceInstance serviceInstanceMock = ServiceInstance.builder()
                 .service("appdynamics")
                 .id("some-id")
@@ -262,15 +241,10 @@ public class GetLogicTest {
             put("appdyn", bean);
         }};
 
-        Mono mono = Mono.just(map);
-
-        ServicesOperations mockServices = mock(ServicesOperations.class);
-        when(mockServices.getAll()).thenReturn(mono);
-
-        return mockServices;
+        return Mono.just(map);
     }
 
-    private ApplicationsOperations mockApplicationOperations() {
+    private Mono<Map<String, ApplicationBean>> mockApplicationMono() {
         ApplicationManifest applicationManifestMock = ApplicationManifest.builder()
                 .name("testApp")
                 .buildpack("buildpack")
@@ -294,23 +268,15 @@ public class GetLogicTest {
             put("testApp", bean);
         }};
 
-        Mono mono = Mono.just(map);
-
-        ApplicationsOperations mockApplications = mock(ApplicationsOperations.class);
-        when(mockApplications.getAll()).thenReturn(mono);
-
-        return mockApplications;
+        return Mono.just(map);
     }
 
-    private ClientOperations mockClientOperations() {
-        ClientOperations mockClientOperations = mock(ClientOperations.class);
-        when(mockClientOperations.determineApiVersion()).thenReturn(Mono.just("API VERSION"));
-
-        return mockClientOperations;
+    private Mono<String> mockClientMono() {
+        return Mono.just("API VERSION");
     }
 
-    private LoginMixin mockLoginCommandOptions() {
-        LoginMixin mockLoginCommandOptions = mock(LoginMixin.class);
+    private LoginCommandOptions mockLoginCommandOptions() {
+        LoginCommandOptions mockLoginCommandOptions = mock(LoginCommandOptions.class);
         when(mockLoginCommandOptions.getApiHost()).thenReturn("SOME API ENDPOINT");
         when(mockLoginCommandOptions.getSpace()).thenReturn("development");
         when(mockLoginCommandOptions.getOrganization()).thenReturn("cloud.foundry.cli");

@@ -16,7 +16,6 @@ import cloud.foundry.cli.logic.apply.SpaceDevelopersRequestsPlaner;
 import cloud.foundry.cli.logic.diff.DiffResult;
 import cloud.foundry.cli.logic.diff.change.CfChange;
 import cloud.foundry.cli.logic.diff.change.container.CfContainerChange;
-import cloud.foundry.cli.operations.services.DefaultServicesOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -43,23 +42,25 @@ public class ApplyLogic {
     private ServicesOperations servicesOperations;
     private ApplicationsOperations applicationsOperations;
     private SpaceOperations spaceOperations;
+    private ClientOperations clientOperations;
 
 
     /**
      * Creates a new instance that will use the provided cf operations internally.
-     * @param cfOperations the cf operations that should be used to communicate with
-     *                     the cf instance
+     *
+     * @param operationsFactory the factory that should be used to create the operations objects
      * @throws NullPointerException if the argument is null
      */
-    public ApplyLogic(@Nonnull DefaultCloudFoundryOperations cfOperations) {
-        checkNotNull(cfOperations);
+    public ApplyLogic(@Nonnull OperationsFactory operationsFactory) {
+        checkNotNull(operationsFactory);
 
-        this.cfOperations = cfOperations;
-        this.spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
-        this.servicesOperations = new DefaultServicesOperations(cfOperations);
-        this.applicationsOperations = OperationsFactory.getInstance().createApplicationsOperations();
-        this.spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
-        this.getLogic = new GetLogic();
+        this.applicationsOperations = operationsFactory.createApplicationsOperations();
+        this.servicesOperations = operationsFactory.createServiceOperations();
+        this.spaceDevelopersOperations = operationsFactory.createSpaceDevelopersOperations();
+        this.spaceOperations = operationsFactory.createSpaceOperations();
+        this.clientOperations = operationsFactory.createClientOperations();
+
+        this.getLogic = new GetLogic(operationsFactory);
         this.diffLogic = new DiffLogic();
     }
 
@@ -85,7 +86,7 @@ public class ApplyLogic {
         checkNotNull(desiredSpaceDevelopers);
 
         log.info("Fetching information about space developers...");
-        List<String> liveSpaceDevelopers = this.getLogic.getSpaceDevelopers(spaceDevelopersOperations);
+        List<String> liveSpaceDevelopers = this.getLogic.getSpaceDevelopers();
         log.info("Information fetched.");
 
         ConfigBean desiredSpaceDevelopersConfig = createConfigFromSpaceDevelopers(desiredSpaceDevelopers);
@@ -124,7 +125,7 @@ public class ApplyLogic {
         checkNotNull(desiredApplications);
 
         log.info("Fetching information about applications...");
-        Map<String, ApplicationBean> liveApplications = this.getLogic.getApplications(applicationsOperations);
+        Map<String, ApplicationBean> liveApplications = this.getLogic.getApplications();
         log.info("Information fetched.");
 
         // that way only the applications of the live system are compared in the diff
@@ -165,7 +166,7 @@ public class ApplyLogic {
         checkNotNull(desiredServices);
 
         log.info("Fetching information about services...");
-        Map<String, ServiceBean> liveServices = this.getLogic.getServices(servicesOperations);
+        Map<String, ServiceBean> liveServices = this.getLogic.getServices();
         log.info("Information fetched.");
 
         // that way only the applications of the live system are compared in the diff
