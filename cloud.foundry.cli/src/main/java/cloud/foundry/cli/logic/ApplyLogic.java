@@ -48,6 +48,7 @@ public class ApplyLogic {
 
     /**
      * Creates a new instance that will use the provided cf operations internally.
+     *
      * @param cfOperations the cf operations that should be used to communicate with
      *                     the cf instance
      * @throws NullPointerException if the argument is null
@@ -74,21 +75,34 @@ public class ApplyLogic {
         this.spaceOperations = spaceOperations;
     }
 
+    /**
+     * @param desiredConfigBean
+     * @param loginCommandOptions
+     */
     public void applyAll(ConfigBean desiredConfigBean, LoginCommandOptions loginCommandOptions) {
-        ConfigBean liveConfigBean = getLogic.getAll(spaceDevelopersOperations, servicesOperations, applicationsOperations,
-                clientOperations, loginCommandOptions);
+        checkNotNull(desiredConfigBean);
+        checkNotNull(loginCommandOptions);
+
+        ConfigBean liveConfigBean = getLogic.getAll(
+                spaceDevelopersOperations,
+                servicesOperations,
+                applicationsOperations,
+                clientOperations,
+                loginCommandOptions);
+
         DiffResult wrappedDiff = this.diffLogic.createDiffResult(liveConfigBean, desiredConfigBean);
 
         ApplicationRequestsPlaner applicationRequestsPlaner
                 = new ApplicationRequestsPlaner(applicationsOperations);
 
-        SpaceDevelopersRequestsPlaner.createSpaceDevelopersRequests(spaceDevelopersOperations,
-                wrappedDiff.getSpaceDevelopersChange()).mergeWith(
-        Flux.fromIterable(wrappedDiff.getServiceChanges().entrySet())
-                .flatMap(element -> ServiceRequestsPlaner.createApplyRequests(servicesOperations, element.getKey(), element.getValue())
-        )).concatWith(Flux.fromIterable(wrappedDiff.getApplicationChanges().entrySet()).flatMap(
-                element -> applicationRequestsPlaner.createApplyRequests(element.getKey(), element.getValue()
-        )));
+        SpaceDevelopersRequestsPlaner.createSpaceDevelopersRequests(
+                spaceDevelopersOperations, wrappedDiff.getSpaceDevelopersChange())
+                .mergeWith(Flux.fromIterable(wrappedDiff.getServiceChanges().entrySet())
+                        .flatMap(element -> ServiceRequestsPlaner.createApplyRequests(
+                                servicesOperations, element.getKey(), element.getValue())))
+                .concatWith(Flux.fromIterable(wrappedDiff.getApplicationChanges().entrySet())
+                        .flatMap(element -> applicationRequestsPlaner.createApplyRequests(element.getKey(),
+                                element.getValue())));
 
     }
 
@@ -176,10 +190,12 @@ public class ApplyLogic {
     }
 
     //TODO update the documentation as soon as the method does more than just creating/removing services
+
     /**
      * Creates/removes all desired services in your live cf instance.
+     *
      * @param desiredServices the services that should all be present in the live system after the procedure
-     * @throws ApplyException if an error occurs during the procedure
+     * @throws ApplyException       if an error occurs during the procedure
      * @throws NullPointerException if the argument is null
      */
     public void applyServices(@Nonnull Map<String, ServiceBean> desiredServices) {
@@ -201,7 +217,7 @@ public class ApplyLogic {
         Map<String, List<CfChange>> allServicesChanges = diffResult.getServiceChanges();
 
         Flux<Void> serviceRequests = Flux.fromIterable(allServicesChanges.entrySet())
-                .flatMap( serviceChangeEntry ->
+                .flatMap(serviceChangeEntry ->
                         ServiceRequestsPlaner.createApplyRequests(servicesOperations,
                                 serviceChangeEntry.getKey(),
                                 serviceChangeEntry.getValue()))
@@ -213,10 +229,11 @@ public class ApplyLogic {
 
     /**
      * Creates a space with the desired name if a space with such a name does not exist in the live cf instance.
+     *
      * @param desiredSpaceName the name of the desired space
      * @throws NullPointerException if the desired paramerter is null
-     * @throws ApplyException in case of errors during the creation of the desired space
-     * @throws GetException in case of errors during querying the space names
+     * @throws ApplyException       in case of errors during the creation of the desired space
+     * @throws GetException         in case of errors during querying the space names
      */
     public void applySpace(String desiredSpaceName) {
         checkNotNull(desiredSpaceName);
@@ -247,7 +264,7 @@ public class ApplyLogic {
 
     /**
      * @param spaceDevelopers the space developer that should be
-     *                             contained in the resulting config bean.
+     *                        contained in the resulting config bean.
      * @return a config bean only containing the entered space developers.
      */
     private ConfigBean createConfigFromSpaceDevelopers(List<String> spaceDevelopers) {

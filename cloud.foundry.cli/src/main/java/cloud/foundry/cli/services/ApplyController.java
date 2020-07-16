@@ -2,7 +2,6 @@ package cloud.foundry.cli.services;
 
 import static picocli.CommandLine.Command;
 import static picocli.CommandLine.Mixin;
-import static picocli.CommandLine.usage;
 
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
@@ -40,9 +39,12 @@ public class ApplyController implements Callable<Integer> {
                 YamlMapper.loadBeanFromFile(yamlCommandOptions.getYamlFilePath(), ConfigBean.class);
         log.verbose("YAML file interpreted.");
 
+        log.info("Preparing to apply changes...");
         DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+
         ApplyLogic applyLogic = new ApplyLogic(cfOperations);
         applyLogic.applyAll(desiredConfigBean, loginOptions);
+        log.verbose("Changes applied.");
 
         return 0;
     }
