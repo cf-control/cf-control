@@ -1,5 +1,6 @@
 package cloud.foundry.cli.operations;
 
+import cloud.foundry.cli.operations.client.DefaultClientOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;

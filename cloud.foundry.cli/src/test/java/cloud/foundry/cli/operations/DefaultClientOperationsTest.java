@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import cloud.foundry.cli.operations.client.DefaultClientOperations;
 import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.client.v2.info.GetInfoRequest;
 import org.cloudfoundry.client.v2.info.GetInfoResponse;
@@ -15,9 +16,9 @@ import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 
 /**
- * Test for {@link ClientOperations}
+ * Test for {@link DefaultClientOperations}
  */
-public class ClientOperationsTest {
+public class DefaultClientOperationsTest {
 
     @Test
     public void testDetermineApiVersion() {
@@ -36,7 +37,7 @@ public class ClientOperationsTest {
                 .build();
         when(infoMock.get(any(GetInfoRequest.class))).thenReturn(Mono.just(getInfoResponse));
 
-        ClientOperations clientOperations = new ClientOperations(cfOperationsMock);
+        DefaultClientOperations clientOperations = new DefaultClientOperations(cfOperationsMock);
 
         // when
         Mono<String> apiVersionMono = clientOperations.determineApiVersion();
