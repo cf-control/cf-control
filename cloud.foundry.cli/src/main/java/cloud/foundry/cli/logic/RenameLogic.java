@@ -23,7 +23,7 @@ public class RenameLogic {
      * @throws NullPointerException when newName, currentName or applicationsOperations is null
      */
     public void renameApplication(ApplicationsOperations applicationsOperations, String newName, String currentName) {
-        checkArgumentsNotNull(applicationsOperations, newName, currentName);
+        checkArgumentsNotNull((AbstractOperations) applicationsOperations, newName, currentName);
 
         Mono<Void> toRename = applicationsOperations.rename(newName, currentName);
         try {

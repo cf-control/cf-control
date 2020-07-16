@@ -41,7 +41,7 @@
  * https://github.com/cloudfoundry/cf-java-client/blob/ac2411b3472e8c8f07ba42f0696c4e7207a21ff4/cloudfoundry-operations/src/main/java/org/cloudfoundry/operations/applications/RouteUtils.java#L27
  */
 
-package cloud.foundry.cli.operations;
+package cloud.foundry.cli.operations.applications;
 
 import org.cloudfoundry.operations.applications.DecomposedRoute;
 import org.cloudfoundry.operations.applications.DomainSummary;

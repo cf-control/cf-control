@@ -104,9 +104,8 @@ public class RenameLogicTest {
 
     @Test
     public void renameApplication_NewNameNull_NullptrExceptionThrown() {
-        DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
         assertThrows(NullPointerException.class,
-                () -> new RenameLogic().renameApplication(new ApplicationsOperations(cfOperationsMock), null,
+                () -> new RenameLogic().renameApplication(mock(ApplicationsOperations.class), null,
                         CURRENT_NAME));
     }
 
@@ -114,7 +113,7 @@ public class RenameLogicTest {
     public void renameApplication_CurrentNameNull_NullptrExceptionThrown() {
         DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
         assertThrows(NullPointerException.class,
-                () -> new RenameLogic().renameApplication(new ApplicationsOperations(cfOperationsMock), NEW_NAME,
+                () -> new RenameLogic().renameApplication(mock(ApplicationsOperations.class), NEW_NAME,
                         null));
     }
 

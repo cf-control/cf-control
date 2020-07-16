@@ -4,9 +4,10 @@ import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
 import cloud.foundry.cli.operations.ApplicationsOperations;
+import cloud.foundry.cli.operations.applications.DefaultApplicationsOperations;
 import cloud.foundry.cli.operations.ServicesOperations;
 import cloud.foundry.cli.operations.SpaceOperations;
-import cloud.foundry.cli.services.LoginCommandOptions;
+import cloud.foundry.cli.services.LoginMixin;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.routes.DeleteOrphanedRoutesRequest;
@@ -146,14 +147,14 @@ public class SpaceManager implements AutoCloseable {
         }
 
         // setup login command options for initialization of the cloud foundry operations instance
-        LoginCommandOptions loginCommandOptions = new LoginCommandOptions();
-        loginCommandOptions.setUserName(getCfUsername());
-        loginCommandOptions.setPassword(getCfPassword());
-        loginCommandOptions.setOrganization(getCfOrganization());
-        loginCommandOptions.setApiHost(getCfApiEndpoint());
-        loginCommandOptions.setSpace(spaceName);
+        LoginMixin loginMixin = new LoginMixin();
+        loginMixin.setUserName(getCfUsername());
+        loginMixin.setPassword(getCfPassword());
+        loginMixin.setOrganization(getCfOrganization());
+        loginMixin.setApiHost(getCfApiEndpoint());
+        loginMixin.setSpace(spaceName);
 
-        cfOperations = CfOperationsCreator.createCfOperations(loginCommandOptions);
+        cfOperations = CfOperationsCreator.createCfOperations(loginMixin);
 
         // apparently, there are some strange race conditions with the login which we might run into when querying the
         // spaces directly
@@ -170,7 +171,7 @@ public class SpaceManager implements AutoCloseable {
 
         // create operations instances that are needed by the space configurator
         servicesOperations = new ServicesOperations(cfOperations);
-        applicationsOperations = new ApplicationsOperations(cfOperations);
+        applicationsOperations = new DefaultApplicationsOperations(cfOperations);
     }
 
     /**

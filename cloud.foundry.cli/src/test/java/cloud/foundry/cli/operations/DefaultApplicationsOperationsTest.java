@@ -15,6 +15,7 @@ import cloud.foundry.cli.mocking.CloudFoundryClientMockBuilder;
 import cloud.foundry.cli.mocking.DefaultCloudFoundryOperationsMockBuilder;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
+import cloud.foundry.cli.operations.applications.DefaultApplicationsOperations;
 import org.cloudfoundry.client.v3.Metadata;
 import org.cloudfoundry.client.v3.applications.CreateApplicationRequest;
 
@@ -41,9 +42,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Test for {@link ApplicationsOperations}
+ * Test for {@link DefaultApplicationsOperations}
  */
-public class ApplicationsOperationsTest {
+public class DefaultApplicationsOperationsTest {
 
     private static final String SOME_APPLICATION = "SOME_APPLICATION";
 
@@ -56,7 +57,7 @@ public class ApplicationsOperationsTest {
                 .setApplications(applicationsMock)
                 .build();
 
-        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfMock);
+        DefaultApplicationsOperations applicationsOperations = new DefaultApplicationsOperations(cfMock);
         Map<String, ApplicationBean> apps = applicationsOperations.getAll().block();
 
         // check if it's really empty
@@ -84,7 +85,7 @@ public class ApplicationsOperationsTest {
         );
 
         // now, we can generate a YAML doc for our ApplicationSummary
-        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfMock);
+        DefaultApplicationsOperations applicationsOperations = new DefaultApplicationsOperations(cfMock);
 
         // when
         Map<String, ApplicationBean> apps = applicationsOperations.getAll().block();
@@ -135,7 +136,7 @@ public class ApplicationsOperationsTest {
                 .setCloudFoundryClient(cfcMock)
                 .build();
 
-        ApplicationsOperations applicationsOperations = new ApplicationsOperations(dcfoMock);
+        DefaultApplicationsOperations applicationsOperations = new DefaultApplicationsOperations(dcfoMock);
 
         ApplicationBean applicationsBean = new ApplicationBean(appManifest, metadata);
         applicationsBean.setPath("some/path");
@@ -167,7 +168,7 @@ public class ApplicationsOperationsTest {
         DefaultCloudFoundryOperations dcfoMock = DefaultCloudFoundryOperationsMockBuilder.get()
                 .build();
 
-        ApplicationsOperations applicationsOperations = new ApplicationsOperations(dcfoMock);
+        DefaultApplicationsOperations applicationsOperations = new DefaultApplicationsOperations(dcfoMock);
 
         ApplicationBean applicationsBean = new ApplicationBean(appManifest, metadata);
         // create error condition
@@ -182,7 +183,7 @@ public class ApplicationsOperationsTest {
     @Test
     public void testCreateOnNullNameThrowsNullPointerException() throws CreationException {
         // given
-        ApplicationsOperations applicationsOperations = new ApplicationsOperations(
+        DefaultApplicationsOperations applicationsOperations = new DefaultApplicationsOperations(
                 DefaultCloudFoundryOperationsMockBuilder.get().build());
 
         //then
@@ -193,7 +194,7 @@ public class ApplicationsOperationsTest {
     @Test
     public void testCreateOnEmptyNameThrowsIllegalArgumentException() {
         // given
-        ApplicationsOperations applicationsOperations = new ApplicationsOperations(
+        DefaultApplicationsOperations applicationsOperations = new DefaultApplicationsOperations(
                 DefaultCloudFoundryOperationsMockBuilder.get().build());
 
         ApplicationBean applicationBean = new ApplicationBean();
@@ -207,7 +208,7 @@ public class ApplicationsOperationsTest {
     @Test
     public void testCreateOnNullBeanThrowsNullPointerException() {
         // given
-        ApplicationsOperations applicationsOperations = new ApplicationsOperations(
+        DefaultApplicationsOperations applicationsOperations = new DefaultApplicationsOperations(
                 DefaultCloudFoundryOperationsMockBuilder.get().build());
 
         // when
@@ -222,7 +223,7 @@ public class ApplicationsOperationsTest {
                 .get()
                 .setApplications(applicationsMock)
                 .build();
-        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfoMock);
+        DefaultApplicationsOperations applicationsOperations = new DefaultApplicationsOperations(cfoMock);
 
         // when
         Mono<Void> request = applicationsOperations.remove(SOME_APPLICATION);
@@ -236,7 +237,7 @@ public class ApplicationsOperationsTest {
     public void testRemoveApplicationShouldThrowNullPointerExceptionWhenApplicationNameIsNull() {
         // given
         DefaultCloudFoundryOperations cfoMock = DefaultCloudFoundryOperationsMockBuilder.get().build();
-        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfoMock);
+        DefaultApplicationsOperations applicationsOperations = new DefaultApplicationsOperations(cfoMock);
 
         // when -> then
         assertThrows(NullPointerException.class, () -> applicationsOperations.remove(null));
@@ -245,7 +246,7 @@ public class ApplicationsOperationsTest {
     @Test
     public void testRenameWithNullValueForCurrentNameThrowsNullPointerExceptionn() {
         //given
-        ApplicationsOperations applicationsOperations = new ApplicationsOperations(
+        DefaultApplicationsOperations applicationsOperations = new DefaultApplicationsOperations(
                 mock(DefaultCloudFoundryOperations.class));
 
         //when + then
@@ -256,7 +257,7 @@ public class ApplicationsOperationsTest {
     @Test
     public void testRenameWithNullValueForNewNameThrowsNullPointerException() {
         //given
-        ApplicationsOperations applicationsOperations = new ApplicationsOperations(
+        DefaultApplicationsOperations applicationsOperations = new DefaultApplicationsOperations(
                 mock(DefaultCloudFoundryOperations.class));
 
         //when + then
@@ -271,7 +272,7 @@ public class ApplicationsOperationsTest {
                 Collections.emptyMap(),
                 null);
 
-        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfoMock);
+        DefaultApplicationsOperations applicationsOperations = new DefaultApplicationsOperations(cfoMock);
 
         // when
         Mono<Void> requestResult = applicationsOperations.rename("newName", SOME_APPLICATION);
@@ -293,7 +294,7 @@ public class ApplicationsOperationsTest {
                 Collections.emptyMap(),
                 null);
 
-        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperationsMock);
+        DefaultApplicationsOperations applicationsOperations = new DefaultApplicationsOperations(cfOperationsMock);
 
         final Integer diskLimit = 42;
         final Integer memoryLimit = 112;
@@ -322,7 +323,7 @@ public class ApplicationsOperationsTest {
                 Collections.emptyMap(),
                 null);
 
-        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperationsMock);
+        DefaultApplicationsOperations applicationsOperations = new DefaultApplicationsOperations(cfOperationsMock);
 
         // when
         Mono<Void> scaleResult = applicationsOperations.scale(SOME_APPLICATION, null, null, null);
@@ -340,7 +341,7 @@ public class ApplicationsOperationsTest {
     @Test
     public void testScaleWithNullValueAsApplicationNameThrowsNullPointerException() {
         //given
-        ApplicationsOperations applicationsOperations = new ApplicationsOperations(
+        DefaultApplicationsOperations applicationsOperations = new DefaultApplicationsOperations(
                 mock(DefaultCloudFoundryOperations.class));
 
         //when + then
@@ -357,7 +358,7 @@ public class ApplicationsOperationsTest {
         when(applicationsMock.setEnvironmentVariable(any(SetEnvironmentVariableApplicationRequest.class)))
                 .thenReturn(Mono.just(mock(Void.class)));
 
-        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperationsMock);
+        DefaultApplicationsOperations applicationsOperations = new DefaultApplicationsOperations(cfOperationsMock);
 
         // when
         Mono<Void> addEnvVarResult = applicationsOperations
@@ -378,7 +379,7 @@ public class ApplicationsOperationsTest {
     @Test
     public void testAddEnvironmentVariableWithNullValuesAsArgumentsThrowsNullPointerException() {
         //given
-        ApplicationsOperations applicationsOperations = new ApplicationsOperations(
+        DefaultApplicationsOperations applicationsOperations = new DefaultApplicationsOperations(
                 mock(DefaultCloudFoundryOperations.class));
 
         //when + then
@@ -401,7 +402,7 @@ public class ApplicationsOperationsTest {
         when(applicationsMock.unsetEnvironmentVariable(any(UnsetEnvironmentVariableApplicationRequest.class)))
                 .thenReturn(Mono.just(mock(Void.class)));
 
-        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperationsMock);
+        DefaultApplicationsOperations applicationsOperations = new DefaultApplicationsOperations(cfOperationsMock);
 
         // when
         Mono<Void> removeEnvVarResult = applicationsOperations
@@ -421,7 +422,7 @@ public class ApplicationsOperationsTest {
     @Test
     public void testRemoveEnvironmentVariableWithNullValuesAsArgumentsThrowsNullPointerException() {
         //given
-        ApplicationsOperations applicationsOperations = new ApplicationsOperations(
+        DefaultApplicationsOperations applicationsOperations = new DefaultApplicationsOperations(
                 mock(DefaultCloudFoundryOperations.class));
 
         //when + then
@@ -441,7 +442,7 @@ public class ApplicationsOperationsTest {
         when(applicationsMock.setHealthCheck(any(SetApplicationHealthCheckRequest.class)))
                 .thenReturn(Mono.just(mock(Void.class)));
 
-        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperationsMock);
+        DefaultApplicationsOperations applicationsOperations = new DefaultApplicationsOperations(cfOperationsMock);
 
         ApplicationHealthCheck desiredHealthCheckType = mock(ApplicationHealthCheck.class);
 
@@ -463,7 +464,7 @@ public class ApplicationsOperationsTest {
     @Test
     public void testSetHealthCheckWithNullValuesAsArgumentsThrowsNullPointerException() {
         //given
-        ApplicationsOperations applicationsOperations = new ApplicationsOperations(
+        DefaultApplicationsOperations applicationsOperations = new DefaultApplicationsOperations(
                 mock(DefaultCloudFoundryOperations.class));
 
         //when + then
@@ -483,7 +484,7 @@ public class ApplicationsOperationsTest {
         when(servicesMock.bind(any(BindServiceInstanceRequest.class)))
                 .thenReturn(Mono.just(mock(Void.class)));
 
-        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperationsMock);
+        DefaultApplicationsOperations applicationsOperations = new DefaultApplicationsOperations(cfOperationsMock);
 
         // when
         Mono<Void> bindToServiceResult = applicationsOperations.bindToService("someApplication", "someService");
@@ -502,7 +503,7 @@ public class ApplicationsOperationsTest {
     @Test
     public void testBindAppWithNullValuesAsArgumentsThrowsNullPointerException() {
         //given
-        ApplicationsOperations applicationsOperations = new ApplicationsOperations(
+        DefaultApplicationsOperations applicationsOperations = new DefaultApplicationsOperations(
                 mock(DefaultCloudFoundryOperations.class));
 
         //when + then
@@ -522,7 +523,7 @@ public class ApplicationsOperationsTest {
         when(servicesMock.unbind(any(UnbindServiceInstanceRequest.class)))
                 .thenReturn(Mono.just(mock(Void.class)));
 
-        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperationsMock);
+        DefaultApplicationsOperations applicationsOperations = new DefaultApplicationsOperations(cfOperationsMock);
 
         // when
         Mono<Void> unbindFromServiceResult = applicationsOperations.unbindFromService("someApplication", "someService");
@@ -541,7 +542,7 @@ public class ApplicationsOperationsTest {
     @Test
     public void testUnbindAppWithNullValuesAsArgumentsThrowsNullPointerException() {
         //given
-        ApplicationsOperations applicationsOperations = new ApplicationsOperations(
+        DefaultApplicationsOperations applicationsOperations = new DefaultApplicationsOperations(
                 mock(DefaultCloudFoundryOperations.class));
 
         //when + then
@@ -568,7 +569,7 @@ public class ApplicationsOperationsTest {
                 .name("cfapps.io").build()));
 
 
-        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperationsMock);
+        DefaultApplicationsOperations applicationsOperations = new DefaultApplicationsOperations(cfOperationsMock);
 
         // when
         Mono<Void> addRouteResult = applicationsOperations.addRoute("someApplication", "testRoute.cfapps.io");
@@ -590,7 +591,7 @@ public class ApplicationsOperationsTest {
     @Test
     public void testAddRouteToAppWithNullValuesAsArgumentsThrowsNullPointerException() {
         //given
-        ApplicationsOperations applicationsOperations = new ApplicationsOperations(
+        DefaultApplicationsOperations applicationsOperations = new DefaultApplicationsOperations(
                 mock(DefaultCloudFoundryOperations.class));
 
         //when + then
@@ -616,7 +617,7 @@ public class ApplicationsOperationsTest {
                 .status(Status.OWNED)
                 .name("cfapps.io").build()));
 
-        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperationsMock);
+        DefaultApplicationsOperations applicationsOperations = new DefaultApplicationsOperations(cfOperationsMock);
 
         // when
         Mono<Void> addRouteResult = applicationsOperations.removeRoute("someApplication", "test.cfapps.io");
@@ -637,7 +638,7 @@ public class ApplicationsOperationsTest {
     @Test
     public void testRemoveRouteFromAppWithNullValuesAsArgumentsThrowsNullPointerException() {
         //given
-        ApplicationsOperations applicationsOperations = new ApplicationsOperations(
+        DefaultApplicationsOperations applicationsOperations = new DefaultApplicationsOperations(
                 mock(DefaultCloudFoundryOperations.class));
 
         //when + then

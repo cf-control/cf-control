@@ -19,7 +19,7 @@ import cloud.foundry.cli.operations.ApplicationsOperations;
 import cloud.foundry.cli.operations.ClientOperations;
 import cloud.foundry.cli.operations.ServicesOperations;
 import cloud.foundry.cli.operations.SpaceDevelopersOperations;
-import cloud.foundry.cli.services.LoginCommandOptions;
+import cloud.foundry.cli.services.LoginMixin;
 import org.cloudfoundry.client.v3.Metadata;
 import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
 import org.cloudfoundry.operations.applications.ApplicationManifest;
@@ -61,7 +61,7 @@ public class GetLogicTest {
         when(mockApplications.getAll()).thenReturn(monoApplications);
 
         ClientOperations mockClientOperations = mockClientOperations();
-        LoginCommandOptions mockLoginCommandOptions = mockLoginCommandOptions();
+        LoginMixin mockLoginCommandOptions = mockLoginCommandOptions();
 
         // when
         ConfigBean configBean = getLogic.getAll(mockSpaceDevelopers, mockServices, mockApplications,
@@ -86,7 +86,7 @@ public class GetLogicTest {
         ServicesOperations mockServices = mockServicesOperations();
         ApplicationsOperations mockApplications = mockApplicationOperations();
         ClientOperations mockClientOperations = mockClientOperations();
-        LoginCommandOptions mockLoginCommandOptions = mockLoginCommandOptions();
+        LoginMixin mockLoginCommandOptions = mockLoginCommandOptions();
 
         GetLogic getLogic = new GetLogic();
 
@@ -309,8 +309,8 @@ public class GetLogicTest {
         return mockClientOperations;
     }
 
-    private LoginCommandOptions mockLoginCommandOptions() {
-        LoginCommandOptions mockLoginCommandOptions = mock(LoginCommandOptions.class);
+    private LoginMixin mockLoginCommandOptions() {
+        LoginMixin mockLoginCommandOptions = mock(LoginMixin.class);
         when(mockLoginCommandOptions.getApiHost()).thenReturn("SOME API ENDPOINT");
         when(mockLoginCommandOptions.getSpace()).thenReturn("development");
         when(mockLoginCommandOptions.getOrganization()).thenReturn("cloud.foundry.cli");
