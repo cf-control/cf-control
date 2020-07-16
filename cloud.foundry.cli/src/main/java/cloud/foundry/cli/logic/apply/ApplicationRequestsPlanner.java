@@ -29,9 +29,9 @@ import java.util.function.Predicate;
  * This class is responsible to build the requests in the context of
  * applications according to the CfChanges.
  */
-public class ApplicationRequestsPlaner {
+public class ApplicationRequestsPlanner {
 
-    private static final Log log = Log.getLog(ApplicationRequestsPlaner.class);
+    private static final Log log = Log.getLog(ApplicationRequestsPlanner.class);
 
     private static final String META_FIELD_NAME = "meta";
     private static final String PATH_FIELD_NAME = "path";
@@ -93,7 +93,7 @@ public class ApplicationRequestsPlaner {
      *
      * @param appOperations the ApplicationOperations object used for
      */
-    public ApplicationRequestsPlaner(ApplicationsOperations appOperations) {
+    public ApplicationRequestsPlanner(ApplicationsOperations appOperations) {
         this.appOperations = appOperations;
     }
 
@@ -124,7 +124,7 @@ public class ApplicationRequestsPlaner {
         List<Publisher<Void>> requests = new LinkedList<>();
 
         if (hasNewObject(changes)) {
-            log.debug("Add create app request for app: " + applicationName);
+            log.debug("Requesting creation of app", applicationName);
 
             ApplicationBean bean = (ApplicationBean) getChange(changes, change -> change instanceof CfNewObject)
                     .get()
@@ -132,11 +132,11 @@ public class ApplicationRequestsPlaner {
 
             return Flux.merge(this.appOperations.create(applicationName, bean, false));
         } else if (hasRemovedObject(changes)) {
-            log.debug("Add remove app request for app: " + applicationName);
+            log.debug("Requesting removal of app", applicationName);
 
             return Flux.merge(this.appOperations.remove(applicationName));
         } else if (hasFieldsThatRequireRestart(changes)) {
-            log.debug("Add redeploying update request for app: " + applicationName);
+            log.debug("Requesting redeployment/update of app", applicationName);
 
             for (CfChange change : changes) {
                 logChange(change);
@@ -145,7 +145,7 @@ public class ApplicationRequestsPlaner {
             ApplicationBean bean = (ApplicationBean) changes.get(0).getAffectedObject();
             return Flux.concat(appOperations.update(applicationName, bean, false));
         } else if (changes.size() > 0) {
-            log.debug("Add rolling update requests for app: " + applicationName);
+            log.debug("Requesting rolling update of app " + applicationName);
             requests.add(getScaleInstancesRequest(changes));
             requests.add(getChangedEnvironmentVariablesRequests(changes));
             requests.add(getChangedServicesRequests(changes));
@@ -178,18 +178,15 @@ public class ApplicationRequestsPlaner {
             logChange(servicesChange);
 
             for (CfContainerValueChanged valueChanged : servicesChange.getValueChangesBy(ChangeType.ADDED)) {
-                log.debug("Adding request to bind service",
-                        valueChanged.getValue(),
-                        "to application",
-                        applicationName);
+                log.debug("Requesting binding of service", valueChanged.getValue(), "to application", applicationName);
                 requests.add(this.appOperations.bindToService(applicationName, valueChanged.getValue()));
             }
 
             for (CfContainerValueChanged valueChanged : servicesChange.getValueChangesBy(ChangeType.REMOVED)) {
-                log.debug("Adding request to unbind service",
-                        valueChanged.getValue(),
-                        "from application",
-                        applicationName);
+                log.debug(
+                        "Requesting unbinding of service", valueChanged.getValue(),
+                        "from application", applicationName
+                );
                 requests.add(this.appOperations.unbindFromService(applicationName, valueChanged.getValue()));
             }
 
@@ -209,7 +206,7 @@ public class ApplicationRequestsPlaner {
             for (CfMapValueChanged valueChanged : enVarsChange.getChangedValues()) {
                 switch (valueChanged.getChangeType()) {
                     case ADDED:
-                        log.debug("Adding request to add environment variable",
+                        log.debug("Requesting addition of environment variable",
                                 valueChanged.getKey(),
                                 "with value",
                                 valueChanged.getValueAfter(),
@@ -220,20 +217,20 @@ public class ApplicationRequestsPlaner {
                                 valueChanged.getValueAfter()));
                         break;
                     case CHANGED:
-                        log.debug("Adding request to change environment variable",
+                        log.debug("Requesting change of environment variable",
                                 valueChanged.getKey(),
                                 "from value",
                                 valueChanged.getValueBefore(),
                                 "to value",
                                 valueChanged.getValueAfter(),
-                                "for  application",
+                                "for application",
                                 applicationName);
                         requests.add(this.appOperations.addEnvironmentVariable(applicationName,
                                 valueChanged.getKey(),
                                 valueChanged.getValueAfter()));
                         break;
                     case REMOVED:
-                        log.debug("Adding request to remove environment variable",
+                        log.debug("Requesting removal of environment variable",
                                 valueChanged.getKey(),
                                 "from application",
                                 applicationName);
@@ -241,7 +238,7 @@ public class ApplicationRequestsPlaner {
                                 valueChanged.getKey()));
                         break;
                     default:
-                        throw new AssertionError("Encountered an unknown change type");
+                        throw new AssertionError("Encountered unknown change type " + valueChanged.getChangeType());
                 }
             }
             return Flux.concat(requests);
@@ -260,7 +257,7 @@ public class ApplicationRequestsPlaner {
             logChange(routesChanges);
 
             for (CfContainerValueChanged valueChanged : routesChanges.getValueChangesBy(ChangeType.ADDED)) {
-                log.debug("Adding request to add route",
+                log.debug("Requesting addition of route",
                         valueChanged.getValue(),
                         "to application",
                         applicationName);
@@ -268,7 +265,7 @@ public class ApplicationRequestsPlaner {
             }
 
             for (CfContainerValueChanged valueChanged : routesChanges.getValueChangesBy(ChangeType.REMOVED)) {
-                log.debug("Adding request to remove route",
+                log.debug("Requesting removal of route",
                         valueChanged.getValue(),
                         "from application",
                         applicationName);
@@ -305,6 +302,6 @@ public class ApplicationRequestsPlaner {
     }
 
     private void logChange(CfChange change) {
-        log.debug("Property <" + change.getPropertyName() + "> for app <" + applicationName + "> will be updated.");
+        log.debug("Property", change.getPropertyName(), "for app", applicationName, "will be updated.");
     }
 }
