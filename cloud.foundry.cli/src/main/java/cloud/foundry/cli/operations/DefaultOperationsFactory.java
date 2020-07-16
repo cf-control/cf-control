@@ -49,7 +49,7 @@ public class DefaultOperationsFactory extends OperationsFactory {
      */
     @Override
     public SpaceDevelopersOperations createSpaceDevelopersOperations() {
-        return new SpaceDevelopersOperations(cfOperations);
+        return new DefaultSpaceDevelopersOperations(cfOperations);
     }
 
     /**

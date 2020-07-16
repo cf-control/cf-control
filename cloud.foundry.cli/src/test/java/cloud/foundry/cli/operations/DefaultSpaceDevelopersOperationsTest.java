@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
+import cloud.foundry.cli.operations.spacedevelopers.DefaultSpaceDevelopersOperations;
 import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperByUsernameRequest;
 import org.cloudfoundry.client.v2.spaces.RemoveSpaceDeveloperByUsernameRequest;
@@ -27,20 +28,20 @@ import org.junit.jupiter.api.Test;
 
 import reactor.core.publisher.Mono;
 
-class SpaceDevelopersOperationsTest {
+class DefaultSpaceDevelopersOperationsTest {
 
     /**
      * This is the mock of cf operations for every test case.
      * It is updated by the method calls to the SpaceDeveloperMocks class.
      */
     private static DefaultCloudFoundryOperations cfOperationsMock;
-    private static SpaceDevelopersOperations spaceDevelopersOperations;
+    private static DefaultSpaceDevelopersOperations spaceDevelopersOperations;
     private static SpaceDeveloperMocks mocks;
 
     @BeforeEach
     public void reinitializeFields() {
         cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
-        spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperationsMock);
+        spaceDevelopersOperations = new DefaultSpaceDevelopersOperations(cfOperationsMock);
         mocks = new SpaceDeveloperMocks();
     }
 
