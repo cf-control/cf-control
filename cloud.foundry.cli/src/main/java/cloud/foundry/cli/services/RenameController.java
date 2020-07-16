@@ -44,7 +44,8 @@ public class RenameController implements Callable<Integer> {
         public Integer call() throws Exception {
             log.info("Renaming application...");
 
-            ApplicationsOperations applicationOperations = OperationsFactory.getInstance().createApplicationsOperations();
+            ApplicationsOperations applicationOperations =
+                    OperationsFactory.getInstance().createApplicationsOperations();
 
             RenameLogic renameLogic = new RenameLogic();
             renameLogic.renameApplication(applicationOperations, newName, currentName);

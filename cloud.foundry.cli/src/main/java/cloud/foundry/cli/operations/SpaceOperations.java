@@ -10,6 +10,7 @@ import java.util.List;
 public interface SpaceOperations {
 
     Mono<List<String>> getAll();
+
     Mono<Void> create(String spaceName);
 
 }

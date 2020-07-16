@@ -12,13 +12,21 @@ import java.util.Map;
 public interface ServicesOperations {
 
     Mono<Map<String, ServiceBean>> getAll();
+
     Mono<Void> create(String serviceInstanceName, ServiceBean serviceBean);
+
     Mono<Void> rename(String newName, String currentName);
+
     Mono<Void> update(String serviceInstanceName, ServiceBean serviceBean);
+
     Mono<Void> remove(String serviceInstanceName);
+
     Flux<Void> deleteKeys(String serviceInstanceName);
+
     Flux<Void> unbindApps(String serviceInstanceName);
+
     Mono<Void> unbindApp(String serviceInstanceName, String applicationName);
+
     Flux<Void> unbindRoutes(String serviceInstanceName);
 
 }

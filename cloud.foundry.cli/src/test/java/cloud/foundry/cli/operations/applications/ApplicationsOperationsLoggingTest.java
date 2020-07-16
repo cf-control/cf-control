@@ -1,14 +1,14 @@
 package cloud.foundry.cli.operations.applications;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.*;
+
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.operations.ApplicationsOperations;
 import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
-
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
 
 public class ApplicationsOperationsLoggingTest {
 

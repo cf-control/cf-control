@@ -1,5 +1,7 @@
 package cloud.foundry.cli.operations.applications;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.operations.ApplicationsOperations;
@@ -8,8 +10,6 @@ import reactor.core.publisher.Mono;
 
 import javax.annotation.Nonnull;
 import java.util.Map;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * This class utilizes the decorator pattern to apply logging to the underlying applications operations

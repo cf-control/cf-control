@@ -12,7 +12,8 @@ import reactor.core.publisher.Mono;
 
 import java.util.List;
 
-public class DefaultSpaceOperations extends AbstractOperations<DefaultCloudFoundryOperations> implements SpaceOperations {
+public class DefaultSpaceOperations extends AbstractOperations<DefaultCloudFoundryOperations>
+        implements SpaceOperations {
 
     private static final Log log = Log.getLog(DefaultSpaceOperations.class);
 

@@ -23,7 +23,8 @@ import java.util.List;
  * provided by the reactor library. For more details on how to work with Mono's visit:
  * https://projectreactor.io/docs/core/release/reference/index.html#core-features
  */
-public class DefaultSpaceDevelopersOperations extends AbstractOperations<DefaultCloudFoundryOperations> implements SpaceDevelopersOperations {
+public class DefaultSpaceDevelopersOperations extends AbstractOperations<DefaultCloudFoundryOperations>
+        implements SpaceDevelopersOperations {
 
     private static final Log log = Log.getLog(DefaultSpaceDevelopersOperations.class);
 

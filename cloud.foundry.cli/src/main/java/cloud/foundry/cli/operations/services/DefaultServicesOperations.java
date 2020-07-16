@@ -26,7 +26,8 @@ import java.util.Map;
  * provided by the reactor library. For more details on how to work with Mono's visit:
  * https://projectreactor.io/docs/core/release/reference/index.html#core-features
  */
-public class DefaultServicesOperations extends AbstractOperations<DefaultCloudFoundryOperations> implements ServicesOperations {
+public class DefaultServicesOperations extends AbstractOperations<DefaultCloudFoundryOperations>
+        implements ServicesOperations {
 
     private static final Log log = Log.getLog(DefaultServicesOperations.class);
 

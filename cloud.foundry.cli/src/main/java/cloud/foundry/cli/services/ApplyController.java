@@ -11,6 +11,7 @@ import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
 import cloud.foundry.cli.logic.ApplyLogic;
 import cloud.foundry.cli.operations.DefaultOperationsFactory;
 import cloud.foundry.cli.operations.OperationsFactory;
+import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 
 import java.util.concurrent.Callable;
 
@@ -57,9 +58,10 @@ public class ApplyController implements Callable<Integer> {
                     SpecBean.class);
             log.verbose("YAML file interpreted.");
 
-            OperationsFactory.setInstance(new DefaultOperationsFactory(CfOperationsCreator.createCfOperations(loginOptions)));
-            OperationsFactory operationsFactory = OperationsFactory.getInstance();
-            ApplyLogic applyLogic = new ApplyLogic(operationsFactory);
+            DefaultCloudFoundryOperations cloudFoundryOperations = CfOperationsCreator.createCfOperations(loginOptions);
+            OperationsFactory.setInstance(new DefaultOperationsFactory(cloudFoundryOperations));
+
+            ApplyLogic applyLogic = new ApplyLogic(OperationsFactory.getInstance());
 
             applyLogic.applySpaceDevelopers(desiredSpecBean.getSpaceDevelopers());
 
@@ -81,9 +83,10 @@ public class ApplyController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            OperationsFactory.setInstance(new DefaultOperationsFactory(CfOperationsCreator.createCfOperations(loginOptions)));
-            OperationsFactory operationsFactory = OperationsFactory.getInstance();
-            ApplyLogic applyLogic = new ApplyLogic(operationsFactory);
+            DefaultCloudFoundryOperations cloudFoundryOperations = CfOperationsCreator.createCfOperations(loginOptions);
+            OperationsFactory.setInstance(new DefaultOperationsFactory(cloudFoundryOperations));
+
+            ApplyLogic applyLogic = new ApplyLogic(OperationsFactory.getInstance());
 
             log.info("Interpreting YAML file...");
             SpecBean desiredSpecBean = YamlMapper.loadBeanFromFile(yamlCommandOptions.getYamlFilePath(),
@@ -110,9 +113,10 @@ public class ApplyController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            OperationsFactory.setInstance(new DefaultOperationsFactory(CfOperationsCreator.createCfOperations(loginOptions)));
-            OperationsFactory operationsFactory = OperationsFactory.getInstance();
-            ApplyLogic applyLogic = new ApplyLogic(operationsFactory);
+            DefaultCloudFoundryOperations cloudFoundryOperations = CfOperationsCreator.createCfOperations(loginOptions);
+            OperationsFactory.setInstance(new DefaultOperationsFactory(cloudFoundryOperations));
+
+            ApplyLogic applyLogic = new ApplyLogic(OperationsFactory.getInstance());
 
             log.verbose("Interpreting YAML file...");
             SpecBean desiredSpecBean = YamlMapper.loadBeanFromFile(yamlCommandOptions.getYamlFilePath(),
@@ -135,7 +139,8 @@ public class ApplyController implements Callable<Integer> {
 
         @Override
         public Integer call() {
-            OperationsFactory.setInstance(new DefaultOperationsFactory(CfOperationsCreator.createCfOperations(loginOptions)));
+            DefaultCloudFoundryOperations cloudFoundryOperations = CfOperationsCreator.createCfOperations(loginOptions);
+            OperationsFactory.setInstance(new DefaultOperationsFactory(cloudFoundryOperations));
             ApplyLogic applyLogic = new ApplyLogic(OperationsFactory.getInstance());
 
             String desiredSpace = loginOptions.getSpace();

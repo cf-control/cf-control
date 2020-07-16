@@ -40,7 +40,8 @@ import java.util.stream.Collectors;
  * library. For more details on how to work with Mono's visit:
  * https://projectreactor.io/docs/core/release/reference/index.html#core-features
  */
-public class DefaultApplicationsOperations extends AbstractOperations<DefaultCloudFoundryOperations> implements ApplicationsOperations {
+public class DefaultApplicationsOperations extends AbstractOperations<DefaultCloudFoundryOperations>
+        implements ApplicationsOperations {
 
     private static final Log log = Log.getLog(DefaultApplicationsOperations.class);
 

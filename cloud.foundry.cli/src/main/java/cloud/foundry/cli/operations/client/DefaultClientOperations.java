@@ -16,7 +16,8 @@ import reactor.core.publisher.Mono;
  * provided by the reactor library. For more details on how to work with Mono's visit:
  * https://projectreactor.io/docs/core/release/reference/index.html#core-features
  */
-public class DefaultClientOperations extends AbstractOperations<DefaultCloudFoundryOperations> implements ClientOperations {
+public class DefaultClientOperations extends AbstractOperations<DefaultCloudFoundryOperations>
+        implements ClientOperations {
 
     public DefaultClientOperations(DefaultCloudFoundryOperations cloudFoundryOperations) {
         super(cloudFoundryOperations);

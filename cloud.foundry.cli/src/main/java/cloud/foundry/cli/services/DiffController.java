@@ -10,6 +10,7 @@ import cloud.foundry.cli.crosscutting.mapping.YamlMapper;
 import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
 import cloud.foundry.cli.logic.DiffLogic;
 import cloud.foundry.cli.logic.GetLogic;
+import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 
 import java.io.IOException;
 import java.util.concurrent.Callable;
@@ -38,7 +39,8 @@ public class DiffController implements Callable<Integer> {
     public Integer call() throws IOException {
         ConfigBean desiredConfigBean = YamlMapper.loadBeanFromFile(yamlCommandOptions.getYamlFilePath(),
                 ConfigBean.class);
-        OperationsFactory.setInstance(new DefaultOperationsFactory(CfOperationsCreator.createCfOperations(loginOptions)));
+        DefaultCloudFoundryOperations cloudFoundryOperations = CfOperationsCreator.createCfOperations(loginOptions);
+        OperationsFactory.setInstance(new DefaultOperationsFactory(cloudFoundryOperations));
 
         log.debug("Desired config:", desiredConfigBean);
         log.info("Fetching all information for target space...");

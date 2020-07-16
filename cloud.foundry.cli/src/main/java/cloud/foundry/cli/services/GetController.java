@@ -6,6 +6,7 @@ import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
 import cloud.foundry.cli.crosscutting.mapping.YamlMapper;
 import cloud.foundry.cli.logic.GetLogic;
 import cloud.foundry.cli.operations.*;
+import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
 
@@ -26,7 +27,8 @@ public class GetController implements Callable<Integer> {
 
     @Override
     public Integer call() {
-        OperationsFactory.setInstance(new DefaultOperationsFactory(CfOperationsCreator.createCfOperations(loginOptions)));
+        DefaultCloudFoundryOperations cloudFoundryOperations = CfOperationsCreator.createCfOperations(loginOptions);
+        OperationsFactory.setInstance(new DefaultOperationsFactory(cloudFoundryOperations));
         GetLogic getLogic = new GetLogic(OperationsFactory.getInstance());
 
         log.info("Fetching all information for target space...");

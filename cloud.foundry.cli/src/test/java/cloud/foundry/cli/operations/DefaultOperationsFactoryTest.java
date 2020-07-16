@@ -1,14 +1,13 @@
 package cloud.foundry.cli.operations;
 
-import cloud.foundry.cli.operations.client.DefaultClientOperations;
-import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
+
+import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 public class DefaultOperationsFactoryTest {
 
@@ -25,7 +24,8 @@ public class DefaultOperationsFactoryTest {
 
     @Test
     public void testCreateApplicationsOperations() {
-        ApplicationsOperations applicationsOperations = DefaultOperationsFactory.getInstance().createApplicationsOperations();
+        ApplicationsOperations applicationsOperations
+                = DefaultOperationsFactory.getInstance().createApplicationsOperations();
 
         assertThat(applicationsOperations, notNullValue());
     }
@@ -39,7 +39,8 @@ public class DefaultOperationsFactoryTest {
 
     @Test
     public void testCreateSpaceDevelopersOperations() {
-        SpaceDevelopersOperations spaceDevelopersOperations = DefaultOperationsFactory.getInstance().createSpaceDevelopersOperations();
+        SpaceDevelopersOperations spaceDevelopersOperations
+                = DefaultOperationsFactory.getInstance().createSpaceDevelopersOperations();
 
         assertThat(spaceDevelopersOperations, notNullValue());
     }

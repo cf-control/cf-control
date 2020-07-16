@@ -11,8 +11,11 @@ import java.util.List;
 public interface SpaceDevelopersOperations {
 
     Mono<List<String>> getAll();
+
     Mono<String> getSpaceId();
+
     Mono<Void> assign(@Nonnull String username, @Nonnull String spaceId);
+
     Mono<Void> remove(String username, String spaceId);
 
 }
