@@ -2,6 +2,7 @@ package cloud.foundry.cli.operations;
 
 import cloud.foundry.cli.operations.applications.ApplicationsOperationsLogging;
 import cloud.foundry.cli.operations.applications.DefaultApplicationsOperations;
+import cloud.foundry.cli.operations.services.DefaultServicesOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 
 import javax.annotation.Nonnull;
@@ -25,8 +26,8 @@ public class DefaultOperationsFactory extends OperationsFactory {
     }
 
     @Override
-    public ServicesOperations createServiceOperations() {
-        return new ServicesOperations(cfOperations);
+    public DefaultServicesOperations createServiceOperations() {
+        return new DefaultServicesOperations(cfOperations);
     }
 
     @Override
