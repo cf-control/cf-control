@@ -34,10 +34,10 @@ public class GetController implements Callable<Integer> {
         GetLogic getLogic = new GetLogic();
         log.info("Fetching all information for target space...");
 
-        SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
-        ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
-        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
-        ClientOperations clientOperations = new ClientOperations(cfOperations);
+        SpaceDevelopersOperations spaceDevelopersOperations = OperationsFactory.getInstance().createSpaceDevelopersOperations();
+        ServicesOperations servicesOperations = OperationsFactory.getInstance().createServiceOperations();
+        ApplicationsOperations applicationsOperations = OperationsFactory.getInstance().createApplicationsOperations();
+        ClientOperations clientOperations = OperationsFactory.getInstance().createClientOperations();
 
         ConfigBean allInformation = getLogic.getAll(spaceDevelopersOperations, servicesOperations,
                 applicationsOperations, clientOperations, loginOptions);

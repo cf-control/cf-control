@@ -3,12 +3,11 @@ package cloud.foundry.cli.services;
 import static picocli.CommandLine.*;
 import static picocli.CommandLine.usage;
 
+import cloud.foundry.cli.operations.OperationsFactory;
 import cloud.foundry.cli.crosscutting.logging.Log;
-import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
 import cloud.foundry.cli.logic.RenameLogic;
 import cloud.foundry.cli.operations.ApplicationsOperations;
 import cloud.foundry.cli.operations.ServicesOperations;
-import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 
 import java.util.concurrent.Callable;
 
@@ -45,8 +44,7 @@ public class RenameController implements Callable<Integer> {
         public Integer call() throws Exception {
             log.info("Renaming application...");
 
-            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
-            ApplicationsOperations applicationOperations = new ApplicationsOperations(cfOperations);
+            ApplicationsOperations applicationOperations = OperationsFactory.getInstance().createApplicationsOperations();
 
             RenameLogic renameLogic = new RenameLogic();
             renameLogic.renameApplication(applicationOperations, newName, currentName);
@@ -74,8 +72,7 @@ public class RenameController implements Callable<Integer> {
         public Integer call() throws Exception {
             log.info("Renaming service...");
 
-            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
-            ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
+            ServicesOperations servicesOperations = OperationsFactory.getInstance().createServiceOperations();
 
             RenameLogic renameLogic = new RenameLogic();
             renameLogic.renameService(servicesOperations, newName, currentName);

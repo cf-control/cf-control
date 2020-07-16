@@ -4,9 +4,10 @@ import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
 import cloud.foundry.cli.operations.ApplicationsOperations;
-import cloud.foundry.cli.operations.applications.DefaultApplicationsOperations;
 import cloud.foundry.cli.operations.ServicesOperations;
 import cloud.foundry.cli.operations.SpaceOperations;
+import cloud.foundry.cli.operations.applications.DefaultApplicationsOperations;
+import cloud.foundry.cli.operations.services.DefaultServicesOperations;
 import cloud.foundry.cli.services.LoginMixin;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
@@ -170,7 +171,7 @@ public class SpaceManager implements AutoCloseable {
         spaceOperations.create(spaceName).block();
 
         // create operations instances that are needed by the space configurator
-        servicesOperations = new ServicesOperations(cfOperations);
+        servicesOperations = new DefaultServicesOperations(cfOperations);
         applicationsOperations = new DefaultApplicationsOperations(cfOperations);
     }
 

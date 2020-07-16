@@ -13,6 +13,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
+import cloud.foundry.cli.operations.services.DefaultServicesOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.routes.ListRoutesRequest;
 import org.cloudfoundry.operations.routes.Route;
@@ -32,7 +33,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ServicesOperationsTest {
+public class DefaultServicesOperationsTest {
 
     private static final String USER_PROVIDED_SERVICE_INSTANCE = "user_provided_service_instance";
     private static final String MANAGER_PROVIDED_SERVICE_INSTANCE = "manager_provided_service_instance";
@@ -64,7 +65,7 @@ public class ServicesOperationsTest {
         List<ServiceInstance> serviceInstances = Arrays.asList(serviceInstanceMock);
 
         DefaultCloudFoundryOperations cfMock = mockGetAllMethod(withServices, serviceInstances);
-        ServicesOperations servicesOperations = new ServicesOperations(cfMock);
+        DefaultServicesOperations servicesOperations = new DefaultServicesOperations(cfMock);
 
         // when
         Map<String, ServiceBean> services = servicesOperations.getAll().block();
@@ -83,7 +84,7 @@ public class ServicesOperationsTest {
         List<ServiceInstanceSummary> withoutServices = Collections.emptyList();
         List<ServiceInstance> withoutServiceInstances = Collections.emptyList();
         DefaultCloudFoundryOperations cfMock = mockGetAllMethod(withoutServices, withoutServiceInstances);
-        ServicesOperations servicesOperations = new ServicesOperations(cfMock);
+        DefaultServicesOperations servicesOperations = new DefaultServicesOperations(cfMock);
 
         // when
         Map<String, ServiceBean> services = servicesOperations.getAll().block();
@@ -105,7 +106,7 @@ public class ServicesOperationsTest {
         Mockito.when(servicesMock.createInstance(any(CreateServiceInstanceRequest.class)))
             .thenReturn(mono);
 
-        ServicesOperations servicesOperations = new ServicesOperations(cfMock);
+        DefaultServicesOperations servicesOperations = new DefaultServicesOperations(cfMock);
 
         // when
         Mono<Void> actualMono = servicesOperations.create(serviceInstanceName, serviceBeanMock);
@@ -127,7 +128,7 @@ public class ServicesOperationsTest {
     public void testCreateOnNullArgumentsThrowsException() {
         // given
         DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
-        ServicesOperations servicesOperations = new ServicesOperations(cfOperationsMock);
+        DefaultServicesOperations servicesOperations = new DefaultServicesOperations(cfOperationsMock);
 
         // when
         assertThrows(NullPointerException.class, () -> servicesOperations.create(null, new ServiceBean()));
@@ -147,7 +148,7 @@ public class ServicesOperationsTest {
         when(servicesMock.updateInstance(any(UpdateServiceInstanceRequest.class))).thenReturn(mono);
 
         // when
-        ServicesOperations servicesOperations = new ServicesOperations(cfMock);
+        DefaultServicesOperations servicesOperations = new DefaultServicesOperations(cfMock);
         Mono<Void> actualMono = servicesOperations.update(serviceInstanceName, serviceBeanMock);
 
         // then
@@ -162,7 +163,7 @@ public class ServicesOperationsTest {
     public void testUpdateOnNullArgumentsThrowsException() {
         // given
         DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
-        ServicesOperations servicesOperations = new ServicesOperations(cfOperationsMock);
+        DefaultServicesOperations servicesOperations = new DefaultServicesOperations(cfOperationsMock);
 
         // when
         assertThrows(NullPointerException.class, () -> servicesOperations.update(null, new ServiceBean()));
@@ -180,7 +181,7 @@ public class ServicesOperationsTest {
         when(servicesMock.renameInstance(any(RenameServiceInstanceRequest.class))).thenReturn(mono);
 
         // when
-        ServicesOperations servicesOperations = new ServicesOperations(cfMock);
+        DefaultServicesOperations servicesOperations = new DefaultServicesOperations(cfMock);
         Mono<Void> actualMono = servicesOperations.rename("newname", "currentname");
         actualMono.block();
 
@@ -196,7 +197,7 @@ public class ServicesOperationsTest {
     public void testRenameOnNullNamesThrowsException() {
         // given
         DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
-        ServicesOperations servicesOperations = new ServicesOperations(cfOperationsMock);
+        DefaultServicesOperations servicesOperations = new DefaultServicesOperations(cfOperationsMock);
 
         // when
         assertThrows(NullPointerException.class, () -> servicesOperations.rename(null, "newname"));
@@ -236,7 +237,7 @@ public class ServicesOperationsTest {
         mockDeleteServiceKey(cfOperationsMock, servicesMock);
         mockDeleteServiceInstance(cfOperationsMock, servicesMock);
 
-        ServicesOperations servicesOperations = new ServicesOperations(cfOperationsMock);
+        DefaultServicesOperations servicesOperations = new DefaultServicesOperations(cfOperationsMock);
 
         // when
         Mono<Void> request = servicesOperations.remove("someservice");
@@ -277,7 +278,7 @@ public class ServicesOperationsTest {
         mockDeleteServiceKey(cfOperationsMock, servicesMock);
         mockDeleteServiceInstance(cfOperationsMock, servicesMock);
 
-        ServicesOperations servicesOperations = new ServicesOperations(cfOperationsMock);
+        DefaultServicesOperations servicesOperations = new DefaultServicesOperations(cfOperationsMock);
 
         // when
         Mono<Void> request = servicesOperations.remove("someservice");
@@ -301,7 +302,7 @@ public class ServicesOperationsTest {
     public void testRemoveOnNullNameThrowsException() {
         // given
         DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
-        ServicesOperations servicesOperations = new ServicesOperations(cfOperationsMock);
+        DefaultServicesOperations servicesOperations = new DefaultServicesOperations(cfOperationsMock);
 
         // when
         assertThrows(NullPointerException.class, () -> servicesOperations.remove(null));
@@ -324,7 +325,7 @@ public class ServicesOperationsTest {
         Services servicesMock = mock(Services.class);
         mockUnbindRoute(cfOperationsMock, servicesMock);
 
-        ServicesOperations servicesOperations = new ServicesOperations(cfOperationsMock);
+        DefaultServicesOperations servicesOperations = new DefaultServicesOperations(cfOperationsMock);
 
         // when
         Flux<Void> requests = servicesOperations.unbindRoutes("someservice");
@@ -348,7 +349,7 @@ public class ServicesOperationsTest {
         Services servicesMock = mock(Services.class);
         mockUnbindRoute(cfOperationsMock, servicesMock);
 
-        ServicesOperations servicesOperations = new ServicesOperations(cfOperationsMock);
+        DefaultServicesOperations servicesOperations = new DefaultServicesOperations(cfOperationsMock);
 
         // when
         Flux<Void> requests = servicesOperations.unbindRoutes("someservice");
@@ -366,7 +367,7 @@ public class ServicesOperationsTest {
     public void testUnbindRouteOnNullNameThrowsException() {
         // given
         DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
-        ServicesOperations servicesOperations = new ServicesOperations(cfOperationsMock);
+        DefaultServicesOperations servicesOperations = new DefaultServicesOperations(cfOperationsMock);
 
         // when
         assertThrows(NullPointerException.class, () -> servicesOperations.unbindRoutes(null));
@@ -388,7 +389,7 @@ public class ServicesOperationsTest {
         mockGetServiceInstance(cfOperationsMock, servicesMock, serviceInstance);
         mockUnbindApp(cfOperationsMock, servicesMock);
 
-        ServicesOperations servicesOperations = new ServicesOperations(cfOperationsMock);
+        DefaultServicesOperations servicesOperations = new DefaultServicesOperations(cfOperationsMock);
 
         // when
         Flux<Void> requests = servicesOperations.unbindApps("someservice");
@@ -417,7 +418,7 @@ public class ServicesOperationsTest {
         mockGetServiceInstance(cfOperationsMock, servicesMock, serviceInstance);
         mockUnbindApp(cfOperationsMock, servicesMock);
 
-        ServicesOperations servicesOperations = new ServicesOperations(cfOperationsMock);
+        DefaultServicesOperations servicesOperations = new DefaultServicesOperations(cfOperationsMock);
         // when
         Flux<Void> requests = servicesOperations.unbindApps("someservice");
         requests.blockLast();
@@ -434,7 +435,7 @@ public class ServicesOperationsTest {
     public void testUnbindAppsOnNullNameThrowsException() {
         // given
         DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
-        ServicesOperations servicesOperations = new ServicesOperations(cfOperationsMock);
+        DefaultServicesOperations servicesOperations = new DefaultServicesOperations(cfOperationsMock);
 
         // when
         assertThrows(NullPointerException.class, () -> servicesOperations.unbindApps(null));
@@ -460,7 +461,7 @@ public class ServicesOperationsTest {
         mockListServiceKeys(cfOperationsMock, servicesMock, Arrays.asList(serviceKey, serviceKey2));
         mockDeleteServiceKey(cfOperationsMock, servicesMock);
 
-        ServicesOperations servicesOperations = new ServicesOperations(cfOperationsMock);
+        DefaultServicesOperations servicesOperations = new DefaultServicesOperations(cfOperationsMock);
 
         // when
         Flux<Void> requests = servicesOperations.deleteKeys("someservice");
@@ -491,7 +492,7 @@ public class ServicesOperationsTest {
         mockListServiceKeys(cfOperationsMock, servicesMock, Collections.emptyList());
         mockDeleteServiceKey(cfOperationsMock, servicesMock);
 
-        ServicesOperations servicesOperations = new ServicesOperations(cfOperationsMock);
+        DefaultServicesOperations servicesOperations = new DefaultServicesOperations(cfOperationsMock);
         // when
         Flux<Void> requests = servicesOperations.deleteKeys("someservice");
         requests.blockLast();
@@ -521,7 +522,7 @@ public class ServicesOperationsTest {
         mockListServiceKeys(cfOperationsMock, servicesMock, Collections.emptyList());
         mockDeleteServiceKey(cfOperationsMock, servicesMock);
 
-        ServicesOperations servicesOperations = new ServicesOperations(cfOperationsMock);
+        DefaultServicesOperations servicesOperations = new DefaultServicesOperations(cfOperationsMock);
         // when
         Flux<Void> requests = servicesOperations.deleteKeys("someservice");
         requests.blockLast();
@@ -539,7 +540,7 @@ public class ServicesOperationsTest {
     public void testDeleteKeysOnNullNameThrowsException() {
         // given
         DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
-        ServicesOperations servicesOperations = new ServicesOperations(cfOperationsMock);
+        DefaultServicesOperations servicesOperations = new DefaultServicesOperations(cfOperationsMock);
 
         // when
         assertThrows(NullPointerException.class, () -> servicesOperations.deleteKeys(null));
@@ -552,7 +553,7 @@ public class ServicesOperationsTest {
         Services servicesMock = mock(Services.class);
         mockUnbindApp(cfOperationsMock, servicesMock);
 
-        ServicesOperations servicesOperations = new ServicesOperations(cfOperationsMock);
+        DefaultServicesOperations servicesOperations = new DefaultServicesOperations(cfOperationsMock);
         // when
         Mono<Void> request = servicesOperations.unbindApp("someservice", "someapp");
         request.block();
@@ -573,7 +574,7 @@ public class ServicesOperationsTest {
     public void testUnbindAppOnNullNameThrowsException() {
         // given
         DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
-        ServicesOperations servicesOperations = new ServicesOperations(cfOperationsMock);
+        DefaultServicesOperations servicesOperations = new DefaultServicesOperations(cfOperationsMock);
 
         // when
         assertThrows(NullPointerException.class, () -> servicesOperations.unbindApp(null, "someapp"));

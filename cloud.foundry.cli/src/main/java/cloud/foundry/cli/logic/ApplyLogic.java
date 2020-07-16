@@ -2,6 +2,7 @@ package cloud.foundry.cli.logic;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import cloud.foundry.cli.operations.*;
 import cloud.foundry.cli.crosscutting.exceptions.GetException;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
@@ -15,10 +16,7 @@ import cloud.foundry.cli.logic.apply.SpaceDevelopersRequestsPlaner;
 import cloud.foundry.cli.logic.diff.DiffResult;
 import cloud.foundry.cli.logic.diff.change.CfChange;
 import cloud.foundry.cli.logic.diff.change.container.CfContainerChange;
-import cloud.foundry.cli.operations.ApplicationsOperations;
-import cloud.foundry.cli.operations.ServicesOperations;
-import cloud.foundry.cli.operations.SpaceDevelopersOperations;
-import cloud.foundry.cli.operations.SpaceOperations;
+import cloud.foundry.cli.operations.services.DefaultServicesOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -58,8 +56,8 @@ public class ApplyLogic {
 
         this.cfOperations = cfOperations;
         this.spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
-        this.servicesOperations = new ServicesOperations(cfOperations);
-        this.applicationsOperations = new ApplicationsOperations(cfOperations);
+        this.servicesOperations = new DefaultServicesOperations(cfOperations);
+        this.applicationsOperations = OperationsFactory.getInstance().createApplicationsOperations();
         this.spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
         this.getLogic = new GetLogic();
         this.diffLogic = new DiffLogic();

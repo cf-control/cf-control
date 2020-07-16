@@ -43,7 +43,7 @@ public class RenameLogic {
      * @throws NullPointerException when newName, currentName or servicesOperations is null
      */
     public void renameService(ServicesOperations servicesOperations, String newName, String currentName) {
-        checkArgumentsNotNull(servicesOperations, newName, currentName);
+        checkArgumentsNotNull((AbstractOperations)servicesOperations, newName, currentName);
 
         Mono<Void> toRename = servicesOperations.rename(newName, currentName);
         try {

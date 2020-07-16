@@ -7,7 +7,6 @@ import cloud.foundry.cli.crosscutting.exceptions.UpdateException;
 import cloud.foundry.cli.operations.ApplicationsOperations;
 import cloud.foundry.cli.operations.ServicesOperations;
 import org.cloudfoundry.client.v2.ClientV2Exception;
-import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 
@@ -53,17 +52,15 @@ public class RenameLogicTest {
 
         @Test
     public void renameService_NewNameNull_NullptrExceptionThrown() {
-        DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
         assertThrows(NullPointerException.class,
-                () -> new RenameLogic().renameService(new ServicesOperations(cfOperationsMock), null,
+                () -> new RenameLogic().renameService(mock(ServicesOperations.class), null,
                         CURRENT_NAME));
     }
 
         @Test
     public void renameService_CurrentNameNull_NullptrExceptionThrown() {
-        DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
             assertThrows(NullPointerException.class,
-                    () -> new RenameLogic().renameService(new ServicesOperations(cfOperationsMock), NEW_NAME,
+                    () -> new RenameLogic().renameService(mock(ServicesOperations.class), NEW_NAME,
                             null));
     }
 
@@ -111,7 +108,6 @@ public class RenameLogicTest {
 
     @Test
     public void renameApplication_CurrentNameNull_NullptrExceptionThrown() {
-        DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
         assertThrows(NullPointerException.class,
                 () -> new RenameLogic().renameApplication(mock(ApplicationsOperations.class), NEW_NAME,
                         null));
