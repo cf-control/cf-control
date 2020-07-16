@@ -19,8 +19,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * This class parses change objects of type {@link ContainerChange} to a single
- * custom change object of type {@link CfContainerChange} returned as list
+ * This class parses change objects of type {@link ContainerChange} to a list of
+ * custom change objects of type {@link CfContainerChange}
  */
 public class ContainerChangeParsingStrategy extends AbstractParsingStrategy {
 
