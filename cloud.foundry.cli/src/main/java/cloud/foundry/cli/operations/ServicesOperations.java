@@ -6,6 +6,9 @@ import reactor.core.publisher.Mono;
 
 import java.util.Map;
 
+/**
+ * Serves has the pattern for the service operations classes
+ */
 public interface ServicesOperations {
 
     Mono<Map<String, ServiceBean>> getAll();

@@ -1,5 +1,8 @@
 package cloud.foundry.cli.operations;
 
+/**
+ * Abstract factory for the operations class module
+ */
 public abstract class OperationsFactory {
 
     private static OperationsFactory instance;

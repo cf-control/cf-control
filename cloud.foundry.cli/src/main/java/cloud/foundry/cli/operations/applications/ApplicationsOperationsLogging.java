@@ -11,6 +11,9 @@ import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+/**
+ * This class utilizes the decorator pattern to apply logging to the underlying applications operations
+ */
 public class ApplicationsOperationsLogging implements ApplicationsOperations {
 
     private static final Log log = Log.getLog(ApplicationsOperations.class);
