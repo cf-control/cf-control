@@ -44,7 +44,7 @@ public class ApplyController implements Callable<Integer> {
 
         ApplyLogic applyLogic = new ApplyLogic(cfOperations);
         applyLogic.applyAll(desiredConfigBean, loginOptions);
-        log.verbose("Changes applied.");
+        log.info("All changes are applied.");
 
         return 0;
     }
