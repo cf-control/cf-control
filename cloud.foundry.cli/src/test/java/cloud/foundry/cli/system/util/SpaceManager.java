@@ -6,6 +6,7 @@ import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
 import cloud.foundry.cli.operations.ApplicationsOperations;
 import cloud.foundry.cli.operations.ServicesOperations;
 import cloud.foundry.cli.operations.SpaceOperations;
+import cloud.foundry.cli.operations.space.DefaultSpaceOperations;
 import cloud.foundry.cli.operations.applications.DefaultApplicationsOperations;
 import cloud.foundry.cli.operations.services.DefaultServicesOperations;
 import cloud.foundry.cli.services.LoginCommandOptions;
@@ -164,7 +165,7 @@ public class SpaceManager implements AutoCloseable {
         // like in other modules, the problem can be "solved" by running different operations beforehand, or delaying
         // the execution by >= 1 second with some sleep()
         // TODO: find more elegant way to resolve issue
-        SpaceOperations spaceOperations = new SpaceOperations(cfOperations);
+        SpaceOperations spaceOperations = new DefaultSpaceOperations(cfOperations);
         spaceOperations.getAll().block();
 
         // time to create the space

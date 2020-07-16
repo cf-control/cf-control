@@ -8,6 +8,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import cloud.foundry.cli.operations.space.DefaultSpaceOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.spaces.CreateSpaceRequest;
 import org.cloudfoundry.operations.spaces.SpaceSummary;
@@ -20,7 +21,7 @@ import java.util.Arrays;
 import java.util.List;
 
 
-public class SpaceOperationsTest {
+public class DefaultSpaceOperationsTest {
 
     @Test
     public void testGetAllSucceeds() {
@@ -44,7 +45,7 @@ public class SpaceOperationsTest {
         when(cloudFoundryOperationsMock.spaces()).thenReturn(spacesMock);
         when(spacesMock.list()).thenReturn(spaceSummariesFlux);
 
-        SpaceOperations spaceOperations = new SpaceOperations(cloudFoundryOperationsMock);
+        DefaultSpaceOperations spaceOperations = new DefaultSpaceOperations(cloudFoundryOperationsMock);
 
         //when
         Mono<List<String>> result = spaceOperations.getAll();
@@ -58,8 +59,8 @@ public class SpaceOperationsTest {
     public void testCreateWithSpaceNameNullThrowsNullptr() {
         // given
         DefaultCloudFoundryOperations cloudFoundryOperationsMock = mock(DefaultCloudFoundryOperations.class);
-        SpaceOperations spaceOperations = new SpaceOperations(cloudFoundryOperationsMock);
-        
+        DefaultSpaceOperations spaceOperations = new DefaultSpaceOperations(cloudFoundryOperationsMock);
+
         // when + then
         assertThrows(NullPointerException.class, () ->
                 spaceOperations.create(null));
@@ -75,7 +76,7 @@ public class SpaceOperationsTest {
         when(spacesMock.create(any(CreateSpaceRequest.class))).thenReturn(expectedResultMono);
         when(expectedResultMono.doOnSubscribe(any())).thenReturn(expectedResultMono);
         when(expectedResultMono.doOnSuccess(any())).thenReturn(expectedResultMono);
-        SpaceOperations spaceOperations = new SpaceOperations(cloudFoundryOperationsMock);
+        DefaultSpaceOperations spaceOperations = new DefaultSpaceOperations(cloudFoundryOperationsMock);
 
         //when
         Mono<Void> resultMono = spaceOperations.create("testName");

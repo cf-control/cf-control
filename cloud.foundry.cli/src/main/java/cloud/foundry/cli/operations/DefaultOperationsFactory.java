@@ -3,6 +3,7 @@ package cloud.foundry.cli.operations;
 import cloud.foundry.cli.operations.applications.ApplicationsOperationsLogging;
 import cloud.foundry.cli.operations.applications.DefaultApplicationsOperations;
 import cloud.foundry.cli.operations.services.DefaultServicesOperations;
+import cloud.foundry.cli.operations.space.DefaultSpaceOperations;
 import cloud.foundry.cli.operations.spacedevelopers.DefaultSpaceDevelopersOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 
@@ -57,7 +58,7 @@ public class DefaultOperationsFactory extends OperationsFactory {
      */
     @Override
     public SpaceOperations createSpaceOperations() {
-        return new SpaceOperations(cfOperations);
+        return new DefaultSpaceOperations(cfOperations);
     }
 
     /**
