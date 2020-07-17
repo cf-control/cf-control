@@ -3,11 +3,12 @@ package cloud.foundry.cli.services;
 import static picocli.CommandLine.*;
 import static picocli.CommandLine.usage;
 
+import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
+import cloud.foundry.cli.operations.DefaultOperationsFactory;
 import cloud.foundry.cli.operations.OperationsFactory;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.logic.RenameLogic;
-import cloud.foundry.cli.operations.ApplicationsOperations;
-import cloud.foundry.cli.operations.ServicesOperations;
+import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 
 import java.util.concurrent.Callable;
 
@@ -21,7 +22,7 @@ import java.util.concurrent.Callable;
 public class RenameController implements Callable<Integer> {
 
     @Override
-    public Integer call() throws Exception {
+    public Integer call() {
         usage(this, System.out);
         return 0;
     }
@@ -41,14 +42,14 @@ public class RenameController implements Callable<Integer> {
         private String newName;
 
         @Override
-        public Integer call() throws Exception {
+        public Integer call() {
             log.info("Renaming application...");
 
-            ApplicationsOperations applicationOperations =
-                    OperationsFactory.getInstance().createApplicationsOperations();
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+            OperationsFactory.setInstance(new DefaultOperationsFactory(cfOperations));
 
-            RenameLogic renameLogic = new RenameLogic();
-            renameLogic.renameApplication(applicationOperations, newName, currentName);
+            RenameLogic renameLogic = new RenameLogic(OperationsFactory.getInstance());
+            renameLogic.renameApplication(newName, currentName);
 
             log.info("Renamed the app from", currentName,"to", newName);
             return 0;
@@ -70,13 +71,14 @@ public class RenameController implements Callable<Integer> {
         private String newName;
 
         @Override
-        public Integer call() throws Exception {
+        public Integer call() {
             log.info("Renaming service...");
 
-            ServicesOperations servicesOperations = OperationsFactory.getInstance().createServiceOperations();
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+            OperationsFactory.setInstance(new DefaultOperationsFactory(cfOperations));
 
-            RenameLogic renameLogic = new RenameLogic();
-            renameLogic.renameService(servicesOperations, newName, currentName);
+            RenameLogic renameLogic = new RenameLogic(OperationsFactory.getInstance());
+            renameLogic.renameService(newName, currentName);
 
             log.info("Renamed the service from", currentName,"to", newName);
             return 0;
