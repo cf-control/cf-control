@@ -32,8 +32,6 @@ import java.util.*;
  */
 public class ApplyLogicTest {
 
-    private static final String METADATA_KEY = "CF_METADATA_KEY";
-
     private ApplyLogic applyLogic;
     private OperationsFactory operationsFactory;
     private ApplicationsOperations applicationsOperationsMock;
@@ -132,7 +130,6 @@ public class ApplyLogicTest {
         when(getLogicMock.getApplications())
                 .thenReturn(appsOnLiveSystem);
 
-        applyLogic.setApplicationsOperations(applicationsOperationsMock);
         applyLogic.setGetLogic(getLogicMock);
 
         // when
@@ -307,17 +304,12 @@ public class ApplyLogicTest {
 
         // given
         String desiredSpaceName = "testName";
-        SpaceOperations spaceOperationsMock = mock(SpaceOperations.class);
 
         List<String> presentSpaces = Arrays.asList("space1", "space2");
         when(spaceOperationsMock.getAll()).thenReturn(Mono.just(presentSpaces));
 
         Mono<Void> resultingMono = mock(Mono.class);
         when(spaceOperationsMock.create(desiredSpaceName)).thenReturn(resultingMono);
-
-        // the constructor paramteres won't be used by apply space method, because it uses
-        // dependency injection regarding space operations
-        applyLogic.setSpaceOperations(spaceOperationsMock);
 
         // when
         applyLogic.applySpace(desiredSpaceName);
@@ -330,17 +322,12 @@ public class ApplyLogicTest {
     public void testApplySpaceWithSpaceAlreadyExisting() {
         // given
         String desiredSpaceName = "testName";
-        SpaceOperations spaceOperationsMock = mock(SpaceOperations.class);
 
         List<String> presentSpaces = Arrays.asList("testName", "otherSpace");
         when(spaceOperationsMock.getAll()).thenReturn(Mono.just(presentSpaces));
 
         Mono<Void> resultingMono = mock(Mono.class);
         when(spaceOperationsMock.create(desiredSpaceName)).thenReturn(resultingMono);
-
-        // the constructor paramteres won't be used by apply space method, because it uses DI
-        // regarding space operations.
-        applyLogic.setSpaceOperations(spaceOperationsMock);
 
         // when
         applyLogic.applySpace(desiredSpaceName);
@@ -353,15 +340,10 @@ public class ApplyLogicTest {
     public void testApplySpaceWithGetSpaceNamesFailingThrowsGetException() {
         // given
         String desiredSpaceName = "testName";
-        SpaceOperations spaceOperationsMock = mock(SpaceOperations.class);
 
         Mono<List<String>> getRequestMock = mock(Mono.class);
         when(spaceOperationsMock.getAll()).thenReturn(getRequestMock);
         when(getRequestMock.block()).thenThrow(new RuntimeException("Get Space Names Failing"));
-
-        // the constructor parameters won't be used by apply space method, because it uses DI
-        // regarding space operations.
-        applyLogic.setSpaceOperations(spaceOperationsMock);
 
         // when + then
         assertThrows(GetException.class, () ->
@@ -373,7 +355,6 @@ public class ApplyLogicTest {
 
         // given
         String desiredSpaceName = "testName";
-        SpaceOperations spaceOperationsMock = mock(SpaceOperations.class);
 
         List<String> presentSpaces = Arrays.asList("space1", "space2");
         when(spaceOperationsMock.getAll()).thenReturn(Mono.just(presentSpaces));
@@ -382,10 +363,6 @@ public class ApplyLogicTest {
         when(spaceOperationsMock.create(desiredSpaceName)).thenReturn(resultingMono);
         when(resultingMono.block()).thenThrow(new RuntimeException("Create space failing"));
 
-        // the constructor parameters won't be used by apply space method, because it uses DI
-        // regarding space operations.
-        applyLogic.setSpaceOperations(spaceOperationsMock);
-
         // when + then
         assertThrows(ApplyException.class, () ->
                 applyLogic.applySpace(desiredSpaceName));
@@ -393,11 +370,6 @@ public class ApplyLogicTest {
 
     @Test
     public void testApplySpaceWithNullValuesAsArgumentsThrowsNullPointerException() {
-        // given
-
-        SpaceOperations spaceOperationsMock = mock(SpaceOperations.class);
-        applyLogic.setSpaceOperations(spaceOperationsMock);
-
         // when + then
         assertThrows(NullPointerException.class, () ->
                 applyLogic.applySpace(null));
