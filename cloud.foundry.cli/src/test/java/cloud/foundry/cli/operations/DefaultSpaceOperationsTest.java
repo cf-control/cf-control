@@ -1,12 +1,10 @@
 package cloud.foundry.cli.operations;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import cloud.foundry.cli.operations.space.DefaultSpaceOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
@@ -70,18 +68,20 @@ public class DefaultSpaceOperationsTest {
     public void testCreateSucceeds() {
         //given
         DefaultCloudFoundryOperations cloudFoundryOperationsMock = mock(DefaultCloudFoundryOperations.class);
+
         Spaces spacesMock = mock(Spaces.class);
-        Mono expectedResultMono = mock(Mono.class);
+        Mono expectedResultMono = Mono.just(mock(Void.class));
         when(cloudFoundryOperationsMock.spaces()).thenReturn(spacesMock);
         when(spacesMock.create(any(CreateSpaceRequest.class))).thenReturn(expectedResultMono);
-        when(expectedResultMono.doOnSubscribe(any())).thenReturn(expectedResultMono);
-        when(expectedResultMono.doOnSuccess(any())).thenReturn(expectedResultMono);
+
         DefaultSpaceOperations spaceOperations = new DefaultSpaceOperations(cloudFoundryOperationsMock);
 
         //when
         Mono<Void> resultMono = spaceOperations.create("testName");
+        resultMono.block();
 
         //then
-        assertEquals(resultMono, expectedResultMono);
+        assertThat(resultMono, notNullValue());
+        verify(spacesMock, times(1)).create(any(CreateSpaceRequest.class));
     }
 }
