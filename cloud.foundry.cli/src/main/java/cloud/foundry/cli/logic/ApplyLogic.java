@@ -16,7 +16,6 @@ import cloud.foundry.cli.logic.apply.SpaceDevelopersRequestsPlaner;
 import cloud.foundry.cli.logic.diff.DiffResult;
 import cloud.foundry.cli.logic.diff.change.CfChange;
 import cloud.foundry.cli.logic.diff.change.container.CfContainerChange;
-import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
