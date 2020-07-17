@@ -29,15 +29,14 @@ public class ApplyLogic {
     private static final Log log = Log.getLog(ApplyLogic.class);
 
     private GetLogic getLogic;
-
     private DiffLogic diffLogic;
 
     private SpaceDevelopersOperations spaceDevelopersOperations;
     private ServicesOperations servicesOperations;
     private ApplicationsOperations applicationsOperations;
+
     private SpaceOperations spaceOperations;
     private ClientOperations clientOperations;
-
 
     /**
      * Creates a new instance that will use the provided cf operations internally.
@@ -77,15 +76,22 @@ public class ApplyLogic {
     }
 
     /**
-     * @param desiredConfigBean
-     * @param loginCommandOptions
+     * Provides the service of manipulating the state of a cloud foundry instance
+     * such that it matches with a desired configuration ({@link ConfigBean}).
+     *
+     * @param desiredConfigBean   desired configuration for a cloud foundry instance
+     * @param loginCommandOptions LoginCommandOptions
+     * @throws NullPointerException if one of the desired parameter is null.
      */
     public void applyAll(ConfigBean desiredConfigBean, LoginCommandOptions loginCommandOptions) {
         checkNotNull(desiredConfigBean);
         checkNotNull(loginCommandOptions);
 
         // create space if it does not exist
-        applySpace(desiredConfigBean.getTarget().getSpace());
+        String desiredSpaceName = desiredConfigBean.getTarget().getSpace();
+        if (desiredSpaceName != null) {
+            applySpace(desiredSpaceName);
+        }
 
         ConfigBean liveConfigBean = getLogic.getAll(
                 spaceDevelopersOperations,
@@ -101,9 +107,9 @@ public class ApplyLogic {
 
         CfContainerChange spaceDevelopersChange = wrappedDiff.getSpaceDevelopersChange();
         if (spaceDevelopersChange != null) {
-            SpaceDevelopersRequestsPlaner.createSpaceDevelopersRequests(spaceDevelopersOperations, spaceDevelopersChange);
+            SpaceDevelopersRequestsPlaner.createSpaceDevelopersRequests(spaceDevelopersOperations,
+                    spaceDevelopersChange);
         }
-
 
         Flux.fromIterable(wrappedDiff.getServiceChanges().entrySet())
                 .flatMap(element -> ServiceRequestsPlaner.createApplyRequests(

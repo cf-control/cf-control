@@ -1,16 +1,11 @@
 package cloud.foundry.cli.logic;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.times;
 
 import cloud.foundry.cli.crosscutting.exceptions.ApplyException;
 import cloud.foundry.cli.crosscutting.exceptions.GetException;
@@ -22,13 +17,9 @@ import cloud.foundry.cli.mocking.ApplicationsV3MockBuilder;
 import cloud.foundry.cli.mocking.CloudFoundryClientMockBuilder;
 import cloud.foundry.cli.mocking.DefaultCloudFoundryOperationsMockBuilder;
 import cloud.foundry.cli.operations.SpaceOperations;
-import cloud.foundry.cli.operations.ApplicationsOperations;
 import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperByUsernameRequest;
 import org.cloudfoundry.client.v2.spaces.RemoveSpaceDeveloperByUsernameRequest;
 import org.cloudfoundry.client.CloudFoundryClient;
-import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
-import cloud.foundry.cli.logic.diff.DiffResult;
-import cloud.foundry.cli.logic.diff.change.CfChange;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.applications.*;
 import org.cloudfoundry.client.v2.spaces.Spaces;
@@ -51,65 +42,6 @@ import java.util.function.Predicate;
 public class ApplyLogicTest {
 
     private static final String METADATA_KEY = "CF_METADATA_KEY";
-
-    @Test
-    public void testApplyApplicationsWithNull() {
-        ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
-
-        assertThrows(NullPointerException.class, () -> applyLogic.applyApplications(null));
-    }
-
-    @Test
-    public void testApplySpaceDevelopersWithNull() {
-        ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
-
-        assertThrows(NullPointerException.class, () -> applyLogic.applySpaceDevelopers(null));
-    }
-
-    @Test
-    public void testApplySpaceDevelopersAssignAndRemoveSpaceDevelopers() {
-        // given
-        // listSpacedevs to apply
-        List<String> spaceDevelopersToApply = new LinkedList<>();
-        spaceDevelopersToApply.add("Mr. Bean");
-        spaceDevelopersToApply.add("toAdd");
-
-        // list live
-        List<String> spaceDevelopersLive = new LinkedList<>();
-        spaceDevelopersLive.add("Mr. Bean");
-        spaceDevelopersLive.add("toDelete");
-
-        DefaultCloudFoundryOperations cfOperationsMock = mockSpaceDevelopersGetAll(spaceDevelopersLive);
-        CloudFoundryClient cloudFoundryClientMock = mock(CloudFoundryClient.class);
-        when(cfOperationsMock.getCloudFoundryClient()).thenReturn(cloudFoundryClientMock);
-        Spaces spacesMock = mock(Spaces.class);
-        when(cloudFoundryClientMock.spaces()).thenReturn(spacesMock);
-
-        // assign
-        AtomicReference<AssociateSpaceDeveloperByUsernameRequest> assignmentRequest = assignSpaceDevelopersMock(
-                spacesMock);
-
-        // delete
-        AtomicReference<RemoveSpaceDeveloperByUsernameRequest> removalRequest = deleteSpaceDevelopersMock(spacesMock);
-
-        ApplyLogic applyLogic = new ApplyLogic(cfOperationsMock);
-
-        // when
-        applyLogic.applySpaceDevelopers(spaceDevelopersToApply);
-
-        // then
-        verify(spacesMock, times(1)).removeDeveloperByUsername(any(RemoveSpaceDeveloperByUsernameRequest.class));
-        verify(spacesMock, times(1)).associateDeveloperByUsername(any(AssociateSpaceDeveloperByUsernameRequest.class));
-
-        AssociateSpaceDeveloperByUsernameRequest assignrequest = assignmentRequest.get();
-        assertThat(assignrequest, notNullValue());
-        assertThat(assignrequest.getUsername(), is("toAdd"));
-
-        RemoveSpaceDeveloperByUsernameRequest deleterequest = removalRequest.get();
-        assertThat(deleterequest, notNullValue());
-        assertThat(deleterequest.getUsername(), is("toDelete"));
-
-    }
 
     private DefaultCloudFoundryOperations mockSpaceDevelopersGetAll(List<String> spaceDevelopersLive) {
         DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
@@ -165,114 +97,6 @@ public class ApplyLogicTest {
 
         return removalRequest;
     }
-
-    @Test
-    public void testApplyApplicationsCreatesApplication() {
-        ApplicationManifest appManifest = createExampleApplicationManifest("someApplicationName",
-                "/some/path",
-                "someBuildpack");
-        Metadata appMetadata = createMockMetadata("someApplicationName", "some/path");
-
-        Map<String, ApplicationBean> appsOnLiveSystem = Collections.singletonMap("someApplicationName",
-                new ApplicationBean(appManifest, appMetadata));
-
-        // from now on: setup application to apply
-        Map<String, ApplicationBean> applicationsToApply = createDesiredApplications("otherApplication",
-            "/some/path",
-            "someBuildpack",
-            "app1meta");
-
-        ApplicationsOperations applicationsOperationsMock = mock(ApplicationsOperations.class);
-        when(applicationsOperationsMock.create(anyString(), any(ApplicationBean.class), anyBoolean()))
-                .thenReturn(Mono.just(mock(Void.class)));
-
-        GetLogic getLogicMock = mock(GetLogic.class);
-        when(getLogicMock.getApplications(applicationsOperationsMock))
-                .thenReturn(appsOnLiveSystem);
-
-        ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
-        applyLogic.setApplicationsOperations(applicationsOperationsMock);
-        applyLogic.setGetLogic(getLogicMock);
-
-        // when
-        applyLogic.applyApplications(applicationsToApply);
-
-        // then
-        verify(getLogicMock, times(1)).getApplications(applicationsOperationsMock);
-        verify(applicationsOperationsMock, times(1))
-                .create(eq("otherApplication"), any(ApplicationBean.class), anyBoolean());
-    }
-
-
-    @Test
-    public void testApplyApplicationsWithoutDifference() {
-        // given
-        Map<String, ApplicationBean> appsToApply = createDesiredApplications("app1",
-                "path",
-                "someBuildpack",
-                "app1meta");
-
-        // mock-setup for ApplicationOperations.getAll() delivers 1 application
-        ApplicationManifest appManifest = createExampleApplicationManifest("app1", "path", "someBuildpack");
-        Metadata appMetadata = createMockMetadata("app1meta", "path");
-
-        DefaultCloudFoundryOperations cfOperationsMock = createMockCloudFoundryOperations(
-                Collections.singletonMap("app1", appManifest),
-                Collections.singletonMap("app1", appMetadata)
-        );
-
-        ApplyLogic applyLogic = new ApplyLogic(cfOperationsMock);
-        //when
-        applyLogic.applyApplications(appsToApply);
-
-        // then
-        verify(cfOperationsMock.applications()).list();
-        verify(cfOperationsMock.applications(), times(0)).delete(any(DeleteApplicationRequest.class));
-        verify(cfOperationsMock.applications(), times(0)).pushManifest(any(PushApplicationManifestRequest.class));
-    }
-
-    @Test
-    public void testApplyApplicationsRemovesApplication() {
-        // given
-        Map<String, ApplicationBean> appsToApply = createDesiredApplications("app1",
-                "/some/path",
-                "someBuildpack",
-                "app1meta");
-
-        // mock-setup for ApplicationOperations.getAll() delivers 3 applications (app1, app2, app3)
-        ApplicationManifest appManifest1 = createExampleApplicationManifest("app1", "/some/path", "someBuildpack");
-        Metadata app1Metadata = createMockMetadata("app1meta", "some/path");
-        ApplicationManifest appManifest2 = createExampleApplicationManifest("app2", "/some/path", "someBuildpack");
-        Metadata app2Metadata = createMockMetadata("app2meta", "some/path");
-        ApplicationManifest appManifest3 = createExampleApplicationManifest("app3", "/some/path", "someBuildpack");
-        Metadata app3Metadata = createMockMetadata("app3meta", "some/path");
-
-        Map<String, ApplicationManifest> apps = new HashMap<String, ApplicationManifest>() {{
-            put("app1", appManifest1);
-            put("app2", appManifest2);
-            put("app3", appManifest3);
-        }};
-        Map<String, Metadata> metadata = new HashMap<String, Metadata>() {{
-            put("app1", app1Metadata);
-            put("app2", app2Metadata);
-            put("app3", app3Metadata);
-        }};
-
-        DefaultCloudFoundryOperations cfOperationsMock = createMockCloudFoundryOperations(apps, metadata);
-
-        ApplyLogic applyLogic = new ApplyLogic(cfOperationsMock);
-
-        // when
-        applyLogic.applyApplications(appsToApply);
-
-        // then
-        DeleteApplicationRequest request1 = DeleteApplicationRequest.builder().name("app2").build();
-        verify(cfOperationsMock.applications(), times(1)).delete(request1);
-        DeleteApplicationRequest request2 = DeleteApplicationRequest.builder().name("app3").build();
-        verify(cfOperationsMock.applications(), times(1)).delete(request2);
-        verify(cfOperationsMock.applications()).list();
-    }
-
 
     private ApplicationManifest createExampleApplicationManifest(String appName, String path, String buildpack) {
 
@@ -341,60 +165,6 @@ public class ApplyLogicTest {
                 .annotation(ApplicationBean.METADATA_KEY, meta)
                 .annotation(ApplicationBean.PATH_KEY, path)
                 .build();
-    }
-
-    @Test
-    public void testApplyServicesWithNull() {
-        ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
-
-        assertThrows(NullPointerException.class, () -> applyLogic.applyServices(null));
-    }
-
-    @Test
-    public void testApplyServices() {
-        //given
-        DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
-
-        //desired Services
-        HashMap<String, ServiceBean> desiredServices = new HashMap<>();
-        ServiceBean serviceBean = new ServiceBean();
-        desiredServices.put("exampleService", serviceBean);
-
-        //liveConfig
-        HashMap<String, ServiceBean> liveConfig = new HashMap<>();
-        GetLogic getlogic = mock(GetLogic.class);
-        when(getlogic.getServices(any())).thenReturn(liveConfig);
-
-        //Diffresult
-        DiffLogic diffLogicMock = mock(DiffLogic.class);
-        DiffResult diffResultMock = mock(DiffResult.class);
-        when(diffLogicMock.createDiffResult(any(), any())).thenReturn(diffResultMock);
-
-        //allServiceChanges
-        List<CfChange> cfChanges = new LinkedList<>();
-        CfChange cfChangeMock = mock(CfChange.class);
-        cfChanges.add(cfChangeMock);
-        Map<String, List<CfChange>> allServiceChanges = mock(Map.class);
-        when(diffResultMock.getServiceChanges()).thenReturn(allServiceChanges);
-        //entry set of allServiceChanges
-        Set<Map.Entry<String, List<CfChange>>> entrySet = new HashSet<>();
-        Map.Entry entry = mock(Map.Entry.class);
-        entrySet.add(entry);
-        when(allServiceChanges.entrySet()).thenReturn(entrySet);
-
-
-        //when
-        ApplyLogic applyLogic = new ApplyLogic(cfOperationsMock);
-        applyLogic.setDiffLogic(diffLogicMock);
-        applyLogic.setGetLogic(getlogic);
-        applyLogic.applyServices(desiredServices);
-
-        //then
-        verify(getlogic).getServices(any());
-        verify(diffLogicMock).createDiffResult(any(), any());
-        //this is called when you apply to the changes
-        verify(entry).getKey();
-        verify(entry).getValue();
     }
 
     @Test
