@@ -32,21 +32,17 @@ public class ApplyLogic {
 
     private static final Log log = Log.getLog(ApplyLogic.class);
 
-    private DefaultCloudFoundryOperations cfOperations;
-
     private GetLogic getLogic;
-
     private DiffLogic diffLogic;
 
-    private SpaceDevelopersOperations spaceDevelopersOperations;
-    private ServicesOperations servicesOperations;
-    private ApplicationsOperations applicationsOperations;
-    private SpaceOperations spaceOperations;
-    private ClientOperations clientOperations;
+    private final SpaceDevelopersOperations spaceDevelopersOperations;
+    private final ServicesOperations servicesOperations;
+    private final ApplicationsOperations applicationsOperations;
+    private final SpaceOperations spaceOperations;
 
 
     /**
-     * Creates a new instance that will use the provided cf operations internally.
+     * Creates a new instance that will use the provided operationsFactory internally.
      *
      * @param operationsFactory the factory that should be used to create the operations objects
      * @throws NullPointerException if the argument is null
@@ -58,18 +54,9 @@ public class ApplyLogic {
         this.servicesOperations = operationsFactory.createServiceOperations();
         this.spaceDevelopersOperations = operationsFactory.createSpaceDevelopersOperations();
         this.spaceOperations = operationsFactory.createSpaceOperations();
-        this.clientOperations = operationsFactory.createClientOperations();
 
         this.getLogic = new GetLogic(operationsFactory);
         this.diffLogic = new DiffLogic();
-    }
-
-    public void setApplicationsOperations(ApplicationsOperations applicationsOperations) {
-        this.applicationsOperations = applicationsOperations;
-    }
-
-    public void setSpaceOperations(SpaceOperations spaceOperations) {
-        this.spaceOperations = spaceOperations;
     }
 
     /**

@@ -28,13 +28,13 @@ public class GetLogic {
 
     private static final Log log = Log.getLog(GetLogic.class);
 
-    private SpaceDevelopersOperations spaceDevelopersOperations;
-    private ServicesOperations servicesOperations;
-    private ApplicationsOperations applicationsOperations;
-    private ClientOperations clientOperations;
+    private final SpaceDevelopersOperations spaceDevelopersOperations;
+    private final ServicesOperations servicesOperations;
+    private final ApplicationsOperations applicationsOperations;
+    private final ClientOperations clientOperations;
 
     /**
-     * Creates a new instance that will use the provided cf operations internally.
+     * Creates a new instance that will use the provided operationsFactory internally.
      *
      * @param operationsFactory the factory that should be used to create the operations objects
      * @throws NullPointerException if the argument is null
