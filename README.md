@@ -186,6 +186,11 @@ spec:
     pythonApp:
       ...
 ```
+#### App: Meta Information
+The app ```meta``` setting is a way to give the user the possibility to provide custom meta information for the application they are deploying.
+For example, the user can give the app a custom version tag or any other application specific info.
+
+When a change of the meta string was detected during the apply process the app will be redeployed.
 
 ### Convenience features
 
