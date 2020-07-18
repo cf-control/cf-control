@@ -85,7 +85,8 @@ public class CfArgumentsCreator {
             }
         }
 
-        log.verbose("User has not passed values for arguments ", missingOptions, ", using default values");
+        log.verbose("User has not passed values for arguments", missingOptions + ", using default values");
+
         // In apply space we don't have a yaml file. Should behave in the same way as the get command
         //TODO: Remove the contains space condition after creating apply all US is done
         //and apply subcommands are removed
@@ -96,6 +97,10 @@ public class CfArgumentsCreator {
             // get missing values from the given YAML File and extend to diff/apply command
             return extendForDiffAndApplyCommand(missingOptions, new LinkedList<>(asList(args)));
         }
+    }
+
+    private static void logExtendedOption(String key, String value) {
+        log.info("Extended commandline arguments with option", key, "and value", value);
     }
 
     /**
@@ -114,12 +119,14 @@ public class CfArgumentsCreator {
             Properties prop = new Properties();
             prop.load(input);
 
-            missingOptions.forEach(key -> {
-                args.add(key);
-                args.add(prop.getProperty(key));
 
-                log.info("Extended CommandLine Argument with the Option: " + key +
-                    " and value " + "'" + prop.getProperty(key) + "'");
+            missingOptions.forEach(key -> {
+                String value = prop.getProperty(key);
+
+                args.add(key);
+                args.add(value);
+
+                logExtendedOption(key, value);
             });
         } catch (IOException ex) {
             log.error(ex.getMessage());
@@ -138,7 +145,6 @@ public class CfArgumentsCreator {
      * @return Commandline arguments
      */
     private static String[] extendForDiffAndApplyCommand(List<String> missingOptions, LinkedList<String> args) {
-
         String yamlPath = args.get(args.indexOf("-y") + 1);
         ConfigBean configBean =  new ConfigBean();
 
@@ -152,7 +158,9 @@ public class CfArgumentsCreator {
         TargetBean targetBean = configBean.getTarget();
         missingOptions.forEach(key -> {
             args.add(key);
+
             String value = "";
+
             switch (key) {
             case "-a":
                 value = targetBean.getEndpoint();
@@ -168,8 +176,8 @@ public class CfArgumentsCreator {
             }
 
             args.add(value);
-            log.info("Extended CommandLine Argument with the Option: " + key +
-                " and value " + "'" + value + "'");
+
+            logExtendedOption(key, value);
         });
 
         return args.toArray(new String[0]);

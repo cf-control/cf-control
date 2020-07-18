@@ -53,7 +53,7 @@ public class GetLogic {
         ConfigBean configBean = new ConfigBean();
         SpecBean specBean = new SpecBean();
         // start async querying of config data from the cloud foundry instance
-        log.debug("Start async querying of apps, services and space developers...");
+        log.debug("Fetching apps, services and space developers data");
         Flux<Object> getAllRequests = Flux.merge(apiVersion.doOnSuccess(configBean::setApiVersion),
                 spaceDevelopers.doOnSuccess(specBean::setSpaceDevelopers),
                 services.doOnSuccess(specBean::setServices),

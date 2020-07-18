@@ -6,9 +6,9 @@ import cloud.foundry.cli.crosscutting.exceptions.ApplyException;
 import cloud.foundry.cli.crosscutting.exceptions.GetException;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
-import cloud.foundry.cli.logic.apply.ApplicationRequestsPlaner;
-import cloud.foundry.cli.logic.apply.ServiceRequestsPlaner;
-import cloud.foundry.cli.logic.apply.SpaceDevelopersRequestsPlaner;
+import cloud.foundry.cli.logic.apply.ApplicationRequestsPlanner;
+import cloud.foundry.cli.logic.apply.ServiceRequestsPlanner;
+import cloud.foundry.cli.logic.apply.SpaceDevelopersRequestsPlanner;
 import cloud.foundry.cli.logic.diff.DiffResult;
 import cloud.foundry.cli.logic.diff.change.CfChange;
 import cloud.foundry.cli.logic.diff.change.container.CfContainerChange;
@@ -154,25 +154,29 @@ public class ApplyLogic {
         checkNotNull(desiredSpaceName);
 
         Mono<List<String>> getAllRequest = spaceOperations.getAll();
-        log.info("Fetching all space names...");
 
+        log.info("Fetching names of all spaces");
         List<String> spaceNames;
         try {
             spaceNames = getAllRequest.block();
         } catch (Exception e) {
             throw new GetException(e);
         }
+        log.verbose("Fetching names of all spaces completed");
 
         if (!spaceNames.contains(desiredSpaceName)) {
-            log.info("Creating space with name:", desiredSpaceName);
+            log.info("Creating space", desiredSpaceName);
+
             Mono<Void> createRequest = spaceOperations.create(desiredSpaceName);
             try {
                 createRequest.block();
             } catch (Exception e) {
                 throw new ApplyException(e);
             }
+
+            log.verbose("Creating space", desiredSpaceName, "completed");
         } else {
-            log.info("Space with name", desiredSpaceName, "already exists");
+            log.info("Space", desiredSpaceName, "already exists, skipping");
         }
     }
 

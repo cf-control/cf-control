@@ -32,15 +32,16 @@ public class GetController implements Callable<Integer> {
     public Integer call() {
         DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
         GetLogic getLogic = new GetLogic();
-        log.info("Fetching all information for target space...");
 
         SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
         ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
         ClientOperations clientOperations = new ClientOperations(cfOperations);
 
+        log.info("Fetching all information for target space");
         ConfigBean allInformation = getLogic.getAll(spaceDevelopersOperations, servicesOperations,
                 applicationsOperations, clientOperations, loginOptions);
+        log.verbose("Fetching all information for target space completed");
 
         System.out.println(YamlMapper.dump(allInformation));
         return 0;
