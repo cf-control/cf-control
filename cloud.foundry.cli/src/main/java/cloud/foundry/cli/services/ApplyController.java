@@ -7,7 +7,7 @@ import static picocli.CommandLine.usage;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
 import cloud.foundry.cli.crosscutting.mapping.YamlMapper;
-import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
 import cloud.foundry.cli.logic.ApplyLogic;
 import cloud.foundry.cli.operations.DefaultOperationsFactory;
 import cloud.foundry.cli.operations.OperationsFactory;
@@ -42,7 +42,6 @@ public class ApplyController implements Callable<Integer> {
                     "in the given yaml file, but not in your cf instance, or revoke the space developer " +
                     "if its in the cf instance, but not in the yaml file.")
     static class ApplySpaceDevelopersCommand implements Callable<Integer> {
-
         private static final Log log = Log.getLog(ApplyApplicationCommand.class);
 
         @Mixin
@@ -53,10 +52,15 @@ public class ApplyController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            log.info("Interpreting YAML file...");
-            SpecBean desiredSpecBean = YamlMapper.loadBeanFromFile(yamlCommandOptions.getYamlFilePath(),
-                    SpecBean.class);
-            log.verbose("YAML file interpreted.");
+            log.info("Interpreting YAML file");
+            ConfigBean desiredConfigBean = YamlMapper.loadBeanFromFile(yamlCommandOptions.getYamlFilePath(),
+                    ConfigBean.class);
+            log.verbose("Interpreting YAML file completed");
+
+            if (desiredConfigBean.getSpec() == null || desiredConfigBean.getSpec().getSpaceDevelopers() == null) {
+                log.info("No space developers data in YAML file, nothing to apply");
+                return 0;
+            }
 
             DefaultCloudFoundryOperations cloudFoundryOperations = CfOperationsCreator.createCfOperations(loginOptions);
             OperationsFactory.setInstance(new DefaultOperationsFactory(cloudFoundryOperations));
@@ -83,17 +87,24 @@ public class ApplyController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
+            log.info("Interpreting YAML file");
+            ConfigBean desiredConfigBean = YamlMapper.loadBeanFromFile(yamlCommandOptions.getYamlFilePath(),
+                    ConfigBean.class);
+            log.verbose("Interpreting YAML file completed");
+
+            if (desiredConfigBean.getSpec() == null || desiredConfigBean.getSpec().getApps() == null) {
+                log.info("No apps data in YAML file, nothing to apply");
+                return 0;
+            }
+
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+            ApplyLogic applyLogic = new ApplyLogic(cfOperations);
             DefaultCloudFoundryOperations cloudFoundryOperations = CfOperationsCreator.createCfOperations(loginOptions);
             OperationsFactory.setInstance(new DefaultOperationsFactory(cloudFoundryOperations));
 
             ApplyLogic applyLogic = new ApplyLogic(OperationsFactory.getInstance());
 
-            log.info("Interpreting YAML file...");
-            SpecBean desiredSpecBean = YamlMapper.loadBeanFromFile(yamlCommandOptions.getYamlFilePath(),
-                    SpecBean.class);
-            log.verbose("YAML file interpreted.");
-
-            applyLogic.applyApplications(desiredSpecBean.getApps());
+            applyLogic.applyApplications(desiredConfigBean.getSpec().getApps());
 
             return 0;
         }
@@ -118,12 +129,17 @@ public class ApplyController implements Callable<Integer> {
 
             ApplyLogic applyLogic = new ApplyLogic(OperationsFactory.getInstance());
 
-            log.verbose("Interpreting YAML file...");
-            SpecBean desiredSpecBean = YamlMapper.loadBeanFromFile(yamlCommandOptions.getYamlFilePath(),
-                    SpecBean.class);
-            log.verbose("YAML file interpreted.");
+            log.info("Interpreting YAML file");
+            ConfigBean desiredConfigBean = YamlMapper.loadBeanFromFile(yamlCommandOptions.getYamlFilePath(),
+                    ConfigBean.class);
+            log.verbose("Interpreting YAML file completed");
 
-            applyLogic.applyServices(desiredSpecBean.getServices());
+            if (desiredConfigBean.getSpec() == null || desiredConfigBean.getSpec().getServices() == null) {
+                log.info("No services data in YAML file, nothing to apply");
+                return 0;
+            }
+
+            applyLogic.applyServices(desiredConfigBean.getSpec().getServices());
 
             return 0;
         }
@@ -148,7 +164,7 @@ public class ApplyController implements Callable<Integer> {
             if (desiredSpace != null) {
                 applyLogic.applySpace(desiredSpace);
             } else {
-                log.info("No space specified.");
+                log.info("No space specified");
             }
 
             return 0;

@@ -48,7 +48,7 @@ public class RefResolver implements YamlTreeVisitor {
      * @throws RefResolvingException if an error during the ref-resolution process occurs
      */
     public static Object resolveRefs(Object yamlTreeRoot, String rootFilePath) {
-        log.debug("Resolve", RefResolver.REF_KEY + "-occurrences");
+        log.debug("Resolving occurrences of", RefResolver.REF_KEY);
 
         RefResolver refResolvingYamlTreeVisitor = new RefResolver(yamlTreeRoot, rootFilePath);
         Object resolvedYamlTreeRoot = refResolvingYamlTreeVisitor.doResolveRefs();
@@ -77,9 +77,9 @@ public class RefResolver implements YamlTreeVisitor {
 
     private void visitRefMapping(Map<Object, Object> refMappingNode) {
         Object refValueNode = refMappingNode.get(REF_KEY);
-        log.debug("Encountered", RefResolver.REF_KEY + "-occurrence with value", String.valueOf(refValueNode));
+        log.debug("Encountered", RefResolver.REF_KEY, "occurrence with value", String.valueOf(refValueNode));
         if (!(refValueNode instanceof String)) {
-            throw new RefResolvingException("Encountered a '" + REF_KEY + "'-occurrence where its value is not of" +
+            throw new RefResolvingException("Encountered a '" + REF_KEY + "' occurrence where its value is not of" +
                     " type string");
         }
         String refValue = (String) refValueNode;
@@ -97,7 +97,7 @@ public class RefResolver implements YamlTreeVisitor {
             throw new RefResolvingException(message, e);
         }
 
-        log.debug("Reading content of", filePath);
+        log.debug("Reading YAML file", filePath);
         Object referredYamlTree;
         try {
             referredYamlTree = YamlMapper.loadYamlTreeFromFilePath(absoluteFilePath);
