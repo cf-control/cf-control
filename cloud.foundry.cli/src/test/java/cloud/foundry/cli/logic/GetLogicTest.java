@@ -10,13 +10,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import cloud.foundry.cli.crosscutting.exceptions.GetException;
+import cloud.foundry.cli.crosscutting.mapping.PropertyUtils;
+import cloud.foundry.cli.crosscutting.mapping.ResourceProvider;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationManifestBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
 
 import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
 import cloud.foundry.cli.operations.ApplicationsOperations;
-import cloud.foundry.cli.operations.ClientOperations;
 import cloud.foundry.cli.operations.ServicesOperations;
 import cloud.foundry.cli.operations.SpaceDevelopersOperations;
 import cloud.foundry.cli.services.LoginCommandOptions;
@@ -31,11 +32,7 @@ import reactor.core.publisher.Mono;
 
 import java.nio.file.Paths;
 
-import java.util.List;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Collections;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Test for {@link GetLogic}
@@ -60,12 +57,12 @@ public class GetLogicTest {
         ApplicationsOperations mockApplications = mock(ApplicationsOperations.class);
         when(mockApplications.getAll()).thenReturn(monoApplications);
 
-        ClientOperations mockClientOperations = mockClientOperations();
+        PropertyUtils mockPropertyUtils = mockPropertyUtils();
         LoginCommandOptions mockLoginCommandOptions = mockLoginCommandOptions();
 
         // when
-        ConfigBean configBean = getLogic.getAll(mockSpaceDevelopers, mockServices, mockApplications,
-                mockClientOperations, mockLoginCommandOptions);
+        ConfigBean configBean = getLogic.getAll(mockSpaceDevelopers, mockServices, mockApplications, mockPropertyUtils,
+                mockLoginCommandOptions);
 
         // then
         assertThat(configBean.getApiVersion(), is("API VERSION"));
@@ -85,14 +82,14 @@ public class GetLogicTest {
         SpaceDevelopersOperations mockSpaceDevelopers = mockSpaceDevelopersOperations();
         ServicesOperations mockServices = mockServicesOperations();
         ApplicationsOperations mockApplications = mockApplicationOperations();
-        ClientOperations mockClientOperations = mockClientOperations();
+        PropertyUtils mockPropertyUtils = mockPropertyUtils();
         LoginCommandOptions mockLoginCommandOptions = mockLoginCommandOptions();
 
         GetLogic getLogic = new GetLogic();
 
         // when
         ConfigBean configBean = getLogic.getAll(mockSpaceDevelopers, mockServices,
-                mockApplications, mockClientOperations, mockLoginCommandOptions);
+                mockApplications, mockPropertyUtils, mockLoginCommandOptions);
 
         // then
         assertThat(configBean.getApiVersion(), is("API VERSION"));
@@ -302,11 +299,11 @@ public class GetLogicTest {
         return mockApplications;
     }
 
-    private ClientOperations mockClientOperations() {
-        ClientOperations mockClientOperations = mock(ClientOperations.class);
-        when(mockClientOperations.determineApiVersion()).thenReturn(Mono.just("API VERSION"));
+    private PropertyUtils mockPropertyUtils() {
+        PropertyUtils mockPropertyUtils = mock(PropertyUtils.class);
+        when(mockPropertyUtils.determineApiVersion(new ResourceProvider(), new Properties())).thenReturn("API VERSION");
 
-        return mockClientOperations;
+        return mockPropertyUtils;
     }
 
     private LoginCommandOptions mockLoginCommandOptions() {
