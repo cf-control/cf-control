@@ -31,19 +31,8 @@ public class GetController implements Callable<Integer> {
         OperationsFactory.setInstance(new DefaultOperationsFactory(cloudFoundryOperations));
         GetLogic getLogic = new GetLogic(OperationsFactory.getInstance());
 
-        log.info("Fetching all information for target space...");
-        DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
-        GetLogic getLogic = new GetLogic();
-
-        ConfigBean allInformation = getLogic.getAll(loginOptions);
-        SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
-        ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
-        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
-        ClientOperations clientOperations = new ClientOperations(cfOperations);
-
         log.info("Fetching all information for target space");
-        ConfigBean allInformation = getLogic.getAll(spaceDevelopersOperations, servicesOperations,
-                applicationsOperations, clientOperations, loginOptions);
+        ConfigBean allInformation = getLogic.getAll(loginOptions);
         log.verbose("Fetching all information for target space completed");
 
         System.out.println(YamlMapper.dump(allInformation));

@@ -43,19 +43,13 @@ public class RenameController implements Callable<Integer> {
 
         @Override
         public Integer call() {
-            log.info("Renaming application...");
-
-        public Integer call() throws Exception {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             OperationsFactory.setInstance(new DefaultOperationsFactory(cfOperations));
 
             RenameLogic renameLogic = new RenameLogic(OperationsFactory.getInstance());
-            renameLogic.renameApplication(newName, currentName);
-            RenameLogic renameLogic = new RenameLogic();
-
 
             log.info("Renaming application from", currentName,"to", newName);
-            renameLogic.renameApplication(applicationOperations, newName, currentName);
+            renameLogic.renameApplication(newName, currentName);
             log.verbose("Renaming application from", currentName,"to", newName, "completed");
 
             return 0;
@@ -78,18 +72,13 @@ public class RenameController implements Callable<Integer> {
 
         @Override
         public Integer call() {
-            log.info("Renaming service...");
-
-        public Integer call() throws Exception {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             OperationsFactory.setInstance(new DefaultOperationsFactory(cfOperations));
 
             RenameLogic renameLogic = new RenameLogic(OperationsFactory.getInstance());
-            renameLogic.renameService(newName, currentName);
-            RenameLogic renameLogic = new RenameLogic();
 
             log.info("Renaming service from", currentName,"to", newName);
-            renameLogic.renameService(servicesOperations, newName, currentName);
+            renameLogic.renameService(newName, currentName);
             log.info("Renaming service from", currentName,"to", newName, "completed");
 
             return 0;

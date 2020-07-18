@@ -85,10 +85,10 @@ public class DefaultServicesOperations extends AbstractOperations<DefaultCloudFo
 
         return this.cloudFoundryOperations.services().createInstance(createServiceRequest)
                 .doOnSubscribe(aVoid -> {
-                    log.debug("Create service:", serviceInstanceName);
-                    log.debug("Bean of the service:", serviceBean);
+                    log.info("Creating service", serviceInstanceName);
+                    log.debug("Service bean:", serviceBean);
                 })
-                .doOnSuccess(aVoid -> log.info("Service created:", serviceInstanceName))
+                .doOnSuccess(aVoid -> log.verbose("Creating service", serviceInstanceName, "completed"))
                 .onErrorStop();
     }
 
@@ -113,11 +113,8 @@ public class DefaultServicesOperations extends AbstractOperations<DefaultCloudFo
         //TODO: moove logs
         return this.cloudFoundryOperations.services()
                 .renameInstance(renameServiceInstanceRequest)
-                .doOnSubscribe(aVoid -> {
-                    log.debug("Rename service:", currentName);
-                    log.debug("With new name:", newName);
-                })
-                .doOnSuccess(aVoid -> log.info("Service renamed from", currentName, "to", newName))
+                .doOnSubscribe(aVoid -> log.info("Renaming service", currentName, "to", newName))
+                .doOnSuccess(aVoid -> log.verbose("Renaming service", currentName, "to", newName, "completed"))
                 .onErrorStop();
     }
 
@@ -144,10 +141,11 @@ public class DefaultServicesOperations extends AbstractOperations<DefaultCloudFo
         return this.cloudFoundryOperations.services()
                 .updateInstance(updateServiceInstanceRequest)
                 .doOnSubscribe(subscription -> {
-                    log.debug("Update service Instance:", serviceInstanceName);
-                    log.debug("With the bean:", serviceBean);
+                    log.info("Updating tags and/or plan for service", serviceInstanceName);
+                    log.debug("Service bean:", serviceBean);
                 })
-                .doOnSuccess(aVoid -> log.info("Service tags and plan updated:", serviceInstanceName))
+                .doOnSuccess(aVoid -> log.verbose(
+                        "Updating tags and/or plan for service", serviceInstanceName, "completed"))
                 .onErrorStop();
     }
 
@@ -180,7 +178,8 @@ public class DefaultServicesOperations extends AbstractOperations<DefaultCloudFo
     private Mono<Void> deleteServiceInstance(String serviceInstanceName) {
         return this.cloudFoundryOperations.services()
                 .deleteInstance(createDeleteServiceInstanceRequest(serviceInstanceName))
-                .doOnSuccess(aVoid -> log.info("Service " + serviceInstanceName + " has been removed."));
+                .doOnSubscribe(aVoid -> log.info("Removing service", serviceInstanceName))
+                .doOnSuccess(aVoid -> log.verbose("Removing service", serviceInstanceName, "completed"));
     }
 
     private DeleteServiceInstanceRequest createDeleteServiceInstanceRequest(String serviceInstanceName) {
@@ -210,9 +209,11 @@ public class DefaultServicesOperations extends AbstractOperations<DefaultCloudFo
                         ? cloudFoundryOperations
                                 .services()
                                 .listServiceKeys(createListServiceKeysRequest(serviceInstanceName))
-                                .doOnComplete(() -> log.info("All service keys of service instance "
-                                        + serviceInstanceName + " have been deleted."))
-                        : Flux.empty()).doOnComplete(() -> log.verbose("There were no keys to delete."))
+                        .doOnSubscribe(aVoid -> log.info(
+                                "Deleting all keys of service instance", serviceInstanceName))
+                        .doOnComplete(() -> log.verbose(
+                                "Deleting all keys of service instance", serviceInstanceName, "completed"))
+                        : Flux.empty()).doOnComplete(() -> log.verbose("No keys found, nothing to delete"))
                 .flatMap(key -> doDeleteKey(serviceInstanceName, key));
     }
 
@@ -227,8 +228,10 @@ public class DefaultServicesOperations extends AbstractOperations<DefaultCloudFo
         return this.cloudFoundryOperations
                 .services()
                 .deleteServiceKey(createDeleteServiceKeyRequest(serviceInstanceName, key))
-                .doOnSubscribe(subscription -> log.info("Deleting key " + key + " for " + serviceInstanceName))
-                .doOnSuccess(aVoid -> log.info("Deleted key " + key + " for service " + serviceInstanceName))
+                .doOnSubscribe(subscription -> log.info(
+                        "Deleting key " + key + " from service " + serviceInstanceName))
+                .doOnSuccess(aVoid -> log.verbose(
+                        "Deleting key " + key + " from service " + serviceInstanceName, "completed"))
                 .onErrorStop();
     }
 
@@ -252,15 +255,17 @@ public class DefaultServicesOperations extends AbstractOperations<DefaultCloudFo
         return getServiceInstance(serviceInstanceName)
                 .flatMapIterable(serviceInstance -> {
                     if (serviceInstance.getApplications() == null || serviceInstance.getApplications().isEmpty()) {
-                        log.verbose("There is no application to unbind!");
+                        log.verbose("No applications bound to service", serviceInstanceName);
                         return Collections.emptyList();
                     } else {
                         return serviceInstance.getApplications();
                     }
                 })
                 .flatMap(appName -> unbindApp(serviceInstanceName, appName))
-                .doOnComplete(() -> log.info("All applications of service instance "
-                        + serviceInstanceName + " have been unbound."));
+                .doOnSubscribe(aVoid -> log.info(
+                        "Unbinding all applications from service instance", serviceInstanceName))
+                .doOnComplete(() -> log.verbose(
+                        "Unbinding all applications from service instance", serviceInstanceName, "completed"));
     }
 
     /**
@@ -278,10 +283,10 @@ public class DefaultServicesOperations extends AbstractOperations<DefaultCloudFo
         return this.cloudFoundryOperations
                 .services()
                 .unbind(createUnbindServiceInstanceRequest(serviceInstanceName, applicationName))
-                .doOnSubscribe(subscription -> log.info("Unbind app " + applicationName +
-                        " for " + serviceInstanceName))
-                .doOnSuccess(subscription -> log.info("Unbound app " + applicationName +
-                        " for " + serviceInstanceName))
+                .doOnSubscribe(subscription -> log.info(
+                        "Unbinding app", applicationName, "from service", serviceInstanceName))
+                .doOnSuccess(subscription -> log.verbose(
+                        "Unbinding app", applicationName, "from service", serviceInstanceName, "completed"))
                 .onErrorStop();
     }
 
@@ -308,15 +313,17 @@ public class DefaultServicesOperations extends AbstractOperations<DefaultCloudFo
                 .list(ListRoutesRequest.builder().build())
                 .filter(route -> route.getService() != null && route.getService().equals(serviceInstanceName))
                 .flatMap(this::doUnbindRoute)
-                .doOnComplete(() -> log.info("All routes to service instance "
-                        + serviceInstanceName + " have been unbound."));
+                .doOnSubscribe(aVoid -> log.info("Unbinding all routes from service instance", serviceInstanceName))
+                .doOnComplete(() -> log.verbose(
+                        "Unbinding all routes from service instance", serviceInstanceName, "completed"));
     }
 
     private Mono<Void> doUnbindRoute(Route route) {
         return this.cloudFoundryOperations
                 .services()
                 .unbindRoute(createRouteServiceInstanceRequest(route))
-                .doOnSubscribe(subscription -> log.info("unbind route " + route))
+                .doOnSubscribe(subscription -> log.debug("Unbinding route", route))
+                .doOnSuccess(subscription -> log.debug("Unbinding route", route, "completed"))
                 .onErrorStop();
     }
 

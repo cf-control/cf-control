@@ -39,23 +39,15 @@ public class DiffController implements Callable<Integer> {
     public Integer call() throws IOException {
         ConfigBean desiredConfigBean = YamlMapper.loadBeanFromFile(yamlCommandOptions.getYamlFilePath(),
                 ConfigBean.class);
-        DefaultCloudFoundryOperations cloudFoundryOperations = CfOperationsCreator.createCfOperations(loginOptions);
-        OperationsFactory.setInstance(new DefaultOperationsFactory(cloudFoundryOperations));
 
         log.debug("Desired config:", desiredConfigBean);
 
+        DefaultCloudFoundryOperations cloudFoundryOperations = CfOperationsCreator.createCfOperations(loginOptions);
+        OperationsFactory.setInstance(new DefaultOperationsFactory(cloudFoundryOperations));
         GetLogic getLogic = new GetLogic(OperationsFactory.getInstance());
-        ConfigBean currentConfigBean = getLogic.getAll(loginOptions);
-        SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
-        ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
-        ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
-        ClientOperations clientOperations = new ClientOperations(cfOperations);
-
-        GetLogic getLogic = new GetLogic();
 
         log.info("Fetching all information for target space");
-        ConfigBean currentConfigBean = getLogic.getAll(spaceDevelopersOperations, servicesOperations,
-                applicationsOperations, clientOperations, loginOptions);
+        ConfigBean currentConfigBean = getLogic.getAll(loginOptions);
         log.verbose("Fetching all information for target space completed");
 
         log.debug("Current Config:", currentConfigBean);

@@ -72,7 +72,7 @@ public class ApplyLogic {
         checkNotNull(desiredSpaceDevelopers);
 
         log.info("Fetching space developers data");
-        List<String> liveSpaceDevelopers = this.getLogic.getSpaceDevelopers(spaceDevelopersOperations);
+        List<String> liveSpaceDevelopers = this.getLogic.getSpaceDevelopers();
         log.verbose("Fetching space developers data completed");
 
         ConfigBean desiredSpaceDevelopersConfig = createConfigFromSpaceDevelopers(desiredSpaceDevelopers);
@@ -113,7 +113,7 @@ public class ApplyLogic {
         checkNotNull(desiredApplications);
 
         log.info("Fetching applications data");
-        Map<String, ApplicationBean> liveApplications = this.getLogic.getApplications(applicationsOperations);
+        Map<String, ApplicationBean> liveApplications = this.getLogic.getApplications();
         log.verbose("Fetched space developers data");
 
         // that way only the applications of the live system are compared in the diff
@@ -154,7 +154,7 @@ public class ApplyLogic {
         checkNotNull(desiredServices);
 
         log.info("Fetching services data");
-        Map<String, ServiceBean> liveServices = this.getLogic.getServices(servicesOperations);
+        Map<String, ServiceBean> liveServices = this.getLogic.getServices();
         log.verbose("Fetching services data completed");
 
         // that way only the applications of the live system are compared in the diff

@@ -67,7 +67,7 @@ public class ApplyController implements Callable<Integer> {
 
             ApplyLogic applyLogic = new ApplyLogic(OperationsFactory.getInstance());
 
-            applyLogic.applySpaceDevelopers(desiredSpecBean.getSpaceDevelopers());
+            applyLogic.applySpaceDevelopers(desiredConfigBean.getSpec().getSpaceDevelopers());
 
             return 0;
         }
@@ -97,8 +97,6 @@ public class ApplyController implements Callable<Integer> {
                 return 0;
             }
 
-            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
-            ApplyLogic applyLogic = new ApplyLogic(cfOperations);
             DefaultCloudFoundryOperations cloudFoundryOperations = CfOperationsCreator.createCfOperations(loginOptions);
             OperationsFactory.setInstance(new DefaultOperationsFactory(cloudFoundryOperations));
 
@@ -124,11 +122,6 @@ public class ApplyController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            DefaultCloudFoundryOperations cloudFoundryOperations = CfOperationsCreator.createCfOperations(loginOptions);
-            OperationsFactory.setInstance(new DefaultOperationsFactory(cloudFoundryOperations));
-
-            ApplyLogic applyLogic = new ApplyLogic(OperationsFactory.getInstance());
-
             log.info("Interpreting YAML file");
             ConfigBean desiredConfigBean = YamlMapper.loadBeanFromFile(yamlCommandOptions.getYamlFilePath(),
                     ConfigBean.class);
@@ -138,6 +131,11 @@ public class ApplyController implements Callable<Integer> {
                 log.info("No services data in YAML file, nothing to apply");
                 return 0;
             }
+
+            DefaultCloudFoundryOperations cloudFoundryOperations = CfOperationsCreator.createCfOperations(loginOptions);
+            OperationsFactory.setInstance(new DefaultOperationsFactory(cloudFoundryOperations));
+
+            ApplyLogic applyLogic = new ApplyLogic(OperationsFactory.getInstance());
 
             applyLogic.applyServices(desiredConfigBean.getSpec().getServices());
 

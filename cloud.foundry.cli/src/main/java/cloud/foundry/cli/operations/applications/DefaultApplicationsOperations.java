@@ -174,11 +174,11 @@ public class DefaultApplicationsOperations extends AbstractOperations<DefaultClo
                         .applicationsV3()
                         .create(buildCreateApplicationRequest(spaceId, appName, bean))
                         .doOnSubscribe(subscription -> {
-                            log.debug("Create app:", appName);
-                            log.debug("Bean of the app:", bean);
-                            log.debug("Should the app start:", shouldStart);
+                            log.debug("Creating application", appName);
+                            log.debug("App's bean:", bean);
+                            log.debug("App should be started:", shouldStart);
                         })
-                        .doOnSuccess(aVoid -> log.info("App created:", appName))
+                        .doOnSuccess(aVoid -> log.info("Creating application", appName, "completed"))
                         .then())
                 .then(this.cloudFoundryOperations
                 .applications()
@@ -188,8 +188,8 @@ public class DefaultApplicationsOperations extends AbstractOperations<DefaultClo
                         .noStart(!shouldStart)
                         .build())
                 .onErrorContinue(this::whenServiceNotFound, log::warning)
-                .doOnSubscribe(subscription -> log.debug("Pushing app manifest for:", appName))
-                .doOnSuccess(aVoid -> log.info("App manifest pushed for:", appName)));
+                .doOnSubscribe(subscription -> log.info("Pushing manifest for application", appName))
+                .doOnSuccess(aVoid -> log.verbose("Pushing manifest for application", appName, "completed")));
 
     }
 

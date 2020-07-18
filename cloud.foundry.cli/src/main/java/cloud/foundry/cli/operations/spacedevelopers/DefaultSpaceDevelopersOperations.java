@@ -82,8 +82,8 @@ public class DefaultSpaceDevelopersOperations extends AbstractOperations<Default
         return cloudFoundryOperations.getCloudFoundryClient()
                 .spaces()
                 .associateDeveloperByUsername(request)
-                .doOnSubscribe(subscription -> log.debug("Assigning a space developer:", username))
-                .doOnSuccess(subscription -> log.info("Space developer: ", username, " was assigned"))
+                .doOnSubscribe(subscription -> log.debug("Assigning space developer", username))
+                .doOnSuccess(subscription -> log.verbose("Assigning space developer", username, "completed"))
                 .onErrorStop()
                 .then(Mono.empty());
     }
@@ -110,8 +110,8 @@ public class DefaultSpaceDevelopersOperations extends AbstractOperations<Default
         return cloudFoundryOperations.getCloudFoundryClient()
                 .spaces()
                 .removeDeveloperByUsername(request)
-                .doOnSubscribe(subscription -> log.debug("Removing a space developer:", username))
-                .doOnSuccess(subscription -> log.info("Space developer: ", username, " was removed"))
+                .doOnSubscribe(subscription -> log.debug("Removing space developer", username))
+                .doOnSuccess(subscription -> log.verbose("Removing space developer", username, "completed"))
                 .onErrorStop()
                 .then(Mono.empty());
     }
