@@ -11,30 +11,13 @@ import cloud.foundry.cli.crosscutting.exceptions.ApplyException;
 import cloud.foundry.cli.crosscutting.exceptions.GetException;
 import cloud.foundry.cli.crosscutting.mapping.beans.*;
 
-import cloud.foundry.cli.mocking.ApplicationsMockBuilder;
-import cloud.foundry.cli.mocking.ApplicationsV3MockBuilder;
-import cloud.foundry.cli.mocking.CloudFoundryClientMockBuilder;
-import cloud.foundry.cli.mocking.DefaultCloudFoundryOperationsMockBuilder;
 import cloud.foundry.cli.operations.*;
 import cloud.foundry.cli.services.LoginCommandOptions;
-import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperByUsernameRequest;
-import org.cloudfoundry.client.v2.spaces.RemoveSpaceDeveloperByUsernameRequest;
-import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
-import org.cloudfoundry.operations.applications.*;
-import org.cloudfoundry.client.v2.spaces.Spaces;
-import org.cloudfoundry.client.v3.Metadata;
-import org.cloudfoundry.client.v3.applications.ApplicationsV3;
-import org.cloudfoundry.operations.useradmin.ListSpaceUsersRequest;
-import org.cloudfoundry.operations.useradmin.SpaceUsers;
-import org.cloudfoundry.operations.useradmin.UserAdmin;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 
-import java.nio.file.Paths;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Predicate;
 
 /**
  * Test for {@link ApplyLogic}
@@ -109,11 +92,6 @@ public class ApplyLogicTest {
         GetLogic getLogicMock = mock(GetLogic.class);
         when(getLogicMock.getAll(any(),any(), any(), any(), any())).thenReturn(liveConfigBean);
 
-        // mock space operations
-        SpaceOperations spaceOperations = mock(SpaceOperations.class);
-        when(spaceOperations.getAll()).thenReturn(Mono.just(Collections.emptyList()));
-        when(spaceOperations.create(anyString())).thenReturn(Mono.empty());
-
         // mock space developers operations
         SpaceDevelopersOperations spaceDevelopersOperations = mock(SpaceDevelopersOperations.class);
         when(spaceDevelopersOperations.getSpaceId()).thenReturn(Mono.just("spaceId"));
@@ -130,7 +108,6 @@ public class ApplyLogicTest {
         ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
 
         applyLogic.setGetLogic(getLogicMock);
-        applyLogic.setSpaceOperations(spaceOperations);
         applyLogic.setSpaceDevelopersOperations(spaceDevelopersOperations);
         applyLogic.setApplicationsOperations(applicationsOperations);
         applyLogic.setServicesOperations(servicesOperations);
@@ -144,8 +121,6 @@ public class ApplyLogicTest {
                 any(ApplicationsOperations.class),
                 any(ClientOperations.class),
                 any(LoginCommandOptions.class));
-        verify(spaceOperations, times(1)).getAll();
-        verify(spaceOperations, times(1)).create("space");
         verify(spaceDevelopersOperations, times(1)).getSpaceId();
         verify(spaceDevelopersOperations, times(1)).assign("spaceDeveloper1", "spaceId");
         verify(applicationsOperations, times(1)).create(eq("app"), any(ApplicationBean.class), anyBoolean());

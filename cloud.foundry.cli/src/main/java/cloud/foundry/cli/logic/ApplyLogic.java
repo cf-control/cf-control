@@ -99,12 +99,6 @@ public class ApplyLogic {
 
         ApplicationRequestsPlaner appRequestsPlanner = new ApplicationRequestsPlaner(applicationsOperations);
 
-        // create space if it does not exist
-        String desiredSpaceName = desiredConfigBean.getTarget().getSpace();
-        if (desiredSpaceName != null) {
-            applySpace(desiredSpaceName);
-        }
-
         ConfigBean liveConfigBean = getLogic.getAll(
                 spaceDevelopersOperations,
                 servicesOperations,
@@ -117,6 +111,11 @@ public class ApplyLogic {
         CfContainerChange spaceDevelopersChange = wrappedDiff.getSpaceDevelopersChange();
         Map<String, List<CfChange>> servicesChanges = wrappedDiff.getServiceChanges();
         Map<String, List<CfChange>> appsChanges = wrappedDiff.getApplicationChanges();
+
+        if (spaceDevelopersChange == null && servicesChanges.isEmpty() && appsChanges.isEmpty()) {
+            log.info("No changes found, no applying necessary.");
+            return;
+        }
 
         Flux<Void> spaceDevelopersRequests = Flux.empty();
         if (spaceDevelopersChange != null) {
