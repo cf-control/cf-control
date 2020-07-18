@@ -135,7 +135,8 @@ public class ApplyLogic {
 
         Flux.merge(spaceDevelopersRequests, servicesRequests)
                 .concatWith(appsRequests)
-                .onErrorContinue(log::error)
+                .doOnError(log::error)
+                .onErrorStop()
                 .blockLast();
     }
 
