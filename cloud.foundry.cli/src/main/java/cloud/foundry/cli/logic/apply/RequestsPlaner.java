@@ -22,29 +22,15 @@ import java.util.List;
  */
 public abstract class RequestsPlaner implements CfChangeVisitor {
 
-    protected enum RequestType {
-        NONE,
-        CREATE,
-        REMOVE,
-        CHANGE_INPLACE,
-        CHANGE_RESTART
-    }
-
     /**
      * error message when the change type is not supported
      */
     private static final String CHANGE_TYPE_IS_NOT_SUPPORTED = "Change type is not supported.";
 
-    /**
-     * the type of request that is necessary to apply the needed changes
-     */
-    protected RequestType requestType;
-
     private final List<Mono<Void>> requests;
 
     protected RequestsPlaner() {
         this.requests = new LinkedList<>();
-        this.requestType = RequestType.NONE;
     }
 
     /**
