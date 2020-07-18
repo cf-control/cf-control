@@ -10,6 +10,7 @@ import cloud.foundry.cli.logic.apply.ApplicationRequestsPlaner;
 import cloud.foundry.cli.logic.apply.ServiceRequestsPlaner;
 import cloud.foundry.cli.logic.apply.SpaceDevelopersRequestsPlaner;
 import cloud.foundry.cli.logic.diff.DiffResult;
+import cloud.foundry.cli.logic.diff.change.CfChange;
 import cloud.foundry.cli.logic.diff.change.container.CfContainerChange;
 import cloud.foundry.cli.operations.*;
 import cloud.foundry.cli.services.LoginCommandOptions;
@@ -19,6 +20,7 @@ import reactor.core.publisher.Mono;
 
 import javax.annotation.Nonnull;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This class takes care of applying desired cloud foundry configurations to a
@@ -67,6 +69,14 @@ public class ApplyLogic {
         this.spaceOperations = spaceOperations;
     }
 
+    public void setSpaceDevelopersOperations(SpaceDevelopersOperations spaceDevelopersOperations) {
+        this.spaceDevelopersOperations = spaceDevelopersOperations;
+    }
+
+    public void setServicesOperations(ServicesOperations servicesOperations) {
+        this.servicesOperations = servicesOperations;
+    }
+
     public void setDiffLogic(DiffLogic diffLogic) {
         this.diffLogic = diffLogic;
     }
@@ -87,6 +97,8 @@ public class ApplyLogic {
         checkNotNull(desiredConfigBean);
         checkNotNull(loginCommandOptions);
 
+        ApplicationRequestsPlaner appRequestsPlanner = new ApplicationRequestsPlaner(applicationsOperations);
+
         // create space if it does not exist
         String desiredSpaceName = desiredConfigBean.getTarget().getSpace();
         if (desiredSpaceName != null) {
@@ -100,25 +112,30 @@ public class ApplyLogic {
                 clientOperations,
                 loginCommandOptions);
 
-        DiffResult wrappedDiff = this.diffLogic.createDiffResult(liveConfigBean, desiredConfigBean);
-
-        ApplicationRequestsPlaner applicationRequestsPlaner
-                = new ApplicationRequestsPlaner(applicationsOperations);
+        DiffResult wrappedDiff = diffLogic.createDiffResult(liveConfigBean, desiredConfigBean);
 
         CfContainerChange spaceDevelopersChange = wrappedDiff.getSpaceDevelopersChange();
+        Map<String, List<CfChange>> servicesChanges = wrappedDiff.getServiceChanges();
+        Map<String, List<CfChange>> appsChanges = wrappedDiff.getApplicationChanges();
+
+        Flux<Void> spaceDevelopersRequests = Flux.empty();
         if (spaceDevelopersChange != null) {
-            SpaceDevelopersRequestsPlaner.createSpaceDevelopersRequests(spaceDevelopersOperations,
-                    spaceDevelopersChange);
+            spaceDevelopersRequests = SpaceDevelopersRequestsPlaner
+                    .createSpaceDevelopersRequests(spaceDevelopersOperations, spaceDevelopersChange);
         }
 
-        Flux.fromIterable(wrappedDiff.getServiceChanges().entrySet())
+        Flux<Void> servicesRequests = Flux.fromIterable(servicesChanges.entrySet())
                 .flatMap(element -> ServiceRequestsPlaner.createApplyRequests(
                         servicesOperations,
                         element.getKey(),
-                        element.getValue()))
-                .concatWith(Flux.fromIterable(wrappedDiff.getApplicationChanges().entrySet())
-                        .flatMap(element -> applicationRequestsPlaner.createApplyRequests(element.getKey(),
-                                element.getValue())))
+                        element.getValue()));
+
+        Flux<Void> appsRequests = Flux.fromIterable(appsChanges.entrySet())
+                        .flatMap(element -> appRequestsPlanner.createApplyRequests(element.getKey(),
+                                element.getValue()));
+
+        Flux.merge(spaceDevelopersRequests, servicesRequests)
+                .concatWith(appsRequests)
                 .onErrorContinue(log::error)
                 .blockLast();
     }
