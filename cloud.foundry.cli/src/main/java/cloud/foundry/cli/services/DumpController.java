@@ -32,7 +32,7 @@ public class DumpController implements Callable<Integer> {
     public Integer call() throws Exception {
         String yamlFilePath = yamlCommandOptions.getYamlFilePath();
 
-        log.info("Reading and processing YAML the configuration file...");
+        log.info("Reading and processing YAML the configuration file");
         String resolvedConfig = YamlMapper.resolveYamlFile(yamlFilePath);
 
         // print the config before interpreting it, so that in cases of interpretation errors, the user still gets his

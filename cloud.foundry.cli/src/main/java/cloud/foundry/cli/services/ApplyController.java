@@ -34,17 +34,15 @@ public class ApplyController implements Callable<Integer> {
 
     @Override
     public Integer call() throws IOException {
-        log.info("Interpreting YAML file...");
-        ConfigBean desiredConfigBean =
-                YamlMapper.loadBeanFromFile(yamlCommandOptions.getYamlFilePath(), ConfigBean.class);
-        log.verbose("YAML file interpreted.");
+        log.info("Interpreting YAML file");
+        ConfigBean desiredConfigBean = YamlMapper.loadBeanFromFile(yamlCommandOptions.getYamlFilePath(),
+                ConfigBean.class);
+        log.verbose("Interpreting YAML file completed");
 
-        log.info("Preparing to apply changes...");
+
         DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
-
         ApplyLogic applyLogic = new ApplyLogic(cfOperations);
         applyLogic.applyAll(desiredConfigBean, loginOptions);
-        log.info("All changes are applied.");
 
         return 0;
     }

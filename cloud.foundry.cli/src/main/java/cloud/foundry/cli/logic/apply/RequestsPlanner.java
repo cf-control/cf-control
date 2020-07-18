@@ -16,11 +16,11 @@ import java.util.List;
 
 
 /**
- * This is the super class of all request planer classes which are responsible to build the required requests
+ * This is the super class of all request planner classes which are responsible to build the required requests
  * for their operation domain according to the given CfChange objects.
  * The class does create the request tasks by implementing the {@link CfChangeVisitor} interface.
  */
-public abstract class RequestsPlaner implements CfChangeVisitor {
+public abstract class RequestsPlanner implements CfChangeVisitor {
 
     protected enum RequestType {
         NONE,
@@ -42,7 +42,7 @@ public abstract class RequestsPlaner implements CfChangeVisitor {
 
     private final List<Mono<Void>> requests;
 
-    protected RequestsPlaner() {
+    protected RequestsPlanner() {
         this.requests = new LinkedList<>();
         this.requestType = RequestType.NONE;
     }
