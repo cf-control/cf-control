@@ -13,7 +13,7 @@ public class ResourceProvider {
      * @param forClass the class, which needs the InputStream
      * @return an InputStream to the resource file
      */
-    public InputStream getInputStreamFromResourceFile(String filename, Class<?> forClass){
+    public InputStream getInputStreamFromResourceFile(String filename, Class<?> forClass) {
         ClassLoader classLoader = forClass.getClassLoader();
         return classLoader.getResourceAsStream(filename);
     }

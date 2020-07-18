@@ -5,7 +5,6 @@ import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 
@@ -38,7 +37,7 @@ public class PropertyUtilsTest {
     }
 
     @Test
-    public void testDetermineApiVersionWithPropertiesLoadThrowingIOExceptionReturnsNotFound() throws IOException {
+    public void testDetermineApiVersionWithPropertiesLoadThrowingIoExceptionReturnsNotFound() throws IOException {
         // given
         ResourceProvider resourceProviderMock = mock(ResourceProvider.class);
         Properties propertiesMock = mock(Properties.class);
