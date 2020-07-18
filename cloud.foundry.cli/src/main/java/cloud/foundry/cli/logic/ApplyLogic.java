@@ -21,6 +21,7 @@ import reactor.core.publisher.Mono;
 import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * This class takes care of applying desired cloud foundry configurations to a
@@ -133,11 +134,21 @@ public class ApplyLogic {
                         .flatMap(element -> appRequestsPlanner.createApplyRequests(element.getKey(),
                                 element.getValue()));
 
+        // let's be optimistic
+        // prove me wrong!
+        final AtomicBoolean success = new AtomicBoolean(true);
+
         Flux.merge(spaceDevelopersRequests, servicesRequests)
                 .concatWith(appsRequests)
-                .doOnError(log::error)
-                .onErrorStop()
+                .onErrorContinue((throwable, consumer) -> {
+                    log.error(throwable);
+                    success.set(false);
+                })
                 .blockLast();
+
+        if (!success.get()) {
+            throw new ApplyException("Failed to apply configuration: exceptions thrown during execution");
+        }
     }
 
     /**
