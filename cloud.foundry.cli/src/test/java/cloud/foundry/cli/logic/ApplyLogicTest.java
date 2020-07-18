@@ -9,14 +9,14 @@ import static org.mockito.Mockito.verify;
 
 import cloud.foundry.cli.crosscutting.exceptions.ApplyException;
 import cloud.foundry.cli.crosscutting.exceptions.GetException;
-import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
-import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationManifestBean;
+import cloud.foundry.cli.crosscutting.mapping.beans.*;
 
 import cloud.foundry.cli.mocking.ApplicationsMockBuilder;
 import cloud.foundry.cli.mocking.ApplicationsV3MockBuilder;
 import cloud.foundry.cli.mocking.CloudFoundryClientMockBuilder;
 import cloud.foundry.cli.mocking.DefaultCloudFoundryOperationsMockBuilder;
-import cloud.foundry.cli.operations.SpaceOperations;
+import cloud.foundry.cli.operations.*;
+import cloud.foundry.cli.services.LoginCommandOptions;
 import org.cloudfoundry.client.v2.spaces.AssociateSpaceDeveloperByUsernameRequest;
 import org.cloudfoundry.client.v2.spaces.RemoveSpaceDeveloperByUsernameRequest;
 import org.cloudfoundry.client.CloudFoundryClient;
@@ -41,130 +41,115 @@ import java.util.function.Predicate;
  */
 public class ApplyLogicTest {
 
-    private static final String METADATA_KEY = "CF_METADATA_KEY";
-
-    private DefaultCloudFoundryOperations mockSpaceDevelopersGetAll(List<String> spaceDevelopersLive) {
-        DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
-
-        when(cfOperationsMock.getSpace()).thenReturn("spaceName");
-        when(cfOperationsMock.getOrganization()).thenReturn("organizationName");
-        Mono<String> monoMock = mock(Mono.class);
-        when(cfOperationsMock.getSpaceId()).thenReturn(monoMock);
-        when(monoMock.block()).thenReturn("spaceID");
-
-        UserAdmin userAdminMock = mock(UserAdmin.class);
-        when(cfOperationsMock.userAdmin()).thenReturn(userAdminMock);
-
-        AtomicReference<ListSpaceUsersRequest> listingRequest = new AtomicReference<>(null);
-        when(userAdminMock.listSpaceUsers(any(ListSpaceUsersRequest.class)))
-                .then(invocation -> {
-                    listingRequest.set(invocation.getArgument(0));
-                    return Mono.just(spaceDevelopersLive)
-                            .map(list -> SpaceUsers.builder().addAllDevelopers(list).build());
-                });
-
-        return cfOperationsMock;
+    @Test
+    public void testConstructorOnNullParametersThrowsException() {
+        assertThrows(NullPointerException.class, () -> new ApplyLogic(null));
     }
 
-    // mock for assign space devs
-    private AtomicReference<AssociateSpaceDeveloperByUsernameRequest> assignSpaceDevelopersMock(Spaces spacesMock) {
-        Mono<Void> assignMonoMock = mock(Mono.class);
-        AtomicReference<AssociateSpaceDeveloperByUsernameRequest> assignmentRequest = new AtomicReference<>(null);
-        when(spacesMock.associateDeveloperByUsername(any(AssociateSpaceDeveloperByUsernameRequest.class)))
-                .then(invocation -> {
-                    assignmentRequest.set(invocation.getArgument(0));
-                    return Mono.empty();
-                });
-
-        when(assignMonoMock.onErrorContinue(any(Predicate.class), any())).thenReturn(assignMonoMock);
-        when(assignMonoMock.block()).thenReturn(null);
-
-        return assignmentRequest;
+    @Test
+    public void testApplyAllOnNullParametersThrowsException() {
+        ApplyLogic applyLogic =  new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
+        assertThrows(NullPointerException.class, () -> applyLogic.applyAll(null, new LoginCommandOptions()));
+        assertThrows(NullPointerException.class, () -> applyLogic.applyAll(new ConfigBean(), null));
     }
 
-    // mock for delete space devs
-    private AtomicReference<RemoveSpaceDeveloperByUsernameRequest> deleteSpaceDevelopersMock(Spaces spacesMock) {
-        Mono<Void> deleteMonoMock = mock(Mono.class);
-        AtomicReference<RemoveSpaceDeveloperByUsernameRequest> removalRequest = new AtomicReference<>(null);
-        when(spacesMock.removeDeveloperByUsername(any(RemoveSpaceDeveloperByUsernameRequest.class)))
-                .then(invocation -> {
-                    removalRequest.set(invocation.getArgument(0));
-                    return Mono.empty();
-                });
+    @Test
+    public void testApplyAllNothingToApply() {
+        // given
+        ConfigBean configBean = new ConfigBean();
+        configBean.setSpec(new SpecBean());
+        configBean.setTarget(new TargetBean());
 
-        when(deleteMonoMock.onErrorContinue(any(Predicate.class), any())).thenReturn(deleteMonoMock);
-        when(deleteMonoMock.block()).thenReturn(null);
+        ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
 
-        return removalRequest;
+        GetLogic getLogicMock = mock(GetLogic.class);
+        when(getLogicMock.getAll(any(),any(), any(), any(), any())).thenReturn(configBean);
+
+        applyLogic.setGetLogic(getLogicMock);
+
+        // when
+        applyLogic.applyAll(configBean, new LoginCommandOptions());
+
+        // then
+        verify(getLogicMock, times(1)).getAll(any(SpaceDevelopersOperations.class),
+                any(ServicesOperations.class),
+                any(ApplicationsOperations.class),
+                any(ClientOperations.class),
+                any(LoginCommandOptions.class));
     }
 
-    private ApplicationManifest createExampleApplicationManifest(String appName, String path, String buildpack) {
+    @Test
+    public void testApplyAllWithDifference() {
+        // given
+        // creat the live config
+        ConfigBean liveConfigBean = new ConfigBean();
+        liveConfigBean.setSpec(new SpecBean());
+        liveConfigBean.setTarget(new TargetBean());
 
-        return ApplicationManifest.builder()
-                .name(appName)
-                .buildpack(buildpack)
-                .path(Paths.get(path))
-                .instances(1)
-                .docker(Docker.builder().build())
-                .environmentVariables(Collections.emptyMap())
-                .disk(1024)
-                .memory(Integer.MAX_VALUE)
-                .build();
-    }
+        // create the desired config
+        ConfigBean desiredConfigBean = new ConfigBean();
 
-    private Map<String, ApplicationBean> createDesiredApplications(String appname,
-                                                                   String path,
-                                                                   String buildpack,
-                                                                   String meta) {
-        Map<String, ApplicationBean> appconfig = new HashMap<>();
-        ApplicationBean applicationBean = new ApplicationBean();
-        applicationBean.setPath(path);
-        ApplicationManifestBean manifestBean = new ApplicationManifestBean();
-        applicationBean.setManifest(manifestBean);
-        manifestBean.setBuildpack(buildpack);
-        manifestBean.setInstances(1);
-        manifestBean.setDisk(1024);
-        manifestBean.setMemory(Integer.MAX_VALUE);
-        applicationBean.setMeta(meta);
+        SpecBean desiredSpecBean = new SpecBean();
+        desiredSpecBean.setSpaceDevelopers(Arrays.asList("spaceDeveloper1"));
 
-        appconfig.put(appname, applicationBean);
+        ServiceBean desiredServiceBean = new ServiceBean();
+        desiredServiceBean.setService("sqlservice");
+        desiredSpecBean.setServices(Collections.singletonMap("service", desiredServiceBean));
 
-        return appconfig;
-    }
+        ApplicationBean desiredApplicationBean = new ApplicationBean();
+        desiredApplicationBean.setPath("some/path");
+        desiredSpecBean.setApps(Collections.singletonMap("app", desiredApplicationBean));
 
-  private DefaultCloudFoundryOperations createMockCloudFoundryOperations(Map<String, ApplicationManifest> apps,
-                                                                         Map<String, Metadata> metadata) {
-      Applications applicationsMock = ApplicationsMockBuilder
-              .get()
-              .setApps(apps)
-              .build();
-      ApplicationsV3 applicationsV3Mock = ApplicationsV3MockBuilder
-              .get()
-              .setMetadata(metadata)
-              .build();
-      CloudFoundryClient cloudFoundryClientMock = CloudFoundryClientMockBuilder
-              .get()
-              .setApplicationsV3(applicationsV3Mock)
-              .build();
-      DefaultCloudFoundryOperations cfOperationsMock = DefaultCloudFoundryOperationsMockBuilder
-              .get()
-              .setApplications(applicationsMock)
-              .setCloudFoundryClient(cloudFoundryClientMock)
-              .build();
+        TargetBean desiredTargetBean = new TargetBean();
+        desiredTargetBean.setSpace("space");
+        desiredConfigBean.setSpec(desiredSpecBean);
+        desiredConfigBean.setTarget(desiredTargetBean);
 
-      return cfOperationsMock;
-    }
+        // mock get logic
+        GetLogic getLogicMock = mock(GetLogic.class);
+        when(getLogicMock.getAll(any(),any(), any(), any(), any())).thenReturn(liveConfigBean);
 
-    /**
-     * Creates a {@link Metadata metadata instance} for testing purposes.
-     *
-     * @return metadata for an application
-     */
-    private Metadata createMockMetadata(String meta, String path) {
-        return Metadata.builder()
-                .annotation(ApplicationBean.METADATA_KEY, meta)
-                .annotation(ApplicationBean.PATH_KEY, path)
-                .build();
+        // mock space operations
+        SpaceOperations spaceOperations = mock(SpaceOperations.class);
+        when(spaceOperations.getAll()).thenReturn(Mono.just(Collections.emptyList()));
+        when(spaceOperations.create(anyString())).thenReturn(Mono.empty());
+
+        // mock space developers operations
+        SpaceDevelopersOperations spaceDevelopersOperations = mock(SpaceDevelopersOperations.class);
+        when(spaceDevelopersOperations.getSpaceId()).thenReturn(Mono.just("spaceId"));
+        when(spaceDevelopersOperations.assign(anyString(), anyString())).thenReturn(Mono.empty());
+
+        // mock applications operations
+        ApplicationsOperations applicationsOperations = mock(ApplicationsOperations.class);
+        when(applicationsOperations.create(anyString(), any(), anyBoolean())).thenReturn(Mono.empty());
+
+        // mock services operations
+        ServicesOperations servicesOperations = mock(ServicesOperations.class);
+        when(servicesOperations.create(anyString(), any())).thenReturn(Mono.empty());
+
+        ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
+
+        applyLogic.setGetLogic(getLogicMock);
+        applyLogic.setSpaceOperations(spaceOperations);
+        applyLogic.setSpaceDevelopersOperations(spaceDevelopersOperations);
+        applyLogic.setApplicationsOperations(applicationsOperations);
+        applyLogic.setServicesOperations(servicesOperations);
+
+        // when
+        applyLogic.applyAll(desiredConfigBean, new LoginCommandOptions());
+
+        // then
+        verify(getLogicMock, times(1)).getAll(any(SpaceDevelopersOperations.class),
+                any(ServicesOperations.class),
+                any(ApplicationsOperations.class),
+                any(ClientOperations.class),
+                any(LoginCommandOptions.class));
+        verify(spaceOperations, times(1)).getAll();
+        verify(spaceOperations, times(1)).create("space");
+        verify(spaceDevelopersOperations, times(1)).getSpaceId();
+        verify(spaceDevelopersOperations, times(1)).assign("spaceDeveloper1", "spaceId");
+        verify(applicationsOperations, times(1)).create(eq("app"), any(ApplicationBean.class), anyBoolean());
+        verify(servicesOperations, times(1)).create(eq("service"), any(ServiceBean.class));
     }
 
     @Test
