@@ -46,8 +46,9 @@ public class ApplyController implements Callable<Integer> {
         // create space if it does not exist
         String desiredSpaceName = desiredConfigBean.getTarget().getSpace();
         if (desiredSpaceName != null && !loginOptions.getSpace().equals(desiredSpaceName)) {
-            applyLogic.applySpace(desiredSpaceName);
             loginOptions.setSpace(desiredSpaceName);
+            applyLogic.applySpace(desiredSpaceName);
+
             cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
             applyLogic = new ApplyLogic(cfOperations);
         }

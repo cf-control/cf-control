@@ -1,5 +1,7 @@
 package cloud.foundry.cli.logic;
 
+import static java.util.Collections.singletonList;
+import static java.util.Collections.singletonMap;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -25,7 +27,7 @@ import java.util.*;
 public class ApplyLogicTest {
 
     @Test
-    public void testConstructorOnNullParametersThrowsException() {
+    public void testConstructorOnNullParameterThrowsException() {
         assertThrows(NullPointerException.class, () -> new ApplyLogic(null));
     }
 
@@ -64,7 +66,7 @@ public class ApplyLogicTest {
     @Test
     public void testApplyAllWithDifference() {
         // given
-        // creat the live config
+        // create the live config
         ConfigBean liveConfigBean = new ConfigBean();
         liveConfigBean.setSpec(new SpecBean());
         liveConfigBean.setTarget(new TargetBean());
@@ -73,15 +75,15 @@ public class ApplyLogicTest {
         ConfigBean desiredConfigBean = new ConfigBean();
 
         SpecBean desiredSpecBean = new SpecBean();
-        desiredSpecBean.setSpaceDevelopers(Arrays.asList("spaceDeveloper1"));
+        desiredSpecBean.setSpaceDevelopers(singletonList("spaceDeveloper1"));
 
         ServiceBean desiredServiceBean = new ServiceBean();
         desiredServiceBean.setService("sqlservice");
-        desiredSpecBean.setServices(Collections.singletonMap("service", desiredServiceBean));
+        desiredSpecBean.setServices(singletonMap("service", desiredServiceBean));
 
         ApplicationBean desiredApplicationBean = new ApplicationBean();
         desiredApplicationBean.setPath("some/path");
-        desiredSpecBean.setApps(Collections.singletonMap("app", desiredApplicationBean));
+        desiredSpecBean.setApps(singletonMap("app", desiredApplicationBean));
 
         TargetBean desiredTargetBean = new TargetBean();
         desiredTargetBean.setSpace("space");
@@ -129,7 +131,6 @@ public class ApplyLogicTest {
 
     @Test
     public void testApplySpaceCreatesSpace() {
-
         // given
         String desiredSpaceName = "testName";
         SpaceOperations spaceOperationsMock = mock(SpaceOperations.class);
@@ -140,7 +141,7 @@ public class ApplyLogicTest {
         Mono<Void> resultingMono = mock(Mono.class);
         when(spaceOperationsMock.create(desiredSpaceName)).thenReturn(resultingMono);
 
-        // the constructor paramteres won't be used by apply space method, because it uses
+        // the constructor parameters won't be used by apply space method, because it uses
         // dependency injection regarding space operations
         ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
         applyLogic.setSpaceOperations(spaceOperationsMock);
@@ -164,7 +165,7 @@ public class ApplyLogicTest {
         Mono<Void> resultingMono = mock(Mono.class);
         when(spaceOperationsMock.create(desiredSpaceName)).thenReturn(resultingMono);
 
-        // the constructor paramteres won't be used by apply space method, because it uses DI
+        // the constructor parameters won't be used by apply space method, because it uses DI
         // regarding space operations.
         ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
         applyLogic.setSpaceOperations(spaceOperationsMock);
@@ -198,7 +199,6 @@ public class ApplyLogicTest {
 
     @Test
     public void testApplySpaceWithCreateSpaceFailingThrowsApplyException() {
-
         // given
         String desiredSpaceName = "testName";
         SpaceOperations spaceOperationsMock = mock(SpaceOperations.class);

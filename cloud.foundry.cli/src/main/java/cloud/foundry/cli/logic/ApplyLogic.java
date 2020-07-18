@@ -97,8 +97,6 @@ public class ApplyLogic {
         checkNotNull(desiredConfigBean);
         checkNotNull(loginCommandOptions);
 
-        ApplicationRequestsPlanner appRequestsPlanner = new ApplicationRequestsPlanner(applicationsOperations);
-
         ConfigBean liveConfigBean = getLogic.getAll(
                 spaceDevelopersOperations,
                 servicesOperations,
@@ -128,6 +126,8 @@ public class ApplyLogic {
                         servicesOperations,
                         element.getKey(),
                         element.getValue()));
+
+        ApplicationRequestsPlanner appRequestsPlanner = new ApplicationRequestsPlanner(applicationsOperations);
 
         Flux<Void> appsRequests = Flux.fromIterable(appsChanges.entrySet())
                         .flatMap(element -> appRequestsPlanner.createApplyRequests(element.getKey(),
