@@ -46,9 +46,9 @@ public class ApplyLogic {
     private ApplicationsOperations applicationsOperations;
     private SpaceOperations spaceOperations;
 
-
     /**
      * Creates a new instance that will use the provided cf operations internally.
+     * 
      * @param cfOperations the cf operations that should be used to communicate with
      *                     the cf instance
      * @throws NullPointerException if the argument is null
@@ -76,8 +76,8 @@ public class ApplyLogic {
     /**
      * Assign users as space developers that are not present in the live system and
      * revoke space developers permission, if its present in the live system but not
-     * defined in <code>desiredSpaceDevelopers</code>. In case of any non-recoverable error, the
-     * procedure is discontinued.
+     * defined in <code>desiredSpaceDevelopers</code>. In case of any
+     * non-recoverable error, the procedure is discontinued.
      *
      * @param desiredSpaceDevelopers the space developers that should all be present
      *                               in the live system after the procedure.
@@ -93,10 +93,11 @@ public class ApplyLogic {
         ConfigBean desiredSpaceDevelopersConfig = createConfigFromSpaceDevelopers(desiredSpaceDevelopers);
         ConfigBean liveSpaceDevelopersConfig = createConfigFromSpaceDevelopers(liveSpaceDevelopers);
 
-        // compare entire configs as the diff wrapper is only suited for diff trees of these
+        // compare entire configs as the diff wrapper is only suited for diff trees of
+        // these
         log.info("Comparing the space developers...");
         DiffResult wrappedDiff = this.diffLogic.createDiffResult(liveSpaceDevelopersConfig,
-                desiredSpaceDevelopersConfig);
+            desiredSpaceDevelopersConfig);
         log.info("Space developers compared.");
 
         CfContainerChange spaceDevelopersChange = wrappedDiff.getSpaceDevelopersChange();
@@ -104,22 +105,23 @@ public class ApplyLogic {
             log.info("There is nothing to apply");
         } else {
             Flux<Void> spaceDevelopersRequests = Flux.just(spaceDevelopersChange)
-                    .flatMap(spaceDeveloperChange -> SpaceDevelopersRequestsPlaner
-                            .createSpaceDevelopersRequests(spaceDevelopersOperations, spaceDeveloperChange))
-                    .onErrorContinue(log::warning);
+                .flatMap(spaceDeveloperChange -> SpaceDevelopersRequestsPlaner
+                    .createSpaceDevelopersRequests(spaceDevelopersOperations, spaceDeveloperChange))
+                .onErrorContinue(log::warning);
             log.info("Applying changes to space developers...");
             spaceDevelopersRequests.blockLast();
         }
     }
 
     /**
-     * Apply the differences between the applications given in the yaml file and the configuration
-     * of the applications of your cf instance. In case of any non-recoverable error,
-     * the procedure is discontinued.
+     * Apply the differences between the applications given in the yaml file and the
+     * configuration of the applications of your cf instance. In case of any
+     * non-recoverable error, the procedure is discontinued.
      *
      * @param desiredApplications the applications that should all be present in the
      *                            live system after the procedure
-     * @throws ApplyException       if an non-recoverable error occurs during the procedure
+     * @throws ApplyException       if an non-recoverable error occurs during the
+     *                              procedure
      * @throws NullPointerException if the argument is null
      */
     public void applyApplications(@Nonnull Map<String, ApplicationBean> desiredApplications) {
@@ -133,7 +135,8 @@ public class ApplyLogic {
         ConfigBean desiredApplicationsConfig = createConfigFromApplications(desiredApplications);
         ConfigBean liveApplicationsConfig = createConfigFromApplications(liveApplications);
 
-        // compare entire configs as the diff wrapper is only suited for diff trees of these
+        // compare entire configs as the diff wrapper is only suited for diff trees of
+        // these
         log.verbose("Comparing the applications...");
         DiffResult diffResult = this.diffLogic.createDiffResult(liveApplicationsConfig, desiredApplicationsConfig);
         log.verbose("Applications compared.");
@@ -146,9 +149,9 @@ public class ApplyLogic {
             ApplicationRequestsPlaner requestsPlaner = new ApplicationRequestsPlaner(applicationsOperations);
 
             Flux<Void> applicationRequests = Flux.fromIterable(allApplicationChanges.entrySet())
-                    .flatMap(appChangeEntry -> requestsPlaner.createApplyRequests(appChangeEntry.getKey(),
-                            appChangeEntry.getValue()))
-                    .onErrorContinue(log::warning);
+                .flatMap(appChangeEntry -> requestsPlaner.createApplyRequests(appChangeEntry.getKey(),
+                    appChangeEntry.getValue()))
+                .onErrorContinue(log::warning);
 
             log.info("Applying changes to applications...");
 
@@ -156,11 +159,14 @@ public class ApplyLogic {
         }
     }
 
-    //TODO update the documentation as soon as the method does more than just creating/removing services
+    // TODO update the documentation as soon as the method does more than just
+    // creating/removing services
     /**
      * Creates/removes all desired services in your live cf instance.
-     * @param desiredServices the services that should all be present in the live system after the procedure
-     * @throws ApplyException if an error occurs during the procedure
+     * 
+     * @param desiredServices the services that should all be present in the live
+     *                        system after the procedure
+     * @throws ApplyException       if an error occurs during the procedure
      * @throws NullPointerException if the argument is null
      */
     public void applyServices(@Nonnull Map<String, ServiceBean> desiredServices) {
@@ -174,30 +180,34 @@ public class ApplyLogic {
         ConfigBean desiredServicesConfig = createConfigFromServices(desiredServices);
         ConfigBean liveServicesConfig = createConfigFromServices(liveServices);
 
-        // compare entire configs as the diff wrapper is only suited for diff trees of these
+        // compare entire configs as the diff wrapper is only suited for diff trees of
+        // these
         log.verbose("Comparing the services...");
         DiffResult diffResult = this.diffLogic.createDiffResult(liveServicesConfig, desiredServicesConfig);
         log.verbose("Services compared.");
 
         Map<String, List<CfChange>> allServicesChanges = diffResult.getServiceChanges();
-
+        ServiceRequestsPlaner requestsPlaner = new ServiceRequestsPlaner(servicesOperations);
+        
         Flux<Void> serviceRequests = Flux.fromIterable(allServicesChanges.entrySet())
-                .flatMap( serviceChangeEntry ->
-                        ServiceRequestsPlaner.createApplyRequests(servicesOperations,
-                                serviceChangeEntry.getKey(),
-                                serviceChangeEntry.getValue()))
-                .onErrorContinue(log::warning);
+            .flatMap(serviceChangeEntry -> requestsPlaner.createApplyRequests(serviceChangeEntry.getKey(),
+                serviceChangeEntry.getValue()))
+            .onErrorContinue(log::warning);
         serviceRequests.blockLast();
 
         log.info("Applying changes to services...");
     }
 
     /**
-     * Creates a space with the desired name if a space with such a name does not exist in the live cf instance.
+     * Creates a space with the desired name if a space with such a name does not
+     * exist in the live cf instance.
+     * 
      * @param desiredSpaceName the name of the desired space
      * @throws NullPointerException if the desired paramerter is null
-     * @throws ApplyException in case of errors during the creation of the desired space
-     * @throws GetException in case of errors during querying the space names
+     * @throws ApplyException       in case of errors during the creation of the
+     *                              desired space
+     * @throws GetException         in case of errors during querying the space
+     *                              names
      */
     public void applySpace(String desiredSpaceName) {
         checkNotNull(desiredSpaceName);
@@ -225,10 +235,9 @@ public class ApplyLogic {
         }
     }
 
-
     /**
-     * @param spaceDevelopers the space developer that should be
-     *                             contained in the resulting config bean.
+     * @param spaceDevelopers the space developer that should be contained in the
+     *                        resulting config bean.
      * @return a config bean only containing the entered space developers.
      */
     private ConfigBean createConfigFromSpaceDevelopers(List<String> spaceDevelopers) {
@@ -256,7 +265,8 @@ public class ApplyLogic {
     }
 
     /**
-     * @param serviceBeans the service beans that should be contained in the resulting config bean
+     * @param serviceBeans the service beans that should be contained in the
+     *                     resulting config bean
      * @return a config bean only containing the entered service beans
      */
     private ConfigBean createConfigFromServices(Map<String, ServiceBean> serviceBeans) {

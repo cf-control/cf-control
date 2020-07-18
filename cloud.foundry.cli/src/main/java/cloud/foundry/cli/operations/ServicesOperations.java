@@ -136,24 +136,10 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
     public Mono<Void> update(String serviceInstanceName, ServiceBean serviceBean) {
         checkNotNull(serviceInstanceName);
         checkNotNull(serviceBean);
-
-//        //TODO:move logs
-//        UpdateServiceInstanceRequest updateServiceInstanceRequest = UpdateServiceInstanceRequest.builder()
-//                .serviceInstanceName(serviceInstanceName)
-//                .tags(serviceBean.getTags())
-//                .planName(serviceBean.getPlan())
-//                .build();
-//
-//        return this.cloudFoundryOperations.services()
-//                .updateInstance(updateServiceInstanceRequest)
-//                .doOnSubscribe(subscription -> {
-//                    log.debug("Update service Instance:", serviceInstanceName);
-//                    log.debug("With the bean:", serviceBean);
-//                })
-//                .doOnSuccess(aVoid -> log.info("Service tags and plan updated:", serviceInstanceName))
-//                .onErrorStop();
-        Mono<Void> update = remove(serviceInstanceName).concatWith(create(serviceInstanceName, serviceBean)).then();
-        return update;
+        
+        return remove(serviceInstanceName).
+            concatWith(create(serviceInstanceName, serviceBean)).
+            then();
     }
 
     /**
