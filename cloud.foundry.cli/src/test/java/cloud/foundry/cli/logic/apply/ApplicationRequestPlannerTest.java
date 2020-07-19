@@ -37,7 +37,7 @@ class ApplicationRequestPlannerTest {
     void applyTest_WithMultipleNewObject_AcceptMethodCallOnOnlyOne() {
         // given
         ApplicationsOperations appOperations = mock(ApplicationsOperations.class);
-        when(appOperations.create(any(String.class), any(ApplicationBean.class), any(boolean.class)))
+        when(appOperations.create(any(String.class), any(ApplicationBean.class)))
                 .thenReturn(Mono.just(mock(Void.class)));
 
         String appName = "testApp";
@@ -60,7 +60,7 @@ class ApplicationRequestPlannerTest {
 
         // then
         assertThat(requests, notNullValue());
-        verify(appOperations, times(1)).create("testApp", applicationBean, false);
+        verify(appOperations, times(1)).create("testApp", applicationBean);
     }
 
     @Test
@@ -91,7 +91,7 @@ class ApplicationRequestPlannerTest {
         cfChanges.add(newObject);
         Void voidMock = mock(Void.class);
         Mono<Void> monoMock = Mono.just(voidMock);
-        when(appOperations.create(appName, appBeanMock, false)).thenReturn(monoMock);
+        when(appOperations.create(anyString(), any())).thenReturn(monoMock);
 
         ApplicationRequestsPlanner requestsPlanner = new ApplicationRequestsPlanner(appOperations);
 
@@ -99,7 +99,7 @@ class ApplicationRequestPlannerTest {
         Flux<Void> requests = requestsPlanner.createApplyRequests(appName, cfChanges);
 
         // then
-        verify(appOperations, times(1)).create(appName, appBeanMock, false);
+        verify(appOperations, times(1)).create(appName, appBeanMock);
         StepVerifier.create(requests)
             .expectNext(voidMock)
             .expectComplete()
@@ -115,7 +115,7 @@ class ApplicationRequestPlannerTest {
         ApplicationBean appBeanMock = mock(ApplicationBean.class);
         CfNewObject newObject = new CfNewObject(appBeanMock, "", Arrays.asList("path"));
         cfChanges.add(newObject);
-        doThrow(new CreationException("Test")).when(appOperations).create(appName, appBeanMock, false);
+        doThrow(new CreationException("Test")).when(appOperations).create(appName, appBeanMock);
 
         ApplicationRequestsPlanner requestsPlanner = new ApplicationRequestsPlanner(appOperations);
 
@@ -353,7 +353,7 @@ class ApplicationRequestPlannerTest {
         // given
         ApplicationsOperations appOperations = mock(ApplicationsOperations.class);
         Void voidMock = mock(Void.class);
-        when(appOperations.update(anyString(), any(), anyBoolean()))
+        when(appOperations.update(anyString(), any()))
                 .thenReturn(Mono.just(voidMock));
 
         String appName = "testApp";
@@ -375,7 +375,7 @@ class ApplicationRequestPlannerTest {
 
         // then
         assertThat(requests, notNullValue());
-        verify(appOperations, times(1)).update("testApp", applicationBean, false);
+        verify(appOperations, times(1)).update("testApp", applicationBean);
         verifyNoMoreInteractions(appOperations);
         StepVerifier.create(requests)
                 .expectNext(voidMock)
@@ -388,7 +388,7 @@ class ApplicationRequestPlannerTest {
         // given
         ApplicationsOperations appOperations = mock(ApplicationsOperations.class);
         Void voidUpdateMock = mock(Void.class);
-        when(appOperations.update(anyString(), any(), anyBoolean()))
+        when(appOperations.update(anyString(), any()))
                 .thenReturn(Mono.just(voidUpdateMock));
         Void voidAddEnvVarMock = mock(Void.class);
         when(appOperations.addEnvironmentVariable(anyString(), anyString(),anyString()))
@@ -436,7 +436,7 @@ class ApplicationRequestPlannerTest {
 
         // then
         assertThat(requests, notNullValue());
-        verify(appOperations, times(1)).update("testApp", applicationBean, false);
+        verify(appOperations, times(1)).update("testApp", applicationBean);
         verifyNoMoreInteractions(appOperations);
     }
 
@@ -445,7 +445,7 @@ class ApplicationRequestPlannerTest {
         // given
         ApplicationsOperations appOperations = mock(ApplicationsOperations.class);
         Void voidMock = mock(Void.class);
-        when(appOperations.update(anyString(), any(), anyBoolean()))
+        when(appOperations.update(anyString(), any()))
                 .thenReturn(Mono.just(voidMock));
 
         String appName = "testApp";
