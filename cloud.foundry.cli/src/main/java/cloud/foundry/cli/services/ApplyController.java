@@ -43,17 +43,7 @@ public class ApplyController implements Callable<Integer> {
         DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
         ApplyLogic applyLogic = new ApplyLogic(cfOperations);
 
-        // create space if it does not exist
-        String desiredSpaceName = desiredConfigBean.getTarget().getSpace();
-        if (desiredSpaceName != null && !loginOptions.getSpace().equals(desiredSpaceName)) {
-            loginOptions.setSpace(desiredSpaceName);
-            applyLogic.applySpace(desiredSpaceName);
-
-            cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
-            applyLogic = new ApplyLogic(cfOperations);
-        }
-
-        applyLogic.applyAll(desiredConfigBean, loginOptions);
+        applyLogic.apply(desiredConfigBean, loginOptions);
 
         return 0;
     }

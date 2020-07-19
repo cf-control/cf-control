@@ -34,8 +34,8 @@ public class ApplyLogicTest {
     @Test
     public void testApplyAllOnNullParametersThrowsException() {
         ApplyLogic applyLogic =  new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
-        assertThrows(NullPointerException.class, () -> applyLogic.applyAll(null, new LoginCommandOptions()));
-        assertThrows(NullPointerException.class, () -> applyLogic.applyAll(new ConfigBean(), null));
+        assertThrows(NullPointerException.class, () -> applyLogic.apply(null, new LoginCommandOptions()));
+        assertThrows(NullPointerException.class, () -> applyLogic.apply(new ConfigBean(), null));
     }
 
     @Test
@@ -53,7 +53,7 @@ public class ApplyLogicTest {
         applyLogic.setGetLogic(getLogicMock);
 
         // when
-        applyLogic.applyAll(configBean, new LoginCommandOptions());
+        applyLogic.apply(configBean, new LoginCommandOptions());
 
         // then
         verify(getLogicMock, times(1)).getAll(any(SpaceDevelopersOperations.class),
@@ -115,7 +115,7 @@ public class ApplyLogicTest {
         applyLogic.setServicesOperations(servicesOperations);
 
         // when
-        applyLogic.applyAll(desiredConfigBean, new LoginCommandOptions());
+        applyLogic.apply(desiredConfigBean, new LoginCommandOptions());
 
         // then
         verify(getLogicMock, times(1)).getAll(any(SpaceDevelopersOperations.class),

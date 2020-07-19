@@ -1,9 +1,8 @@
 package cloud.foundry.cli.logic;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.*;
 
 import cloud.foundry.cli.crosscutting.exceptions.ApplyException;
-import cloud.foundry.cli.crosscutting.exceptions.GetException;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
 import cloud.foundry.cli.logic.apply.ApplicationRequestsPlanner;
@@ -94,103 +93,95 @@ public class ApplyLogic {
      * @param loginCommandOptions LoginCommandOptions
      * @throws NullPointerException if one of the desired parameter is null.
      */
-    public void applyAll(ConfigBean desiredConfigBean, LoginCommandOptions loginCommandOptions) {
+    public void apply(ConfigBean desiredConfigBean, LoginCommandOptions loginCommandOptions) {
         checkNotNull(desiredConfigBean);
         checkNotNull(loginCommandOptions);
+        checkNotNull(desiredConfigBean.getTarget(), "Target bean may not be null.");
+        checkNotNull(desiredConfigBean.getTarget().getSpace(), "Space may not be null.");
 
-        ConfigBean liveConfigBean = getLogic.getAll(
-                spaceDevelopersOperations,
-                servicesOperations,
-                applicationsOperations,
-                clientOperations,
-                loginCommandOptions);
-
-        DiffResult wrappedDiff = diffLogic.createDiffResult(liveConfigBean, desiredConfigBean);
-
-        CfContainerChange spaceDevelopersChange = wrappedDiff.getSpaceDevelopersChange();
-        Map<String, List<CfChange>> servicesChanges = wrappedDiff.getServiceChanges();
-        Map<String, List<CfChange>> appsChanges = wrappedDiff.getApplicationChanges();
-
-        if (spaceDevelopersChange == null && servicesChanges.isEmpty() && appsChanges.isEmpty()) {
-            log.info("No changes found, no applying necessary.");
-            return;
-        }
-
-        Flux<Void> spaceDevelopersRequests = Flux.empty();
-        if (spaceDevelopersChange != null) {
-            spaceDevelopersRequests = SpaceDevelopersRequestsPlanner
-                    .createSpaceDevelopersRequests(spaceDevelopersOperations, spaceDevelopersChange);
-        }
-
-        Flux<Void> servicesRequests = Flux.fromIterable(servicesChanges.entrySet())
-                .flatMap(element -> ServiceRequestsPlanner.createApplyRequests(
-                        servicesOperations,
-                        element.getKey(),
-                        element.getValue()));
-
-        ApplicationRequestsPlanner appRequestsPlanner = new ApplicationRequestsPlanner(applicationsOperations);
-
-        Flux<Void> appsRequests = Flux.fromIterable(appsChanges.entrySet())
-                        .flatMap(element -> appRequestsPlanner.createApplyRequests(element.getKey(),
-                                element.getValue()));
-
-        // let's be optimistic
-        // prove me wrong!
-        final AtomicBoolean success = new AtomicBoolean(true);
-
-        Flux.merge(spaceDevelopersRequests, servicesRequests)
-                .concatWith(appsRequests)
-                .onErrorContinue((throwable, consumer) -> {
-                    log.error(throwable);
-                    success.set(false);
-                })
-                .blockLast();
-
-        if (!success.get()) {
-            throw new ApplyException("Failed to apply configuration: exceptions thrown during execution");
-        }
-    }
-
-    /**
-     * Creates a space with the desired name if a space with such a name does not
-     * exist in the live cf instance.
-     *
-     * @param desiredSpaceName the name of the desired space
-     * @throws NullPointerException if the desired parameter is null
-     * @throws ApplyException       in case of errors during the creation of the
-     *                              desired space
-     * @throws GetException         in case of errors during querying the space
-     *                              names
-     */
-    public void applySpace(String desiredSpaceName) {
-        checkNotNull(desiredSpaceName);
-
-        Mono<List<String>> getAllRequest = spaceOperations.getAll();
-
-        log.info("Fetching names of all spaces");
-        List<String> spaceNames;
         try {
-            spaceNames = getAllRequest.block();
-        } catch (Exception e) {
-            throw new GetException(e);
-        }
-        log.verbose("Fetching names of all spaces completed");
+            Mono<List<String>> getAllRequest = spaceOperations.getAll();
 
-        if (!spaceNames.contains(desiredSpaceName)) {
-            log.info("Creating space", desiredSpaceName);
+            log.info("Fetching names of all spaces");
+            List<String> spaceNames = getAllRequest.block();
+            log.verbose("Fetching names of all spaces completed");
 
-            Mono<Void> createRequest = spaceOperations.create(desiredSpaceName);
-            try {
+            // getting
+
+            ConfigBean liveConfigBean = new ConfigBean();
+
+            String desiredSpaceName = desiredConfigBean.getTarget().getSpace();
+            // when it's a new space the getAll process can be skipped, since there is nothing to compare the config to
+            if (!spaceNames.contains(desiredSpaceName)) {
+                log.info("Creating space", desiredSpaceName);
+
+                Mono<Void> createRequest = spaceOperations.create(desiredSpaceName);
                 createRequest.block();
-            } catch (Exception e) {
-                throw new ApplyException(e);
+
+                log.verbose("Creating space", desiredSpaceName, "completed");
+            } else {
+                log.info("Space", desiredSpaceName, "already exists, skipping");
+
+                liveConfigBean = getLogic.getAll(
+                        spaceDevelopersOperations,
+                        servicesOperations,
+                        applicationsOperations,
+                        clientOperations,
+                        loginCommandOptions);
             }
 
-            log.verbose("Creating space", desiredSpaceName, "completed");
-        } else {
-            log.info("Space", desiredSpaceName, "already exists, skipping");
+            // diffing
+
+            DiffResult wrappedDiff = diffLogic.createDiffResult(liveConfigBean, desiredConfigBean);
+
+            CfContainerChange spaceDevelopersChange = wrappedDiff.getSpaceDevelopersChange();
+            Map<String, List<CfChange>> servicesChanges = wrappedDiff.getServiceChanges();
+            Map<String, List<CfChange>> appsChanges = wrappedDiff.getApplicationChanges();
+
+            if (spaceDevelopersChange == null && servicesChanges.isEmpty() && appsChanges.isEmpty()) {
+                log.info("No changes found, no applying necessary.");
+                return;
+            }
+
+            // applying
+
+            Flux<Void> spaceDevelopersRequests = Flux.empty();
+            if (spaceDevelopersChange != null) {
+                spaceDevelopersRequests = SpaceDevelopersRequestsPlanner
+                        .createSpaceDevelopersRequests(spaceDevelopersOperations, spaceDevelopersChange);
+            }
+
+            Flux<Void> servicesRequests = Flux.fromIterable(servicesChanges.entrySet())
+                    .flatMap(element -> ServiceRequestsPlanner.createApplyRequests(
+                            servicesOperations,
+                            element.getKey(),
+                            element.getValue()));
+
+            ApplicationRequestsPlanner appRequestsPlanner = new ApplicationRequestsPlanner(applicationsOperations);
+
+            Flux<Void> appsRequests = Flux.fromIterable(appsChanges.entrySet())
+                    .flatMap(element -> appRequestsPlanner.createApplyRequests(element.getKey(),
+                            element.getValue()));
+
+            // let's be optimistic
+            // prove me wrong!
+            final AtomicBoolean success = new AtomicBoolean(true);
+
+            Flux.merge(spaceDevelopersRequests, servicesRequests)
+                    .concatWith(appsRequests)
+                    .onErrorContinue((throwable, consumer) -> {
+                        log.error(throwable);
+                        success.set(false);
+                    })
+                    .blockLast();
+
+            if (!success.get()) {
+                throw new RuntimeException("Failed to apply configuration: exceptions thrown during execution");
+            }
+
+        }catch (Exception ex) {
+            throw new ApplyException(ex);
         }
     }
-
 }
 
