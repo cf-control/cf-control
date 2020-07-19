@@ -9,12 +9,13 @@ import java.util.List;
 
 public class SpaceDevelopersOperationsLogging implements SpaceDevelopersOperations {
 
-    private static final Log log = Log.getLog(SpaceDevelopersOperations.class);
+    private final Log log;
 
     private SpaceDevelopersOperations spaceDevelopersOperations;
 
     public SpaceDevelopersOperationsLogging(@Nonnull SpaceDevelopersOperations spaceDevelopersOperations) {
         this.spaceDevelopersOperations = spaceDevelopersOperations;
+        this.log = Log.getLog(spaceDevelopersOperations.getClass());
     }
 
     @Override

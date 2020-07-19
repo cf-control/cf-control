@@ -1,7 +1,6 @@
 package cloud.foundry.cli.operations.space;
 
 import cloud.foundry.cli.crosscutting.logging.Log;
-import cloud.foundry.cli.operations.ApplicationsOperations;
 import cloud.foundry.cli.operations.SpaceOperations;
 import reactor.core.publisher.Mono;
 
@@ -10,12 +9,13 @@ import java.util.List;
 
 public class SpaceOperationsLogging implements SpaceOperations {
 
-    private static final Log log = Log.getLog(ApplicationsOperations.class);
+    private final Log log;
 
     public SpaceOperations spaceOperations;
 
     public SpaceOperationsLogging(@Nonnull SpaceOperations spaceOperations) {
         this.spaceOperations = spaceOperations;
+        this.log = Log.getLog(spaceOperations.getClass());
     }
 
     @Override

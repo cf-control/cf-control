@@ -16,7 +16,7 @@ import java.util.Map;
  */
 public class ApplicationsOperationsLogging implements ApplicationsOperations {
 
-    private static final Log log = Log.getLog(ApplicationsOperations.class);
+    private final Log log;
 
     ApplicationsOperations applicationsOperations;
 
@@ -24,6 +24,7 @@ public class ApplicationsOperationsLogging implements ApplicationsOperations {
         checkNotNull(applicationsOperations);
 
         this.applicationsOperations = applicationsOperations;
+        this.log = Log.getLog(applicationsOperations.getClass());
     }
 
 

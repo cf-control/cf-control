@@ -11,12 +11,13 @@ import java.util.Map;
 
 public class ServicesOperationsLogging implements ServicesOperations {
 
-    private static final Log log = Log.getLog(ServicesOperations.class);
+    private final Log log;
 
     private ServicesOperations servicesOperations;
 
     public ServicesOperationsLogging(@Nonnull ServicesOperations servicesOperations) {
         this.servicesOperations = servicesOperations;
+        this.log = Log.getLog(ServicesOperations.class);
     }
 
     @Override
