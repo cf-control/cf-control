@@ -97,7 +97,7 @@ You can have the tool create a machine-readable log file by specifying the `--lo
   -u, --user=<userName>                  Your account's e-mail address or username.
   -f, --force                            Force deletion without confirmation.
   -y, --yaml=<yamlFile>                  The path to the yaml file. (Not needed for the get commands)
-  -ns --no-auto-start                    Don't start apps when they get deployed (only for the apply applications command) 
+  -ns --no-auto-start                    Don't start apps when they get deployed. (Only for the apply command) 
 ```
 
 ##### [HINT - DEFAULT VALUES FOR SOME PARAMS]
