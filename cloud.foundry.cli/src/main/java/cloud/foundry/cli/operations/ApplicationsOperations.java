@@ -42,8 +42,18 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
 
     private static final Log log = Log.getLog(ApplicationsOperations.class);
 
+    private boolean autoStart = true;
+
     public ApplicationsOperations(DefaultCloudFoundryOperations cloudFoundryOperations) {
         super(cloudFoundryOperations);
+    }
+
+    /**
+     * Sets flag wether deployed or redeployed apps should start automatically.
+     * @param autoStart if the app should auto start
+     */
+    public void setAutoStart(boolean autoStart) {
+        this.autoStart = autoStart;
     }
 
     /**
@@ -118,7 +128,6 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
      * @param appName     name of the application
      * @param bean        application bean that holds the configuration settings to
      *                    deploy the app to the cloud foundry instance
-     *  @param shouldStart if the app should start after being created
      * @throws NullPointerException     when bean or app name is null or docker
      *                                  password was not set in environment
      *                                  variables when creating app via dockerImage
@@ -128,9 +137,9 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
      *                                  of the app
      * @return mono which can be subscribed on to trigger the creation of the app
      */
-    public Mono<Void> update(String appName, ApplicationBean bean, boolean shouldStart) {
+    public Mono<Void> update(String appName, ApplicationBean bean) {
         return this.remove(appName)
-                .then(this.create(appName, bean, shouldStart));
+                .then(this.create(appName, bean));
     }
 
 
@@ -142,7 +151,6 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
      * @param appName     name of the application
      * @param bean        application bean that holds the configuration settings to
      *                    deploy the app to the cloud foundry instance
-     * @param shouldStart if the app should start after being created
      * @throws NullPointerException     when bean or app name is null or docker
      *                                  password was not set in environment
      *                                  variables when creating app via dockerImage
@@ -152,19 +160,19 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
      *                                  of the app
      * @return mono which can be subscribed on to trigger the creation of the app
      */
-    public Mono<Void> create(String appName, ApplicationBean bean, boolean shouldStart) {
+    public Mono<Void> create(String appName, ApplicationBean bean) {
         checkNotNull(appName, "Application name cannot be null");
         checkArgument(!appName.isEmpty(), "Application name cannot be empty");
         checkNotNull(bean, "Application contents cannot be null");
 
         try {
-            return doCreate(appName, bean, shouldStart);
+            return doCreate(appName, bean);
         } catch (RuntimeException e) {
             throw new CreationException(e);
         }
     }
 
-    private Mono<Void> doCreate(String appName, ApplicationBean bean, boolean shouldStart) {
+    private Mono<Void> doCreate(String appName, ApplicationBean bean) {
         return this.cloudFoundryOperations
                 .getSpaceId()
                 .flatMap(spaceId -> this.cloudFoundryOperations
@@ -174,7 +182,7 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                         .doOnSubscribe(subscription -> {
                             log.debug("Create app:", appName);
                             log.debug("Bean of the app:", bean);
-                            log.debug("Should the app start:", shouldStart);
+                            log.debug("Should the app start:", this.autoStart);
                         })
                         .doOnSuccess(aVoid -> log.info("App created:", appName))
                         .then())
@@ -183,7 +191,7 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                 .pushManifest(PushApplicationManifestRequest
                         .builder()
                         .manifest(buildApplicationManifest(appName, bean))
-                        .noStart(!shouldStart)
+                        .noStart(!this.autoStart)
                         .build())
                 .onErrorContinue(this::whenServiceNotFound, log::warning)
                 .doOnSubscribe(subscription -> log.debug("Pushing app manifest for:", appName))

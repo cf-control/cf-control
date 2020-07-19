@@ -65,6 +65,14 @@ public class ApplyLogic {
         this.diffLogic = new DiffLogic();
     }
 
+    /**
+     * Sets flag wether deployed or redeployed apps should start automatically.
+     * @param autoStart if the app should auto start
+     */
+    public void setAutoStart(boolean autoStart) {
+        this.applicationsOperations.setAutoStart(autoStart);
+    }
+
     public void setApplicationsOperations(ApplicationsOperations applicationsOperations) {
         this.applicationsOperations = applicationsOperations;
     }

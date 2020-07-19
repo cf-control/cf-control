@@ -120,7 +120,7 @@ public class ApplicationsOperationsTest {
         ApplicationManifest appManifest = createMockApplicationManifest();
         Metadata metadata = Metadata
                 .builder()
-                .annotation(ApplicationBean.PATH_KEY, "some/path")
+                .annotation(ApplicationBean.PATH_KEY, "/test/uri")
                 .annotation(ApplicationBean.METADATA_KEY, "somemeta")
                 .build();
 
@@ -138,16 +138,79 @@ public class ApplicationsOperationsTest {
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(dcfoMock);
 
         ApplicationBean applicationsBean = new ApplicationBean(appManifest, metadata);
-        applicationsBean.setPath("some/path");
         applicationsBean.setMeta("somemeta");
 
         //when
-        Mono<Void> request = applicationsOperations.create(appManifest.getName(), applicationsBean, false);
+        Mono<Void> request = applicationsOperations.create(appManifest.getName(), applicationsBean);
         request.block();
 
         // then
+        ApplicationManifest appManifestExpected = ApplicationManifest
+                .builder()
+                .from(appManifest)
+                .environmentVariables(null)
+                .build();
+        PushApplicationManifestRequest expectedApplicationManifestRequest = PushApplicationManifestRequest
+                .builder()
+                .manifest(ApplicationManifest.builder()
+                    .from(appManifestExpected)
+                    .build())
+                .noStart(false)
+                .build();
         verify(dcfoMock.applications(), times(1))
-                .pushManifest(any(PushApplicationManifestRequest.class));
+                .pushManifest(eq(expectedApplicationManifestRequest));
+        verify(applicationsV3Mock, times(1))
+                .create(any(CreateApplicationRequest.class));
+        verify(dcfoMock, times(1))
+                .getSpaceId();
+    }
+
+    @Test
+    public void testCreateDoesntStartAppWhenAutoStartSetToFalse() throws CreationException {
+        // given
+        ApplicationManifest appManifest = createMockApplicationManifest();
+        Metadata metadata = Metadata
+                .builder()
+                .annotation(ApplicationBean.PATH_KEY, "/test/uri")
+                .annotation(ApplicationBean.METADATA_KEY, "somemeta")
+                .build();
+
+        Applications applicationsMock = ApplicationsMockBuilder.get().build();
+        ApplicationsV3 applicationsV3Mock = ApplicationsV3MockBuilder.get().build();
+        CloudFoundryClient cfcMock = CloudFoundryClientMockBuilder.get()
+                .setApplicationsV3(applicationsV3Mock)
+                .build();
+        DefaultCloudFoundryOperations dcfoMock = DefaultCloudFoundryOperationsMockBuilder.get()
+                .setApplications(applicationsMock)
+                .setSpaceId("spaceId")
+                .setCloudFoundryClient(cfcMock)
+                .build();
+
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(dcfoMock);
+
+        ApplicationBean applicationsBean = new ApplicationBean(appManifest, metadata);
+        applicationsBean.setMeta("somemeta");
+
+        //when
+        applicationsOperations.setAutoStart(false);
+        Mono<Void> request = applicationsOperations.create(appManifest.getName(), applicationsBean);
+        request.block();
+
+        // then
+        ApplicationManifest expectedAppManifest = ApplicationManifest
+                .builder()
+                .from(appManifest)
+                .environmentVariables(null)
+                .build();
+        PushApplicationManifestRequest expectedApplicationManifestRequest = PushApplicationManifestRequest
+                .builder()
+                .manifest(ApplicationManifest.builder()
+                        .from(expectedAppManifest)
+                        .build())
+                .noStart(true)
+                .build();
+        verify(dcfoMock.applications(), times(1))
+                .pushManifest(eq(expectedApplicationManifestRequest));
         verify(applicationsV3Mock, times(1))
                 .create(any(CreateApplicationRequest.class));
         verify(dcfoMock, times(1))
@@ -176,7 +239,7 @@ public class ApplicationsOperationsTest {
 
         //when
         assertThrows(CreationException.class,
-                () -> applicationsOperations.create(appManifest.getName(), applicationsBean, false));
+                () -> applicationsOperations.create(appManifest.getName(), applicationsBean));
     }
 
     @Test
@@ -187,7 +250,7 @@ public class ApplicationsOperationsTest {
 
         //then
         assertThrows(NullPointerException.class,
-                () -> applicationsOperations.create(null, new ApplicationBean(), false));
+                () -> applicationsOperations.create(null, new ApplicationBean()));
     }
 
     @Test
@@ -201,7 +264,7 @@ public class ApplicationsOperationsTest {
 
         // then
         assertThrows(IllegalArgumentException.class,
-            () -> applicationsOperations.create("", applicationBean, false));
+            () -> applicationsOperations.create("", applicationBean));
     }
 
     @Test
@@ -211,7 +274,7 @@ public class ApplicationsOperationsTest {
                 DefaultCloudFoundryOperationsMockBuilder.get().build());
 
         // when
-        assertThrows(NullPointerException.class, () -> applicationsOperations.create("appName", null, false));
+        assertThrows(NullPointerException.class, () -> applicationsOperations.create("appName", null));
     }
 
     @Test

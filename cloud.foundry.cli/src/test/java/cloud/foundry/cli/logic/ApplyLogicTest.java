@@ -6,7 +6,6 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
@@ -64,6 +63,22 @@ public class ApplyLogicTest {
         ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
 
         assertThrows(NullPointerException.class, () -> applyLogic.applySpaceDevelopers(null));
+    }
+
+    @Test
+    public void testSetAutoStartSucceeds() {
+        ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
+
+        ApplicationsOperations applicationsOperations = mock(ApplicationsOperations.class);
+        applyLogic.setApplicationsOperations(applicationsOperations);
+
+        // when and then
+        applyLogic.setAutoStart(false);
+        verify(applicationsOperations, times(1)).setAutoStart(false);
+
+        reset(applicationsOperations);
+        applyLogic.setAutoStart(true);
+        verify(applicationsOperations, times(1)).setAutoStart(true);
     }
 
     @Test
@@ -183,7 +198,7 @@ public class ApplyLogicTest {
             "app1meta");
 
         ApplicationsOperations applicationsOperationsMock = mock(ApplicationsOperations.class);
-        when(applicationsOperationsMock.create(anyString(), any(ApplicationBean.class), anyBoolean()))
+        when(applicationsOperationsMock.create(anyString(), any(ApplicationBean.class)))
                 .thenReturn(Mono.just(mock(Void.class)));
 
         GetLogic getLogicMock = mock(GetLogic.class);
@@ -200,7 +215,7 @@ public class ApplyLogicTest {
         // then
         verify(getLogicMock, times(1)).getApplications(applicationsOperationsMock);
         verify(applicationsOperationsMock, times(1))
-                .create(eq("otherApplication"), any(ApplicationBean.class), anyBoolean());
+                .create(eq("otherApplication"), any(ApplicationBean.class));
     }
 
 

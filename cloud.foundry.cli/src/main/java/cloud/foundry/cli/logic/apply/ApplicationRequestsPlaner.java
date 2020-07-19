@@ -130,7 +130,7 @@ public class ApplicationRequestsPlaner {
                     .get()
                     .getAffectedObject();
 
-            return Flux.merge(this.appOperations.create(applicationName, bean, true));
+            return Flux.merge(this.appOperations.create(applicationName, bean));
         } else if (hasRemovedObject(changes)) {
             log.debug("Add remove app request for app: " + applicationName);
 
@@ -143,7 +143,7 @@ public class ApplicationRequestsPlaner {
             }
 
             ApplicationBean bean = (ApplicationBean) changes.get(0).getAffectedObject();
-            return Flux.concat(appOperations.update(applicationName, bean, true));
+            return Flux.concat(appOperations.update(applicationName, bean));
         } else if (changes.size() > 0) {
             log.debug("Add rolling update requests for app: " + applicationName);
             requests.add(getScaleInstancesRequest(changes));

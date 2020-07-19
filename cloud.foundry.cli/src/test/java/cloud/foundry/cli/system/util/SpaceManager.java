@@ -224,10 +224,14 @@ public class SpaceManager implements AutoCloseable {
             throw new IllegalStateException("space has not been created yet");
         }
 
+        // auto start not needed
+        applicationsOperations.setAutoStart(false);
+
         List<Mono<Void>> resultingCreationRequests = applicationsToCreate.entrySet().stream()
                 .map(applicationEntry ->
-                        applicationsOperations.create(applicationEntry.getKey(), applicationEntry.getValue(), false))
+                        applicationsOperations.create(applicationEntry.getKey(), applicationEntry.getValue()))
                 .collect(Collectors.toList());
+        applicationsOperations.setAutoStart(true);
         return resultingCreationRequests;
     }
 
