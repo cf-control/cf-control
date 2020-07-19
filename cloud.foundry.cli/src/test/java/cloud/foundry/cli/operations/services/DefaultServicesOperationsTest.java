@@ -1,4 +1,4 @@
-package cloud.foundry.cli.operations;
+package cloud.foundry.cli.operations.services;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
@@ -544,41 +544,6 @@ public class DefaultServicesOperationsTest {
 
         // when
         assertThrows(NullPointerException.class, () -> servicesOperations.deleteKeys(null));
-    }
-
-    @Test
-    public void testUnbindApp() {
-        // given
-        DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
-        Services servicesMock = mock(Services.class);
-        mockUnbindApp(cfOperationsMock, servicesMock);
-
-        DefaultServicesOperations servicesOperations = new DefaultServicesOperations(cfOperationsMock);
-        // when
-        Mono<Void> request = servicesOperations.unbindApp("someservice", "someapp");
-        request.block();
-
-        // then
-        UnbindServiceInstanceRequest unbindServiceInstanceRequest = UnbindServiceInstanceRequest
-                .builder()
-                .applicationName("someapp")
-                .serviceInstanceName("someservice")
-                .build();
-        verify(servicesMock, times(1)).unbind(unbindServiceInstanceRequest);
-        StepVerifier.create(request)
-                .expectComplete()
-                .verify();
-    }
-
-    @Test
-    public void testUnbindAppOnNullNameThrowsException() {
-        // given
-        DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
-        DefaultServicesOperations servicesOperations = new DefaultServicesOperations(cfOperationsMock);
-
-        // when
-        assertThrows(NullPointerException.class, () -> servicesOperations.unbindApp(null, "someapp"));
-        assertThrows(NullPointerException.class, () -> servicesOperations.unbindApp("someservice", null));
     }
 
     private void mockListRoutes(DefaultCloudFoundryOperations cfOperationsMock, Routes routesMock, List<Route> routes) {

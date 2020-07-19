@@ -84,11 +84,6 @@ public class DefaultServicesOperations extends AbstractOperations<DefaultCloudFo
                 .build();
 
         return this.cloudFoundryOperations.services().createInstance(createServiceRequest)
-                .doOnSubscribe(aVoid -> {
-                    log.info("Creating service", serviceInstanceName);
-                    log.debug("Service bean:", serviceBean);
-                })
-                .doOnSuccess(aVoid -> log.verbose("Creating service", serviceInstanceName, "completed"))
                 .onErrorStop();
     }
 
@@ -110,11 +105,8 @@ public class DefaultServicesOperations extends AbstractOperations<DefaultCloudFo
                 .newName(newName)
                 .build();
 
-        //TODO: moove logs
         return this.cloudFoundryOperations.services()
                 .renameInstance(renameServiceInstanceRequest)
-                .doOnSubscribe(aVoid -> log.info("Renaming service", currentName, "to", newName))
-                .doOnSuccess(aVoid -> log.verbose("Renaming service", currentName, "to", newName, "completed"))
                 .onErrorStop();
     }
 
@@ -131,7 +123,6 @@ public class DefaultServicesOperations extends AbstractOperations<DefaultCloudFo
         checkNotNull(serviceInstanceName);
         checkNotNull(serviceBean);
 
-        //TODO:move logs
         UpdateServiceInstanceRequest updateServiceInstanceRequest = UpdateServiceInstanceRequest.builder()
                 .serviceInstanceName(serviceInstanceName)
                 .tags(serviceBean.getTags())
@@ -140,12 +131,6 @@ public class DefaultServicesOperations extends AbstractOperations<DefaultCloudFo
 
         return this.cloudFoundryOperations.services()
                 .updateInstance(updateServiceInstanceRequest)
-                .doOnSubscribe(subscription -> {
-                    log.info("Updating tags and/or plan for service", serviceInstanceName);
-                    log.debug("Service bean:", serviceBean);
-                })
-                .doOnSuccess(aVoid -> log.verbose(
-                        "Updating tags and/or plan for service", serviceInstanceName, "completed"))
                 .onErrorStop();
     }
 
@@ -177,9 +162,7 @@ public class DefaultServicesOperations extends AbstractOperations<DefaultCloudFo
 
     private Mono<Void> deleteServiceInstance(String serviceInstanceName) {
         return this.cloudFoundryOperations.services()
-                .deleteInstance(createDeleteServiceInstanceRequest(serviceInstanceName))
-                .doOnSubscribe(aVoid -> log.info("Removing service", serviceInstanceName))
-                .doOnSuccess(aVoid -> log.verbose("Removing service", serviceInstanceName, "completed"));
+                .deleteInstance(createDeleteServiceInstanceRequest(serviceInstanceName));
     }
 
     private DeleteServiceInstanceRequest createDeleteServiceInstanceRequest(String serviceInstanceName) {
@@ -261,11 +244,7 @@ public class DefaultServicesOperations extends AbstractOperations<DefaultCloudFo
                         return serviceInstance.getApplications();
                     }
                 })
-                .flatMap(appName -> unbindApp(serviceInstanceName, appName))
-                .doOnSubscribe(aVoid -> log.info(
-                        "Unbinding all applications from service instance", serviceInstanceName))
-                .doOnComplete(() -> log.verbose(
-                        "Unbinding all applications from service instance", serviceInstanceName, "completed"));
+                .flatMap(appName -> unbindApp(serviceInstanceName, appName));
     }
 
     /**
@@ -276,7 +255,7 @@ public class DefaultServicesOperations extends AbstractOperations<DefaultCloudFo
      * @param applicationName name of the application
      * @return mono which can be subscribed on to unbind the application
      */
-    public Mono<Void> unbindApp(String serviceInstanceName, String applicationName) {
+    private Mono<Void> unbindApp(String serviceInstanceName, String applicationName) {
         checkNotNull(serviceInstanceName);
         checkNotNull(applicationName);
 
@@ -312,10 +291,7 @@ public class DefaultServicesOperations extends AbstractOperations<DefaultCloudFo
         return this.cloudFoundryOperations.routes()
                 .list(ListRoutesRequest.builder().build())
                 .filter(route -> route.getService() != null && route.getService().equals(serviceInstanceName))
-                .flatMap(this::doUnbindRoute)
-                .doOnSubscribe(aVoid -> log.info("Unbinding all routes from service instance", serviceInstanceName))
-                .doOnComplete(() -> log.verbose(
-                        "Unbinding all routes from service instance", serviceInstanceName, "completed"));
+                .flatMap(this::doUnbindRoute);
     }
 
     private Mono<Void> doUnbindRoute(Route route) {

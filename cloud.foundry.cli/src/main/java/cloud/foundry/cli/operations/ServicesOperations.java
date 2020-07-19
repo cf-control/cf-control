@@ -25,8 +25,6 @@ public interface ServicesOperations {
 
     Flux<Void> unbindApps(String serviceInstanceName);
 
-    Mono<Void> unbindApp(String serviceInstanceName, String applicationName);
-
     Flux<Void> unbindRoutes(String serviceInstanceName);
 
 }
