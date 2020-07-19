@@ -36,7 +36,8 @@ public class CfOperationsCreator {
      * the CF configurations.
      * @throws MissingCredentialsException if either the username or the password cannot be determined
      * @throws NullPointerException if the {@link TargetBean} is null and the {@link LoginCommandOptions} contains
-     * at least one option which is null or empty. This exception is also thrown, if at least one option value
+     * at least one option which is null or empty.
+     * @throws IllegalArgumentException if at least one option value
      * could not be determined (value is null or empty) in the {@link LoginCommandOptions} and {@link TargetBean}.
      */
     public static DefaultCloudFoundryOperations createCfOperations(TargetBean targetBean,
@@ -50,7 +51,7 @@ public class CfOperationsCreator {
 
         boolean isOneOptionNullOrEmpty = Stream.of(apiHost, space, organization).anyMatch(StringUtils::isBlank);
         if (isOneOptionNullOrEmpty && targetBean == null) {
-            throw new NullPointerException();
+            throw new IllegalArgumentException();
         }
 
         apiHost = isBlank(apiHost) ? determineOptionValue(targetBean.getEndpoint()) : apiHost;
@@ -103,7 +104,6 @@ public class CfOperationsCreator {
     }
 
     private static PasswordGrantTokenProvider createTokenProvider(LoginCommandOptions commandOptions) {
-
         String user = commandOptions.getUserName();
         if (user == null) {
             user = System.getenv(CF_CONTROL_USER);
@@ -132,7 +132,7 @@ public class CfOperationsCreator {
 
     private static String determineOptionValue(String value) {
         if (isBlank(value)) {
-            throw new NullPointerException();
+            throw new IllegalArgumentException();
         } else {
             return value;
         }
