@@ -1,4 +1,4 @@
-package cloud.foundry.cli.operations;
+package cloud.foundry.cli.operations.spacedevelopers;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.notNullValue;
