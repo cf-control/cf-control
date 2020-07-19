@@ -15,7 +15,7 @@ import cloud.foundry.cli.operations.ApplicationsOperations;
 import cloud.foundry.cli.operations.ServicesOperations;
 import cloud.foundry.cli.operations.SpaceDevelopersOperations;
 import cloud.foundry.cli.operations.ClientOperations;
-import cloud.foundry.cli.services.LoginCommandOptions;
+import cloud.foundry.cli.services.ILoginCommandOptions;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -36,7 +36,7 @@ public class GetLogic {
      * @param servicesOperations ServicesOperations
      * @param applicationsOperations ApplicationsOperations
      * @param clientOperations ClientOperations
-     * @param loginOptions LoginCommandOptions
+     * @param loginOptions ILoginCommandOptions
      * @return ConfigBean
      * @throws GetException if an error occurs during the information retrieving
      */
@@ -44,7 +44,7 @@ public class GetLogic {
                              ServicesOperations servicesOperations,
                              ApplicationsOperations applicationsOperations,
                              ClientOperations clientOperations,
-                             LoginCommandOptions loginOptions) {
+                             ILoginCommandOptions loginOptions) {
 
         Mono<String> apiVersion = clientOperations.determineApiVersion();
         Mono<List<String>> spaceDevelopers = spaceDevelopersOperations.getAll();
@@ -125,7 +125,7 @@ public class GetLogic {
      * @param loginOptions LoginCommandOptions
      * @return TargetBean
      */
-    private TargetBean determineTarget(LoginCommandOptions loginOptions) {
+    private TargetBean determineTarget(ILoginCommandOptions loginOptions) {
         TargetBean target = new TargetBean();
         target.setEndpoint(loginOptions.getApiHost());
         target.setOrg(loginOptions.getOrganization());

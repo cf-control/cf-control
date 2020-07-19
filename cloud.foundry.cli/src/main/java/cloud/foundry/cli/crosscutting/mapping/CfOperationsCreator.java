@@ -5,7 +5,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 import cloud.foundry.cli.crosscutting.exceptions.MissingCredentialsException;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.beans.TargetBean;
-import cloud.foundry.cli.services.LoginCommandOptions;
+import cloud.foundry.cli.services.ILoginCommandOptions;
 import org.apache.commons.lang3.StringUtils;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.reactor.DefaultConnectionContext;
@@ -30,18 +30,18 @@ public class CfOperationsCreator {
      * Creates the cfOperations object, which is needed by our operations classes in the package.
      * {@link cloud.foundry.cli.operations}. The cfOperations object
      *
-     * @param commandOptions {@link LoginCommandOptions}
+     * @param commandOptions {@link ILoginCommandOptions}
      * @param targetBean     Bean that holds all data that is related to the target space.
      * @return DefaultCloudFoundryOperations object, which is the entry point for accessing
      * the CF configurations.
      * @throws MissingCredentialsException if either the username or the password cannot be determined
-     * @throws NullPointerException if the {@link TargetBean} is null and the {@link LoginCommandOptions} contains
+     * @throws NullPointerException if the {@link TargetBean} is null and the {@link ILoginCommandOptions} contains
      * at least one option which is null or empty.
      * @throws IllegalArgumentException if at least one option value
-     * could not be determined (value is null or empty) in the {@link LoginCommandOptions} and {@link TargetBean}.
+     * could not be determined (value is null or empty) in the {@link ILoginCommandOptions} and {@link TargetBean}.
      */
     public static DefaultCloudFoundryOperations createCfOperations(TargetBean targetBean,
-                                                                   LoginCommandOptions commandOptions) {
+                                                                   ILoginCommandOptions commandOptions) {
 
         log.debug("Setting up CF operations object with your login command options");
 
@@ -103,7 +103,7 @@ public class CfOperationsCreator {
                 .build();
     }
 
-    private static PasswordGrantTokenProvider createTokenProvider(LoginCommandOptions commandOptions) {
+    private static PasswordGrantTokenProvider createTokenProvider(ILoginCommandOptions commandOptions) {
         String user = commandOptions.getUserName();
         if (user == null) {
             user = System.getenv(CF_CONTROL_USER);
