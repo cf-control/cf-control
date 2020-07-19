@@ -6,6 +6,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 
+import cloud.foundry.cli.crosscutting.exceptions.MissingTargetInformationException;
 import cloud.foundry.cli.crosscutting.mapping.beans.TargetBean;
 import cloud.foundry.cli.services.LoginCommandOptions;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
@@ -38,7 +39,7 @@ public class CfOperationsCreatorTest {
         targetBean.setSpace(SOME_SPACE);
 
         // then + when
-        assertThrows(IllegalArgumentException.class, () -> CfOperationsCreator.createCfOperations(
+        assertThrows(MissingTargetInformationException.class, () -> CfOperationsCreator.createCfOperations(
                 targetBean,
                 loginCommandOptions));
     }
@@ -51,7 +52,7 @@ public class CfOperationsCreatorTest {
         loginCommandOptions.setPassword(SOME_CREDENTIALS);
 
         // then + when
-        assertThrows(IllegalArgumentException.class, () -> CfOperationsCreator.createCfOperations(
+        assertThrows(MissingTargetInformationException.class, () -> CfOperationsCreator.createCfOperations(
                 null,
                 loginCommandOptions));
     }

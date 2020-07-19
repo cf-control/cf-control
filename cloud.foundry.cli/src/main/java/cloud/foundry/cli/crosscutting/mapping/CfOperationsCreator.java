@@ -3,6 +3,7 @@ package cloud.foundry.cli.crosscutting.mapping;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import cloud.foundry.cli.crosscutting.exceptions.MissingCredentialsException;
+import cloud.foundry.cli.crosscutting.exceptions.MissingTargetInformationException;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.beans.TargetBean;
 import cloud.foundry.cli.services.ILoginCommandOptions;
@@ -35,30 +36,17 @@ public class CfOperationsCreator {
      * @return DefaultCloudFoundryOperations object, which is the entry point for accessing
      * the CF configurations.
      * @throws MissingCredentialsException if either the username or the password cannot be determined
-     * @throws NullPointerException if the {@link TargetBean} is null and the {@link ILoginCommandOptions} contains
-     * at least one option which is null or empty.
-     * @throws IllegalArgumentException if at least one option value
-     * could not be determined (value is null or empty) in the {@link ILoginCommandOptions} and {@link TargetBean}.
+     * @throws MissingTargetInformationException if the target information is not fully specified
      */
     public static DefaultCloudFoundryOperations createCfOperations(TargetBean targetBean,
                                                                    ILoginCommandOptions commandOptions) {
 
         log.debug("Setting up CF operations object with your login command options");
 
-        String apiHost = commandOptions.getApiHost();
-        String space = commandOptions.getSpace();
-        String organization = commandOptions.getOrganization();
+        targetBean = replaceTargetOptions(targetBean, commandOptions);
+        checkTargetIsFullySpecified(targetBean);
 
-        boolean isOneOptionNullOrEmpty = Stream.of(apiHost, space, organization).anyMatch(StringUtils::isBlank);
-        if (isOneOptionNullOrEmpty && targetBean == null) {
-            throw new IllegalArgumentException();
-        }
-
-        apiHost = isBlank(apiHost) ? determineOptionValue(targetBean.getEndpoint()) : apiHost;
-        space = isBlank(space) ? determineOptionValue(targetBean.getSpace()) : space;
-        organization = isBlank(organization) ? determineOptionValue(targetBean.getOrg()) : organization;
-
-        DefaultConnectionContext connectionContext = createConnectionContext(apiHost);
+        DefaultConnectionContext connectionContext = createConnectionContext(targetBean.getEndpoint());
         PasswordGrantTokenProvider tokenProvider = createTokenProvider(commandOptions);
         ReactorCloudFoundryClient cfClient = createCloudFoundryClient(connectionContext, tokenProvider);
         ReactorDopplerClient reactorDopplerClient = createReactorDopplerClient(connectionContext, tokenProvider);
@@ -68,9 +56,45 @@ public class CfOperationsCreator {
                 .cloudFoundryClient(cfClient)
                 .dopplerClient(reactorDopplerClient)
                 .uaaClient(reactorUaaClient)
-                .organization(organization)
-                .space(space)
+                .organization(targetBean.getOrg())
+                .space(targetBean.getSpace())
                 .build();
+    }
+
+    private static TargetBean replaceTargetOptions(TargetBean targetBean, ILoginCommandOptions commandOptions) {
+        if (targetBean == null) targetBean = new TargetBean();
+
+        String apiHost = commandOptions.getApiHost();
+        String organization = commandOptions.getOrganization();
+        String space = commandOptions.getSpace();
+
+        if (!isBlank(apiHost)) {
+            logReplacingTargetOption("endpoint", targetBean.getEndpoint(), apiHost);
+            targetBean.setEndpoint(apiHost);
+        }
+        if (!isBlank(organization)) {
+            logReplacingTargetOption("organization", targetBean.getOrg(), apiHost);
+            targetBean.setOrg(organization);
+        }
+        if (!isBlank(space)) {
+            logReplacingTargetOption("space", targetBean.getSpace(), apiHost);
+            targetBean.setSpace(space);
+        }
+
+        return targetBean;
+    }
+
+    private static void logReplacingTargetOption(String informationName, String targetValue, String argumentValue) {
+        log.verbose("Replacing the " + informationName + " '" + targetValue + "' from the target section " +
+                "with the " + informationName + " '" + argumentValue + "' specified in the commandline arguments");
+    }
+
+    private static void checkTargetIsFullySpecified(TargetBean targetBean) {
+        boolean isTargetUnderspecified = Stream.of(targetBean.getEndpoint(), targetBean.getOrg(), targetBean.getSpace())
+                .anyMatch(StringUtils::isBlank);
+        if (isTargetUnderspecified) {
+            throw new MissingTargetInformationException(targetBean);
+        }
     }
 
     private static ReactorUaaClient createReactorUaaClient(
@@ -128,13 +152,5 @@ public class CfOperationsCreator {
         return DefaultConnectionContext.builder()
                 .apiHost(apiHost)
                 .build();
-    }
-
-    private static String determineOptionValue(String value) {
-        if (isBlank(value)) {
-            throw new IllegalArgumentException();
-        } else {
-            return value;
-        }
     }
 }
