@@ -177,7 +177,7 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                 .doOnSuccess(aVoid -> log.verbose("Pushing manifest for application", appName, "completed"))
                 .onErrorContinue(this::whenServiceNotFound, log::warning)
                 .onErrorStop()
-                .then(getAppId(appName).flatMap(appId -> updateAppMeta(appId, bean)))
+                .then(getAppId(appName).flatMap(appId -> updateAppMeta(appName, appId, bean)))
                 .doOnSubscribe(subscription -> {
                     log.info("Creating application", appName);
                     log.debug("App's bean:", bean);
@@ -206,7 +206,7 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                 .map(strings -> strings.get(0));
     }
 
-    private Mono<Void> updateAppMeta(String appId, ApplicationBean bean) {
+    private Mono<Void> updateAppMeta(String appName, String appId, ApplicationBean bean) {
         return this.cloudFoundryOperations
                 .getCloudFoundryClient()
                 .applicationsV3()
@@ -218,8 +218,8 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                         .applicationId(appId)
                         .build())
                 .then()
-                .doOnSubscribe(subscription -> log.debug("Updating app meta for application", appId))
-                .doOnSuccess(subscription -> log.debug("Updating app meta for application completed", appId));
+                .doOnSubscribe(subscription -> log.debug("Updating app meta for application", appName))
+                .doOnSuccess(subscription -> log.debug("Updating app meta for application", appName, "completed"));
     }
 
     private ApplicationManifest buildApplicationManifest(String appName, ApplicationBean bean) {
