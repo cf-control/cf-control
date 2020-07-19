@@ -188,7 +188,6 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                         .doOnSubscribe(subscription -> {
                             log.debug("Creating application", appName);
                             log.debug("App's bean:", bean);
-                            log.debug("App should be started:", shouldStart);
                         })
                         .doOnSuccess(aVoid -> log.info("Creating application", appName, "completed"))
                         .then())
