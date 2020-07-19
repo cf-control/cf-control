@@ -172,7 +172,7 @@ public class ApplicationsOperationsTest {
     }
 
     @Test
-    public void testCreateWhenErrorOccursDuringPushDontUpdateAppMeta() throws CreationException {
+    public void testCreateWhenErrorOccursDuringPushThenDontUpdateAppMeta() throws CreationException {
         // given
         ApplicationManifest appManifest = createMockApplicationManifest();
         Metadata metadata = Metadata
