@@ -15,9 +15,9 @@ import java.util.List;
 /**
  * This class is responsible to build the requests in the context of space developers according to the CfChanges.
  */
-public class SpaceDevelopersRequestsPlaner {
+public class SpaceDevelopersRequestsPlanner {
 
-    private static final Log log = Log.getLog(SpaceDevelopersRequestsPlaner.class);
+    private static final Log log = Log.getLog(SpaceDevelopersRequestsPlanner.class);
 
     /**
      * Creates the requests to assign/revoke space developer's permission.

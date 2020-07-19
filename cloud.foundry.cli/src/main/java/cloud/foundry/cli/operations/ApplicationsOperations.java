@@ -105,7 +105,8 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
 
         return this.cloudFoundryOperations.applications()
             .delete(request)
-            .doOnSuccess(aVoid -> log.info("App removed: ", applicationName))
+            .doOnSubscribe(aVoid -> log.info("Removing application", applicationName))
+            .doOnSuccess(aVoid -> log.verbose("Removing application", applicationName, "completed"))
             .onErrorStop();
     }
 
@@ -172,11 +173,11 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                         .applicationsV3()
                         .create(buildCreateApplicationRequest(spaceId, appName, bean))
                         .doOnSubscribe(subscription -> {
-                            log.debug("Create app:", appName);
-                            log.debug("Bean of the app:", bean);
-                            log.debug("Should the app start:", shouldStart);
+                            log.debug("Creating application", appName);
+                            log.debug("App's bean:", bean);
+                            log.debug("App should be started:", shouldStart);
                         })
-                        .doOnSuccess(aVoid -> log.info("App created:", appName))
+                        .doOnSuccess(aVoid -> log.info("Creating application", appName, "completed"))
                         .then())
                 .then(this.cloudFoundryOperations
                 .applications()
@@ -186,8 +187,8 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                         .noStart(!shouldStart)
                         .build())
                 .onErrorContinue(this::whenServiceNotFound, log::warning)
-                .doOnSubscribe(subscription -> log.debug("Pushing app manifest for:", appName))
-                .doOnSuccess(aVoid -> log.info("App manifest pushed for:", appName)));
+                .doOnSubscribe(subscription -> log.info("Pushing manifest for application", appName))
+                .doOnSuccess(aVoid -> log.verbose("Pushing manifest for application", appName, "completed")));
 
     }
 
@@ -290,10 +291,8 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                 .build();
 
         return this.cloudFoundryOperations.applications().rename(renameApplicationRequest)
-                .doOnSubscribe(aVoid -> {
-                    log.debug("Rename application:", currentName);
-                    log.debug("With new name:", newName); })
-                .doOnSuccess(aVoid -> log.info("Application renamed from", currentName, "to", newName));
+                .doOnSubscribe(aVoid -> log.info("Renaming application", currentName, "to", newName))
+                .doOnSuccess(aVoid -> log.verbose("Renaming of application", currentName, "to", newName, "completed"));
     }
 
     /**
@@ -319,11 +318,11 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
 
         return cloudFoundryOperations.applications().scale(scaleRequest)
                 .doOnSubscribe(aVoid -> {
-                    log.debug("Scale app:", applicationName);
-                    log.debug("With new disk limit:", diskLimit);
-                    log.debug("With new memory limit:", memoryLimit);
-                    log.debug("With new number of instances:", instances); })
-                .doOnSuccess(aVoid -> log.info("Application", applicationName, "was scaled"))
+                    log.info("Scaling application", applicationName);
+                    log.debug("New disk limit:", diskLimit);
+                    log.debug("New memory limit:", memoryLimit);
+                    log.debug("New number of instances:", instances); })
+                .doOnSuccess(aVoid -> log.verbose("Scaling application", applicationName, "completed"))
                 .onErrorStop()
                 .then();
     }
@@ -351,18 +350,20 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
 
         return cloudFoundryOperations.applications().setEnvironmentVariable(addEnvVarRequest)
                 .doOnSubscribe(aVoid -> {
-                    log.debug("Adding environment variable",
+                    log.info("Adding environment variable",
                             variableName,
                             "with value",
                             variableValue,
-                            "for app:",
-                            applicationName); })
-                .doOnSuccess(aVoid -> log.info("Environment variable",
+                            "to app",
+                            applicationName);
+                }).doOnSuccess(aVoid -> log.verbose("Adding environment variable",
                         variableName,
                         "with value",
                         variableValue ,
-                        "was added to the app",
-                        applicationName));
+                        "to app",
+                        applicationName,
+                        "completed")
+                );
     }
 
     /**
@@ -385,14 +386,15 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                 .build();
 
         return cloudFoundryOperations.applications().unsetEnvironmentVariable(removeEnvVarRequest)
-                .doOnSubscribe(aVoid -> log.debug("Removing environment variable",
+                .doOnSubscribe(aVoid -> log.info("Removing environment variable",
                         variableName,
-                        "for app:",
+                        "from app",
                         applicationName))
-                .doOnSuccess(aVoid -> log.info("Environment variable",
+                .doOnSuccess(aVoid -> log.verbose("Removing environment variable",
                         variableName,
-                            "was removed from the app",
-                        applicationName));
+                        "from app",
+                        applicationName,
+                        "completed"));
     }
 
     /**
@@ -414,11 +416,9 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                 .build();
 
         return cloudFoundryOperations.applications().setHealthCheck(setHealthCheckRequest)
-                .doOnSubscribe(aVoid -> {
-                    log.debug("Set health check type for app:", applicationName);
-                    log.debug("With health check type:", healthCheckType); })
-                .doOnSuccess(aVoid -> log.info("The health check type of the app", applicationName,
-                        "was set to", healthCheckType));
+                .doOnSubscribe(aVoid -> log.info(
+                        "Setting health check type for app", applicationName, "to", healthCheckType))
+                .doOnSuccess(aVoid -> log.verbose("Setting health check type for app", applicationName, "completed"));
     }
 
     /**
@@ -440,11 +440,9 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                 .build();
 
         return cloudFoundryOperations.services().bind(bindServiceRequest)
-                .doOnSuccess(aVoid -> {
-                    log.debug("Bind app:", applicationName);
-                    log.debug("To service:", serviceName); })
-                .doOnSuccess(aVoid -> log.info("Bound the app", applicationName,
-                        "to the service", serviceName));
+                .doOnSubscribe(aVoid -> log.info("Binding application", applicationName, "to service", serviceName))
+                .doOnSuccess(aVoid -> log.verbose(
+                        "Binding application", applicationName, "to service", serviceName, "completed"));
     }
 
     /**
@@ -466,11 +464,9 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                 .build();
 
         return cloudFoundryOperations.services().unbind(unbindServiceRequest)
-                .doOnSuccess(aVoid -> {
-                    log.debug("Unbind app:", applicationName);
-                    log.debug("From service:", serviceName); })
-                .doOnSuccess(aVoid -> log.info("Unbound the app", applicationName,
-                        "from the service", serviceName));
+                .doOnSubscribe(aVoid -> log.info("Unbinding app", applicationName, "from service", serviceName))
+                .doOnSuccess(aVoid -> log.verbose(
+                        "Unbinding app", applicationName, "from service", serviceName, "completed"));
     }
 
     /**
@@ -499,11 +495,9 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                         .host(decomposedRoute.getHost())
                         .path(decomposedRoute.getPath())
                         .build())
-                        .doOnSuccess(aVoid -> {
-                            log.debug("Add route:", route);
-                            log.debug("To app:", applicationName); })
-                        .doOnSuccess(aVoid -> log.info("Added the route", route,
-                                "to the application", applicationName)))
+                        .doOnSubscribe(aVoid -> log.info("Adding route", route, "to app", applicationName))
+                        .doOnSuccess(aVoid -> log.verbose(
+                                "Adding route", route, "to app", applicationName, "completed")))
                 .onErrorStop()
                 .then();
     }
@@ -534,11 +528,9 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                         .path(decomposedRoute.getPath())
                         .host(decomposedRoute.getHost())
                         .build())
-                        .doOnSuccess(aVoid -> {
-                            log.debug("Remove route:", route);
-                            log.debug("From app:", applicationName); })
-                        .doOnSuccess(aVoid -> log.info("Removed the route", route,
-                                "from the application", applicationName)));
+                        .doOnSubscribe(aVoid -> log.info("Removing route", route, "from app", applicationName))
+                        .doOnSuccess(aVoid -> log.info(
+                                "Removing route", route, "from app", applicationName, "completed")));
     }
 
     private DomainSummary createDomainSummary(Domain domain) {

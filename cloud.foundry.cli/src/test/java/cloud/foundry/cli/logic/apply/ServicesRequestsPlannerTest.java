@@ -30,8 +30,9 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-public class ServicesRequestsPlanerTest {
 
+public class ServicesRequestsPlannerTest {
+    
     @Test
     public void testCreateWithNewObjectSucceeds() {
         // given
@@ -42,10 +43,10 @@ public class ServicesRequestsPlanerTest {
         Mockito.when(servicesOperations.create("someservice", newServiceMock)).thenReturn(Mono.just(voidMock));
         List<CfChange> cfChanges = new LinkedList<>();
         cfChanges.add(newChange);
-        ServiceRequestsPlaner serviceRequestsPlaner = new ServiceRequestsPlaner(servicesOperations);
+        ServiceRequestsPlanner serviceRequestsPlanner = new ServiceRequestsPlanner(servicesOperations);
 
         // when
-        Flux<Void> requests = serviceRequestsPlaner.createApplyRequests("someservice", cfChanges);
+        Flux<Void> requests = serviceRequestsPlanner.createApplyRequests("someservice", cfChanges);
 
         // then
         assertThat(requests, notNullValue());
@@ -66,24 +67,24 @@ public class ServicesRequestsPlanerTest {
             .thenThrow(new NullPointerException());
         List<CfChange> cfChanges = new LinkedList<>();
         cfChanges.add(newChange);
-        ServiceRequestsPlaner serviceRequestsPlaner = new ServiceRequestsPlaner(servicesOperations);
+        ServiceRequestsPlanner serviceRequestsPlanner = new ServiceRequestsPlanner(servicesOperations);
 
         // when + then
         assertThrows(ApplyException.class,
-            () -> serviceRequestsPlaner.createApplyRequests("someservice", cfChanges));
+            () -> serviceRequestsPlanner.createApplyRequests("someservice", cfChanges));
     }
 
     @Test
     public void testCreateOnNullArgumentsThrowsNullPointerException() {
         // given
         ServicesOperations servicesOperations = mock(ServicesOperations.class);
-        ServiceRequestsPlaner serviceRequestsPlaner = new ServiceRequestsPlaner(servicesOperations);
+        ServiceRequestsPlanner serviceRequestsPlanner = new ServiceRequestsPlanner(servicesOperations);
 
         // when and then
         assertThrows(NullPointerException.class,
-            () -> serviceRequestsPlaner.createApplyRequests(null, Collections.emptyList()));
+            () -> serviceRequestsPlanner.createApplyRequests(null, Collections.emptyList()));
         assertThrows(NullPointerException.class,
-            () -> serviceRequestsPlaner.createApplyRequests("someservice", null));
+            () -> serviceRequestsPlanner.createApplyRequests("someservice", null));
     }
 
     @Test
@@ -93,10 +94,10 @@ public class ServicesRequestsPlanerTest {
         when(servicesOperations.remove("someservice")).thenThrow(new UpdateException(null));
 
         CfChange remove1 = new CfRemovedObject(new ServiceBean(), "someservice", Collections.singletonList("root"));
-        ServiceRequestsPlaner serviceRequestsPlaner = new ServiceRequestsPlaner(servicesOperations);
+        ServiceRequestsPlanner serviceRequestsPlanner = new ServiceRequestsPlanner(servicesOperations);
         // when and then
         assertThrows(ApplyException.class,
-            () -> serviceRequestsPlaner.createApplyRequests("someservice", Arrays.asList(remove1)));
+            () -> serviceRequestsPlanner.createApplyRequests("someservice", Arrays.asList(remove1)));
     }
 
     @Test
@@ -106,9 +107,9 @@ public class ServicesRequestsPlanerTest {
         CfChange remove1 = new CfRemovedObject(new ServiceBean(), "someservice", Collections.singletonList("root"));
         Void voidMock = mock(Void.class);
         when(servicesOperations.remove("someservice")).thenReturn(Mono.just(voidMock));
-        ServiceRequestsPlaner serviceRequestsPlaner = new ServiceRequestsPlaner(servicesOperations);
+        ServiceRequestsPlanner serviceRequestsPlanner = new ServiceRequestsPlanner(servicesOperations);
         // when
-        Flux<Void> requests = serviceRequestsPlaner.createApplyRequests("someservice", Arrays.asList(remove1));
+        Flux<Void> requests = serviceRequestsPlanner.createApplyRequests("someservice", Arrays.asList(remove1));
 
         // then
         assertThat(requests, notNullValue());
@@ -132,9 +133,9 @@ public class ServicesRequestsPlanerTest {
         Mockito.when(servicesOperations.update(serviceName, serviceBeanMock)).thenReturn(Mono.just(voidMock));
         List<CfChange> cfChanges = new LinkedList<>();
         cfChanges.add(objectChanged);
-        ServiceRequestsPlaner serviceRequestsPlaner = new ServiceRequestsPlaner(servicesOperations);
+        ServiceRequestsPlanner serviceRequestsPlanner = new ServiceRequestsPlanner(servicesOperations);
         // when
-        Flux<Void> requests = serviceRequestsPlaner.createApplyRequests(serviceName, cfChanges);
+        Flux<Void> requests = serviceRequestsPlanner.createApplyRequests(serviceName, cfChanges);
 
         // then
         assertThat(requests, notNullValue());
@@ -157,10 +158,10 @@ public class ServicesRequestsPlanerTest {
             .thenThrow(new NullPointerException());
         List<CfChange> cfChanges = new LinkedList<>();
         cfChanges.add(newChange);
-        ServiceRequestsPlaner serviceRequestsPlaner = new ServiceRequestsPlaner(servicesOperations);
+        ServiceRequestsPlanner serviceRequestsPlanner = new ServiceRequestsPlanner(servicesOperations);
         // then - when
         assertThrows(ApplyException.class,
-            () -> serviceRequestsPlaner.createApplyRequests(serviceName, cfChanges));
+            () -> serviceRequestsPlanner.createApplyRequests(serviceName, cfChanges));
     }
 
 
@@ -180,9 +181,9 @@ public class ServicesRequestsPlanerTest {
         Mockito.when(servicesOperations.update(serviceName, serviceBeanMock)).thenReturn(Mono.just(voidMock));
         List<CfChange> cfChanges = new LinkedList<>();
         cfChanges.add(newChange);
-        ServiceRequestsPlaner serviceRequestsPlaner = new ServiceRequestsPlaner(servicesOperations);
+        ServiceRequestsPlanner serviceRequestsPlanner = new ServiceRequestsPlanner(servicesOperations);
         // when
-        Flux<Void> requests = serviceRequestsPlaner.createApplyRequests(serviceName, cfChanges);
+        Flux<Void> requests = serviceRequestsPlanner.createApplyRequests(serviceName, cfChanges);
 
         // then
         assertThat(requests, notNullValue());
@@ -215,9 +216,9 @@ public class ServicesRequestsPlanerTest {
         List<CfChange> cfChanges = new LinkedList<>();
         cfChanges.add(containerChanged);
         cfChanges.add(objectChanged);
-        ServiceRequestsPlaner serviceRequestsPlaner = new ServiceRequestsPlaner(servicesOperations);
+        ServiceRequestsPlanner serviceRequestsPlanner = new ServiceRequestsPlanner(servicesOperations);
         // when
-        Flux<Void> requests = serviceRequestsPlaner.createApplyRequests(serviceName, cfChanges);
+        Flux<Void> requests = serviceRequestsPlanner.createApplyRequests(serviceName, cfChanges);
 
         // then
         assertThat(requests, notNullValue());

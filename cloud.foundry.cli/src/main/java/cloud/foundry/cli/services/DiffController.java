@@ -45,7 +45,6 @@ public class DiffController implements Callable<Integer> {
                 ConfigBean.class);
 
         log.debug("Desired config:", desiredConfigBean);
-        log.info("Fetching all information for target space...");
 
         SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
         ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
@@ -53,15 +52,21 @@ public class DiffController implements Callable<Integer> {
         ClientOperations clientOperations = new ClientOperations(cfOperations);
 
         GetLogic getLogic = new GetLogic();
+
+        log.info("Fetching all information for target space");
         ConfigBean currentConfigBean = getLogic.getAll(spaceDevelopersOperations, servicesOperations,
                 applicationsOperations, clientOperations, loginOptions);
+        log.verbose("Fetching all information for target space completed");
 
         log.debug("Current Config:", currentConfigBean);
-        log.info("Diffing ...");
 
         DiffLogic diffLogic = new DiffLogic();
+
+        log.info("Diffing");
         String output = diffLogic.createDiffOutput(currentConfigBean, desiredConfigBean);
-        log.debug("Diff string of config:", output);
+        log.verbose("Diffing completed");
+
+        log.debug("Diff string:", output);
 
         if (output.isEmpty()) {
             System.out.println(NO_DIFFERENCES);

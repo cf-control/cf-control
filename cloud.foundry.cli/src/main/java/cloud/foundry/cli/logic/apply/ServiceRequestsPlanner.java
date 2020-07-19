@@ -20,24 +20,20 @@ import java.util.function.Predicate;
 
 import org.reactivestreams.Publisher;
 
+
 /**
  * This class is responsible to build the requests in the context of services
  * according to the CfChanges. The class does create the request tasks by
  * implementing the {@link CfChangeVisitor} interface.
  */
-public class ServiceRequestsPlaner {
+public class ServiceRequestsPlanner {
 
-    private static final Log log = Log.getLog(ServiceRequestsPlaner.class);
+    private static final Log log = Log.getLog(ServiceRequestsPlanner.class);
 
     private final ServicesOperations servicesOperations;
-    private String serviceName;
+    private  String serviceName;
 
-    /**
-     * Constructor for {@link ServiceRequestsPlaner} class
-     * 
-     * @param servicesOperations the ServicesOperations object used for
-     */
-    public ServiceRequestsPlaner(ServicesOperations servicesOperations) {
+    public ServiceRequestsPlanner(ServicesOperations servicesOperations) {
         this.servicesOperations = servicesOperations;
     }
 
@@ -117,5 +113,4 @@ public class ServiceRequestsPlaner {
             .filter(predicate)
             .findFirst();
     }
-
 }

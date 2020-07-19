@@ -55,7 +55,7 @@ public class ContainerChangeParsingStrategy extends AbstractParsingStrategy {
             return new CfContainerValueChanged(((ValueRemoved) elementChange).getRemovedValue().toString(),
                     ChangeType.REMOVED);
         }
-        log.debug("List change type not supported: " + elementChange.getClass());
+        log.debug("Ignoring unsupported list change type", elementChange.getClass());
         return null;
     }
 }
