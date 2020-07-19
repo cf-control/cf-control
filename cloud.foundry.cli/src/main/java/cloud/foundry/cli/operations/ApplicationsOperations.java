@@ -167,29 +167,23 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
 
     private Mono<Void> doCreate(String appName, ApplicationBean bean, boolean shouldStart) {
         return this.cloudFoundryOperations
-                .getSpaceId()
-                .flatMap(spaceId -> this.cloudFoundryOperations
-                        .getCloudFoundryClient()
-                        .applicationsV3()
-                        .create(buildCreateApplicationRequest(spaceId, appName, bean))
-                        .doOnSubscribe(subscription -> {
-                            log.info("Creating application", appName);
-                            log.debug("App's bean:", bean);
-                            log.debug("App should be started:", shouldStart);
-                        })
-                        .doOnSuccess(aVoid -> log.verbose("Creating application", appName, "completed"))
-                        .then())
-                .then(this.cloudFoundryOperations
                 .applications()
                 .pushManifest(PushApplicationManifestRequest
                         .builder()
                         .manifest(buildApplicationManifest(appName, bean))
                         .noStart(!shouldStart)
                         .build())
-                .onErrorContinue(this::whenServiceNotFound, log::warning)
                 .doOnSubscribe(subscription -> log.info("Pushing manifest for application", appName))
-                .doOnSuccess(aVoid -> log.verbose("Pushing manifest for application", appName, "completed")));
-
+                .doOnSuccess(aVoid -> log.verbose("Pushing manifest for application", appName, "completed"))
+                .onErrorContinue(this::whenServiceNotFound, log::warning)
+                .onErrorStop()
+                .then(getAppId(appName).flatMap(appId -> updateAppMeta(appId, bean)))
+                .doOnSubscribe(subscription -> {
+                    log.info("Creating application", appName);
+                    log.debug("App's bean:", bean);
+                    log.debug("App should be started:", shouldStart);
+                })
+                .doOnSuccess(aVoid -> log.verbose("Creating application", appName, "completed"));
     }
 
     private boolean whenServiceNotFound(Throwable throwable) {
@@ -201,38 +195,31 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                );
     }
 
-    private CreateApplicationRequest buildCreateApplicationRequest(String spaceId,
-                                                                   String appName,
-                                                                   ApplicationBean bean) {
-        Map<String,? extends String> envVars = Collections.emptyMap();
-        if (bean.getManifest() != null && bean.getManifest().getEnvironmentVariables() != null) {
-            envVars = bean.getManifest().getEnvironmentVariables().entrySet()
-                    .stream()
-                    .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().toString()));
-        }
+    private Mono<String> getAppId(String appName) {
+        return this.cloudFoundryOperations
+                .applications()
+                .list()
+                .filter(applicationSummary -> applicationSummary.getName().equals(appName))
+                .switchIfEmpty(Mono.empty())
+                .map(ApplicationSummary::getId)
+                .collectList()
+                .map(strings -> strings.get(0));
+    }
 
-        ToOneRelationship spaceRelationship = ToOneRelationship.builder()
-                .data(Relationship.builder().id(spaceId).build())
-                .build();
-
-        Lifecycle lifecycle = null;
-        if (bean.getPath() != null || bean.getManifest() != null) {
-            lifecycle = Lifecycle.builder()
-                    .type(LifecycleType.BUILDPACK)
-                    .data(BuildpackData.builder().buildpacks(bean.getManifest().getBuildpack()).build())
-                    .build();
-        }
-
-        return CreateApplicationRequest.builder()
-                .environmentVariables(envVars)
-                .lifecycle(lifecycle)
-                .metadata(Metadata.builder()
-                        .annotation(ApplicationBean.METADATA_KEY, bean.getMeta())
-                        .annotation(ApplicationBean.PATH_KEY, bean.getPath())
+    private Mono<Void> updateAppMeta(String appId, ApplicationBean bean) {
+        return this.cloudFoundryOperations
+                .getCloudFoundryClient()
+                .applicationsV3()
+                .update(UpdateApplicationRequest.builder()
+                        .metadata(Metadata.builder()
+                                .annotation(ApplicationBean.PATH_KEY, bean.getPath())
+                                .annotation(ApplicationBean.METADATA_KEY, bean.getMeta())
+                                .build())
+                        .applicationId(appId)
                         .build())
-                .name(appName)
-                .relationships(ApplicationRelationships.builder().space(spaceRelationship).build())
-                .build();
+                .then()
+                .doOnSubscribe(subscription -> log.debug("Updating app meta for application", appId))
+                .doOnSuccess(subscription -> log.debug("Updating app meta for application completed", appId));
     }
 
     private ApplicationManifest buildApplicationManifest(String appName, ApplicationBean bean) {

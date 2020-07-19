@@ -20,6 +20,7 @@ import org.cloudfoundry.client.v3.applications.CreateApplicationRequest;
 
 import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.client.v3.applications.ApplicationsV3;
+import org.cloudfoundry.client.v3.applications.UpdateApplicationRequest;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.applications.*;
 import org.cloudfoundry.operations.domains.Domain;
@@ -135,6 +136,17 @@ public class ApplicationsOperationsTest {
                 .setCloudFoundryClient(cfcMock)
                 .build();
 
+        when(applicationsMock.list())
+                .thenReturn(Flux.just(ApplicationSummary.builder()
+                        .name(appManifest.getName())
+                        .id("appId")
+                        .runningInstances(appManifest.getInstances())
+                        .requestedState("STOPPED")
+                        .memoryLimit(appManifest.getMemory())
+                        .instances(appManifest.getInstances())
+                        .diskQuota(appManifest.getDisk())
+                        .build()));
+
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(dcfoMock);
 
         ApplicationBean applicationsBean = new ApplicationBean(appManifest, metadata);
@@ -148,10 +160,57 @@ public class ApplicationsOperationsTest {
         // then
         verify(dcfoMock.applications(), times(1))
                 .pushManifest(any(PushApplicationManifestRequest.class));
+        UpdateApplicationRequest expectedUpdateRequest = UpdateApplicationRequest
+                .builder()
+                .applicationId("appId")
+                .metadata(Metadata.builder()
+                        .annotation(ApplicationBean.PATH_KEY, "some/path")
+                        .annotation(ApplicationBean.METADATA_KEY, "somemeta")
+                        .build())
+                .build();
         verify(applicationsV3Mock, times(1))
-                .create(any(CreateApplicationRequest.class));
-        verify(dcfoMock, times(1))
-                .getSpaceId();
+                .update(eq(expectedUpdateRequest));
+    }
+
+    @Test
+    public void testCreateWhenErrorOccursDuringPushDontUpdateAppMeta() throws CreationException {
+        // given
+        ApplicationManifest appManifest = createMockApplicationManifest();
+        Metadata metadata = Metadata
+                .builder()
+                .annotation(ApplicationBean.PATH_KEY, "some/path")
+                .annotation(ApplicationBean.METADATA_KEY, "somemeta")
+                .build();
+
+        Applications applicationsMock = ApplicationsMockBuilder
+                .get()
+                .setPushApplicationManifestError(new Exception())
+                .build();
+        ApplicationsV3 applicationsV3Mock = ApplicationsV3MockBuilder.get().build();
+        CloudFoundryClient cfcMock = CloudFoundryClientMockBuilder.get()
+                .setApplicationsV3(applicationsV3Mock)
+                .build();
+        DefaultCloudFoundryOperations dcfoMock = DefaultCloudFoundryOperationsMockBuilder.get()
+                .setApplications(applicationsMock)
+                .setSpaceId("spaceId")
+                .setCloudFoundryClient(cfcMock)
+                .build();
+
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(dcfoMock);
+
+        ApplicationBean applicationsBean = new ApplicationBean(appManifest, metadata);
+        applicationsBean.setPath("some/path");
+        applicationsBean.setMeta("somemeta");
+
+        //when
+        Mono<Void> request = applicationsOperations.create(appManifest.getName(), applicationsBean, false);
+
+        // then
+        assertThrows(Exception.class, request::block);
+        verify(dcfoMock.applications(), times(1))
+                .pushManifest(any(PushApplicationManifestRequest.class));
+        verify(applicationsV3Mock, times(0))
+                .update(any(UpdateApplicationRequest.class));
     }
 
     @Test
