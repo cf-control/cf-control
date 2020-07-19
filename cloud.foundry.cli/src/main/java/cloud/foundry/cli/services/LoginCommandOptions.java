@@ -19,15 +19,15 @@ public class LoginCommandOptions {
         description = "Your password of your cf account.")
     String password;
 
-    @Option(names = { "-a", "--api" }, required = false, scope = ScopeType.INHERIT,
+    @Option(names = { "-a", "--api" }, required = true, scope = ScopeType.INHERIT,
         description = "Your CF instance's API endpoint URL.")
     String apiHost;
 
-    @Option(names = { "-o", "--organization" }, required = false, scope = ScopeType.INHERIT,
+    @Option(names = { "-o", "--organization" }, required = true, scope = ScopeType.INHERIT,
         description = "Your CF organization's name.")
     String organization;
 
-    @Option(names = { "-s", "--space" }, required = false, scope = ScopeType.INHERIT,
+    @Option(names = { "-s", "--space" }, required = true, scope = ScopeType.INHERIT,
         description = "Your CF space name.")
     String space;
 

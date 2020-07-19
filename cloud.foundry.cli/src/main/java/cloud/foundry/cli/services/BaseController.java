@@ -9,7 +9,6 @@ import cloud.foundry.cli.crosscutting.exceptions.UpdateException;
 import cloud.foundry.cli.crosscutting.exceptions.ApplyException;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.RefResolver;
-import cloud.foundry.cli.crosscutting.mapping.CfArgumentsCreator;
 import org.yaml.snakeyaml.constructor.ConstructorException;
 import org.yaml.snakeyaml.parser.ParserException;
 import org.yaml.snakeyaml.scanner.ScannerException;
@@ -199,15 +198,6 @@ public class BaseController implements Callable<Integer> {
         // register in the log if available
         if (fileHandler != null) {
             Log.addHandler(fileHandler);
-        }
-
-        // append login options if needed
-        try {
-            args = CfArgumentsCreator.determineCommandLine(cli, args, parseResult.subcommand());
-        } catch (CommandLine.ParameterException parameterException) {
-            // the arguments are invalid
-            log.error(parameterException.getMessage());
-            System.exit(1);
         }
 
         // okay, logging is configured, now let's run the rest of the CLI
