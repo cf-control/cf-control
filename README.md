@@ -102,7 +102,7 @@ You can have the tool create a machine-readable log file by specifying the `--lo
 ##### [HINT - DEFAULT VALUES FOR SOME PARAMS]
 
 For the <code>diff/apply</code> commands, the parameters can be fetched from the target section of the given YAML file,
-to reduce the number of the program parameters `api`, `organization` and `space`.
+to reduce the number of the program target information `api`, `organization` and `space`.
 
 The defined values in a given YAML file could be:
 
@@ -116,12 +116,11 @@ target:
 
 *The specification is:*  
 Passed value -> overwrites yaml file value  
-No value is passed -> yaml file value is used 
-If no value is passed (passed value and yaml file value are not available), will lead to an exception.
+No value is passed -> yaml file value is used   
 
-  For example, you can run the following commands: 
-  
- <code>diff</code> and <code>apply</code> commands:
+If no value is passed (passed value and yaml file value are not available), you will receive an error.
+
+  For example, you can run the following <code>diff</code> and <code>apply</code> commands:
  
  `java -jar cf-control.jar diff -u mustermann@test.com -p somePassword -y pathToYamlFile`
  
