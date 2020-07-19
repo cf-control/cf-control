@@ -99,6 +99,33 @@ You can have the tool create a machine-readable log file by specifying the `--lo
   -y, --yaml=<yamlFile>                  The path to the yaml file. (Not needed for the get commands)
 ```
 
+##### [HINT - DEFAULT VALUES FOR SOME PARAMS]
+
+For the <code>diff/apply</code> commands, the parameters can be fetched from the target section of the given YAML file,
+to reduce the number of the program parameters `api`, `organization` and `space`.
+
+The defined values in a given YAML file could be:
+
+```
+target:
+  endpoint=api.run.pivotal.io
+  org=cloud.foundry.cli
+  space=development
+```
+
+
+*The specification is:*  
+Passed value -> overwrites yaml file value  
+No value is passed -> yaml file value is used 
+If no value is passed (passed value and yaml file value are not available), will lead to an exception.
+
+  For example, you can run the following commands: 
+  
+ <code>diff</code> and <code>apply</code> commands:
+ 
+ `java -jar cf-control.jar diff -u mustermann@test.com -p somePassword -y pathToYamlFile`
+ 
+ `java -jar cf-control.jar apply -u mustermann@test.com -p somePassword -y pathToYamlFile`
 
 ### YAML Specification Reference
 
