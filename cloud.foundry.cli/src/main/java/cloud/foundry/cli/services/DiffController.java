@@ -33,7 +33,7 @@ public class DiffController implements Callable<Integer> {
     private static final Log log = Log.getLog(DiffController.class);
 
     @Mixin
-    private LoginCommandOptions loginOptions;
+    private OptionalLoginCommandOptions loginOptions;
 
     @Mixin
     private YamlCommandOptions yamlCommandOptions;

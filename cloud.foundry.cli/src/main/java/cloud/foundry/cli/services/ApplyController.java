@@ -43,7 +43,7 @@ public class ApplyController implements Callable<Integer> {
         private static final Log log = Log.getLog(ApplyApplicationCommand.class);
 
         @Mixin
-        private LoginCommandOptions loginOptions;
+        private OptionalLoginCommandOptions loginOptions;
 
         @Mixin
         private YamlCommandOptions yamlCommandOptions;
@@ -78,7 +78,7 @@ public class ApplyController implements Callable<Integer> {
         private static final Log log = Log.getLog(ApplyApplicationCommand.class);
 
         @Mixin
-        private LoginCommandOptions loginOptions;
+        private OptionalLoginCommandOptions loginOptions;
 
         @Mixin
         private YamlCommandOptions yamlCommandOptions;
@@ -113,7 +113,7 @@ public class ApplyController implements Callable<Integer> {
         private static final Log log = Log.getLog(ApplyServiceCommand.class);
 
         @Mixin
-        private LoginCommandOptions loginOptions;
+        private OptionalLoginCommandOptions loginOptions;
 
         @Mixin
         private YamlCommandOptions yamlCommandOptions;
@@ -148,7 +148,7 @@ public class ApplyController implements Callable<Integer> {
         private static final Log log = Log.getLog(ApplySpaceCommand.class);
 
         @Mixin
-        private LoginCommandOptions loginOptions;
+        private RequiredLoginCommandOptions loginOptions;
 
         @Override
         public Integer call() {

@@ -33,7 +33,7 @@ public class RenameController implements Callable<Integer> {
         private static final Log log = Log.getLog(RenameApplicationCommand.class);
 
         @Mixin
-        private LoginCommandOptions loginOptions;
+        private RequiredLoginCommandOptions loginOptions;
 
         @Parameters(index = "0", description = "The current name of the app")
         private String currentName;
@@ -63,7 +63,7 @@ public class RenameController implements Callable<Integer> {
         private static final Log log = Log.getLog(RenameController.RenameServiceCommand.class);
 
         @Mixin
-        private LoginCommandOptions loginOptions;
+        private RequiredLoginCommandOptions loginOptions;
 
         @Parameters(index = "0", description = "The current name of the service")
         private String currentName;

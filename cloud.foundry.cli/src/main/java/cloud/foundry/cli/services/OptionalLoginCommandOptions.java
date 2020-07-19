@@ -1,35 +1,34 @@
 package cloud.foundry.cli.services;
 
-import static picocli.CommandLine.Option;
-
-import picocli.CommandLine;
+import picocli.CommandLine.Option;
+import picocli.CommandLine.ScopeType;
 
 /**
- * Options for the initialization process of the
+ * Common options for the initialization process of the
  * {@link org.cloudfoundry.operations.CloudFoundryOperations operations} object.
  *
  * @see cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator
  */
-public class GetLoginCommandOptions implements ILoginCommandOptions {
+public class OptionalLoginCommandOptions implements LoginCommandOptions {
 
-    @Option(names = { "-u", "--user" }, required = false, scope = CommandLine.ScopeType.INHERIT,
-            description = "Your account's e-mail address or username.")
+    @Option(names = { "-u", "--user" }, required = false, scope = ScopeType.INHERIT,
+        description = "Your account's e-mail address or username.")
     String userName;
 
-    @Option(names = { "-p", "--password" }, required = false, scope = CommandLine.ScopeType.INHERIT,
-            description = "Your password of your cf account.")
+    @Option(names = { "-p", "--password" }, required = false, scope = ScopeType.INHERIT,
+        description = "Your password of your cf account.")
     String password;
 
-    @Option(names = { "-a", "--api" }, required = true, scope = CommandLine.ScopeType.INHERIT,
-            description = "Your CF instance's API endpoint URL.")
+    @Option(names = { "-a", "--api" }, required = false, scope = ScopeType.INHERIT,
+        description = "Your CF instance's API endpoint URL.")
     String apiHost;
 
-    @Option(names = { "-o", "--organization" }, required = true, scope = CommandLine.ScopeType.INHERIT,
-            description = "Your CF organization's name.")
+    @Option(names = { "-o", "--organization" }, required = false, scope = ScopeType.INHERIT,
+        description = "Your CF organization's name.")
     String organization;
 
-    @Option(names = { "-s", "--space" }, required = true, scope = CommandLine.ScopeType.INHERIT,
-            description = "Your CF space name.")
+    @Option(names = { "-s", "--space" }, required = false, scope = ScopeType.INHERIT,
+        description = "Your CF space name.")
     String space;
 
     public String getUserName() {

@@ -6,7 +6,7 @@ import cloud.foundry.cli.crosscutting.exceptions.MissingCredentialsException;
 import cloud.foundry.cli.crosscutting.exceptions.MissingTargetInformationException;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.beans.TargetBean;
-import cloud.foundry.cli.services.ILoginCommandOptions;
+import cloud.foundry.cli.services.LoginCommandOptions;
 import org.apache.commons.lang3.StringUtils;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.reactor.DefaultConnectionContext;
@@ -31,7 +31,7 @@ public class CfOperationsCreator {
      * Creates the cfOperations object, which is needed by our operations classes in the package.
      * {@link cloud.foundry.cli.operations}. The cfOperations object
      *
-     * @param commandOptions {@link ILoginCommandOptions}
+     * @param commandOptions {@link LoginCommandOptions}
      * @param targetBean     Bean that holds all data that is related to the target space.
      * @return DefaultCloudFoundryOperations object, which is the entry point for accessing
      * the CF configurations.
@@ -39,7 +39,7 @@ public class CfOperationsCreator {
      * @throws MissingTargetInformationException if the target information is not fully specified
      */
     public static DefaultCloudFoundryOperations createCfOperations(TargetBean targetBean,
-                                                                   ILoginCommandOptions commandOptions) {
+                                                                   LoginCommandOptions commandOptions) {
 
         log.debug("Setting up CF operations object with your login command options");
 
@@ -61,7 +61,7 @@ public class CfOperationsCreator {
                 .build();
     }
 
-    private static TargetBean replaceTargetOptions(TargetBean targetBean, ILoginCommandOptions commandOptions) {
+    private static TargetBean replaceTargetOptions(TargetBean targetBean, LoginCommandOptions commandOptions) {
         if (targetBean == null) targetBean = new TargetBean();
 
         String apiHost = commandOptions.getApiHost();
@@ -127,7 +127,7 @@ public class CfOperationsCreator {
                 .build();
     }
 
-    private static PasswordGrantTokenProvider createTokenProvider(ILoginCommandOptions commandOptions) {
+    private static PasswordGrantTokenProvider createTokenProvider(LoginCommandOptions commandOptions) {
         String user = commandOptions.getUserName();
         if (user == null) {
             user = System.getenv(CF_CONTROL_USER);

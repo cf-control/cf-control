@@ -8,7 +8,7 @@ import static org.hamcrest.Matchers.not;
 
 import cloud.foundry.cli.crosscutting.exceptions.MissingTargetInformationException;
 import cloud.foundry.cli.crosscutting.mapping.beans.TargetBean;
-import cloud.foundry.cli.services.LoginCommandOptions;
+import cloud.foundry.cli.services.OptionalLoginCommandOptions;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.junit.jupiter.api.Test;
 
@@ -27,12 +27,12 @@ public class CfOperationsCreatorTest {
     @Test
     public void createCfOperationsShouldFailIfAtLeastOneOptionIsMissingInTargetBeanAndLoginOptions() {
         // given
-        LoginCommandOptions loginCommandOptions = new LoginCommandOptions();
-        loginCommandOptions.setUserName(SOME_USER_NAME);
-        loginCommandOptions.setPassword(SOME_CREDENTIALS);
+        OptionalLoginCommandOptions optionalLoginCommandOptions = new OptionalLoginCommandOptions();
+        optionalLoginCommandOptions.setUserName(SOME_USER_NAME);
+        optionalLoginCommandOptions.setPassword(SOME_CREDENTIALS);
 
-        loginCommandOptions.setApiHost(SOME_API);
-        loginCommandOptions.setSpace(SOME_SPACE);
+        optionalLoginCommandOptions.setApiHost(SOME_API);
+        optionalLoginCommandOptions.setSpace(SOME_SPACE);
 
         TargetBean targetBean = new TargetBean();
         targetBean.setEndpoint(SOME_API);
@@ -41,37 +41,37 @@ public class CfOperationsCreatorTest {
         // then + when
         assertThrows(MissingTargetInformationException.class, () -> CfOperationsCreator.createCfOperations(
                 targetBean,
-                loginCommandOptions));
+                optionalLoginCommandOptions));
     }
 
     @Test
     public void createCfOperationsShouldFailIfAtLeastOneLoginOptionIsMissingAndTargetBeanIsNull() {
         // given
-        LoginCommandOptions loginCommandOptions = new LoginCommandOptions();
-        loginCommandOptions.setUserName(SOME_USER_NAME);
-        loginCommandOptions.setPassword(SOME_CREDENTIALS);
+        OptionalLoginCommandOptions optionalLoginCommandOptions = new OptionalLoginCommandOptions();
+        optionalLoginCommandOptions.setUserName(SOME_USER_NAME);
+        optionalLoginCommandOptions.setPassword(SOME_CREDENTIALS);
 
         // then + when
         assertThrows(MissingTargetInformationException.class, () -> CfOperationsCreator.createCfOperations(
                 null,
-                loginCommandOptions));
+                optionalLoginCommandOptions));
     }
 
     @Test
     public void createCfOperationsShouldCreateValidInstanceIfAllLoginOptionsAreAvailable() {
         // given
-        LoginCommandOptions loginCommandOptions = new LoginCommandOptions();
-        loginCommandOptions.setUserName(SOME_USER_NAME);
-        loginCommandOptions.setPassword(SOME_CREDENTIALS);
+        OptionalLoginCommandOptions optionalLoginCommandOptions = new OptionalLoginCommandOptions();
+        optionalLoginCommandOptions.setUserName(SOME_USER_NAME);
+        optionalLoginCommandOptions.setPassword(SOME_CREDENTIALS);
 
-        loginCommandOptions.setApiHost(SOME_API);
-        loginCommandOptions.setSpace(SOME_SPACE);
-        loginCommandOptions.setOrganization(SOME_ORGANIZATION);
+        optionalLoginCommandOptions.setApiHost(SOME_API);
+        optionalLoginCommandOptions.setSpace(SOME_SPACE);
+        optionalLoginCommandOptions.setOrganization(SOME_ORGANIZATION);
 
         // when
         DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(
                 null,
-                loginCommandOptions);
+                optionalLoginCommandOptions);
 
         // then
         assertThat(cfOperations, is(not(nullValue())));
@@ -82,9 +82,9 @@ public class CfOperationsCreatorTest {
     @Test
     public void createCfOperationsShouldCreateValidInstanceIfAllTargetBeanOptionsAreAvailable() {
         // given
-        LoginCommandOptions loginCommandOptions = new LoginCommandOptions();
-        loginCommandOptions.setUserName(SOME_USER_NAME);
-        loginCommandOptions.setPassword(SOME_CREDENTIALS);
+        OptionalLoginCommandOptions optionalLoginCommandOptions = new OptionalLoginCommandOptions();
+        optionalLoginCommandOptions.setUserName(SOME_USER_NAME);
+        optionalLoginCommandOptions.setPassword(SOME_CREDENTIALS);
 
         TargetBean targetBean = new TargetBean();
         targetBean.setEndpoint(SOME_API);
@@ -94,7 +94,7 @@ public class CfOperationsCreatorTest {
         // when
         DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(
                 targetBean,
-                loginCommandOptions);
+                optionalLoginCommandOptions);
 
         // then
         assertThat(cfOperations, is(not(nullValue())));
@@ -105,11 +105,11 @@ public class CfOperationsCreatorTest {
     @Test
     public void createCfOperationsShouldCreateValidInstanceIfAllRelevantTargetBeanAndLoginOptionsAreAvailable() {
         // given
-        LoginCommandOptions loginCommandOptions = new LoginCommandOptions();
-        loginCommandOptions.setUserName(SOME_USER_NAME);
-        loginCommandOptions.setPassword(SOME_CREDENTIALS);
+        OptionalLoginCommandOptions optionalLoginCommandOptions = new OptionalLoginCommandOptions();
+        optionalLoginCommandOptions.setUserName(SOME_USER_NAME);
+        optionalLoginCommandOptions.setPassword(SOME_CREDENTIALS);
 
-        loginCommandOptions.setOrganization(SOME_ORGANIZATION);
+        optionalLoginCommandOptions.setOrganization(SOME_ORGANIZATION);
 
         TargetBean targetBean = new TargetBean();
         targetBean.setEndpoint(SOME_API);
@@ -118,7 +118,7 @@ public class CfOperationsCreatorTest {
         // when
         DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(
                 targetBean,
-                loginCommandOptions);
+                optionalLoginCommandOptions);
 
         // then
         assertThat(cfOperations, is(not(nullValue())));
