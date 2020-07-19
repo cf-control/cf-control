@@ -35,7 +35,7 @@ public class CfOperationsCreatorTest {
 
         // when
         DefaultCloudFoundryOperations cfOperations = CfOperationsCreator
-                .createCfOperations(commandOptions);
+                .createCfOperations(null, commandOptions);
 
         // then
         assertThat(cfOperations, is(not(nullValue())));

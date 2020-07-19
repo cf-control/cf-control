@@ -153,7 +153,7 @@ public class SpaceManager implements AutoCloseable {
         loginCommandOptions.setApiHost(getCfApiEndpoint());
         loginCommandOptions.setSpace(spaceName);
 
-        cfOperations = CfOperationsCreator.createCfOperations(loginCommandOptions);
+        cfOperations = CfOperationsCreator.createCfOperations(null, loginCommandOptions);
 
         // apparently, there are some strange race conditions with the login which we might run into when querying the
         // spaces directly

@@ -30,7 +30,7 @@ public class GetController implements Callable<Integer> {
 
     @Override
     public Integer call() {
-        DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+        DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(null, loginOptions);
         GetLogic getLogic = new GetLogic();
 
         SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);

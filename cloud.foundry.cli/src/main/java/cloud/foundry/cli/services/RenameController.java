@@ -43,7 +43,7 @@ public class RenameController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(null, loginOptions);
             ApplicationsOperations applicationOperations = new ApplicationsOperations(cfOperations);
 
             RenameLogic renameLogic = new RenameLogic();
@@ -73,7 +73,7 @@ public class RenameController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(null, loginOptions);
             ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
 
             RenameLogic renameLogic = new RenameLogic();

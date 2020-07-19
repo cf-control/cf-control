@@ -60,7 +60,10 @@ public class ApplyController implements Callable<Integer> {
                 return 0;
             }
 
-            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(
+                    desiredConfigBean.getTarget(),
+                    loginOptions);
+
             ApplyLogic applyLogic = new ApplyLogic(cfOperations);
             applyLogic.applySpaceDevelopers(desiredConfigBean.getSpec().getSpaceDevelopers());
 
@@ -69,7 +72,7 @@ public class ApplyController implements Callable<Integer> {
     }
 
     @Command(name = "applications", description = "Apply the differences between the applications given"
-        + " in the yaml file and the configuration of the apps of your cf instance")
+            + " in the yaml file and the configuration of the apps of your cf instance")
     static class ApplyApplicationCommand implements Callable<Integer> {
 
         private static final Log log = Log.getLog(ApplyApplicationCommand.class);
@@ -92,7 +95,9 @@ public class ApplyController implements Callable<Integer> {
                 return 0;
             }
 
-            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(
+                    desiredConfigBean.getTarget(),
+                    loginOptions);
             ApplyLogic applyLogic = new ApplyLogic(cfOperations);
 
             applyLogic.applyApplications(desiredConfigBean.getSpec().getApps());
@@ -115,10 +120,6 @@ public class ApplyController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
-
-            ApplyLogic applyLogic = new ApplyLogic(cfOperations);
-
             log.info("Interpreting YAML file");
             ConfigBean desiredConfigBean = YamlMapper.loadBeanFromFile(yamlCommandOptions.getYamlFilePath(),
                     ConfigBean.class);
@@ -128,6 +129,12 @@ public class ApplyController implements Callable<Integer> {
                 log.info("No services data in YAML file, nothing to apply");
                 return 0;
             }
+
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(
+                    desiredConfigBean.getTarget(),
+                    loginOptions);
+
+            ApplyLogic applyLogic = new ApplyLogic(cfOperations);
 
             applyLogic.applyServices(desiredConfigBean.getSpec().getServices());
 
@@ -145,7 +152,10 @@ public class ApplyController implements Callable<Integer> {
 
         @Override
         public Integer call() {
-            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(
+                    null,
+                    loginOptions);
+
             ApplyLogic applyLogic = new ApplyLogic(cfOperations);
             String desiredSpace = loginOptions.getSpace();
 

@@ -40,9 +40,12 @@ public class DiffController implements Callable<Integer> {
 
     @Override
     public Integer call() throws IOException {
-        DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
         ConfigBean desiredConfigBean = YamlMapper.loadBeanFromFile(yamlCommandOptions.getYamlFilePath(),
                 ConfigBean.class);
+
+        DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(
+                desiredConfigBean.getTarget(),
+                loginOptions);
 
         log.debug("Desired config:", desiredConfigBean);
 

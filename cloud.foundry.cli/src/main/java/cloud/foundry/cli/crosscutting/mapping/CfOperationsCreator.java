@@ -1,14 +1,20 @@
 package cloud.foundry.cli.crosscutting.mapping;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
 import cloud.foundry.cli.crosscutting.exceptions.MissingCredentialsException;
 import cloud.foundry.cli.crosscutting.logging.Log;
+import cloud.foundry.cli.crosscutting.mapping.beans.TargetBean;
 import cloud.foundry.cli.services.LoginCommandOptions;
+import org.apache.commons.lang3.StringUtils;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.reactor.DefaultConnectionContext;
 import org.cloudfoundry.reactor.client.ReactorCloudFoundryClient;
 import org.cloudfoundry.reactor.doppler.ReactorDopplerClient;
 import org.cloudfoundry.reactor.tokenprovider.PasswordGrantTokenProvider;
 import org.cloudfoundry.reactor.uaa.ReactorUaaClient;
+
+import java.util.stream.Stream;
 
 public class CfOperationsCreator {
 
@@ -25,14 +31,33 @@ public class CfOperationsCreator {
      * {@link cloud.foundry.cli.operations}. The cfOperations object
      *
      * @param commandOptions {@link LoginCommandOptions}
+     * @param targetBean     Bean that holds all data that is related to the target space.
      * @return DefaultCloudFoundryOperations object, which is the entry point for accessing
      * the CF configurations.
      * @throws MissingCredentialsException if either the username or the password cannot be determined
+     * @throws NullPointerException if the {@link TargetBean} is null and the {@link LoginCommandOptions} contains
+     * at least one option which is null or empty. This exception is also thrown, if at least one option value
+     * could not be determined (value is null or empty) in the {@link LoginCommandOptions} and {@link TargetBean}.
      */
-    public static DefaultCloudFoundryOperations createCfOperations(LoginCommandOptions commandOptions) {
+    public static DefaultCloudFoundryOperations createCfOperations(TargetBean targetBean,
+                                                                   LoginCommandOptions commandOptions) {
+
         log.debug("Setting up CF operations object with your login command options");
 
-        DefaultConnectionContext connectionContext = createConnectionContext(commandOptions);
+        String apiHost = commandOptions.getApiHost();
+        String space = commandOptions.getSpace();
+        String organization = commandOptions.getOrganization();
+
+        boolean isOneOptionNullOrEmpty = Stream.of(apiHost, space, organization).anyMatch(StringUtils::isBlank);
+        if (isOneOptionNullOrEmpty && targetBean == null) {
+            throw new NullPointerException();
+        }
+
+        apiHost = isBlank(apiHost) ? determineOptionValue(targetBean.getEndpoint()) : apiHost;
+        space = isBlank(space) ? determineOptionValue(targetBean.getSpace()) : space;
+        organization = isBlank(organization) ? determineOptionValue(targetBean.getOrg()) : organization;
+
+        DefaultConnectionContext connectionContext = createConnectionContext(apiHost);
         PasswordGrantTokenProvider tokenProvider = createTokenProvider(commandOptions);
         ReactorCloudFoundryClient cfClient = createCloudFoundryClient(connectionContext, tokenProvider);
         ReactorDopplerClient reactorDopplerClient = createReactorDopplerClient(connectionContext, tokenProvider);
@@ -42,8 +67,8 @@ public class CfOperationsCreator {
                 .cloudFoundryClient(cfClient)
                 .dopplerClient(reactorDopplerClient)
                 .uaaClient(reactorUaaClient)
-                .organization(commandOptions.getOrganization())
-                .space(commandOptions.getSpace())
+                .organization(organization)
+                .space(space)
                 .build();
     }
 
@@ -99,9 +124,17 @@ public class CfOperationsCreator {
                 .build();
     }
 
-    private static DefaultConnectionContext createConnectionContext(LoginCommandOptions commandOptions) {
+    private static DefaultConnectionContext createConnectionContext(String apiHost) {
         return DefaultConnectionContext.builder()
-                .apiHost(commandOptions.getApiHost())
+                .apiHost(apiHost)
                 .build();
+    }
+
+    private static String determineOptionValue(String value) {
+        if (isBlank(value)) {
+            throw new NullPointerException();
+        } else {
+            return value;
+        }
     }
 }
