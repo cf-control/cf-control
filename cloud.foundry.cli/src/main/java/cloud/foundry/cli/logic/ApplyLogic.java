@@ -49,7 +49,7 @@ public class ApplyLogic {
 
     /**
      * Creates a new instance that will use the provided cf operations internally.
-     * Starts apps automatically by default
+     * Starts newly created apps automatically by default
      * @param cfOperations the cf operations that should be used to communicate with
      *                     the cf instance
      * @throws NullPointerException if the argument is null
