@@ -6,8 +6,11 @@ import cloud.foundry.cli.operations.applications.ApplicationsOperationsLogging;
 import cloud.foundry.cli.operations.applications.DefaultApplicationsOperations;
 import cloud.foundry.cli.operations.client.DefaultClientOperations;
 import cloud.foundry.cli.operations.services.DefaultServicesOperations;
+import cloud.foundry.cli.operations.services.ServicesOperationsLogging;
 import cloud.foundry.cli.operations.space.DefaultSpaceOperations;
+import cloud.foundry.cli.operations.space.SpaceOperationsLogging;
 import cloud.foundry.cli.operations.spacedevelopers.DefaultSpaceDevelopersOperations;
+import cloud.foundry.cli.operations.spacedevelopers.SpaceDevelopersOperationsLogging;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 
 import javax.annotation.Nonnull;
@@ -41,27 +44,36 @@ public class DefaultOperationsFactory extends OperationsFactory {
     }
 
     /**
+     * The returned object will have a logging decorator attached.
+     *
      * @return instance of the {@ServicesOperations} object
      */
     @Override
     public ServicesOperations createServiceOperations() {
-        return new DefaultServicesOperations(cfOperations);
+        DefaultServicesOperations defaultServicesOperations = new DefaultServicesOperations(cfOperations);
+        return new ServicesOperationsLogging(defaultServicesOperations);
     }
 
     /**
+     * The returned object will have a logging decorator attached.
+     *
      * @return instance of the {@SpaceDevelopersOperations} object
      */
     @Override
     public SpaceDevelopersOperations createSpaceDevelopersOperations() {
-        return new DefaultSpaceDevelopersOperations(cfOperations);
+        DefaultSpaceDevelopersOperations defaultServicesOperations = new DefaultSpaceDevelopersOperations(cfOperations);
+        return new SpaceDevelopersOperationsLogging(defaultServicesOperations);
     }
 
     /**
+     * The returned object will have a logging decorator attached.
+     *
      * @return instance of the {@SpaceOperations} object
      */
     @Override
     public SpaceOperations createSpaceOperations() {
-        return new DefaultSpaceOperations(cfOperations);
+        DefaultSpaceOperations defaultSpaceOperations = new DefaultSpaceOperations(cfOperations);
+        return new SpaceOperationsLogging(defaultSpaceOperations);
     }
 
     /**
