@@ -170,7 +170,7 @@ public class SpaceManager implements AutoCloseable {
 
         // create operations instances that are needed by the space configurator
         servicesOperations = new ServicesOperations(cfOperations);
-        applicationsOperations = new ApplicationsOperations(cfOperations);
+        applicationsOperations = new ApplicationsOperations(cfOperations, false);
     }
 
     /**
@@ -226,7 +226,7 @@ public class SpaceManager implements AutoCloseable {
 
         List<Mono<Void>> resultingCreationRequests = applicationsToCreate.entrySet().stream()
                 .map(applicationEntry ->
-                        applicationsOperations.create(applicationEntry.getKey(), applicationEntry.getValue(), false))
+                        applicationsOperations.create(applicationEntry.getKey(), applicationEntry.getValue()))
                 .collect(Collectors.toList());
         return resultingCreationRequests;
     }
