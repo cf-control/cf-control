@@ -22,7 +22,7 @@ public class SpaceOperationsLogging implements SpaceOperations {
     public Mono<List<String>> getAll() {
         return this.spaceOperations.getAll()
                 .doOnSubscribe(subscription -> log.debug("Querying all spaces"))
-                .doOnSuccess(stringApplicationBeanMap -> log.debug("Querying spaces finished"));
+                .doOnSuccess(stringApplicationBeanMap -> log.debug("Querying all spaces finished"));
     }
 
     @Override

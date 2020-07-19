@@ -31,7 +31,7 @@ public class ApplicationsOperationsLogging implements ApplicationsOperations {
     public Mono<Map<String, ApplicationBean>> getAll() {
         return this.applicationsOperations.getAll()
                 .doOnSubscribe(subscription -> log.debug("Querying all applications"))
-                .doOnSuccess(stringApplicationBeanMap -> log.debug("Querying applications finished"));
+                .doOnSuccess(stringApplicationBeanMap -> log.debug("Querying all applications finished"));
     }
 
     @Override

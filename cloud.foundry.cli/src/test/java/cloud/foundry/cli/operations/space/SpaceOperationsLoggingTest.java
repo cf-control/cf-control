@@ -12,7 +12,6 @@ import static org.mockito.Mockito.*;
  */
 public class SpaceOperationsLoggingTest {
 
-
     private SpaceOperations spaceOpMock;
     private SpaceOperationsLogging spaceOpLogging;
 

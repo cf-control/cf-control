@@ -21,7 +21,7 @@ public class SpaceDevelopersOperationsLogging implements SpaceDevelopersOperatio
     public Mono<List<String>> getAll() {
         return this.spaceDevelopersOperations.getAll()
                 .doOnSubscribe(subscription -> log.debug("Querying all space developers"))
-                .doOnSuccess(stringApplicationBeanMap -> log.debug("Querying space developers finished"));
+                .doOnSuccess(stringApplicationBeanMap -> log.debug("Querying all space developers finished"));
     }
 
     @Override
