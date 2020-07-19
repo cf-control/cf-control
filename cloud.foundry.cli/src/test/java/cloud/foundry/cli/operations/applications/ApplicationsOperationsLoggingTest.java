@@ -10,6 +10,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
 
+/**
+ * Test for {@link ApplicationsOperationsLogging}
+ */
 public class ApplicationsOperationsLoggingTest {
 
     private ApplicationsOperations appOpMock;

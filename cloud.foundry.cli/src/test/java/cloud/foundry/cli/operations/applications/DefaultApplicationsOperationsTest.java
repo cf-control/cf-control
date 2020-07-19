@@ -1,4 +1,4 @@
-package cloud.foundry.cli.operations;
+package cloud.foundry.cli.operations.applications;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -15,7 +15,6 @@ import cloud.foundry.cli.mocking.CloudFoundryClientMockBuilder;
 import cloud.foundry.cli.mocking.DefaultCloudFoundryOperationsMockBuilder;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
-import cloud.foundry.cli.operations.applications.DefaultApplicationsOperations;
 import org.cloudfoundry.client.v3.Metadata;
 import org.cloudfoundry.client.v3.applications.CreateApplicationRequest;
 
