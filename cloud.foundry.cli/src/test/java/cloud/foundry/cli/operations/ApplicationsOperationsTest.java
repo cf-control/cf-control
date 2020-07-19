@@ -186,13 +186,12 @@ public class ApplicationsOperationsTest {
                 .setCloudFoundryClient(cfcMock)
                 .build();
 
-        ApplicationsOperations applicationsOperations = new ApplicationsOperations(dcfoMock);
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(dcfoMock, false);
 
         ApplicationBean applicationsBean = new ApplicationBean(appManifest, metadata);
         applicationsBean.setMeta("somemeta");
 
         //when
-        applicationsOperations.setAutoStart(false);
         Mono<Void> request = applicationsOperations.create(appManifest.getName(), applicationsBean);
         request.block();
 

@@ -101,10 +101,9 @@ public class ApplyController implements Callable<Integer> {
             }
 
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
-            ApplyLogic applyLogic = new ApplyLogic(cfOperations);
 
             log.info("Auto starting apps:", !noAutoStart);
-            applyLogic.setAutoStart(!noAutoStart);
+            ApplyLogic applyLogic = new ApplyLogic(cfOperations, noAutoStart);
 
             applyLogic.applyApplications(desiredConfigBean.getSpec().getApps());
 

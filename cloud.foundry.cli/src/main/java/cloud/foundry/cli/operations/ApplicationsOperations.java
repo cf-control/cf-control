@@ -42,17 +42,23 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
 
     private static final Log log = Log.getLog(ApplicationsOperations.class);
 
-    private boolean autoStart = true;
+    private boolean autoStart;
 
+    /**
+     * Sets auto start of the apps to true by default
+     * @param cloudFoundryOperations the cloud foundry operations instance
+     */
     public ApplicationsOperations(DefaultCloudFoundryOperations cloudFoundryOperations) {
-        super(cloudFoundryOperations);
+        this(cloudFoundryOperations, true);
     }
 
     /**
-     * Sets flag wether deployed or redeployed apps should start automatically.
-     * @param autoStart if the app should auto start
+     * Sets auto start of the apps to true by default
+     * @param cloudFoundryOperations the cloud foundry operations instance
+     * @param autoStart sets whether app should be started when deployed
      */
-    public void setAutoStart(boolean autoStart) {
+    public ApplicationsOperations(DefaultCloudFoundryOperations cloudFoundryOperations, boolean autoStart) {
+        super(cloudFoundryOperations);
         this.autoStart = autoStart;
     }
 

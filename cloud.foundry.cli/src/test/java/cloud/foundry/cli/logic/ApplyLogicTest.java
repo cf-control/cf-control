@@ -65,21 +65,6 @@ public class ApplyLogicTest {
         assertThrows(NullPointerException.class, () -> applyLogic.applySpaceDevelopers(null));
     }
 
-    @Test
-    public void testSetAutoStartSucceeds() {
-        ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
-
-        ApplicationsOperations applicationsOperations = mock(ApplicationsOperations.class);
-        applyLogic.setApplicationsOperations(applicationsOperations);
-
-        // when and then
-        applyLogic.setAutoStart(false);
-        verify(applicationsOperations, times(1)).setAutoStart(false);
-
-        reset(applicationsOperations);
-        applyLogic.setAutoStart(true);
-        verify(applicationsOperations, times(1)).setAutoStart(true);
-    }
 
     @Test
     public void testApplySpaceDevelopersAssignAndRemoveSpaceDevelopers() {
