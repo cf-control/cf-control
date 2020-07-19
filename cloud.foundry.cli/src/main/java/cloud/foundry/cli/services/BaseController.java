@@ -1,12 +1,6 @@
 package cloud.foundry.cli.services;
 
-import cloud.foundry.cli.crosscutting.exceptions.CreationException;
-import cloud.foundry.cli.crosscutting.exceptions.MissingCredentialsException;
-import cloud.foundry.cli.crosscutting.exceptions.GetException;
-import cloud.foundry.cli.crosscutting.exceptions.DiffException;
-import cloud.foundry.cli.crosscutting.exceptions.RefResolvingException;
-import cloud.foundry.cli.crosscutting.exceptions.UpdateException;
-import cloud.foundry.cli.crosscutting.exceptions.ApplyException;
+import cloud.foundry.cli.crosscutting.exceptions.*;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.RefResolver;
 import org.yaml.snakeyaml.constructor.ConstructorException;
@@ -106,6 +100,8 @@ public class BaseController implements Callable<Integer> {
                 log.error("Operation not supported/implemented:", ex.getMessage());
             } else if (ex instanceof MissingCredentialsException) {
                 log.error("Credentials missing:", ex.getMessage());
+            } else if (ex instanceof MissingTargetInformationException) {
+                log.error("Target information missing:", ex.getMessage());
             } else if (ex instanceof RefResolvingException) {
                 log.error("Failed to resolve " + RefResolver.REF_KEY, "occurrences:", ex.getMessage());
             } else if (ex instanceof ConstructorException) {
