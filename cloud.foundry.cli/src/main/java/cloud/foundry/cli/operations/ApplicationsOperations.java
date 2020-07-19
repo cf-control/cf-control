@@ -173,11 +173,11 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                         .applicationsV3()
                         .create(buildCreateApplicationRequest(spaceId, appName, bean))
                         .doOnSubscribe(subscription -> {
-                            log.debug("Creating application", appName);
+                            log.info("Creating application", appName);
                             log.debug("App's bean:", bean);
                             log.debug("App should be started:", shouldStart);
                         })
-                        .doOnSuccess(aVoid -> log.info("Creating application", appName, "completed"))
+                        .doOnSuccess(aVoid -> log.verbose("Creating application", appName, "completed"))
                         .then())
                 .then(this.cloudFoundryOperations
                 .applications()
@@ -195,7 +195,10 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
     private boolean whenServiceNotFound(Throwable throwable) {
         return throwable instanceof IllegalArgumentException
             && throwable.getMessage().contains("Service instance")
-            && throwable.getMessage().contains("could not be found");
+            && (
+                    throwable.getMessage().contains("could not be found") ||
+                    throwable.getMessage().contains("does not exist")
+               );
     }
 
     private CreateApplicationRequest buildCreateApplicationRequest(String spaceId,
@@ -466,7 +469,11 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
         return cloudFoundryOperations.services().unbind(unbindServiceRequest)
                 .doOnSubscribe(aVoid -> log.info("Unbinding app", applicationName, "from service", serviceName))
                 .doOnSuccess(aVoid -> log.verbose(
-                        "Unbinding app", applicationName, "from service", serviceName, "completed"));
+                        "Unbinding app", applicationName, "from service", serviceName, "completed"))
+                .onErrorStop()
+                .doOnError(this::whenServiceNotFound, (throwable) -> {
+                            log.warning("Could not unbind from service", serviceName + ":", throwable.getMessage());
+                        });
     }
 
     /**
