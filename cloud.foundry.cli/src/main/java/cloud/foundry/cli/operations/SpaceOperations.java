@@ -49,8 +49,8 @@ public class SpaceOperations extends AbstractOperations<DefaultCloudFoundryOpera
                 .name(spaceName)
                 .build();
         return this.cloudFoundryOperations.spaces().create(createSpaceRequest)
-                .doOnSubscribe(aVoid -> log.debug("Create space:", spaceName))
-                .doOnSuccess(aVoid -> log.info("Space created:", spaceName));
+                .doOnSubscribe(aVoid -> log.debug("Creating space", spaceName))
+                .doOnSuccess(aVoid -> log.verbose("Creating space", spaceName, "completed"));
     }
 
 }

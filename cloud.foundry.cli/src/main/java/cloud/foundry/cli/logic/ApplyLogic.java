@@ -9,9 +9,9 @@ import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
 import cloud.foundry.cli.crosscutting.exceptions.ApplyException;
-import cloud.foundry.cli.logic.apply.ApplicationRequestsPlaner;
-import cloud.foundry.cli.logic.apply.ServiceRequestsPlaner;
-import cloud.foundry.cli.logic.apply.SpaceDevelopersRequestsPlaner;
+import cloud.foundry.cli.logic.apply.ApplicationRequestsPlanner;
+import cloud.foundry.cli.logic.apply.ServiceRequestsPlanner;
+import cloud.foundry.cli.logic.apply.SpaceDevelopersRequestsPlanner;
 import cloud.foundry.cli.logic.diff.DiffResult;
 import cloud.foundry.cli.logic.diff.change.CfChange;
 import cloud.foundry.cli.logic.diff.change.container.CfContainerChange;
@@ -98,29 +98,31 @@ public class ApplyLogic {
     public void applySpaceDevelopers(@Nonnull List<String> desiredSpaceDevelopers) {
         checkNotNull(desiredSpaceDevelopers);
 
-        log.info("Fetching information about space developers...");
+        log.info("Fetching space developers data");
         List<String> liveSpaceDevelopers = this.getLogic.getSpaceDevelopers(spaceDevelopersOperations);
-        log.info("Information fetched.");
+        log.verbose("Fetching space developers data completed");
 
         ConfigBean desiredSpaceDevelopersConfig = createConfigFromSpaceDevelopers(desiredSpaceDevelopers);
         ConfigBean liveSpaceDevelopersConfig = createConfigFromSpaceDevelopers(liveSpaceDevelopers);
 
         // compare entire configs as the diff wrapper is only suited for diff trees of these
-        log.info("Comparing the space developers...");
+        log.info("Diffing space developers");
         DiffResult wrappedDiff = this.diffLogic.createDiffResult(liveSpaceDevelopersConfig,
                 desiredSpaceDevelopersConfig);
-        log.info("Space developers compared.");
+        log.verbose("Diffing space developers completed");
 
         CfContainerChange spaceDevelopersChange = wrappedDiff.getSpaceDevelopersChange();
         if (spaceDevelopersChange == null) {
-            log.info("There is nothing to apply");
+            log.info("No changes detected, nothing to apply");
         } else {
             Flux<Void> spaceDevelopersRequests = Flux.just(spaceDevelopersChange)
-                    .flatMap(spaceDeveloperChange -> SpaceDevelopersRequestsPlaner
+                    .flatMap(spaceDeveloperChange -> SpaceDevelopersRequestsPlanner
                             .createSpaceDevelopersRequests(spaceDevelopersOperations, spaceDeveloperChange))
                     .onErrorContinue(log::warning);
-            log.info("Applying changes to space developers...");
+            
+            log.info("Applying changes to space developers");
             spaceDevelopersRequests.blockLast();
+            log.verbose("Changes to space developers applied");
         }
     }
 
@@ -137,34 +139,34 @@ public class ApplyLogic {
     public void applyApplications(@Nonnull Map<String, ApplicationBean> desiredApplications) {
         checkNotNull(desiredApplications);
 
-        log.info("Fetching information about applications...");
+        log.info("Fetching applications data");
         Map<String, ApplicationBean> liveApplications = this.getLogic.getApplications(applicationsOperations);
-        log.info("Information fetched.");
+        log.verbose("Fetched space developers data");
 
         // that way only the applications of the live system are compared in the diff
         ConfigBean desiredApplicationsConfig = createConfigFromApplications(desiredApplications);
         ConfigBean liveApplicationsConfig = createConfigFromApplications(liveApplications);
 
         // compare entire configs as the diff wrapper is only suited for diff trees of these
-        log.verbose("Comparing the applications...");
+        log.info("Diffing applications");
         DiffResult diffResult = this.diffLogic.createDiffResult(liveApplicationsConfig, desiredApplicationsConfig);
-        log.verbose("Applications compared.");
+        log.verbose("Diffing applications completed");
 
         Map<String, List<CfChange>> allApplicationChanges = diffResult.getApplicationChanges();
 
         if (allApplicationChanges == null || allApplicationChanges.isEmpty()) {
-            log.info("There are no differences to apply.");
+            log.info("No changes detected, nothing to apply");
         } else {
-            ApplicationRequestsPlaner requestsPlaner = new ApplicationRequestsPlaner(applicationsOperations);
+            ApplicationRequestsPlanner requestsPlanner = new ApplicationRequestsPlanner(applicationsOperations);
 
             Flux<Void> applicationRequests = Flux.fromIterable(allApplicationChanges.entrySet())
-                    .flatMap(appChangeEntry -> requestsPlaner.createApplyRequests(appChangeEntry.getKey(),
+                    .flatMap(appChangeEntry -> requestsPlanner.createApplyRequests(appChangeEntry.getKey(),
                             appChangeEntry.getValue()))
                     .onErrorContinue(log::warning);
 
-            log.info("Applying changes to applications...");
-
+            log.info("Applying changes to applications");
             applicationRequests.blockLast();
+            log.verbose("Changes to space developers applied");
         }
     }
 
@@ -178,30 +180,31 @@ public class ApplyLogic {
     public void applyServices(@Nonnull Map<String, ServiceBean> desiredServices) {
         checkNotNull(desiredServices);
 
-        log.info("Fetching information about services...");
+        log.info("Fetching services data");
         Map<String, ServiceBean> liveServices = this.getLogic.getServices(servicesOperations);
-        log.info("Information fetched.");
+        log.verbose("Fetching services data completed");
 
         // that way only the applications of the live system are compared in the diff
         ConfigBean desiredServicesConfig = createConfigFromServices(desiredServices);
         ConfigBean liveServicesConfig = createConfigFromServices(liveServices);
 
         // compare entire configs as the diff wrapper is only suited for diff trees of these
-        log.verbose("Comparing the services...");
+        log.info("Diffing services");
         DiffResult diffResult = this.diffLogic.createDiffResult(liveServicesConfig, desiredServicesConfig);
-        log.verbose("Services compared.");
+        log.verbose("Diffing space developers completed");
 
         Map<String, List<CfChange>> allServicesChanges = diffResult.getServiceChanges();
 
+        // TODO: find out how to detect "no changes" condition and log it accordingly
+        log.info("Applying changes to applications");
         Flux<Void> serviceRequests = Flux.fromIterable(allServicesChanges.entrySet())
                 .flatMap( serviceChangeEntry ->
-                        ServiceRequestsPlaner.createApplyRequests(servicesOperations,
+                        ServiceRequestsPlanner.createApplyRequests(servicesOperations,
                                 serviceChangeEntry.getKey(),
                                 serviceChangeEntry.getValue()))
                 .onErrorContinue(log::warning);
         serviceRequests.blockLast();
-
-        log.info("Applying changes to services...");
+        log.verbose("Applying changes to applications completed");
     }
 
     /**
@@ -215,23 +218,25 @@ public class ApplyLogic {
         checkNotNull(desiredSpaceName);
 
         Mono<List<String>> getAllRequest = spaceOperations.getAll();
-        log.info("Fetching all space names...");
 
+        log.info("Fetching all spaces' names");
         List<String> spaceNames;
         try {
             spaceNames = getAllRequest.block();
         } catch (Exception e) {
             throw new GetException(e);
         }
+        log.verbose("Fetched spaces' names");
 
         if (!spaceNames.contains(desiredSpaceName)) {
-            log.info("Creating space with name:", desiredSpaceName);
+            log.info("Space", desiredSpaceName, "not found, creating");
             Mono<Void> createRequest = spaceOperations.create(desiredSpaceName);
             try {
                 createRequest.block();
             } catch (Exception e) {
                 throw new ApplyException(e);
             }
+            log.verbose("Space", desiredSpaceName, "created");
         } else {
             log.info("Space with name", desiredSpaceName, "already exists");
         }

@@ -41,7 +41,6 @@ public class ApplyController implements Callable<Integer> {
                     "in the given yaml file, but not in your cf instance, or revoke the space developer " +
                     "if its in the cf instance, but not in the yaml file.")
     static class ApplySpaceDevelopersCommand implements Callable<Integer> {
-
         private static final Log log = Log.getLog(ApplyApplicationCommand.class);
 
         @Mixin
@@ -52,13 +51,13 @@ public class ApplyController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            log.info("Interpreting YAML file...");
+            log.info("Interpreting YAML file");
             ConfigBean desiredConfigBean = YamlMapper.loadBeanFromFile(yamlCommandOptions.getYamlFilePath(),
                     ConfigBean.class);
-            log.verbose("YAML file interpreted.");
+            log.verbose("Interpreting YAML file completed");
 
             if (desiredConfigBean.getSpec() == null || desiredConfigBean.getSpec().getSpaceDevelopers() == null) {
-                log.info("No spaceDevelopers node specified in the yaml file. Nothing to apply...");
+                log.info("No space developers data in YAML file, nothing to apply");
                 return 0;
             }
 
@@ -89,14 +88,13 @@ public class ApplyController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-
-            log.info("Interpreting YAML file...");
+            log.info("Interpreting YAML file");
             ConfigBean desiredConfigBean = YamlMapper.loadBeanFromFile(yamlCommandOptions.getYamlFilePath(),
                     ConfigBean.class);
-            log.verbose("YAML file interpreted.");
+            log.verbose("Interpreting YAML file completed");
 
             if (desiredConfigBean.getSpec() == null || desiredConfigBean.getSpec().getApps() == null) {
-                log.info("No apps node specified in the yaml file. Nothing to apply...");
+                log.info("No apps data in YAML file, nothing to apply");
                 return 0;
             }
 
@@ -104,6 +102,9 @@ public class ApplyController implements Callable<Integer> {
 
             log.verbose("Auto starting apps:", !noAutoStart);
             ApplyLogic applyLogic = new ApplyLogic(cfOperations, !noAutoStart);
+
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+            ApplyLogic applyLogic = new ApplyLogic(cfOperations);
 
             applyLogic.applyApplications(desiredConfigBean.getSpec().getApps());
 
@@ -129,13 +130,13 @@ public class ApplyController implements Callable<Integer> {
 
             ApplyLogic applyLogic = new ApplyLogic(cfOperations);
 
-            log.verbose("Interpreting YAML file...");
+            log.info("Interpreting YAML file");
             ConfigBean desiredConfigBean = YamlMapper.loadBeanFromFile(yamlCommandOptions.getYamlFilePath(),
                     ConfigBean.class);
-            log.verbose("YAML file interpreted.");
+            log.verbose("Interpreting YAML file completed");
 
             if (desiredConfigBean.getSpec() == null || desiredConfigBean.getSpec().getServices() == null) {
-                log.info("No services node specified in the yaml file. Nothing to apply...");
+                log.info("No services data in YAML file, nothing to apply");
                 return 0;
             }
 
@@ -162,7 +163,7 @@ public class ApplyController implements Callable<Integer> {
             if (desiredSpace != null) {
                 applyLogic.applySpace(desiredSpace);
             } else {
-                log.info("No space specified.");
+                log.info("No space specified");
             }
 
             return 0;

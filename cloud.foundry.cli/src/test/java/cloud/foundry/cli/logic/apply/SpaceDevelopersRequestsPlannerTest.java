@@ -21,9 +21,9 @@ import reactor.test.StepVerifier;
 import org.junit.jupiter.api.Test;
 
 /**
- * Test for {@link SpaceDevelopersRequestsPlaner}
+ * Test for {@link SpaceDevelopersRequestsPlanner}
  */
-public class SpaceDevelopersRequestsPlanerTest {
+public class SpaceDevelopersRequestsPlannerTest {
 
     @Test
     public void createSpaceDevelopersRequestsWithCfContainerChangeAcceptMethodCalled() {
@@ -61,7 +61,7 @@ public class SpaceDevelopersRequestsPlanerTest {
         when(mockSpaceDevelopersOperations.remove(removeUserName, spaceId)).thenReturn(removeMonoMock);
 
         // when
-        Flux<Void> requests = SpaceDevelopersRequestsPlaner
+        Flux<Void> requests = SpaceDevelopersRequestsPlanner
                 .createSpaceDevelopersRequests(mockSpaceDevelopersOperations, mockSpaceDevelopersChange);
 
         // then
@@ -83,7 +83,7 @@ public class SpaceDevelopersRequestsPlanerTest {
 
         // then - when
         assertThrows(NullPointerException.class,
-                () -> SpaceDevelopersRequestsPlaner
+                () -> SpaceDevelopersRequestsPlanner
                         .createSpaceDevelopersRequests(mockSpaceDevelopersOperations, spaceDevelopersChange));
     }
 
@@ -97,7 +97,7 @@ public class SpaceDevelopersRequestsPlanerTest {
 
         // then - when
         assertThrows(NullPointerException.class,
-                () -> SpaceDevelopersRequestsPlaner
+                () -> SpaceDevelopersRequestsPlanner
                         .createSpaceDevelopersRequests(mockSpaceDevelopersOperations, spaceDevelopersChange));
     }
 

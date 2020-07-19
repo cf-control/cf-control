@@ -31,7 +31,7 @@ import reactor.test.StepVerifier;
 import java.util.Arrays;
 import java.util.LinkedList;
 
-class ApplicationRequestPlanerTest {
+class ApplicationRequestPlannerTest {
 
     @Test
     void applyTest_WithMultipleNewObject_AcceptMethodCallOnOnlyOne() {
@@ -53,10 +53,10 @@ class ApplicationRequestPlanerTest {
         cfChanges.add(newObject);
         cfChanges.add(newObject2);
 
-        ApplicationRequestsPlaner requestsPlaner = new ApplicationRequestsPlaner(appOperations);
+        ApplicationRequestsPlanner requestsPlanner = new ApplicationRequestsPlanner(appOperations);
 
         // when
-        Flux<Void> requests = requestsPlaner.createApplyRequests(appName, cfChanges);
+        Flux<Void> requests = requestsPlanner.createApplyRequests(appName, cfChanges);
 
         // then
         assertThat(requests, notNullValue());
@@ -73,11 +73,11 @@ class ApplicationRequestPlanerTest {
         CfNewObject newObject = new CfNewObject(serviceBeanMock, "", Arrays.asList("path"));
         cfChanges.add(newObject);
 
-        ApplicationRequestsPlaner requestsPlaner = new ApplicationRequestsPlaner(appOperations);
+        ApplicationRequestsPlanner requestsPlanner = new ApplicationRequestsPlanner(appOperations);
 
         // when
         assertThrows(ApplyException.class,
-            () -> requestsPlaner.createApplyRequests(appName, cfChanges));
+            () -> requestsPlanner.createApplyRequests(appName, cfChanges));
     }
 
     @Test
@@ -93,10 +93,10 @@ class ApplicationRequestPlanerTest {
         Mono<Void> monoMock = Mono.just(voidMock);
         when(appOperations.create(anyString(), any())).thenReturn(monoMock);
 
-        ApplicationRequestsPlaner requestsPlaner = new ApplicationRequestsPlaner(appOperations);
+        ApplicationRequestsPlanner requestsPlanner = new ApplicationRequestsPlanner(appOperations);
 
         // when
-        Flux<Void> requests = requestsPlaner.createApplyRequests(appName, cfChanges);
+        Flux<Void> requests = requestsPlanner.createApplyRequests(appName, cfChanges);
 
         // then
         verify(appOperations, times(1)).create(appName, appBeanMock);
@@ -117,11 +117,11 @@ class ApplicationRequestPlanerTest {
         cfChanges.add(newObject);
         doThrow(new CreationException("Test")).when(appOperations).create(appName, appBeanMock);
 
-        ApplicationRequestsPlaner requestsPlaner = new ApplicationRequestsPlaner(appOperations);
+        ApplicationRequestsPlanner requestsPlanner = new ApplicationRequestsPlanner(appOperations);
 
         // when
         ApplyException applyException = assertThrows(ApplyException.class,
-            () -> requestsPlaner.createApplyRequests(appName,  cfChanges));
+            () -> requestsPlanner.createApplyRequests(appName,  cfChanges));
         // then
         assertThat(applyException.getCause(), is(instanceOf(CreationException.class)));
     }
@@ -140,10 +140,10 @@ class ApplicationRequestPlanerTest {
         Mono<Void> monoMock = Mono.just(voidMock);
         when(appOperations.remove(appName)).thenReturn(monoMock);
 
-        ApplicationRequestsPlaner requestsPlaner = new ApplicationRequestsPlaner(appOperations);
+        ApplicationRequestsPlanner requestsPlanner = new ApplicationRequestsPlanner(appOperations);
 
         // when
-        Flux<Void> requests = requestsPlaner.createApplyRequests(appName, cfChanges);
+        Flux<Void> requests = requestsPlanner.createApplyRequests(appName, cfChanges);
 
         // then
         verify(appOperations, times(1)).remove(appName);
@@ -163,11 +163,11 @@ class ApplicationRequestPlanerTest {
         CfRemovedObject removedObject = new CfRemovedObject(serviceBeanMock, "propertyName", Arrays.asList("path"));
         cfChanges.add(removedObject);
 
-        ApplicationRequestsPlaner requestsPlaner = new ApplicationRequestsPlaner(appOperations);
+        ApplicationRequestsPlanner requestsPlanner = new ApplicationRequestsPlanner(appOperations);
 
         // when
         assertThrows(ApplyException.class,
-            () -> requestsPlaner.createApplyRequests(appName, cfChanges));
+            () -> requestsPlanner.createApplyRequests(appName, cfChanges));
     }
 
 
@@ -191,10 +191,10 @@ class ApplicationRequestPlanerTest {
                 "4");
         cfChanges.add(changedObject);
 
-        ApplicationRequestsPlaner requestsPlaner = new ApplicationRequestsPlaner(appOperations);
+        ApplicationRequestsPlanner requestsPlanner = new ApplicationRequestsPlanner(appOperations);
 
         // when
-        Flux<Void> requests = requestsPlaner.createApplyRequests(appName, cfChanges);
+        Flux<Void> requests = requestsPlanner.createApplyRequests(appName, cfChanges);
 
         // then
         assertThat(requests, notNullValue());
@@ -237,10 +237,10 @@ class ApplicationRequestPlanerTest {
 
         cfChanges.add(envVarsChange);
 
-        ApplicationRequestsPlaner requestsPlaner = new ApplicationRequestsPlaner(appOperations);
+        ApplicationRequestsPlanner requestsPlanner = new ApplicationRequestsPlanner(appOperations);
 
         // when
-        Flux<Void> requests = requestsPlaner.createApplyRequests(appName, cfChanges);
+        Flux<Void> requests = requestsPlanner.createApplyRequests(appName, cfChanges);
 
         // then
         assertThat(requests, notNullValue());
@@ -285,10 +285,10 @@ class ApplicationRequestPlanerTest {
 
         cfChanges.add(servicesChanges);
 
-        ApplicationRequestsPlaner requestsPlaner = new ApplicationRequestsPlaner(appOperations);
+        ApplicationRequestsPlanner requestsPlanner = new ApplicationRequestsPlanner(appOperations);
 
         // when
-        Flux<Void> requests = requestsPlaner.createApplyRequests(appName, cfChanges);
+        Flux<Void> requests = requestsPlanner.createApplyRequests(appName, cfChanges);
 
         // then
         assertThat(requests, notNullValue());
@@ -330,10 +330,10 @@ class ApplicationRequestPlanerTest {
 
         cfChanges.add(servicesChanges);
 
-        ApplicationRequestsPlaner requestsPlaner = new ApplicationRequestsPlaner(appOperations);
+        ApplicationRequestsPlanner requestsPlanner = new ApplicationRequestsPlanner(appOperations);
 
         // when
-        Flux<Void> requests = requestsPlaner.createApplyRequests(appName, cfChanges);
+        Flux<Void> requests = requestsPlanner.createApplyRequests(appName, cfChanges);
 
         // then
         assertThat(requests, notNullValue());
@@ -368,10 +368,10 @@ class ApplicationRequestPlanerTest {
 
         cfChanges.add(healthCheckTypeChange);
 
-        ApplicationRequestsPlaner requestsPlaner = new ApplicationRequestsPlaner(appOperations);
+        ApplicationRequestsPlanner requestsPlanner = new ApplicationRequestsPlanner(appOperations);
 
         // when
-        Flux<Void> requests = requestsPlaner.createApplyRequests(appName, cfChanges);
+        Flux<Void> requests = requestsPlanner.createApplyRequests(appName, cfChanges);
 
         // then
         assertThat(requests, notNullValue());
@@ -429,10 +429,10 @@ class ApplicationRequestPlanerTest {
 
         cfChanges.add(envVarsChange);
 
-        ApplicationRequestsPlaner requestsPlaner = new ApplicationRequestsPlaner(appOperations);
+        ApplicationRequestsPlanner requestsPlanner = new ApplicationRequestsPlanner(appOperations);
 
         // when
-        Flux<Void> requests = requestsPlaner.createApplyRequests(appName, cfChanges);
+        Flux<Void> requests = requestsPlanner.createApplyRequests(appName, cfChanges);
 
         // then
         assertThat(requests, notNullValue());
@@ -451,10 +451,10 @@ class ApplicationRequestPlanerTest {
         String appName = "testApp";
         LinkedList<CfChange> cfChanges = new LinkedList<>();
 
-        ApplicationRequestsPlaner requestsPlaner = new ApplicationRequestsPlaner(appOperations);
+        ApplicationRequestsPlanner requestsPlanner = new ApplicationRequestsPlanner(appOperations);
 
         // when
-        Flux<Void> requests = requestsPlaner.createApplyRequests(appName, cfChanges);
+        Flux<Void> requests = requestsPlanner.createApplyRequests(appName, cfChanges);
 
         // then
         assertThat(requests, notNullValue());
