@@ -34,9 +34,6 @@ import java.util.Map;
 
 public class ServicesOperationsTest {
 
-    private static final String USER_PROVIDED_SERVICE_INSTANCE = "user_provided_service_instance";
-    private static final String MANAGER_PROVIDED_SERVICE_INSTANCE = "manager_provided_service_instance";
-
     @Test
     public void testGetServicesWithMockData() {
         // given
@@ -169,8 +166,6 @@ public class ServicesOperationsTest {
         mockDeleteServiceKey(cfOperationsMock, servicesMock);
         mockDeleteServiceInstance(cfOperationsMock, servicesMock);
 
-        ServicesOperations servicesOperations = new ServicesOperations(cfOperationsMock);
-
         // for create service instance
         ServiceBean serviceBeanMock = mockServiceBean();
         Mono<Void> mono = Mono.empty();
@@ -179,6 +174,7 @@ public class ServicesOperationsTest {
             .thenReturn(mono);
         
         // when
+        ServicesOperations servicesOperations = new ServicesOperations(cfOperationsMock);
         Mono<Void> request = servicesOperations.update("someservice", serviceBeanMock);
         request.block();
 
