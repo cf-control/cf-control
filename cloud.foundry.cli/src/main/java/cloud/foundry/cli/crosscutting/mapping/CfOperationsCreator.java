@@ -85,8 +85,10 @@ public class CfOperationsCreator {
     }
 
     private static void logReplacingTargetOption(String informationName, String targetValue, String argumentValue) {
-        log.verbose("Replacing the " + informationName + " '" + targetValue + "' from the target section " +
-                "with the " + informationName + " '" + argumentValue + "' specified in the commandline arguments");
+        if (targetValue != null) {
+            log.verbose("Replacing the " + informationName + " '" + targetValue + "' from the target section " +
+                    "with the " + informationName + " '" + argumentValue + "' specified in the commandline arguments");
+        }
     }
 
     private static void checkTargetIsFullySpecified(TargetBean targetBean) {
