@@ -1,4 +1,4 @@
-package cloud.foundry.cli.operations;
+package cloud.foundry.cli.operations.space;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import cloud.foundry.cli.operations.applications.ApplicationsOperationsLogging;
 import cloud.foundry.cli.operations.space.DefaultSpaceOperations;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.spaces.CreateSpaceRequest;
@@ -18,7 +19,9 @@ import reactor.core.publisher.Mono;
 import java.util.Arrays;
 import java.util.List;
 
-
+/**
+ * Test for {@link DefaultSpaceOperations}
+ */
 public class DefaultSpaceOperationsTest {
 
     @Test

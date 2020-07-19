@@ -51,9 +51,7 @@ public class DefaultSpaceOperations extends AbstractOperations<DefaultCloudFound
         CreateSpaceRequest createSpaceRequest = CreateSpaceRequest.builder()
                 .name(spaceName)
                 .build();
-        return this.cloudFoundryOperations.spaces().create(createSpaceRequest)
-                .doOnSubscribe(aVoid -> log.debug("Creating space", spaceName))
-                .doOnSuccess(aVoid -> log.verbose("Creating space", spaceName, "completed"));
+        return this.cloudFoundryOperations.spaces().create(createSpaceRequest);
     }
 
 }
