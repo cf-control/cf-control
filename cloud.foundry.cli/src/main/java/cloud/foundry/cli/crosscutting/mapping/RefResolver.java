@@ -86,7 +86,7 @@ public class RefResolver implements YamlTreeVisitor {
         String filePath = extractFilePath(refValue);
         YamlPointer yamlPointer = extractYamlPointer(refValue);
 
-        String parentYamlFileDirectoryPath = Paths.get(parentYamlFilePath).getParent().toAbsolutePath().toString();
+        String parentYamlFileDirectoryPath = Paths.get(parentYamlFilePath).toAbsolutePath().getParent().toString();
         String absoluteFilePath;
 
         try {
