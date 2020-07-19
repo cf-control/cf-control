@@ -9,8 +9,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
 
-import cloud.foundry.cli.crosscutting.exceptions.ApplyException;
-import cloud.foundry.cli.crosscutting.exceptions.GetException;
 import cloud.foundry.cli.crosscutting.mapping.beans.*;
 
 import cloud.foundry.cli.operations.*;
@@ -32,30 +30,55 @@ public class ApplyLogicTest {
     }
 
     @Test
-    public void testApplyAllOnNullParametersThrowsException() {
+    public void testApplyOnNullParametersThrowsException() {
         ApplyLogic applyLogic =  new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
         assertThrows(NullPointerException.class, () -> applyLogic.apply(null, new LoginCommandOptions()));
         assertThrows(NullPointerException.class, () -> applyLogic.apply(new ConfigBean(), null));
     }
 
     @Test
-    public void testApplyAllNothingToApply() {
-        // given
-        ConfigBean configBean = new ConfigBean();
-        configBean.setSpec(new SpecBean());
-        configBean.setTarget(new TargetBean());
+    public void testApplyOnNulLTargetThrowsException() {
+        ApplyLogic applyLogic =  new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
+        ConfigBean desiredConfig = new ConfigBean();
 
-        ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
+        assertThrows(NullPointerException.class, () -> applyLogic.apply(desiredConfig, new LoginCommandOptions()));
+    }
+
+    @Test
+    public void testApplyOnNullSpaceThrowsException() {
+        ApplyLogic applyLogic =  new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
+        ConfigBean desiredConfig = new ConfigBean();
+        desiredConfig.setTarget(new TargetBean());
+
+        assertThrows(NullPointerException.class, () -> applyLogic.apply(new ConfigBean(), null));
+    }
+
+    @Test
+    public void testApplyNothingToApply() {
+        // given
+        ConfigBean desiredConfigBean = new ConfigBean();
+        desiredConfigBean.setSpec(new SpecBean());
+        TargetBean desiredTargetBean = new TargetBean();
+        desiredTargetBean.setSpace("space");
+        desiredConfigBean.setTarget(desiredTargetBean);
+
+        DefaultCloudFoundryOperations dcfoMock = mock(DefaultCloudFoundryOperations.class);
+        ApplyLogic applyLogic = new ApplyLogic(dcfoMock);
 
         GetLogic getLogicMock = mock(GetLogic.class);
-        when(getLogicMock.getAll(any(),any(), any(), any(), any())).thenReturn(configBean);
+        when(getLogicMock.getAll(any(),any(), any(), any(), any())).thenReturn(desiredConfigBean);
+
+        SpaceOperations spaceOperationsMock = mock(SpaceOperations.class);
+        when(spaceOperationsMock.getAll()).thenReturn(Mono.just(Collections.singletonList("space")));
 
         applyLogic.setGetLogic(getLogicMock);
+        applyLogic.setSpaceOperations(spaceOperationsMock);
 
         // when
-        applyLogic.apply(configBean, new LoginCommandOptions());
+        applyLogic.apply(desiredConfigBean, new LoginCommandOptions());
 
         // then
+        verify(spaceOperationsMock, times(1)).getAll();
         verify(getLogicMock, times(1)).getAll(any(SpaceDevelopersOperations.class),
                 any(ServicesOperations.class),
                 any(ApplicationsOperations.class),
@@ -64,7 +87,42 @@ public class ApplyLogicTest {
     }
 
     @Test
-    public void testApplyAllWithDifference() {
+    public void testApplyCreatesSpaceWhenNotExistingAndSkipsGetAll() {
+        // given
+        ConfigBean desiredConfigBean = new ConfigBean();
+        desiredConfigBean.setSpec(new SpecBean());
+        TargetBean desiredTargetBean = new TargetBean();
+        desiredTargetBean.setSpace("space");
+        desiredConfigBean.setTarget(desiredTargetBean);
+
+        DefaultCloudFoundryOperations dcfoMock = mock(DefaultCloudFoundryOperations.class);
+        ApplyLogic applyLogic = new ApplyLogic(dcfoMock);
+
+        GetLogic getLogicMock = mock(GetLogic.class);
+        when(getLogicMock.getAll(any(),any(), any(), any(), any())).thenReturn(desiredConfigBean);
+
+        SpaceOperations spaceOperationsMock = mock(SpaceOperations.class);
+        when(spaceOperationsMock.getAll()).thenReturn(Mono.just(Collections.emptyList()));
+        when(spaceOperationsMock.create(anyString())).thenReturn(Mono.empty());
+
+        applyLogic.setGetLogic(getLogicMock);
+        applyLogic.setSpaceOperations(spaceOperationsMock);
+
+        // when
+        applyLogic.apply(desiredConfigBean, new LoginCommandOptions());
+
+        // then
+        verify(spaceOperationsMock, times(1)).getAll();
+        verify(spaceOperationsMock, times(1)).create("space");
+        verify(getLogicMock, times(0)).getAll(any(SpaceDevelopersOperations.class),
+                any(ServicesOperations.class),
+                any(ApplicationsOperations.class),
+                any(ClientOperations.class),
+                any(LoginCommandOptions.class));
+    }
+
+    @Test
+    public void testApplyWithDifference() {
         // given
         // create the live config
         ConfigBean liveConfigBean = new ConfigBean();
@@ -107,17 +165,23 @@ public class ApplyLogicTest {
         ServicesOperations servicesOperations = mock(ServicesOperations.class);
         when(servicesOperations.create(anyString(), any())).thenReturn(Mono.empty());
 
+        // mock space operations
+        SpaceOperations spaceOperationsMock = mock(SpaceOperations.class);
+        when(spaceOperationsMock.getAll()).thenReturn(Mono.just(Collections.singletonList("space")));
+
         ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
 
         applyLogic.setGetLogic(getLogicMock);
         applyLogic.setSpaceDevelopersOperations(spaceDevelopersOperations);
         applyLogic.setApplicationsOperations(applicationsOperations);
         applyLogic.setServicesOperations(servicesOperations);
+        applyLogic.setSpaceOperations(spaceOperationsMock);
 
         // when
         applyLogic.apply(desiredConfigBean, new LoginCommandOptions());
 
         // then
+        verify(spaceOperationsMock, times(1)).getAll();
         verify(getLogicMock, times(1)).getAll(any(SpaceDevelopersOperations.class),
                 any(ServicesOperations.class),
                 any(ApplicationsOperations.class),
@@ -129,108 +193,5 @@ public class ApplyLogicTest {
         verify(servicesOperations, times(1)).create(eq("service"), any(ServiceBean.class));
     }
 
-    @Test
-    public void testApplySpaceCreatesSpace() {
-        // given
-        String desiredSpaceName = "testName";
-        SpaceOperations spaceOperationsMock = mock(SpaceOperations.class);
-
-        List<String> presentSpaces = Arrays.asList("space1", "space2");
-        when(spaceOperationsMock.getAll()).thenReturn(Mono.just(presentSpaces));
-
-        Mono<Void> resultingMono = mock(Mono.class);
-        when(spaceOperationsMock.create(desiredSpaceName)).thenReturn(resultingMono);
-
-        // the constructor parameters won't be used by apply space method, because it uses
-        // dependency injection regarding space operations
-        ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
-        applyLogic.setSpaceOperations(spaceOperationsMock);
-
-        // when
-        applyLogic.applySpace(desiredSpaceName);
-
-        // then
-        verify(resultingMono).block();
-    }
-
-    @Test
-    public void testApplySpaceWithSpaceAlreadyExisting() {
-        // given
-        String desiredSpaceName = "testName";
-        SpaceOperations spaceOperationsMock = mock(SpaceOperations.class);
-
-        List<String> presentSpaces = Arrays.asList("testName", "otherSpace");
-        when(spaceOperationsMock.getAll()).thenReturn(Mono.just(presentSpaces));
-
-        Mono<Void> resultingMono = mock(Mono.class);
-        when(spaceOperationsMock.create(desiredSpaceName)).thenReturn(resultingMono);
-
-        // the constructor parameters won't be used by apply space method, because it uses DI
-        // regarding space operations.
-        ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
-        applyLogic.setSpaceOperations(spaceOperationsMock);
-
-        // when
-        applyLogic.applySpace(desiredSpaceName);
-
-        // then
-        verify(resultingMono, never()).block();
-    }
-
-    @Test
-    public void testApplySpaceWithGetSpaceNamesFailingThrowsGetException() {
-        // given
-        String desiredSpaceName = "testName";
-        SpaceOperations spaceOperationsMock = mock(SpaceOperations.class);
-
-        Mono<List<String>> getRequestMock = mock(Mono.class);
-        when(spaceOperationsMock.getAll()).thenReturn(getRequestMock);
-        when(getRequestMock.block()).thenThrow(new RuntimeException("Get Space Names Failing"));
-
-        // the constructor parameters won't be used by apply space method, because it uses DI
-        // regarding space operations.
-        ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
-        applyLogic.setSpaceOperations(spaceOperationsMock);
-
-        // when + then
-        assertThrows(GetException.class, () ->
-                applyLogic.applySpace(desiredSpaceName));
-    }
-
-    @Test
-    public void testApplySpaceWithCreateSpaceFailingThrowsApplyException() {
-        // given
-        String desiredSpaceName = "testName";
-        SpaceOperations spaceOperationsMock = mock(SpaceOperations.class);
-
-        List<String> presentSpaces = Arrays.asList("space1", "space2");
-        when(spaceOperationsMock.getAll()).thenReturn(Mono.just(presentSpaces));
-
-        Mono<Void> resultingMono = mock(Mono.class);
-        when(spaceOperationsMock.create(desiredSpaceName)).thenReturn(resultingMono);
-        when(resultingMono.block()).thenThrow(new RuntimeException("Create space failing"));
-
-        // the constructor parameters won't be used by apply space method, because it uses DI
-        // regarding space operations.
-        ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
-        applyLogic.setSpaceOperations(spaceOperationsMock);
-
-        // when + then
-        assertThrows(ApplyException.class, () ->
-                applyLogic.applySpace(desiredSpaceName));
-    }
-
-    @Test
-    public void testApplySpaceWithNullValuesAsArgumentsThrowsNullPointerException() {
-        // given
-        ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
-
-        SpaceOperations spaceOperationsMock = mock(SpaceOperations.class);
-        applyLogic.setSpaceOperations(spaceOperationsMock);
-
-        // when + then
-        assertThrows(NullPointerException.class, () ->
-                applyLogic.applySpace(null));
-    }
 
 }

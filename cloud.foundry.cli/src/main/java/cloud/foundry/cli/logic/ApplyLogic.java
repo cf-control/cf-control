@@ -179,7 +179,7 @@ public class ApplyLogic {
                 throw new RuntimeException("Failed to apply configuration: exceptions thrown during execution");
             }
 
-        }catch (Exception ex) {
+        } catch (Exception ex) {
             throw new ApplyException(ex);
         }
     }

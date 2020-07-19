@@ -16,7 +16,6 @@ import cloud.foundry.cli.mocking.DefaultCloudFoundryOperationsMockBuilder;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import org.cloudfoundry.client.v3.Metadata;
-import org.cloudfoundry.client.v3.applications.CreateApplicationRequest;
 
 import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.client.v3.applications.ApplicationsV3;
