@@ -53,7 +53,6 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
     }
 
     /**
-     * Sets auto start of the apps to true by default
      * @param cloudFoundryOperations the cloud foundry operations instance
      * @param autoStart sets whether app should be started when deployed
      */
