@@ -5,13 +5,11 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import cloud.foundry.cli.crosscutting.exceptions.RefResolvingException;
+import cloud.foundry.cli.crosscutting.exceptions.YamlParsingException;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
 import org.junit.jupiter.api.Test;
-import org.yaml.snakeyaml.constructor.ConstructorException;
-import org.yaml.snakeyaml.parser.ParserException;
-import org.yaml.snakeyaml.scanner.ScannerException;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -47,8 +45,10 @@ public class YamlMapperTest {
     public void testResolveYamlFile() throws IOException {
         //given
         String yamlFilePath = "./src/test/resources/refresolver/RemoteRef.yaml";
+
         //when
         String resolvedYamlFileContent = YamlMapper.resolveYamlFile(yamlFilePath);
+
         //then
         assertThat(resolvedYamlFileContent, is(
                 "me:\n" +
@@ -81,30 +81,21 @@ public class YamlMapperTest {
     }
 
     @Test
-    public void testInterpretBeanThrowsConstructorException() {
+    public void testInterpretBeanThrowsYamlParsingException() {
         // given
         String serviceYaml = SERVICE_YAML_EXAMPLE + "nonExistentProperty: someValue\n";
 
         // when + then
-        assertThrows(ConstructorException.class, () -> YamlMapper.interpretBean(serviceYaml, ServiceBean.class));
+        assertThrows(YamlParsingException.class, () -> YamlMapper.interpretBean(serviceYaml, ServiceBean.class));
     }
 
     @Test
-    public void testInterpretBeanThrowsParserException() {
-        // given
-        String serviceYaml = SERVICE_YAML_EXAMPLE + " : invalidSyntax\n";
-
-        // when + then
-        assertThrows(ParserException.class, () -> YamlMapper.interpretBean(serviceYaml, ServiceBean.class));
-    }
-
-    @Test
-    public void testInterpretBeanThrowsScannerException() {
+    public void testInterpretBeanThrowsIllegalArgumentException() {
         // given
         String serviceYaml = SERVICE_YAML_EXAMPLE + "property : value : uninterpretable\n";
 
         // when + then
-        assertThrows(ScannerException.class, () -> YamlMapper.interpretBean(serviceYaml, ServiceBean.class));
+        assertThrows(IllegalArgumentException.class, () -> YamlMapper.interpretBean(serviceYaml, ServiceBean.class));
     }
 
     @Test
@@ -132,39 +123,44 @@ public class YamlMapperTest {
     public void testLoadBeanThrowsIoException() {
         //given
         String configFilePath = "./invalidpath";
+
         //when + then
         assertThrows(IOException.class, () -> YamlMapper.loadBeanFromFile(configFilePath, ApplicationBean.class));
     }
 
     @Test
-    public void testLoadBeanThrowsConstructorException() {
+    public void testLoadBeanThrowsYamlParsingException() {
         //given
         String configFilePath = "./src/test/resources/refresolver/Application.yml";
+
         //when + then
-        assertThrows(ConstructorException.class, () -> YamlMapper.loadBeanFromFile(configFilePath, ServiceBean.class));
+        assertThrows(YamlParsingException.class, () -> YamlMapper.loadBeanFromFile(configFilePath, ServiceBean.class));
     }
 
     @Test
     public void testLoadBeanThrowsRefResolvingException() {
         //given
-        String configFilePath = "./src/test/resources/refresolver/ApplicationPathWithRefProblem.yml";
+        String configFilePath = "./src/test/resources/refresolver/ApplicationWithRefProblem.yml";
+
         //when + then
-        assertThrows(ConstructorException.class, () -> YamlMapper.loadBeanFromFile(configFilePath, ServiceBean.class));
+        assertThrows(RefResolvingException.class, () -> YamlMapper.loadBeanFromFile(configFilePath, ServiceBean.class));
     }
 
     @Test
-    public void testLoadBeanThrowsParserException() {
+    public void testLoadBeanOnSyntaxProblemThrowsYamlParsingException() {
         //given
-        String configFilePath = "./src/test/resources/refresolver/ApplicationPathWithSyntaxProblem.yml";
+        String configFilePath = "./src/test/resources/refresolver/YamlSyntaxProblem.yml";
+
         //when + then
-        assertThrows(ParserException.class, () -> YamlMapper.loadBeanFromFile(configFilePath, ServiceBean.class));
+        assertThrows(YamlParsingException.class, () -> YamlMapper.loadBeanFromFile(configFilePath, ServiceBean.class));
     }
 
     @Test
-    public void testLoadBeanThrowsScannerException() {
+    public void testLoadBeanOnInterpretationProblemThrowsYamlParsingException() {
         //given
-        String configFilePath = "./src/test/resources/refresolver/ApplicationPathWithInterpretationProblem.yml";
+        String configFilePath = "./src/test/resources/refresolver/YamlInterpretationProblem.yml";
+
         //when + then
-        assertThrows(ScannerException.class, () -> YamlMapper.loadBeanFromFile(configFilePath, ServiceBean.class));
+        assertThrows(YamlParsingException.class, () -> YamlMapper.loadBeanFromFile(configFilePath, ServiceBean.class));
     }
 }
