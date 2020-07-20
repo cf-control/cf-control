@@ -1,0 +1,24 @@
+apiVersion: 2.151.0
+spec:
+  apps:
+    testApp:
+      manifest:
+        buildpack: https://github.com/cloudfoundry/python-buildpack.git
+        disk: 1024
+        healthCheckType: HTTP
+        instances: 2
+        memory: 512
+        noRoute: true
+        stack: cflinuxfs3
+      path: src/test/resources/system/demo-python-app
+  services:
+    testService:
+      plan: standard
+      service: app-autoscaler
+  spaceDevelopers:
+    - cf-control-testuser@mailbox.org
+target:
+  endpoint: api.run.pivotal.io
+  org: cloud.foundry.cli
+  space: someSpace
+
