@@ -41,9 +41,10 @@ public class ApplyLogic {
     private SpaceOperations spaceOperations;
     private ClientOperations clientOperations;
 
+ 
     /**
      * Creates a new instance that will use the provided cf operations internally.
-     *
+     * @param autoStart sets whether app should start automatically when deployed
      * @param cfOperations the cf operations that should be used to communicate with
      *                     the cf instance
      * @throws NullPointerException if the argument is null
@@ -76,7 +77,7 @@ public class ApplyLogic {
     public void setSpaceDevelopersOperations(SpaceDevelopersOperations spaceDevelopersOperations) {
         this.spaceDevelopersOperations = spaceDevelopersOperations;
     }
-
+    
     public void setServicesOperations(ServicesOperations servicesOperations) {
         this.servicesOperations = servicesOperations;
     }
@@ -159,9 +160,10 @@ public class ApplyLogic {
                         .createSpaceDevelopersRequests(spaceDevelopersOperations, spaceDevelopersChange);
             }
 
+            ServiceRequestsPlanner serviceRequestsPlanner = new ServiceRequestsPlanner(servicesOperations);
+            
             Flux<Void> servicesRequests = Flux.fromIterable(servicesChanges.entrySet())
-                    .flatMap(element -> ServiceRequestsPlanner.createApplyRequests(
-                            servicesOperations,
+                    .flatMap(element -> serviceRequestsPlanner.createApplyRequests(
                             element.getKey(),
                             element.getValue()));
 

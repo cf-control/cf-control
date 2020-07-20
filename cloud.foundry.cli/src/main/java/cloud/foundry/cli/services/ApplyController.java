@@ -47,5 +47,4 @@ public class ApplyController implements Callable<Integer> {
 
         return 0;
     }
-
 }

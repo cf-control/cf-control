@@ -36,6 +36,7 @@ public class ApplyLogicTest {
         assertThrows(NullPointerException.class, () -> applyLogic.apply(new ConfigBean(), null));
     }
 
+
     @Test
     public void testApplyOnNulLTargetThrowsException() {
         ApplyLogic applyLogic =  new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
@@ -159,7 +160,7 @@ public class ApplyLogicTest {
 
         // mock applications operations
         ApplicationsOperations applicationsOperations = mock(ApplicationsOperations.class);
-        when(applicationsOperations.create(anyString(), any(), anyBoolean())).thenReturn(Mono.empty());
+        when(applicationsOperations.create(anyString(), any())).thenReturn(Mono.empty());
 
         // mock services operations
         ServicesOperations servicesOperations = mock(ServicesOperations.class);
@@ -189,7 +190,7 @@ public class ApplyLogicTest {
                 any(LoginCommandOptions.class));
         verify(spaceDevelopersOperations, times(1)).getSpaceId();
         verify(spaceDevelopersOperations, times(1)).assign("spaceDeveloper1", "spaceId");
-        verify(applicationsOperations, times(1)).create(eq("app"), any(ApplicationBean.class), anyBoolean());
+        verify(applicationsOperations, times(1)).create(eq("app"), any(ApplicationBean.class));
         verify(servicesOperations, times(1)).create(eq("service"), any(ServiceBean.class));
     }
 
