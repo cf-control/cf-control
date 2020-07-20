@@ -1,11 +1,13 @@
 package cloud.foundry.cli.logic.diff.change.parsing;
 
+import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.logic.diff.change.CfChange;
 import cloud.foundry.cli.logic.diff.change.object.CfNewObject;
 import org.javers.core.diff.Change;
 import org.javers.core.diff.changetype.NewObject;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -14,6 +16,8 @@ import java.util.List;
  */
 public class NewObjectParsingStrategy extends AbstractParsingStrategy {
 
+    private static final Log log = Log.getLog(NewObjectParsingStrategy.class);
+
     @Override
     public List<Class<? extends Change>> getMatchingTypes() {
         return Arrays.asList(NewObject.class);
@@ -21,9 +25,14 @@ public class NewObjectParsingStrategy extends AbstractParsingStrategy {
 
     @Override
     protected List<CfChange> doParse(Change change) {
-        return Arrays.asList(new CfNewObject(change.getAffectedObject().get(),
+        log.verbose("Parsing change type", change.getClass(), "to custom change type",
+                CfNewObject.class, "with object", change.getAffectedObject().get());
+        List<CfChange> cfChanges = Collections.singletonList(new CfNewObject(change.getAffectedObject().get(),
                 "",
                 extractPathFrom(change)));
+        log.verbose("Parsing change type", change.getClass(), "to custom change type",
+                CfNewObject.class, "with object", change.getAffectedObject().get(), "completed");
+        return cfChanges;
     }
 
 }

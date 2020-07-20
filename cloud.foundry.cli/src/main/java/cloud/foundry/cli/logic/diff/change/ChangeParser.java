@@ -47,7 +47,7 @@ public class ChangeParser {
         checkNotNull(change);
 
         if (this.parsers.containsKey(change.getClass())) {
-            return parsers.get(change.getClass()).parse(change);
+            return  parsers.get(change.getClass()).parse(change);
         }
 
         log.debug("Ignoring unsupported change type", change.getClass());

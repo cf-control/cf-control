@@ -44,6 +44,8 @@ public class ValueChangeParsingStrategy extends AbstractParsingStrategy {
     protected List<CfChange> doParse(Change change) {
         ValueChange valueChange = (ValueChange) change;
 
+        // Special treatment for app manifest to ease further processing. Since itself is an object it is necessary to
+        // for all changes in the manifest to set the affected object to their parent application bean object
         if (valueChange.getPropertyName().equals("manifest")) {
             List<Change> manifestChanges = this.javers.compare(
                     valueChange.getLeft(),
