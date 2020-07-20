@@ -97,6 +97,8 @@ public class BaseController implements Callable<Integer> {
                 log.error("Operation not supported/implemented:", ex.getMessage());
             } else if (ex instanceof MissingCredentialsException) {
                 log.error("Credentials missing:", ex.getMessage());
+            } else if (ex instanceof MissingTargetInformationException) {
+                log.error("Target information missing:", ex.getMessage());
             } else if (ex instanceof RefResolvingException) {
                 log.error("Failed to resolve " + RefResolver.REF_KEY, "occurrences:", ex.getMessage());
             } else if (ex instanceof YamlParsingException) {

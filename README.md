@@ -100,6 +100,31 @@ You can have the tool create a machine-readable log file by specifying the `--lo
   -ns --no-auto-start                    Don't start apps when they get deployed. (Only for the apply command) 
 ```
 
+##### [HINT - TARGET INFORMATION FOR SOME COMMANDS]
+
+For the `diff/apply` commands, some parameters can be fetched from the target section of the given YAML file.
+
+The defined values in a given YAML file could be:
+
+```
+target:
+  endpoint=api.run.pivotal.io
+  org=cloud.foundry.cli
+  space=development
+```
+
+
+*The specification is:*  
+Passed value -> overwrites yaml file value  
+No value is passed -> yaml file value is used   
+
+If no value is passed (passed value and yaml file value are not available), you will receive an error.
+
+  For example, you can run the following <code>diff</code> and <code>apply</code> commands:
+ 
+ `java -jar cf-control.jar diff -u mustermann@test.com -p somePassword -y pathToYamlFile`
+ 
+ `java -jar cf-control.jar apply -u mustermann@test.com -p somePassword -y pathToYamlFile`
 
 ### YAML Specification Reference
 
