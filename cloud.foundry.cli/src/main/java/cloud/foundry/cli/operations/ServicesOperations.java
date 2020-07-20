@@ -6,7 +6,9 @@ import cloud.foundry.cli.crosscutting.exceptions.UpdateException;
 import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.logging.Log;
 
+import org.cloudfoundry.client.v2.services.GetServiceRequest;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
+import org.cloudfoundry.operations.applications.GetApplicationRequest;
 import org.cloudfoundry.operations.routes.ListRoutesRequest;
 import org.cloudfoundry.operations.routes.Route;
 import org.cloudfoundry.operations.services.*;
@@ -15,6 +17,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -130,8 +133,78 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
         checkNotNull(serviceInstanceName);
         checkNotNull(serviceBean);
 
-        return remove(serviceInstanceName)
-            .then(create(serviceInstanceName, serviceBean));
+        // before deleting, fetch all apps, routes and keys that are bound to the service
+        // delete the service
+        // create the service
+        // bind all routes, apps and keys from first step to the newly created service
+        return Flux.zip(getRoutes(serviceInstanceName).collectList(), getApps(serviceInstanceName).collectList(), getKeys(serviceInstanceName).collectList())
+                .flatMap(o -> remove(serviceInstanceName)
+                        .then(create(serviceInstanceName, serviceBean))
+                        .then(bindRoutes(serviceInstanceName,o.getT1())
+                                        .and(bindApps(serviceInstanceName, o.getT2()))
+                                        .and(bindKeys(serviceInstanceName, o.getT3()))))
+                .then();
+    }
+
+    private Flux<Route> getRoutes(String serviceInstanceName) {
+        return cloudFoundryOperations
+                .routes()
+                .list(ListRoutesRequest.builder().build())
+                .filter(route -> route.getService() != null && route.getService().equals(serviceInstanceName));
+    }
+
+    private Flux<String> getApps(String serviceInstanceName) {
+        return cloudFoundryOperations
+                .services()
+                .getInstance(GetServiceInstanceRequest.builder().name(serviceInstanceName).build())
+                .flatMapMany(serviceInstance -> Flux.fromIterable(serviceInstance.getApplications()));
+    }
+
+    private Flux<ServiceKey> getKeys(String serviceInstanceName) {
+        return cloudFoundryOperations
+                .services()
+                .listServiceKeys(ListServiceKeysRequest.builder().serviceInstanceName(serviceInstanceName).build());
+    }
+
+    private Mono<Void> bindKeys(String serviceInstanceName, List<ServiceKey> serviceKeys) {
+        return Flux.fromIterable(serviceKeys)
+                .flatMap(serviceKey -> cloudFoundryOperations
+                        .services()
+                        .createServiceKey(CreateServiceKeyRequest.builder()
+                                .serviceInstanceName(serviceInstanceName)
+                                .serviceKeyName(serviceKey.getName())
+                                .build()))
+                .then()
+                .doOnSubscribe(subscription -> log.info("Binding keys to service", serviceInstanceName))
+                .doOnSuccess(subscription -> log.info("Binding keys to service", serviceInstanceName, "completed"));
+    }
+
+    private Mono<Void> bindApps(String serviceInstanceName, List<String> apps) {
+        return Flux.fromIterable(apps)
+                .flatMap(appName -> cloudFoundryOperations
+                        .services()
+                        .bind(BindServiceInstanceRequest.builder()
+                                .applicationName(appName)
+                                .serviceInstanceName(serviceInstanceName)
+                                .build()))
+                .then()
+                .doOnSubscribe(subscription -> log.info("Binding apps to service", serviceInstanceName))
+                .doOnSuccess(subscription -> log.info("Binding apps to service", serviceInstanceName, "completed"));
+    }
+
+    private Mono<Void> bindRoutes(String serviceInstanceName, List<Route> routes) {
+        return Flux.fromIterable(routes)
+                .flatMap(route -> cloudFoundryOperations
+                        .services()
+                        .bindRoute(BindRouteServiceInstanceRequest.builder()
+                                .domainName(route.getDomain())
+                                .hostname(route.getHost())
+                                .path(route.getPath())
+                                .serviceInstanceName(serviceInstanceName)
+                                .build()))
+                .then()
+                .doOnSubscribe(subscription -> log.info("Binding routes to service", serviceInstanceName))
+                .doOnSuccess(subscription -> log.info("Binding routes to service", serviceInstanceName, "completed"));
     }
 
     /**
