@@ -246,6 +246,7 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                 .instances(bean.getManifest().getInstances())
                 .memory(bean.getManifest().getMemory())
                 .noRoute(noRoute)
+                .environmentVariables(bean.getManifest().getEnvironmentVariables())
                 .randomRoute(bean.getManifest().getRandomRoute())
                 .routes(getAppRoutes(bean.getManifest().getRoutes()))
                 .stack(bean.getManifest().getStack())
