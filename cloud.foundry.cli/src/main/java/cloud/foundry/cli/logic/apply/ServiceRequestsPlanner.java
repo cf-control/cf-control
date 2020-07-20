@@ -58,7 +58,7 @@ public class ServiceRequestsPlanner {
     private Flux<Void> doCreateApplyRequests(List<CfChange> changes) {
 
         if (hasNewObject(changes)) {
-            log.debug("Add create service request for service: " + serviceName);
+            log.debug("Requesting creation of service", serviceName);
 
             ServiceBean bean = (ServiceBean) getChange(changes, change -> change instanceof CfNewObject)
                 .get()
@@ -66,11 +66,11 @@ public class ServiceRequestsPlanner {
 
             return Flux.merge(this.servicesOperations.create(this.serviceName, bean));
         } else if (hasRemovedObject(changes)) {
-            log.debug("Add remove service request for service: " + serviceName);
+            log.debug("Requesting removal of service", serviceName);
 
             return Flux.merge(this.servicesOperations.remove(serviceName));
         } else if (hasContainerChange(changes) || hasObjectValueChanged(changes)) {
-            log.debug("Add update service request for service: " + serviceName);
+            log.debug("Requesting update of service", serviceName);
             
             ServiceBean bean = (ServiceBean) getChange(changes, 
                  change -> change instanceof CfContainerChange || change instanceof CfObjectValueChanged)
