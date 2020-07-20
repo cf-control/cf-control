@@ -1,6 +1,7 @@
 package cloud.foundry.cli.crosscutting.mapping;
 
 import cloud.foundry.cli.crosscutting.exceptions.RefResolvingException;
+import cloud.foundry.cli.crosscutting.exceptions.YamlParsingException;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationManifestBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.Bean;
@@ -13,12 +14,11 @@ import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.ConstructorException;
 import org.yaml.snakeyaml.constructor.SafeConstructor;
+import org.yaml.snakeyaml.error.MarkedYAMLException;
 import org.yaml.snakeyaml.introspector.Property;
 import org.yaml.snakeyaml.nodes.NodeTuple;
 import org.yaml.snakeyaml.nodes.Tag;
-import org.yaml.snakeyaml.parser.ParserException;
 import org.yaml.snakeyaml.representer.Representer;
-import org.yaml.snakeyaml.scanner.ScannerException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,11 +43,9 @@ public class YamlMapper {
             yamlTreeRoot = RefResolver.resolveRefs(yamlTreeRoot, rootFilePath);
         }
 
-        Yaml treeDumper = createDefaultDumper();
-        String resolvedConfig = treeDumper.dump(yamlTreeRoot);
+        String resolvedConfig = dump(yamlTreeRoot);
 
-        Yaml yamlProcessor = new Yaml();
-        return yamlProcessor.loadAs(resolvedConfig, beanType);
+        return interpretBean(resolvedConfig, beanType);
     }
 
     /**
@@ -58,10 +56,9 @@ public class YamlMapper {
      * @param beanType the desired type of the bean to load
      * @return a bean holding the information of the configuration file
      * @throws IOException if the config file cannot be accessed
-     * @throws RefResolvingException if an error during the ref-resolution process occurs
-     * @throws ParserException if the configuration file content cannot be parsed as yaml
-     * @throws ScannerException if the configuration file content cannot be interpreted as yaml
-     * @throws ConstructorException if the resolved config cannot be interpreted as the given bean type
+     * @throws RefResolvingException if an error related to the ref-resolution process occurs
+     * @throws YamlParsingException if the configuration file content cannot be parsed as yaml or
+     *                              if the resolved config cannot be interpreted as the given bean type
      */
     public static <B extends Bean> B loadBeanFromFile(String configFilePath, Class<B> beanType) throws IOException {
         Object yamlTreeRoot = loadYamlTreeFromFilePath(configFilePath);
@@ -75,11 +72,9 @@ public class YamlMapper {
      * @param data YAML data
      * @param beanType the desired type of the bean to load
      * @return a bean holding the information of the configuration file
-     * @return the resolved content of the yaml file in the yaml format
-     * @throws IOException if the yaml file cannot be accessed
-     * @throws ParserException if the configuration file content cannot be parsed as yaml
-     * @throws ScannerException if the content of the yaml file cannot be interpreted as yaml
-     * @throws RefResolvingException if an error during the ref-resolution process occurs
+     * @throws RefResolvingException if an error related to the ref-resolution process occurs
+     * @throws YamlParsingException if the configuration file content cannot be parsed as yaml or
+     *                              if the resolved config cannot be interpreted as the given bean type
      */
     public static <B extends Bean> B loadBeanFromString(String data, Class<B> beanType) {
         Object yamlTreeRoot = loadYamlTreeFromYamlString(data);
@@ -93,16 +88,14 @@ public class YamlMapper {
      * @param yamlFilePath the path a yaml file
      * @return the resolved content of the yaml file in the yaml format
      * @throws IOException if the yaml file cannot be accessed
-     * @throws ParserException if the configuration file content cannot be parsed as yaml
-     * @throws ScannerException if the content of the yaml file cannot be interpreted as yaml
-     * @throws RefResolvingException if an error during the ref-resolution process occurs
+     * @throws YamlParsingException if the configuration file content cannot be parsed as yaml
+     * @throws RefResolvingException if an error related to the ref-resolution process occurs
      */
     public static String resolveYamlFile(String yamlFilePath) throws IOException {
         Object yamlTreeRoot = loadYamlTreeFromFilePath(yamlFilePath);
         yamlTreeRoot = RefResolver.resolveRefs(yamlTreeRoot, yamlFilePath);
 
-        Yaml treeDumper = createDefaultDumper();
-        return treeDumper.dump(yamlTreeRoot);
+        return dump(yamlTreeRoot);
     }
 
     /**
@@ -112,13 +105,21 @@ public class YamlMapper {
      * @param resolvedYamlContent the yaml content to be interpreted as a bean object
      * @param beanType the desired type of the bean
      * @return the resolved content of the yaml file in the yaml format
-     * @throws ParserException if the configuration file content cannot be parsed as yaml
-     * @throws ScannerException if the provided yaml content cannot be interpreted as yaml
-     * @throws ConstructorException if the resolved config cannot be interpreted as the given bean type
+     * @throws IllegalArgumentException if the configuration file content cannot be parsed as yaml
+     * @throws YamlParsingException if the resolved config cannot be interpreted as the given bean type
      */
     public static <B extends Bean> B interpretBean(String resolvedYamlContent, Class<B> beanType) {
         Yaml yamlProcessor = new Yaml();
-        return yamlProcessor.loadAs(resolvedYamlContent, beanType);
+
+        try {
+            return yamlProcessor.loadAs(resolvedYamlContent, beanType);
+        } catch (ConstructorException constructorException) {
+            // special treatment for the constructor exception because it denotes an actual interpretation failure
+            throw new YamlParsingException(constructorException);
+        } catch (MarkedYAMLException markedYamlException) {
+            // it is expected that the provided yaml content has a yaml format, that can be parsed by the yaml library
+            throw new IllegalArgumentException("Unable to parse the resolved yaml content", markedYamlException);
+        }
     }
 
     /**
@@ -127,23 +128,31 @@ public class YamlMapper {
      * @param filePath the path or url to a file
      * @return the resulting yaml tree
      * @throws IOException if the file cannot be accessed
-     * @throws ParserException if the configuration file content cannot be parsed as yaml
-     * @throws ScannerException if the file content cannot be interpreted as yaml
+     * @throws YamlParsingException if the configuration file content cannot be parsed as yaml
      */
     static Object loadYamlTreeFromFilePath(String filePath) throws IOException {
         try (InputStream inputStream = FileUtils.openLocalOrRemoteFile(filePath)) {
-            return createTreeLoader().load(inputStream);
+            try {
+                return createTreeLoader().load(inputStream);
+            } catch (MarkedYAMLException markedYamlException) {
+                throw new YamlParsingException(markedYamlException, filePath);
+            }
         }
     }
 
     /**
      * Interprets the given string as a yaml tree.
      *
-     * @param data YAML data
+     * @param data the yaml data as a string
      * @return the resulting yaml tree
+     * @throws YamlParsingException if the entered string cannot be parsed as yaml
      */
     static Object loadYamlTreeFromYamlString(String data) {
-        return createTreeLoader().load(data);
+        try {
+            return createTreeLoader().load(data);
+        } catch (MarkedYAMLException markedYamlException) {
+            throw new YamlParsingException(markedYamlException, "the provided string");
+        }
     }
 
     private static Yaml createTreeLoader() {
