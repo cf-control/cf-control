@@ -3,7 +3,6 @@ package cloud.foundry.cli.services;
 import cloud.foundry.cli.crosscutting.exceptions.*;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.RefResolver;
-import cloud.foundry.cli.crosscutting.mapping.CfArgumentsCreator;
 import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
 import picocli.CommandLine;
@@ -188,15 +187,6 @@ public class BaseController implements Callable<Integer> {
         // register in the log if available
         if (fileHandler != null) {
             Log.addHandler(fileHandler);
-        }
-
-        // append login options if needed
-        try {
-            args = CfArgumentsCreator.determineCommandLine(cli, args, parseResult.subcommand());
-        } catch (CommandLine.ParameterException parameterException) {
-            // the arguments are invalid
-            log.error(parameterException.getMessage());
-            System.exit(1);
         }
 
         // okay, logging is configured, now let's run the rest of the CLI
