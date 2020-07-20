@@ -41,7 +41,19 @@ public class ApplyLogic {
     private SpaceOperations spaceOperations;
     private ClientOperations clientOperations;
 
- 
+    private boolean autoStart;
+
+    /**
+     * Creates a new instance that will use the provided cf operations internally.
+     * Starts newly created apps automatically by default
+     * @param cfOperations the cf operations that should be used to communicate with
+     *                     the cf instance
+     * @throws NullPointerException if the argument is null
+     */
+    public ApplyLogic(@Nonnull DefaultCloudFoundryOperations cfOperations) {
+        this(cfOperations, true);
+    }
+
     /**
      * Creates a new instance that will use the provided cf operations internally.
      * @param autoStart sets whether app should start automatically when deployed
@@ -49,18 +61,18 @@ public class ApplyLogic {
      *                     the cf instance
      * @throws NullPointerException if the argument is null
      */
-    public ApplyLogic(@Nonnull DefaultCloudFoundryOperations cfOperations) {
+    public ApplyLogic(@Nonnull DefaultCloudFoundryOperations cfOperations, boolean autoStart) {
         checkNotNull(cfOperations);
 
+        this.autoStart = autoStart;
         initializeOperations(cfOperations);
-
         this.getLogic = new GetLogic();
         this.diffLogic = new DiffLogic();
     }
 
     private void initializeOperations(DefaultCloudFoundryOperations cfOperations) {
         this.servicesOperations = new ServicesOperations(cfOperations);
-        this.applicationsOperations = new ApplicationsOperations(cfOperations);
+        this.applicationsOperations = new ApplicationsOperations(cfOperations, autoStart);
         this.spaceOperations = new SpaceOperations(cfOperations);
         this.spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
         this.clientOperations = new ClientOperations(cfOperations);
@@ -77,7 +89,7 @@ public class ApplyLogic {
     public void setSpaceDevelopersOperations(SpaceDevelopersOperations spaceDevelopersOperations) {
         this.spaceDevelopersOperations = spaceDevelopersOperations;
     }
-    
+
     public void setServicesOperations(ServicesOperations servicesOperations) {
         this.servicesOperations = servicesOperations;
     }
@@ -164,7 +176,7 @@ public class ApplyLogic {
             }
 
             ServiceRequestsPlanner serviceRequestsPlanner = new ServiceRequestsPlanner(servicesOperations);
-            
+
             Flux<Void> servicesRequests = Flux.fromIterable(servicesChanges.entrySet())
                     .flatMap(element -> serviceRequestsPlanner.createApplyRequests(
                             element.getKey(),
