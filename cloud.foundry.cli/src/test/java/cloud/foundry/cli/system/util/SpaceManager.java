@@ -180,8 +180,18 @@ public class SpaceManager implements AutoCloseable {
      */
     public String requestCreationOfService(ServiceBean desiredServiceBean) {
         String randomName = "service-" + makeRandomString();
-        servicesToCreate.put(randomName, desiredServiceBean);
+        requestCreationOfService(randomName, desiredServiceBean);
         return randomName;
+    }
+
+    /**
+     * Registers a service that is desired be created on the space.
+     * @param serviceName the name of the desired service
+     * @param desiredServiceBean the bean of the desired service
+     * @return random name used for the service
+     */
+    public void requestCreationOfService(String serviceName, ServiceBean desiredServiceBean) {
+        servicesToCreate.put(serviceName, desiredServiceBean);
     }
 
     /**
@@ -191,8 +201,17 @@ public class SpaceManager implements AutoCloseable {
      */
     public String requestCreationOfApplication(ApplicationBean desiredApplicationBean) {
         String randomName = "app-" + makeRandomString();
-        applicationsToCreate.put(randomName, desiredApplicationBean);
+        requestCreationOfApplication(randomName, desiredApplicationBean);
         return randomName;
+    }
+
+    /**
+     * Registers an application that is desired be created on the space.
+     * @param applicationName the name of the desired application
+     * @param desiredApplicationBean the bean of the desired application
+     */
+    public void requestCreationOfApplication(String applicationName, ApplicationBean desiredApplicationBean) {
+        applicationsToCreate.put(applicationName, desiredApplicationBean);
     }
 
     /**
