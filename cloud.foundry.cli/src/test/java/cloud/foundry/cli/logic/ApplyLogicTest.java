@@ -6,7 +6,6 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
@@ -65,6 +64,7 @@ public class ApplyLogicTest {
 
         assertThrows(NullPointerException.class, () -> applyLogic.applySpaceDevelopers(null));
     }
+
 
     @Test
     public void testApplySpaceDevelopersAssignAndRemoveSpaceDevelopers() {
@@ -183,7 +183,7 @@ public class ApplyLogicTest {
             "app1meta");
 
         ApplicationsOperations applicationsOperationsMock = mock(ApplicationsOperations.class);
-        when(applicationsOperationsMock.create(anyString(), any(ApplicationBean.class), anyBoolean()))
+        when(applicationsOperationsMock.create(anyString(), any(ApplicationBean.class)))
                 .thenReturn(Mono.just(mock(Void.class)));
 
         GetLogic getLogicMock = mock(GetLogic.class);
@@ -200,7 +200,7 @@ public class ApplyLogicTest {
         // then
         verify(getLogicMock, times(1)).getApplications(applicationsOperationsMock);
         verify(applicationsOperationsMock, times(1))
-                .create(eq("otherApplication"), any(ApplicationBean.class), anyBoolean());
+                .create(eq("otherApplication"), any(ApplicationBean.class));
     }
 
 

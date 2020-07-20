@@ -2,6 +2,7 @@ package cloud.foundry.cli.services;
 
 import static picocli.CommandLine.Command;
 import static picocli.CommandLine.Mixin;
+import static picocli.CommandLine.Option;
 import static picocli.CommandLine.usage;
 
 import cloud.foundry.cli.crosscutting.logging.Log;
@@ -83,6 +84,11 @@ public class ApplyController implements Callable<Integer> {
         @Mixin
         private YamlCommandOptions yamlCommandOptions;
 
+
+        @Option(names = { "-ns", "--no-auto-start" }, required = false,
+                description = "Deployed apps won't get started automatically.")
+        private boolean noAutoStart;
+
         @Override
         public Integer call() throws Exception {
             log.info("Interpreting YAML file");
@@ -98,7 +104,9 @@ public class ApplyController implements Callable<Integer> {
             DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(
                     desiredConfigBean.getTarget(),
                     loginOptions);
-            ApplyLogic applyLogic = new ApplyLogic(cfOperations);
+
+            log.verbose("Auto starting apps:", !noAutoStart);
+            ApplyLogic applyLogic = new ApplyLogic(cfOperations, !noAutoStart);
 
             applyLogic.applyApplications(desiredConfigBean.getSpec().getApps());
 

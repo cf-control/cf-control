@@ -3,9 +3,6 @@ package cloud.foundry.cli.services;
 import cloud.foundry.cli.crosscutting.exceptions.*;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.RefResolver;
-import org.yaml.snakeyaml.constructor.ConstructorException;
-import org.yaml.snakeyaml.parser.ParserException;
-import org.yaml.snakeyaml.scanner.ScannerException;
 import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
 import picocli.CommandLine;
@@ -104,10 +101,8 @@ public class BaseController implements Callable<Integer> {
                 log.error("Target information missing:", ex.getMessage());
             } else if (ex instanceof RefResolvingException) {
                 log.error("Failed to resolve " + RefResolver.REF_KEY, "occurrences:", ex.getMessage());
-            } else if (ex instanceof ConstructorException) {
-                log.error("Failed to interpret YAML file contents:", ex.getMessage());
-            } else if (ex instanceof ParserException || ex instanceof ScannerException) {
-                log.error("Failed to parse file contents:", ex.getMessage());
+            } else if (ex instanceof YamlParsingException) {
+                log.error("Failed to parse YAML file contents:", ex.getMessage());
             } else if (ex instanceof DiffException) {
                 log.error("Unable to perform the diff:", ex.getMessage());
             } else if (ex instanceof ApplyException) {
