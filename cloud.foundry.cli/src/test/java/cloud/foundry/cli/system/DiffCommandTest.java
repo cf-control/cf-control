@@ -53,7 +53,7 @@ public class DiffCommandTest extends SystemTestBase {
             String outContent = runResult.getStreamContents().getStdoutContent();
 
             //then
-            assertThat(outContent, is(expected));
+            assertThat(outContent, startsWith(expected));
             assertThat(runResult.getStreamContents().getStderrContent().length(), is(greaterThan(0)));
         }
     }
@@ -94,7 +94,7 @@ public class DiffCommandTest extends SystemTestBase {
             String outContent = runResult.getStreamContents().getStdoutContent();
 
             //then
-            assertThat(outContent, is(expected));
+            assertThat(outContent, startsWith(expected));
             assertThat(runResult.getStreamContents().getStderrContent().length(), is(greaterThan(0)));
         }
     }
