@@ -108,8 +108,12 @@ public class ApplyLogicTest {
         applyLogic.setGetLogic(getLogicMock);
         applyLogic.setSpaceOperations(spaceOperationsMock);
 
+        LoginCommandOptions loginCommandOptions = new LoginCommandOptions();
+        loginCommandOptions.setApiHost("apiHost");
+        loginCommandOptions.setSpace("space");
+        loginCommandOptions.setOrganization("org");
         // when
-        applyLogic.apply(desiredConfigBean, new LoginCommandOptions());
+        applyLogic.apply(desiredConfigBean, loginCommandOptions);
 
         // then
         verify(spaceOperationsMock, times(1)).getAll();
