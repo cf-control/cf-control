@@ -102,7 +102,10 @@ public class Differ {
                 .collect(Collectors.toList());
         log.verbose("Parsing JaVers change objects to custom change objects completed");
 
-        return DiffTreeCreator.createFrom(cfChanges);
+        log.verbose("Creating diff tree");
+        DiffNode root = DiffTreeCreator.createFrom(cfChanges);
+        log.verbose("Creating diff tree completed");
+        return root;
     }
 
     private boolean applyFilterCriterion(CfChange change) {
