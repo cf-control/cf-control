@@ -114,8 +114,10 @@ public class YamlMapper {
         try {
             return yamlProcessor.loadAs(resolvedYamlContent, beanType);
         } catch (ConstructorException constructorException) {
+            // special treatment for the constructor exception because it denotes an actual interpretation failure
             throw new YamlParsingException(constructorException);
         } catch (MarkedYAMLException markedYamlException) {
+            // it is expected that the provided yaml content has a yaml format, that can be parsed by the yaml library
             throw new IllegalArgumentException("Unable to parse the resolved yaml content", markedYamlException);
         }
     }
