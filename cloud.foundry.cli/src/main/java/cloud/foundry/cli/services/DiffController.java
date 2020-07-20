@@ -5,7 +5,6 @@ import static picocli.CommandLine.Mixin;
 
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
-import cloud.foundry.cli.crosscutting.mapping.VersionPropertiesFileUtils;
 import cloud.foundry.cli.crosscutting.mapping.YamlMapper;
 import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
 import cloud.foundry.cli.logic.DiffLogic;

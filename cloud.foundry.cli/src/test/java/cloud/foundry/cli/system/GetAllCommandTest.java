@@ -14,8 +14,6 @@ import org.junit.jupiter.api.Test;
 public class GetAllCommandTest extends SystemTestBase {
 
     private void assertRootBeanIsValid(ConfigBean rootBean, SpaceManager spaceManager) {
-        assert rootBean.getApiVersion().startsWith("2.");
-
         TargetBean target = rootBean.getTarget();
         assert target.getEndpoint().equals(spaceManager.getCfApiEndpoint());
         assert target.getOrg().equals(spaceManager.getCfOrganization());
