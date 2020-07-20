@@ -13,19 +13,14 @@ import cloud.foundry.cli.logic.diff.change.object.CfRemovedObject;
 import cloud.foundry.cli.operations.ServicesOperations;
 import reactor.core.publisher.Flux;
 
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 
-import org.reactivestreams.Publisher;
-
 
 /**
- * This class is responsible to build the requests in the context of services
- * according to the CfChanges. The class does create the request tasks by
- * implementing the {@link CfChangeVisitor} interface.
- */
+ * This class is responsible to build the requests in the context of services according to the CfChanges. 
+ **/
 public class ServiceRequestsPlanner {
 
     private static final Log log = Log.getLog(ServiceRequestsPlanner.class);
@@ -44,8 +39,7 @@ public class ServiceRequestsPlanner {
      * @param serviceChanges     a list with all the Changes found during diff for
      *                           that specific application
      * @throws ApplyException       if an error during the apply logic occurs. May
-     *                              contain another exception inside with more
-     *                              details.
+     *                              contain another exception inside with more details.
      * @throws NullPointerException when any of the arguments is null
      * @return Flux of all requests that are required to apply the changes
      */
@@ -62,8 +56,6 @@ public class ServiceRequestsPlanner {
     }
 
     private Flux<Void> doCreateApplyRequests(List<CfChange> changes) {
-
-        List<Publisher<Void>> requests = new LinkedList<>();
 
         if (hasNewObject(changes)) {
             log.debug("Add create service request for service: " + serviceName);
@@ -86,9 +78,10 @@ public class ServiceRequestsPlanner {
                 .getAffectedObject();
 
             return Flux.merge(this.servicesOperations.update(serviceName, bean));
+        } else {
+           
+            throw new ApplyException("No request can be added for service: " + serviceName);
         }
-
-        return Flux.merge(requests);
     }
 
     private boolean hasRemovedObject(List<CfChange> changes) {

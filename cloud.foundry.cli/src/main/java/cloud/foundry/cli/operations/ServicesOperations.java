@@ -18,12 +18,11 @@ import java.util.Collections;
 import java.util.Map;
 
 /**
- * Handles the operations for querying and manipulating services on a cloud
- * foundry instance.
+ * Handles the operations for querying and manipulating services on a cloud foundry instance.
  *
  * To retrieve the data from resulting Mono or Flux objects you can use
- * subscription methods (block, subscribe, etc.) provided by the reactor
- * library. For more details on how to work with Mono's visit:
+ * subscription methods (block, subscribe, etc.) provided by the reactor library
+ * For more details on how to work with Mono's visit:
  * https://projectreactor.io/docs/core/release/reference/index.html#core-features
  */
 public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOperations> {
@@ -37,11 +36,10 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
     }
 
     /**
-     * Prepares a request for fetching services data from the cloud foundry
-     * instance. The resulting mono will not perform any logging by default.
+     * Prepares a request for fetching services data from the cloud foundry instance
+     * The resulting mono will not perform any logging by default.
      *
-     * @return mono object of all services as map of the service names as key and
-     *         ServiceBeans as value
+     * @return mono object of all services as map of the service names as key and ServiceBeans as value
      */
     public Mono<Map<String, ServiceBean>> getAll() {
         return this.cloudFoundryOperations.services()
@@ -69,8 +67,7 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      * will perform logging.
      *
      * @param serviceBean serves as template for the service to create
-     * @return mono which can be subscribed on to trigger the creation request to
-     *         the cf instance
+     * @return mono which can be subscribed on to trigger the creation request to the cf instance
      * @throws NullPointerException when one of the arguments was null
      */
     public Mono<Void> create(String serviceInstanceName, ServiceBean serviceBean) {
@@ -99,8 +96,7 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      *
      * @param newName     new name of the service instance
      * @param currentName current name of the service instance
-     * @return mono which can be subscribed on to trigger the renaming request to
-     *         the cf instance
+     * @return mono which can be subscribed on to trigger the renaming request to the cf instance
      * @throws NullPointerException when one of the arguments was null
      */
     public Mono<Void> rename(String newName, String currentName) {
@@ -126,8 +122,7 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      *
      * @param serviceInstanceName name of a service instance
      * @param serviceBean         serves as template for the service to update
-     * @return mono which can be subscribed on to trigger the update request to the
-     *         cf instance
+     * @return mono which can be subscribed on to trigger the update request to the cf instance
      * @throws NullPointerException when one of the arguments was null
      */
     public Mono<Void> update(String serviceInstanceName, ServiceBean serviceBean) {
@@ -135,8 +130,7 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
         checkNotNull(serviceBean);
         
         return remove(serviceInstanceName)
-            .concatWith(create(serviceInstanceName, serviceBean))
-            .then();
+            .then(create(serviceInstanceName, serviceBean));
     }
 
     /**
@@ -182,8 +176,7 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      * Prepares a request for deleting keys of a service. The resulting flux is
      * preconfigured such that it will perform logging.
      *
-     * @param serviceInstanceName name of the service instance to delete the keys
-     *                            from
+     * @param serviceInstanceName name of the service instance to delete the keys from
      * @return flux which can be subscribed on to delete the keys
      * @throws NullPointerException when the argument was null
      */
@@ -234,11 +227,9 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
 
     /**
      * Prepares a request for unbinding a service instance from all its
-     * applications. The resulting flux is preconfigured such that it will perform
-     * logging.
+     * applications. The resulting flux is preconfigured such that it will perform logging.
      *
-     * @param serviceInstanceName name of the service instance to unbind the
-     *                            applications from
+     * @param serviceInstanceName name of the service instance to unbind the applications from
      * @return flux which can be subscribed on to unbind the applications
      */
     public Flux<Void> unbindApps(String serviceInstanceName) {
@@ -261,11 +252,10 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
     }
 
     /**
-     * Prepares a request for unbinding a service instance from an application. The
-     * resulting mono is preconfigured such that it will perform logging.
+     * Prepares a request for unbinding a service instance from an application. 
+     * The resulting mono is preconfigured such that it will perform logging.
      *
-     * @param serviceInstanceName name of the service instance to unbind the
-     *                            application from
+     * @param serviceInstanceName name of the service instance to unbind the application from
      * @param applicationName     name of the application
      * @return mono which can be subscribed on to unbind the application
      */
@@ -292,11 +282,10 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
     }
 
     /**
-     * Prepares a request for unbinding a service instance from all routes. The
-     * resulting flux is preconfigured such that it will perform logging.
+     * Prepares a request for unbinding a service instance from all routes. 
+     * The resulting flux is preconfigured such that it will perform logging.
      *
-     * @param serviceInstanceName name of the service instance to unbind all routes
-     *                            from
+     * @param serviceInstanceName name of the service instance to unbind all routes from
      * @throws NullPointerException if the argument is null
      * @return flux which can be subscribed on to unbind the routes
      */
