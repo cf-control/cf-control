@@ -96,7 +96,7 @@ public class ApplyLogic {
      *
      * @param desiredConfigBean   desired configuration for a cloud foundry instance
      * @param loginCommandOptions LoginCommandOptions
-     * @throws NullPointerException if one of the desired parameter is null.
+     * @throws NullPointerException if one of the desired parameters is null.
      */
     public void apply(ConfigBean desiredConfigBean, LoginCommandOptions loginCommandOptions) {
         checkNotNull(desiredConfigBean);

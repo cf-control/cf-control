@@ -113,6 +113,9 @@ public class ApplyLogicTest {
         loginCommandOptions.setApiHost("apiHost");
         loginCommandOptions.setSpace("space");
         loginCommandOptions.setOrganization("org");
+        loginCommandOptions.setUserName("userName");
+        loginCommandOptions.setPassword("password");
+        
         // when
         applyLogic.apply(desiredConfigBean, loginCommandOptions);
 
