@@ -46,7 +46,7 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
                 .flatMap(serviceInstanceSummary -> getServiceInstance(serviceInstanceSummary.getName()))
                 .collectMap(ServiceInstance::getName, ServiceBean::new)
                 .doOnSubscribe(subscription -> log.info("Querying all services"))
-                .doOnSuccess(stringApplicationBeanMap -> log.info("Querying all services completed"));
+                .doOnSuccess(stringApplicationBeanMap -> log.verbose("Querying all services completed"));
     }
 
     private Mono<ServiceInstance> getServiceInstance(String serviceName) {

@@ -33,7 +33,7 @@ public class SpaceOperations extends AbstractOperations<DefaultCloudFoundryOpera
                 .map(SpaceSummary::getName)
                 .collectList()
                 .doOnSubscribe(subscription -> log.info("Querying all spaces"))
-                .doOnSuccess(stringApplicationBeanMap -> log.info("Querying all spaces completed"));
+                .doOnSuccess(stringApplicationBeanMap -> log.verbose("Querying all spaces completed"));
     }
 
     /**

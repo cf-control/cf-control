@@ -77,7 +77,7 @@ public class ValueChangeParsingStrategy extends AbstractParsingStrategy {
                 Objects.toString(valueChange.getLeft(), null),
                 Objects.toString(valueChange.getRight(), null)
         ));
-        log.verbose("Parsing change type", change.getClass().getSimpleName(), "to custom change type",
+        log.debug("Parsing change type", change.getClass().getSimpleName(), "to custom change type",
                 CfObjectValueChanged.class.getSimpleName(), "with property", valueChange.getPropertyName(), "and changed value from",
                 valueChange.getLeft(), "to", valueChange.getRight(), "completed");
         return cfChanges;

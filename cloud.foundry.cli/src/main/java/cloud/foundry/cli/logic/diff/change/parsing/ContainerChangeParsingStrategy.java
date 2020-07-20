@@ -56,12 +56,12 @@ public class ContainerChangeParsingStrategy extends AbstractParsingStrategy {
         if (elementChange instanceof ValueAdded) {
             String value = ((ValueAdded) elementChange).getAddedValue().toString();
 
-            log.verbose("Appending", propertyName, "container change with added entry:", value);
+            log.debug("Appending", propertyName, "container change with added entry:", value);
             return new CfContainerValueChanged(value, ChangeType.ADDED);
         } else if ( elementChange instanceof ValueRemoved) {
             String value = ((ValueRemoved) elementChange).getRemovedValue().toString();
 
-            log.verbose("Appending", propertyName, "container change with removed entry:", value);
+            log.debug("Appending", propertyName, "container change with removed entry:", value);
             return new CfContainerValueChanged(value, ChangeType.REMOVED);
         }
         log.debug("Ignoring unsupported list change type", elementChange.getClass());

@@ -79,9 +79,9 @@ public class DiffLogic {
         DiffNode diffNode = differ.createDiffTree(liveConfig, desiredConfig);
 
         DiffOutput diffOutput = new DiffOutput();
-        log.verbose("Creating diff output");
-        String output =  diffOutput.from(diffNode);
-        log.verbose("Creating diff output");
+        log.info("Creating diff output");
+        String output = diffOutput.from(diffNode);
+        log.verbose("Creating diff output completed");
         return output;
     }
 }

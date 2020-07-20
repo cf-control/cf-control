@@ -30,7 +30,7 @@ public class NewObjectParsingStrategy extends AbstractParsingStrategy {
         List<CfChange> cfChanges = Collections.singletonList(new CfNewObject(change.getAffectedObject().get(),
                 "",
                 extractPathFrom(change)));
-        log.verbose("Parsing change type", change.getClass().getSimpleName(), "to custom change type",
+        log.debug("Parsing change type", change.getClass().getSimpleName(), "to custom change type",
                 CfNewObject.class.getSimpleName(), "with object", change.getAffectedObject().get(), "completed");
         return cfChanges;
     }

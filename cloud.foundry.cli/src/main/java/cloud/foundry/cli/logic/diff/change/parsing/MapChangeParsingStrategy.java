@@ -52,15 +52,15 @@ public class MapChangeParsingStrategy extends AbstractParsingStrategy {
 
     private CfMapValueChanged parseMapEntry(String propertyName, EntryChange entryChange) {
         if (entryChange instanceof EntryAdded) {
-            log.verbose("Appending", propertyName,"map change with added entry:"
-                    , entryChange.getKey() + ":", ((EntryAdded) entryChange).getValue());
+            log.debug("Appending", propertyName,"map change with added entry:",
+                    entryChange.getKey() + ":", ((EntryAdded) entryChange).getValue());
 
             return new CfMapValueChanged(entryChange.getKey().toString(),
                     "",
                     ((EntryAdded) entryChange).getValue().toString(),
                     ChangeType.ADDED);
         } else if ( entryChange instanceof EntryRemoved) {
-            log.verbose("Appending", propertyName,"map change with removed entry:",
+            log.debug("Appending", propertyName,"map change with removed entry:",
                     entryChange.getKey() + ":", ((EntryRemoved) entryChange).getValue());
 
             return new CfMapValueChanged(entryChange.getKey().toString(),
@@ -68,9 +68,9 @@ public class MapChangeParsingStrategy extends AbstractParsingStrategy {
                     "" ,
                     ChangeType.REMOVED);
         } else {
-            log.verbose("Appending", propertyName,"map change with changed entry:",
-                    entryChange.getKey() +":", ((EntryValueChange) entryChange).getLeftValue(), "to",
-                    entryChange.getKey() +":",((EntryValueChange) entryChange).getRightValue());
+            log.debug("Appending", propertyName,"map change with changed entry:",
+                    entryChange.getKey() + ":", ((EntryValueChange) entryChange).getLeftValue(), "to",
+                    entryChange.getKey() + ":",((EntryValueChange) entryChange).getRightValue());
 
             return new CfMapValueChanged(entryChange.getKey().toString(),
                     ((EntryValueChange) entryChange).getLeftValue().toString(),

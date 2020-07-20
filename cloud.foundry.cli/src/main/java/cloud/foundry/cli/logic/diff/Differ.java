@@ -94,7 +94,7 @@ public class Differ {
         // parse the change objects created by the JaVers diff to custom change objects
         List<CfChange> cfChanges = diff.getChanges()
                 .stream()
-                .peek(change -> log.verbose("JaVers found a change:", change))
+                .peek(change -> log.debug("JaVers found a change:", change))
                 .map(this.changeParser::parse)
                 .flatMap(Collection::stream)
                 // apply all custom set filters
@@ -102,7 +102,7 @@ public class Differ {
                 .collect(Collectors.toList());
         log.verbose("Parsing JaVers change objects to custom change objects completed");
 
-        log.verbose("Creating diff tree");
+        log.info("Creating diff tree");
         DiffNode root = DiffTreeCreator.createFrom(cfChanges);
         log.verbose("Creating diff tree completed");
         return root;

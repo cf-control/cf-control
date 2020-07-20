@@ -46,7 +46,7 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
                 .listSpaceUsers(request)
                 .map(SpaceUsers::getDevelopers)
                 .doOnSubscribe(subscription -> log.info("Querying all space developers"))
-                .doOnSuccess(stringApplicationBeanMap -> log.info("Querying all space developers completed"));
+                .doOnSuccess(stringApplicationBeanMap -> log.verbose("Querying all space developers completed"));
     }
 
     /**

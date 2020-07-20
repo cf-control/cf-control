@@ -80,7 +80,7 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
             .collectMap(tuple -> tuple.getT1().getName(),
                 tuple -> new ApplicationBean(tuple.getT1(), tuple.getT2()))
                 .doOnSubscribe(subscription -> log.info("Querying all applications"))
-                .doOnSuccess(stringApplicationBeanMap -> log.info("Querying all applications completed"));
+                .doOnSuccess(stringApplicationBeanMap -> log.verbose("Querying all applications completed"));
     }
 
     private Mono<ApplicationManifest> getApplicationManifest(ApplicationSummary applicationSummary) {
