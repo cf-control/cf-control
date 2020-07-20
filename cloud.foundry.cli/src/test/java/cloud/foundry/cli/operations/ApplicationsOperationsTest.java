@@ -213,6 +213,49 @@ public class ApplicationsOperationsTest {
     }
 
     @Test
+    public void testCreateWhenNoAppIdFoundThrowsException() throws CreationException {
+        // given
+        ApplicationManifest appManifest = createMockApplicationManifest();
+        Metadata metadata = Metadata
+                .builder()
+                .annotation(ApplicationBean.PATH_KEY, "some/path")
+                .annotation(ApplicationBean.METADATA_KEY, "somemeta")
+                .build();
+
+        Applications applicationsMock = ApplicationsMockBuilder
+                .get()
+                .build();
+        ApplicationsV3 applicationsV3Mock = ApplicationsV3MockBuilder.get().build();
+        CloudFoundryClient cfcMock = CloudFoundryClientMockBuilder.get()
+                .setApplicationsV3(applicationsV3Mock)
+                .build();
+        DefaultCloudFoundryOperations dcfoMock = DefaultCloudFoundryOperationsMockBuilder.get()
+                .setApplications(applicationsMock)
+                .setSpaceId("spaceId")
+                .setCloudFoundryClient(cfcMock)
+                .build();
+
+        when(applicationsMock.list()).thenReturn(Flux.empty());
+
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(dcfoMock);
+
+        ApplicationBean applicationsBean = new ApplicationBean(appManifest, metadata);
+        applicationsBean.setPath("some/path");
+        applicationsBean.setMeta("somemeta");
+
+        //when
+        Mono<Void> request = applicationsOperations.create(appManifest.getName(), applicationsBean, false);
+
+        // then
+        Exception exception = assertThrows(CreationException.class, request::block);
+        assertThat(exception.getMessage(), is("Error when trying to get application id: App does not exist."));
+        verify(dcfoMock.applications(), times(1))
+                .pushManifest(any(PushApplicationManifestRequest.class));
+        verify(applicationsV3Mock, times(0))
+                .update(any(UpdateApplicationRequest.class));
+    }
+
+    @Test
     public void testCreateThrowsCreationExceptionWhenNonRecoverableErrorOccurs() {
         //given
         ApplicationManifest appManifest = createMockApplicationManifest();

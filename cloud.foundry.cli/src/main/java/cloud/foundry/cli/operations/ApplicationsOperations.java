@@ -183,7 +183,8 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                     log.debug("App's bean:", bean);
                     log.debug("App should be started:", shouldStart);
                 })
-                .doOnSuccess(aVoid -> log.verbose("Creating application", appName, "completed"));
+                .doOnSuccess(aVoid -> log.verbose("Creating application", appName, "completed"))
+                .onErrorStop();
     }
 
     private boolean whenServiceNotFound(Throwable throwable) {
@@ -200,7 +201,7 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                 .applications()
                 .list()
                 .filter(applicationSummary -> applicationSummary.getName().equals(appName))
-                .switchIfEmpty(Mono.empty())
+                .switchIfEmpty(Mono.error(new CreationException("Error when trying to get application id: App does not exist.")))
                 .map(ApplicationSummary::getId)
                 .collectList()
                 .map(strings -> strings.get(0));
