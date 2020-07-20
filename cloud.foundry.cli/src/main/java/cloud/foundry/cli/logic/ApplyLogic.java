@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.*;
 
 import cloud.foundry.cli.crosscutting.exceptions.ApplyException;
 import cloud.foundry.cli.crosscutting.logging.Log;
+import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
 import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
 import cloud.foundry.cli.logic.apply.ApplicationRequestsPlanner;
 import cloud.foundry.cli.logic.apply.ServiceRequestsPlanner;
@@ -50,15 +51,18 @@ public class ApplyLogic {
     public ApplyLogic(@Nonnull DefaultCloudFoundryOperations cfOperations) {
         checkNotNull(cfOperations);
 
-        this.spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
+        initializeOperations(cfOperations);
+
+        this.getLogic = new GetLogic();
+        this.diffLogic = new DiffLogic();
+    }
+
+    private void initializeOperations(DefaultCloudFoundryOperations cfOperations) {
         this.servicesOperations = new ServicesOperations(cfOperations);
         this.applicationsOperations = new ApplicationsOperations(cfOperations);
         this.spaceOperations = new SpaceOperations(cfOperations);
         this.spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
         this.clientOperations = new ClientOperations(cfOperations);
-
-        this.getLogic = new GetLogic();
-        this.diffLogic = new DiffLogic();
     }
 
     public void setApplicationsOperations(ApplicationsOperations applicationsOperations) {
@@ -117,8 +121,12 @@ public class ApplyLogic {
 
                 Mono<Void> createRequest = spaceOperations.create(desiredSpaceName);
                 createRequest.block();
-
                 log.verbose("Creating space", desiredSpaceName, "completed");
+
+                // switch to desired space
+                log.info("Switching to space", desiredSpaceName);
+                loginCommandOptions.setSpace(desiredSpaceName);
+                initializeOperations(CfOperationsCreator.createCfOperations(loginCommandOptions));
             } else {
                 log.info("Space", desiredSpaceName, "already exists, skipping");
 
