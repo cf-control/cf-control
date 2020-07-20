@@ -100,10 +100,9 @@ You can have the tool create a machine-readable log file by specifying the `--lo
   -ns --no-auto-start                    Don't start apps when they get deployed. (Only for the apply command) 
 ```
 
-##### [HINT - TARGET BEAN INFORMATION FOR SOME PARAMS]
+##### [HINT - TARGET INFORMATION FOR SOME COMMANDS]
 
-For the <code>diff/apply</code> commands, the parameters can be fetched from the target section of the given YAML file,
-to reduce the number of the program target information `api`, `organization` and `space`.
+For the `diff/apply` commands, some parameters can be fetched from the target section of the given YAML file.
 
 The defined values in a given YAML file could be:
 
