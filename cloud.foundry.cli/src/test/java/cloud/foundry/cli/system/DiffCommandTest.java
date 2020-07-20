@@ -24,28 +24,6 @@ public class DiffCommandTest extends SystemTestBase {
 
 
     @Test
-    public void testEmptySpace() {
-        try (SpaceManager spaceManager = createSpaceWithRandomName()) {
-            requestServiceCreation(spaceManager);
-            requestApplicationCreation(spaceManager);
-
-            spaceManager.createRequestedEntities();
-
-            ArgumentsBuilder args = new ArgumentsBuilder()
-                    .addArgument("diff")
-                    .addOption("-y", "src/test/resources/system/demo-python-app/diff/testConfig.yml");
-
-            RunResult runResult = runBaseControllerWithCredentialsFromEnvironment(args, spaceManager);
-
-            String outContent = runResult.getStreamContents().getStdoutContent();
-
-            assertThat(outContent, containsString("apps"));
-            assertThat(outContent, containsString("services"));
-            assertThat(outContent, containsString("spaceDevelopers"));
-        }
-    }
-
-    @Test
     public void testMissingServiceAndApplication() {
         try (SpaceManager spaceManager = createSpaceWithRandomName()) {
             String expected = "  spec:\n" +
