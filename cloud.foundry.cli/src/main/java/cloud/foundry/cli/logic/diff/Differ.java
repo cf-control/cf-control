@@ -90,7 +90,7 @@ public class Differ {
     private DiffNode doCreateDiffTree(Bean liveConfig, Bean desiredConfig) {
         Diff diff = JAVERS.compare(liveConfig, desiredConfig);
 
-        log.info("Parsing JaVers change objects to custom change objects");
+        log.verbose("Parsing JaVers change objects to custom change objects");
         // parse the change objects created by the JaVers diff to custom change objects
         List<CfChange> cfChanges = diff.getChanges()
                 .stream()
@@ -100,7 +100,7 @@ public class Differ {
                 // apply all custom set filters
                 .filter(this::applyFilterCriterion)
                 .collect(Collectors.toList());
-        log.info("Parsing JaVers change objects to custom change objects completed");
+        log.verbose("Parsing JaVers change objects to custom change objects completed");
 
         return DiffTreeCreator.createFrom(cfChanges);
     }
