@@ -188,7 +188,6 @@ public class SpaceManager implements AutoCloseable {
      * Registers a service that is desired be created on the space.
      * @param serviceName the name of the desired service
      * @param desiredServiceBean the bean of the desired service
-     * @return random name used for the service
      */
     public void requestCreationOfService(String serviceName, ServiceBean desiredServiceBean) {
         servicesToCreate.put(serviceName, desiredServiceBean);
