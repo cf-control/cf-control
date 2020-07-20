@@ -9,9 +9,9 @@ import java.util.Properties;
 /**
  * Utils class for reading information from property files.
  */
-public class PropertyUtils {
+public class VersionPropertiesFileUtils {
 
-    private static final Log log = Log.getLog(PropertyUtils.class);
+    private static final Log log = Log.getLog(VersionPropertiesFileUtils.class);
 
     /**
      * Name of the property file, which contains the version of our application
@@ -30,8 +30,9 @@ public class PropertyUtils {
      *
      * @return API-Version
      */
-    public String determineApiVersion(ResourceProvider resourceProvider, Properties properties) {
-        InputStream inputStream = resourceProvider.getInputStreamFromResourceFile(VERSION_PROPERTIES, this.getClass());
+    public static String determineApiVersion(ResourceProvider resourceProvider, Properties properties) {
+        InputStream inputStream = resourceProvider.getInputStreamFromResourceFile(VERSION_PROPERTIES,
+                VersionPropertiesFileUtils.class);
         try {
             properties.load(inputStream);
             String value = properties.getProperty(VERSION);

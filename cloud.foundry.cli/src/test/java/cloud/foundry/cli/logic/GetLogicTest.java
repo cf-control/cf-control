@@ -10,8 +10,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import cloud.foundry.cli.crosscutting.exceptions.GetException;
-import cloud.foundry.cli.crosscutting.mapping.PropertyUtils;
-import cloud.foundry.cli.crosscutting.mapping.ResourceProvider;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationManifestBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
@@ -57,16 +55,13 @@ public class GetLogicTest {
         ApplicationsOperations mockApplications = mock(ApplicationsOperations.class);
         when(mockApplications.getAll()).thenReturn(monoApplications);
 
-        PropertyUtils mockPropertyUtils = mockPropertyUtils();
         LoginCommandOptions mockLoginCommandOptions = mockLoginCommandOptions();
 
         // when
-        ConfigBean configBean = getLogic.getAll(mockSpaceDevelopers, mockServices, mockApplications, mockPropertyUtils,
+        ConfigBean configBean = getLogic.getAll(mockSpaceDevelopers, mockServices, mockApplications,
                 mockLoginCommandOptions);
 
         // then
-        assertThat(configBean.getApiVersion(), is("API VERSION"));
-
         assertThat(configBean.getTarget().getEndpoint(), is("SOME API ENDPOINT"));
         assertThat(configBean.getTarget().getOrg(), is("cloud.foundry.cli"));
         assertThat(configBean.getTarget().getSpace(), is("development"));
@@ -82,18 +77,15 @@ public class GetLogicTest {
         SpaceDevelopersOperations mockSpaceDevelopers = mockSpaceDevelopersOperations();
         ServicesOperations mockServices = mockServicesOperations();
         ApplicationsOperations mockApplications = mockApplicationOperations();
-        PropertyUtils mockPropertyUtils = mockPropertyUtils();
         LoginCommandOptions mockLoginCommandOptions = mockLoginCommandOptions();
 
         GetLogic getLogic = new GetLogic();
 
         // when
         ConfigBean configBean = getLogic.getAll(mockSpaceDevelopers, mockServices,
-                mockApplications, mockPropertyUtils, mockLoginCommandOptions);
+                mockApplications, mockLoginCommandOptions);
 
         // then
-        assertThat(configBean.getApiVersion(), is("API VERSION"));
-
         assertThat(configBean.getTarget().getEndpoint(), is("SOME API ENDPOINT"));
         assertThat(configBean.getTarget().getOrg(), is("cloud.foundry.cli"));
         assertThat(configBean.getTarget().getSpace(), is("development"));
@@ -297,13 +289,6 @@ public class GetLogicTest {
         when(mockApplications.getAll()).thenReturn(mono);
 
         return mockApplications;
-    }
-
-    private PropertyUtils mockPropertyUtils() {
-        PropertyUtils mockPropertyUtils = mock(PropertyUtils.class);
-        when(mockPropertyUtils.determineApiVersion(new ResourceProvider(), new Properties())).thenReturn("API VERSION");
-
-        return mockPropertyUtils;
     }
 
     private LoginCommandOptions mockLoginCommandOptions() {

@@ -13,9 +13,9 @@ import java.io.InputStream;
 import java.util.Properties;
 
 /**
- * Test for {@link PropertyUtils}
+ * Test for {@link VersionPropertiesFileUtils}
  */
-public class PropertyUtilsTest {
+public class VersionPropertiesFileUtilsTest {
 
     @Test
     public void testDetermineApiVersionSucceeds() throws IOException {
@@ -28,8 +28,7 @@ public class PropertyUtilsTest {
         when(propertiesMock.getProperty("version")).thenReturn("1.0.0");
 
         // when
-        PropertyUtils propertyUtils = new PropertyUtils();
-        String version = propertyUtils.determineApiVersion(resourceProviderMock, propertiesMock);
+        String version = VersionPropertiesFileUtils.determineApiVersion(resourceProviderMock, propertiesMock);
 
         // then
         verify(propertiesMock).load(inputStreamMock);
@@ -47,8 +46,7 @@ public class PropertyUtilsTest {
                 .thenReturn(stubInputStream);
         doThrow(new IOException()).when(propertiesMock).load(stubInputStream);
         // when
-        PropertyUtils propertyUtils = new PropertyUtils();
-        String version = propertyUtils.determineApiVersion(resourceProviderMock, propertiesMock);
+        String version = VersionPropertiesFileUtils.determineApiVersion(resourceProviderMock, propertiesMock);
 
         // then
         verify(propertiesMock).load(stubInputStream);

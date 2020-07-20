@@ -16,7 +16,7 @@ import java.util.Properties;
 import cloud.foundry.cli.operations.ApplicationsOperations;
 import cloud.foundry.cli.operations.ServicesOperations;
 import cloud.foundry.cli.operations.SpaceDevelopersOperations;
-import cloud.foundry.cli.crosscutting.mapping.PropertyUtils;
+import cloud.foundry.cli.crosscutting.mapping.VersionPropertiesFileUtils;
 import cloud.foundry.cli.services.LoginCommandOptions;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -37,7 +37,6 @@ public class GetLogic {
      * @param spaceDevelopersOperations SpaceDevelopersOperations
      * @param servicesOperations ServicesOperations
      * @param applicationsOperations ApplicationsOperations
-     * @param propertyUtils PropertyUtils
      * @param loginOptions LoginCommandOptions
      * @return ConfigBean
      * @throws GetException if an error occurs during the information retrieving
@@ -45,10 +44,9 @@ public class GetLogic {
     public ConfigBean getAll(SpaceDevelopersOperations spaceDevelopersOperations,
                              ServicesOperations servicesOperations,
                              ApplicationsOperations applicationsOperations,
-                             PropertyUtils propertyUtils,
                              LoginCommandOptions loginOptions) {
 
-        String apiVersion = propertyUtils.determineApiVersion(new ResourceProvider(), new Properties());
+        String apiVersion = VersionPropertiesFileUtils.determineApiVersion(new ResourceProvider(), new Properties());
         Mono<List<String>> spaceDevelopers = spaceDevelopersOperations.getAll();
         Mono<Map<String, ServiceBean>> services = servicesOperations.getAll();
         Mono<Map<String, ApplicationBean>> apps = applicationsOperations.getAll();

@@ -5,7 +5,7 @@ import static picocli.CommandLine.Mixin;
 
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
-import cloud.foundry.cli.crosscutting.mapping.PropertyUtils;
+import cloud.foundry.cli.crosscutting.mapping.VersionPropertiesFileUtils;
 import cloud.foundry.cli.crosscutting.mapping.YamlMapper;
 import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
 import cloud.foundry.cli.logic.DiffLogic;
@@ -49,13 +49,12 @@ public class DiffController implements Callable<Integer> {
         SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
         ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
-        PropertyUtils propertyUtils = new PropertyUtils();
 
         GetLogic getLogic = new GetLogic();
 
         log.info("Fetching all information for target space");
         ConfigBean currentConfigBean = getLogic.getAll(spaceDevelopersOperations, servicesOperations,
-                applicationsOperations, propertyUtils, loginOptions);
+                applicationsOperations, loginOptions);
         log.verbose("Fetching all information for target space completed");
 
         log.debug("Current Config:", currentConfigBean);
