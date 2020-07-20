@@ -94,6 +94,7 @@ public class Differ {
         // parse the change objects created by the JaVers diff to custom change objects
         List<CfChange> cfChanges = diff.getChanges()
                 .stream()
+                .peek(change -> log.verbose("JaVers found a change:", change))
                 .map(this.changeParser::parse)
                 .flatMap(Collection::stream)
                 // apply all custom set filters
