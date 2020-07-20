@@ -42,10 +42,12 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
      * @return mono object of all services as map of the service names as key and ServiceBeans as value
      */
     public Mono<Map<String, ServiceBean>> getAll() {
-        return this.cloudFoundryOperations.services()
-            .listInstances()
-            .flatMap(serviceInstanceSummary -> getServiceInstance(serviceInstanceSummary.getName()))
-            .collectMap(ServiceInstance::getName, ServiceBean::new);
+        return  this.cloudFoundryOperations.services()
+                .listInstances()
+                .flatMap(serviceInstanceSummary -> getServiceInstance(serviceInstanceSummary.getName()))
+                .collectMap(ServiceInstance::getName, ServiceBean::new)
+                .doOnSubscribe(subscription -> log.info("Querying all services"))
+                .doOnSuccess(stringApplicationBeanMap -> log.verbose("Querying all services completed"));
     }
 
     private Mono<ServiceInstance> getServiceInstance(String serviceName) {
@@ -108,7 +110,6 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
             .newName(newName)
             .build();
 
-        // TODO: moove logs
         return this.cloudFoundryOperations.services()
             .renameInstance(renameServiceInstanceRequest)
                 .doOnSubscribe(aVoid -> log.info("Renaming service", currentName, "to", newName))
@@ -128,7 +129,7 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
     public Mono<Void> update(String serviceInstanceName, ServiceBean serviceBean) {
         checkNotNull(serviceInstanceName);
         checkNotNull(serviceBean);
-        
+
         return remove(serviceInstanceName)
             .then(create(serviceInstanceName, serviceBean));
     }
@@ -252,7 +253,7 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
     }
 
     /**
-     * Prepares a request for unbinding a service instance from an application. 
+     * Prepares a request for unbinding a service instance from an application.
      * The resulting mono is preconfigured such that it will perform logging.
      *
      * @param serviceInstanceName name of the service instance to unbind the application from
@@ -282,7 +283,7 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
     }
 
     /**
-     * Prepares a request for unbinding a service instance from all routes. 
+     * Prepares a request for unbinding a service instance from all routes.
      * The resulting flux is preconfigured such that it will perform logging.
      *
      * @param serviceInstanceName name of the service instance to unbind all routes from

@@ -78,7 +78,9 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                 getMetadata(applicationSummary)))
             // T1 is the ApplicationManifest and T2 is the metadata of the application
             .collectMap(tuple -> tuple.getT1().getName(),
-                tuple -> new ApplicationBean(tuple.getT1(), tuple.getT2()));
+                tuple -> new ApplicationBean(tuple.getT1(), tuple.getT2()))
+                .doOnSubscribe(subscription -> log.info("Querying all applications"))
+                .doOnSuccess(stringApplicationBeanMap -> log.verbose("Querying all applications completed"));
     }
 
     private Mono<ApplicationManifest> getApplicationManifest(ApplicationSummary applicationSummary) {
