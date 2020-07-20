@@ -1,5 +1,8 @@
 package cloud.foundry.cli.system;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
+
 import cloud.foundry.cli.crosscutting.mapping.YamlMapper;
 import cloud.foundry.cli.crosscutting.mapping.beans.*;
 import cloud.foundry.cli.system.util.ArgumentsBuilder;
@@ -7,11 +10,12 @@ import cloud.foundry.cli.system.util.RunResult;
 import cloud.foundry.cli.system.util.SpaceManager;
 import org.junit.jupiter.api.Test;
 
+
 /**
  * Test for {@link cloud.foundry.cli.services.GetController}, specifically the default get command which fetches all
  * the information and outputs them in the same format we expect for the input.
  */
-public class GetAllCommandTest extends SystemTestBase {
+public class GetCommandTest extends SystemTestBase {
 
     private void assertRootBeanIsValid(ConfigBean rootBean, SpaceManager spaceManager) {
         assert rootBean.getApiVersion().startsWith("2.");
@@ -103,10 +107,11 @@ public class GetAllCommandTest extends SystemTestBase {
     public void testSpaceWithOneApplication() {
         try (SpaceManager spaceManager = createSpaceWithRandomName()) {
             ApplicationBean application = new ApplicationBean();
+            application.setPath("src/test/resources/system/demo-python-app");
 
             ApplicationManifestBean manifest = new ApplicationManifestBean();
             application.setManifest(manifest);
-            manifest.setBuildpack("https://github.com/cloudfoundry/java-buildpack.git");
+            manifest.setBuildpack("https://github.com/cloudfoundry/python-buildpack.git");
 
             // note: the application name must be unique, it'll be used as domain
             String appName = spaceManager.requestCreationOfApplication(application);
@@ -118,26 +123,26 @@ public class GetAllCommandTest extends SystemTestBase {
             RunResult runResult = runBaseControllerWithCredentialsFromEnvironment(args, spaceManager);
 
             String outContent = runResult.getStreamContents().getStdoutContent();
-            assert outContent.length() > 0;
+            assertThat(outContent.length(), is(greaterThan(0)));
 
             // parse YAML from stdout and check it for validity
             ConfigBean rootBean = loadConfigBeanFromStdoutAndAssertItsValidity(outContent, spaceManager);
 
             SpecBean spec = rootBean.getSpec();
-            assert spec.getServices() == null;
+            assertThat(spec.getServices(),  is(nullValue()));
 
-            assert spec.getApps().size() == 1;
+            assertThat(spec.getApps().size(), is(1));
             ApplicationBean parsedApplication = spec.getApps().get(appName);
-            assert parsedApplication.getPath() == null;
+            assertThat(parsedApplication.getPath(), is("src/test/resources/system/demo-python-app"));
 
             String buildpack = parsedApplication.getManifest().getBuildpack();
-            assert buildpack.equals("https://github.com/cloudfoundry/java-buildpack.git");
+            assertThat(buildpack, is("https://github.com/cloudfoundry/python-buildpack.git"));
             // there's no log messages >= INFO we could test against, only from setup/teardown, so we just check
             // there's *some* contents
             String errContent = runResult.getStreamContents().getStderrContent();
-            assert errContent.length() > 0;
+            assertThat(errContent.length(), is(greaterThan(0)));
 
-            assert runResult.getExitCode() == 0;
+            assertThat(runResult.getExitCode(), is(0));
         }
     }
 

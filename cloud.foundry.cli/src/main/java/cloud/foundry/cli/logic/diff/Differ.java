@@ -3,6 +3,7 @@ package cloud.foundry.cli.logic.diff;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.beans.Bean;
 import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
 import cloud.foundry.cli.logic.diff.change.CfChange;
@@ -32,6 +33,8 @@ import java.util.stream.Collectors;
  * The idea is to build a tree data structure where each node holds the changes of their level.
  */
 public class Differ {
+
+    private static final Log log = Log.getLog(Differ.class);
 
     private static final Javers JAVERS = JaversBuilder.javers()
             .withListCompareAlgorithm(ListCompareAlgorithm.AS_SET)
@@ -87,16 +90,22 @@ public class Differ {
     private DiffNode doCreateDiffTree(Bean liveConfig, Bean desiredConfig) {
         Diff diff = JAVERS.compare(liveConfig, desiredConfig);
 
+        log.verbose("Parsing JaVers change objects to custom change objects");
         // parse the change objects created by the JaVers diff to custom change objects
         List<CfChange> cfChanges = diff.getChanges()
                 .stream()
+                .peek(change -> log.debug("JaVers found a change:", change))
                 .map(this.changeParser::parse)
                 .flatMap(Collection::stream)
                 // apply all custom set filters
                 .filter(this::applyFilterCriterion)
                 .collect(Collectors.toList());
+        log.verbose("Parsing JaVers change objects to custom change objects completed");
 
-        return DiffTreeCreator.createFrom(cfChanges);
+        log.info("Creating diff tree");
+        DiffNode root = DiffTreeCreator.createFrom(cfChanges);
+        log.verbose("Creating diff tree completed");
+        return root;
     }
 
     private boolean applyFilterCriterion(CfChange change) {

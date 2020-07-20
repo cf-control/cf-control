@@ -14,6 +14,7 @@ import org.javers.core.diff.changetype.container.ValueAdded;
 import org.javers.core.diff.changetype.container.ValueRemoved;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -35,25 +36,33 @@ public class ContainerChangeParsingStrategy extends AbstractParsingStrategy {
     protected List<CfChange> doParse(Change change) {
         ContainerChange containerChange = (ContainerChange) change;
 
+        log.verbose("Parsing change type", change.getClass().getSimpleName(), "to custom change type",
+                CfContainerChange.class.getSimpleName());
         List<CfContainerValueChanged> cfChanges = containerChange.getChanges()
                 .stream()
-                .map(this::parseListEntry)
+                .map(elementChange -> parseListEntry(((ContainerChange) change).getPropertyName(), elementChange))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
-        return Arrays.asList(new CfContainerChange(change.getAffectedObject().get(),
+        log.debug("Parsing change type", change.getClass().getSimpleName(), "to custom change type",
+                CfContainerChange.class.getSimpleName(), "completed");
+        return Collections.singletonList(new CfContainerChange(change.getAffectedObject().get(),
                 containerChange.getPropertyName(),
                 extractPathFrom(change),
                 cfChanges));
     }
 
-    private CfContainerValueChanged parseListEntry(ContainerElementChange elementChange) {
+    private CfContainerValueChanged parseListEntry(String propertyName, ContainerElementChange elementChange) {
         if (elementChange instanceof ValueAdded) {
-            return new CfContainerValueChanged(((ValueAdded) elementChange).getAddedValue().toString(),
-                    ChangeType.ADDED);
+            String value = ((ValueAdded) elementChange).getAddedValue().toString();
+
+            log.debug("Appending", propertyName, "container change with added entry:", value);
+            return new CfContainerValueChanged(value, ChangeType.ADDED);
         } else if ( elementChange instanceof ValueRemoved) {
-            return new CfContainerValueChanged(((ValueRemoved) elementChange).getRemovedValue().toString(),
-                    ChangeType.REMOVED);
+            String value = ((ValueRemoved) elementChange).getRemovedValue().toString();
+
+            log.debug("Appending", propertyName, "container change with removed entry:", value);
+            return new CfContainerValueChanged(value, ChangeType.REMOVED);
         }
         log.debug("Ignoring unsupported list change type", elementChange.getClass());
         return null;
