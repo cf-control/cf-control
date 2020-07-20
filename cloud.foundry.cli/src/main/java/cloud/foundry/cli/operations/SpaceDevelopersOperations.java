@@ -44,7 +44,9 @@ public class SpaceDevelopersOperations extends AbstractOperations<DefaultCloudFo
         return cloudFoundryOperations
                 .userAdmin()
                 .listSpaceUsers(request)
-                .map(SpaceUsers::getDevelopers);
+                .map(SpaceUsers::getDevelopers)
+                .doOnSubscribe(subscription -> log.info("Querying all space developers"))
+                .doOnSuccess(stringApplicationBeanMap -> log.info("Querying all space developers completed"));
     }
 
     /**

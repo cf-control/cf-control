@@ -44,7 +44,9 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
         return  this.cloudFoundryOperations.services()
                 .listInstances()
                 .flatMap(serviceInstanceSummary -> getServiceInstance(serviceInstanceSummary.getName()))
-                .collectMap(ServiceInstance::getName, ServiceBean::new);
+                .collectMap(ServiceInstance::getName, ServiceBean::new)
+                .doOnSubscribe(subscription -> log.info("Querying all services"))
+                .doOnSuccess(stringApplicationBeanMap -> log.info("Querying all services completed"));
     }
 
     private Mono<ServiceInstance> getServiceInstance(String serviceName) {
@@ -107,7 +109,6 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
                 .newName(newName)
                 .build();
 
-        //TODO: moove logs
         return this.cloudFoundryOperations.services()
                 .renameInstance(renameServiceInstanceRequest)
                 .doOnSubscribe(aVoid -> log.info("Renaming service", currentName, "to", newName))
@@ -128,7 +129,6 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
         checkNotNull(serviceInstanceName);
         checkNotNull(serviceBean);
 
-        //TODO:move logs
         UpdateServiceInstanceRequest updateServiceInstanceRequest = UpdateServiceInstanceRequest.builder()
                 .serviceInstanceName(serviceInstanceName)
                 .tags(serviceBean.getTags())
