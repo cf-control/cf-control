@@ -126,6 +126,9 @@ public class ApplyLogic {
 
                 // switch to desired space
                 log.info("Switching to space", desiredSpaceName);
+
+                // not a good solution but necessary right now, since there is no time accomplish this in
+                // a more elegant way
                 loginCommandOptions.setSpace(desiredSpaceName);
                 initializeOperations(CfOperationsCreator.createCfOperations(loginCommandOptions));
             } else {
