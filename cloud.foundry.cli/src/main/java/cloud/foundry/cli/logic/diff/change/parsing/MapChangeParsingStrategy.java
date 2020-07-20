@@ -30,15 +30,15 @@ public class MapChangeParsingStrategy extends AbstractParsingStrategy {
     protected List<CfChange> doParse(Change change) {
         MapChange mapChange = (MapChange) change;
 
-        log.verbose("Parsing change type", change.getClass(), "to custom change type",
-                CfMapChange.class);
+        log.verbose("Parsing change type", change.getClass().getSimpleName(), "to custom change type",
+                CfMapChange.class.getSimpleName());
         List<CfMapValueChanged> cfChanges = mapChange.getEntryChanges()
                 .stream()
-                .map(this::parseMapEntry)
+                .map(entryChange -> parseMapEntry(((MapChange) change).getPropertyName(), entryChange))
                 .collect(Collectors.toList());
 
-        log.debug("Parsing change type", change.getClass(), "to custom change type",
-                CfMapChange.class, "completed");
+        log.debug("Parsing change type", change.getClass().getSimpleName(), "to custom change type",
+                CfMapChange.class.getSimpleName(), "completed");
         return Collections.singletonList(new CfMapChange(change.getAffectedObject().get(),
                 mapChange.getPropertyName(),
                 extractPathFrom(change),
@@ -50,25 +50,28 @@ public class MapChangeParsingStrategy extends AbstractParsingStrategy {
         return Arrays.asList(MapChange.class);
     }
 
-    private CfMapValueChanged parseMapEntry(EntryChange entryChange) {
+    private CfMapValueChanged parseMapEntry(String propertyName, EntryChange entryChange) {
         if (entryChange instanceof EntryAdded) {
-            log.verbose("Appending map change with added key", entryChange.getKey(),
-                    "and value", ((EntryAdded) entryChange).getValue());
+            log.verbose("Appending", propertyName,"map change with added entry:"
+                    , entryChange.getKey() + ":", ((EntryAdded) entryChange).getValue());
+
             return new CfMapValueChanged(entryChange.getKey().toString(),
                     "",
                     ((EntryAdded) entryChange).getValue().toString(),
                     ChangeType.ADDED);
         } else if ( entryChange instanceof EntryRemoved) {
-            log.verbose("Appending map change with removed key", entryChange.getKey(),
-                    "and value", ((EntryRemoved) entryChange).getValue());
+            log.verbose("Appending", propertyName,"map change with removed entry:",
+                    entryChange.getKey() + ":", ((EntryRemoved) entryChange).getValue());
+
             return new CfMapValueChanged(entryChange.getKey().toString(),
                     ((EntryRemoved) entryChange).getValue().toString(),
                     "" ,
                     ChangeType.REMOVED);
         } else {
-            log.verbose("Appending map change with changed key", entryChange.getKey(),
-                    "and value from", ((EntryValueChange) entryChange).getLeftValue(),
-                    "to value",((EntryValueChange) entryChange).getRightValue());
+            log.verbose("Appending", propertyName,"map change with changed entry:",
+                    entryChange.getKey() +":", ((EntryValueChange) entryChange).getLeftValue(), "to",
+                    entryChange.getKey() +":",((EntryValueChange) entryChange).getRightValue());
+
             return new CfMapValueChanged(entryChange.getKey().toString(),
                     ((EntryValueChange) entryChange).getLeftValue().toString(),
                     ((EntryValueChange) entryChange).getRightValue().toString(),

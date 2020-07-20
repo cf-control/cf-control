@@ -36,32 +36,32 @@ public class ContainerChangeParsingStrategy extends AbstractParsingStrategy {
     protected List<CfChange> doParse(Change change) {
         ContainerChange containerChange = (ContainerChange) change;
 
-        log.verbose("Parsing change type", change.getClass(), "to custom change type",
-                CfContainerChange.class);
+        log.verbose("Parsing change type", change.getClass().getSimpleName(), "to custom change type",
+                CfContainerChange.class.getSimpleName());
         List<CfContainerValueChanged> cfChanges = containerChange.getChanges()
                 .stream()
-                .map(this::parseListEntry)
+                .map(elementChange -> parseListEntry(((ContainerChange) change).getPropertyName(), elementChange))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
-        log.debug("Parsing change type", change.getClass(), "to custom change type",
-                CfContainerChange.class, "completed");
+        log.debug("Parsing change type", change.getClass().getSimpleName(), "to custom change type",
+                CfContainerChange.class.getSimpleName(), "completed");
         return Collections.singletonList(new CfContainerChange(change.getAffectedObject().get(),
                 containerChange.getPropertyName(),
                 extractPathFrom(change),
                 cfChanges));
     }
 
-    private CfContainerValueChanged parseListEntry(ContainerElementChange elementChange) {
+    private CfContainerValueChanged parseListEntry(String propertyName, ContainerElementChange elementChange) {
         if (elementChange instanceof ValueAdded) {
             String value = ((ValueAdded) elementChange).getAddedValue().toString();
 
-            log.verbose("Appending container change with added value", value);
+            log.verbose("Appending", propertyName, "container change with added entry:", value);
             return new CfContainerValueChanged(value, ChangeType.ADDED);
         } else if ( elementChange instanceof ValueRemoved) {
             String value = ((ValueRemoved) elementChange).getRemovedValue().toString();
 
-            log.verbose("Appending container change with removed value", value);
+            log.verbose("Appending", propertyName, "container change with removed entry:", value);
             return new CfContainerValueChanged(value, ChangeType.REMOVED);
         }
         log.debug("Ignoring unsupported list change type", elementChange.getClass());

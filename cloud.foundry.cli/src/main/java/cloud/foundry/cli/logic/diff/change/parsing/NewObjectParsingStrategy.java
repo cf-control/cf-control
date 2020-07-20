@@ -25,13 +25,13 @@ public class NewObjectParsingStrategy extends AbstractParsingStrategy {
 
     @Override
     protected List<CfChange> doParse(Change change) {
-        log.verbose("Parsing change type", change.getClass(), "to custom change type",
-                CfNewObject.class, "with object", change.getAffectedObject().get());
+        log.verbose("Parsing change type", change.getClass().getSimpleName(), "to custom change type",
+                CfNewObject.class.getSimpleName(), "with object", change.getAffectedObject().get());
         List<CfChange> cfChanges = Collections.singletonList(new CfNewObject(change.getAffectedObject().get(),
                 "",
                 extractPathFrom(change)));
-        log.verbose("Parsing change type", change.getClass(), "to custom change type",
-                CfNewObject.class, "with object", change.getAffectedObject().get(), "completed");
+        log.verbose("Parsing change type", change.getClass().getSimpleName(), "to custom change type",
+                CfNewObject.class.getSimpleName(), "with object", change.getAffectedObject().get(), "completed");
         return cfChanges;
     }
 

@@ -4,16 +4,20 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import cloud.foundry.cli.crosscutting.exceptions.DiffException;
+import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.beans.Bean;
 import cloud.foundry.cli.logic.diff.DiffNode;
 import cloud.foundry.cli.logic.diff.DiffResult;
 import cloud.foundry.cli.logic.diff.Differ;
+import cloud.foundry.cli.logic.diff.change.parsing.ValueChangeParsingStrategy;
 import cloud.foundry.cli.logic.diff.output.DiffOutput;
 
 /**
  * Handles the operations to compare the configuration of a cloud foundry instance with a different configuration.
  */
 public class DiffLogic {
+
+    private static final Log log = Log.getLog(DiffLogic.class);
 
     private static final String BEANS_DONT_MATCH_ERROR = "Bean types don't match.";
 
@@ -40,6 +44,7 @@ public class DiffLogic {
 
     private DiffResult doCreateDiffResult(Bean liveConfig, Bean desiredConfig) {
         Differ differ = new Differ();
+        log.debug("Adding filter to ignore map changes on spec bean");
         differ.ignoreSpecBeanMapChange();
 
         return new DiffResult(differ.createDiffTree(liveConfig, desiredConfig));
@@ -68,6 +73,7 @@ public class DiffLogic {
 
     private String doCreateDiffOutput(Bean liveConfig, Bean desiredConfig) {
         Differ differ = new Differ();
+        log.debug("Adding filter to ignore map changes on spec bean");
         differ.ignoreSpecBeanMapChange();
 
         DiffNode diffNode = differ.createDiffTree(liveConfig, desiredConfig);
