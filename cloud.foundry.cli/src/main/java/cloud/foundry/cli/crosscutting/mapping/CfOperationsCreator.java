@@ -32,10 +32,10 @@ public class CfOperationsCreator {
      * {@link cloud.foundry.cli.operations}. The cfOperations object
      *
      * @param commandOptions {@link LoginCommandOptions}
-     * @param targetBean     Bean that holds all data that is related to the target space.
+     * @param targetBean     Bean that holds all data that is related to the target space (can be null).
      * @return DefaultCloudFoundryOperations object, which is the entry point for accessing
      * the CF configurations.
-     * @throws MissingCredentialsException if either the username or the password cannot be determined
+     * @throws MissingCredentialsException       if either the username or the password cannot be determined
      * @throws MissingTargetInformationException if the target information is not fully specified
      */
     public static DefaultCloudFoundryOperations createCfOperations(TargetBean targetBean,
@@ -62,7 +62,9 @@ public class CfOperationsCreator {
     }
 
     private static TargetBean replaceTargetOptions(TargetBean targetBean, LoginCommandOptions commandOptions) {
-        if (targetBean == null) targetBean = new TargetBean();
+        if (targetBean == null) {
+            targetBean = new TargetBean();
+        }
 
         String apiHost = commandOptions.getApiHost();
         String organization = commandOptions.getOrganization();

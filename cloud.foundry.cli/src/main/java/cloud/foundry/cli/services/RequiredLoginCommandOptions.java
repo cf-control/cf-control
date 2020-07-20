@@ -9,6 +9,7 @@ import picocli.CommandLine;
  * {@link org.cloudfoundry.operations.CloudFoundryOperations operations} object.
  *
  * @see cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator
+ * The user must provide target information like <code>api</code>, <code>organization</code> and <code>space</code>.
  */
 public class RequiredLoginCommandOptions implements LoginCommandOptions {
 

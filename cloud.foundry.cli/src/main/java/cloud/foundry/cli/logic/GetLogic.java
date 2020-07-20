@@ -36,7 +36,7 @@ public class GetLogic {
      * @param servicesOperations ServicesOperations
      * @param applicationsOperations ApplicationsOperations
      * @param clientOperations ClientOperations
-     * @param loginOptions ILoginCommandOptions
+     * @param loginOptions user provided Login-Options
      * @return ConfigBean
      * @throws GetException if an error occurs during the information retrieving
      */
@@ -130,6 +130,7 @@ public class GetLogic {
         target.setEndpoint(loginOptions.getApiHost());
         target.setOrg(loginOptions.getOrganization());
         target.setSpace(loginOptions.getSpace());
+
         return target;
     }
 

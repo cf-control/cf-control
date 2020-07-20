@@ -99,7 +99,7 @@ You can have the tool create a machine-readable log file by specifying the `--lo
   -y, --yaml=<yamlFile>                  The path to the yaml file. (Not needed for the get commands)
 ```
 
-##### [HINT - DEFAULT VALUES FOR SOME PARAMS]
+##### [HINT - TARGET BEAN INFORMATION FOR SOME PARAMS]
 
 For the <code>diff/apply</code> commands, the parameters can be fetched from the target section of the given YAML file,
 to reduce the number of the program target information `api`, `organization` and `space`.
