@@ -4,7 +4,6 @@ import static com.google.common.base.Preconditions.*;
 
 import cloud.foundry.cli.crosscutting.exceptions.ApplyException;
 import cloud.foundry.cli.crosscutting.logging.Log;
-import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
 import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
 import cloud.foundry.cli.logic.apply.ApplicationRequestsPlanner;
 import cloud.foundry.cli.logic.apply.ServiceRequestsPlanner;
@@ -13,7 +12,6 @@ import cloud.foundry.cli.logic.diff.DiffResult;
 import cloud.foundry.cli.logic.diff.change.CfChange;
 import cloud.foundry.cli.logic.diff.change.container.CfContainerChange;
 import cloud.foundry.cli.operations.*;
-import cloud.foundry.cli.services.OptionalLoginCommandOptions;
 
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import reactor.core.publisher.Flux;
