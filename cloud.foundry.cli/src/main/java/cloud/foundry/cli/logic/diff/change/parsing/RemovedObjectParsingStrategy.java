@@ -2,7 +2,6 @@ package cloud.foundry.cli.logic.diff.change.parsing;
 
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.logic.diff.change.CfChange;
-import cloud.foundry.cli.logic.diff.change.object.CfNewObject;
 import cloud.foundry.cli.logic.diff.change.object.CfRemovedObject;
 import org.javers.core.diff.Change;
 import org.javers.core.diff.changetype.ObjectRemoved;

@@ -48,7 +48,7 @@ public class DiffCommandTest extends SystemTestBase {
             //when
             ArgumentsBuilder args = new ArgumentsBuilder()
                     .addArgument("diff")
-                    .addOption("-y", "src/test/resources/system/demo-python-app/diff/testConfig.yml");
+                    .addOption("-y", "src/test/resources/system/diff/testConfig.yml");
             RunResult runResult = runBaseControllerWithCredentialsFromEnvironment(args, spaceManager);
             String outContent = runResult.getStreamContents().getStdoutContent();
 
@@ -89,7 +89,7 @@ public class DiffCommandTest extends SystemTestBase {
             //when
             ArgumentsBuilder args = new ArgumentsBuilder()
                     .addArgument("diff")
-                    .addOption("-y", "src/test/resources/system/demo-python-app/diff/testConfig.yml");
+                    .addOption("-y", "src/test/resources/system/diff/testConfig.yml");
             RunResult runResult = runBaseControllerWithCredentialsFromEnvironment(args, spaceManager);
             String outContent = runResult.getStreamContents().getStdoutContent();
 

@@ -16,7 +16,6 @@ import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
 
 import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
 import cloud.foundry.cli.operations.*;
-import cloud.foundry.cli.services.OptionalLoginCommandOptions;
 import org.cloudfoundry.client.v3.Metadata;
 import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
 import org.cloudfoundry.operations.applications.ApplicationManifest;
@@ -28,11 +27,7 @@ import reactor.core.publisher.Mono;
 
 import java.nio.file.Paths;
 
-import java.util.List;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Collections;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Test for {@link GetLogic}
@@ -57,16 +52,13 @@ public class GetLogicTest {
         ApplicationsOperations mockApplications = mock(ApplicationsOperations.class);
         when(mockApplications.getAll()).thenReturn(monoApplications);
 
-        ClientOperations mockClientOperations = mockClientOperations();
         TargetOperations mockTargetOperations = mockTargetOperations();
 
         // when
         ConfigBean configBean = getLogic.getAll(mockSpaceDevelopers, mockServices, mockApplications,
-                mockClientOperations, mockTargetOperations);
+                mockTargetOperations);
 
         // then
-        assertThat(configBean.getApiVersion(), is("API VERSION"));
-
         assertThat(configBean.getTarget().getEndpoint(), is("SOME API ENDPOINT"));
         assertThat(configBean.getTarget().getOrg(), is("cloud.foundry.cli"));
         assertThat(configBean.getTarget().getSpace(), is("development"));
@@ -82,18 +74,15 @@ public class GetLogicTest {
         SpaceDevelopersOperations mockSpaceDevelopers = mockSpaceDevelopersOperations();
         ServicesOperations mockServices = mockServicesOperations();
         ApplicationsOperations mockApplications = mockApplicationOperations();
-        ClientOperations mockClientOperations = mockClientOperations();
         TargetOperations mockTargetOperations = mockTargetOperations();
 
         GetLogic getLogic = new GetLogic();
 
         // when
         ConfigBean configBean = getLogic.getAll(mockSpaceDevelopers, mockServices,
-                mockApplications, mockClientOperations, mockTargetOperations);
+                mockApplications, mockTargetOperations);
 
         // then
-        assertThat(configBean.getApiVersion(), is("API VERSION"));
-
         assertThat(configBean.getTarget().getEndpoint(), is("SOME API ENDPOINT"));
         assertThat(configBean.getTarget().getOrg(), is("cloud.foundry.cli"));
         assertThat(configBean.getTarget().getSpace(), is("development"));
@@ -297,13 +286,6 @@ public class GetLogicTest {
         when(mockApplications.getAll()).thenReturn(mono);
 
         return mockApplications;
-    }
-
-    private ClientOperations mockClientOperations() {
-        ClientOperations mockClientOperations = mock(ClientOperations.class);
-        when(mockClientOperations.determineApiVersion()).thenReturn(Mono.just("API VERSION"));
-
-        return mockClientOperations;
     }
 
     private TargetOperations mockTargetOperations() {
