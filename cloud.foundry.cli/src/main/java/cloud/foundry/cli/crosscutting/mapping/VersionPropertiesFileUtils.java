@@ -14,7 +14,7 @@ public class VersionPropertiesFileUtils {
     private static final Log log = Log.getLog(VersionPropertiesFileUtils.class);
 
     /**
-     * Name of the property file, which contains the version of our application
+     * Name of the properties file, which contains the version of our application
      */
     private static final String VERSION_PROPERTIES = "version.properties";
 
