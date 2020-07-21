@@ -133,7 +133,7 @@ public class ApplyLogic {
                 // switch to desired space
                 log.info("Switching to space", desiredSpaceName);
             } else {
-                log.info("Space", desiredSpaceName, "already exists, skipping");
+                log.verbose("Space", desiredSpaceName, "already exists, skipping");
 
                 liveConfigBean = getLogic.getAll(
                         spaceDevelopersOperations,
@@ -157,6 +157,7 @@ public class ApplyLogic {
 
             // applying
 
+
             Flux<Void> spaceDevelopersRequests = Flux.empty();
             if (spaceDevelopersChange != null) {
                 spaceDevelopersRequests = SpaceDevelopersRequestsPlanner
@@ -179,7 +180,7 @@ public class ApplyLogic {
             // let's be optimistic
             // prove me wrong!
             final AtomicBoolean success = new AtomicBoolean(true);
-
+            log.info("Applying changes");
             Flux.merge(spaceDevelopersRequests, servicesRequests)
                     .concatWith(appsRequests)
                     .onErrorContinue((throwable, consumer) -> {
@@ -187,7 +188,7 @@ public class ApplyLogic {
                         success.set(false);
                     })
                     .blockLast();
-
+            log.info("Applying changes completed");
             if (!success.get()) {
                 throw new RuntimeException("Failed to apply configuration: exceptions thrown during execution");
             }

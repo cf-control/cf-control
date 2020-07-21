@@ -147,7 +147,9 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
      */
     public Mono<Void> update(String appName, ApplicationBean bean) {
         return this.remove(appName)
-                .then(this.create(appName, bean));
+                .then(this.create(appName, bean))
+                .doOnSubscribe(aVoid -> log.info("Updating application", appName))
+                .doOnSuccess(aVoid -> log.verbose("Updating application", appName, "completed"));
     }
 
 
@@ -188,15 +190,15 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                         .manifest(buildApplicationManifest(appName, bean))
                         .noStart(!this.autoStart)
                         .build())
-                .doOnSubscribe(subscription -> log.info("Pushing manifest for application", appName))
-                .doOnSuccess(aVoid -> log.verbose("Pushing manifest for application", appName, "completed"))
+                .doOnSubscribe(subscription -> log.verbose("Pushing manifest for application", appName))
+                .doOnSuccess(aVoid -> log.debug("Pushing manifest for application", appName, "completed"))
                 .then(getAppId(appName).flatMap(appId -> updateAppMeta(appName, appId, bean)))
                 .onErrorResume(throwable -> !whenAppNotExists(throwable), throwable -> {
                     log.warning(throwable);
                     return Mono.empty();
                 })
                 .doOnSubscribe(subscription -> {
-                    log.debug("Creating application", appName);
+                    log.info("Creating application", appName);
                     log.debug("App's bean:", bean);
                 })
                 .doOnSuccess(aVoid -> log.verbose("Creating application", appName, "completed"));
@@ -546,7 +548,7 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                         .host(decomposedRoute.getHost())
                         .build())
                         .doOnSubscribe(aVoid -> log.info("Removing route", route, "from app", applicationName))
-                        .doOnSuccess(aVoid -> log.info(
+                        .doOnSuccess(aVoid -> log.verbose(
                                 "Removing route", route, "from app", applicationName, "completed")));
     }
 
