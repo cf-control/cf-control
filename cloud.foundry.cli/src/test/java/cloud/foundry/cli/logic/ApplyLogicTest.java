@@ -69,7 +69,7 @@ public class ApplyLogicTest {
         ApplyLogic applyLogic = new ApplyLogic(dcfoMock);
 
         GetLogic getLogicMock = mock(GetLogic.class);
-        when(getLogicMock.getAll(any(),any(), any(), any(), any())).thenReturn(desiredConfigBean);
+        when(getLogicMock.getAll(any(),any(), any(), any())).thenReturn(desiredConfigBean);
 
         SpaceOperations spaceOperationsMock = mock(SpaceOperations.class);
         when(spaceOperationsMock.getAll()).thenReturn(Mono.just(Collections.singletonList("space")));
@@ -85,7 +85,6 @@ public class ApplyLogicTest {
         verify(getLogicMock, times(1)).getAll(any(SpaceDevelopersOperations.class),
                 any(ServicesOperations.class),
                 any(ApplicationsOperations.class),
-                any(ClientOperations.class),
                 any(TargetOperations.class));
     }
 
@@ -102,7 +101,7 @@ public class ApplyLogicTest {
         ApplyLogic applyLogic = new ApplyLogic(dcfoMock);
 
         GetLogic getLogicMock = mock(GetLogic.class);
-        when(getLogicMock.getAll(any(),any(), any(), any(), any())).thenReturn(desiredConfigBean);
+        when(getLogicMock.getAll(any(),any(), any(), any())).thenReturn(desiredConfigBean);
 
         SpaceOperations spaceOperationsMock = mock(SpaceOperations.class);
         when(spaceOperationsMock.getAll()).thenReturn(Mono.just(Collections.emptyList()));
@@ -127,7 +126,6 @@ public class ApplyLogicTest {
         verify(getLogicMock, times(0)).getAll(any(SpaceDevelopersOperations.class),
                 any(ServicesOperations.class),
                 any(ApplicationsOperations.class),
-                any(ClientOperations.class),
                 any(TargetOperations.class));
     }
 
@@ -160,7 +158,7 @@ public class ApplyLogicTest {
 
         // mock get logic
         GetLogic getLogicMock = mock(GetLogic.class);
-        when(getLogicMock.getAll(any(),any(), any(), any(), any())).thenReturn(liveConfigBean);
+        when(getLogicMock.getAll(any(),any(), any(), any())).thenReturn(liveConfigBean);
 
         // mock space developers operations
         SpaceDevelopersOperations spaceDevelopersOperations = mock(SpaceDevelopersOperations.class);
@@ -195,7 +193,6 @@ public class ApplyLogicTest {
         verify(getLogicMock, times(1)).getAll(any(SpaceDevelopersOperations.class),
                 any(ServicesOperations.class),
                 any(ApplicationsOperations.class),
-                any(ClientOperations.class),
                 any(TargetOperations.class));
         verify(spaceDevelopersOperations, times(1)).getSpaceId();
         verify(spaceDevelopersOperations, times(1)).assign("spaceDeveloper1", "spaceId");

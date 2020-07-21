@@ -40,7 +40,6 @@ public class ApplyLogic {
     private ApplicationsOperations applicationsOperations;
     private TargetOperations targetOperations;
     private SpaceOperations spaceOperations;
-    private ClientOperations clientOperations;
 
     private boolean autoStart;
 
@@ -76,7 +75,6 @@ public class ApplyLogic {
         this.applicationsOperations = new ApplicationsOperations(cfOperations, autoStart);
         this.spaceOperations = new SpaceOperations(cfOperations);
         this.spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
-        this.clientOperations = new ClientOperations(cfOperations);
         this.targetOperations = new TargetOperations(cfOperations);
     }
 
@@ -153,7 +151,6 @@ public class ApplyLogic {
                         spaceDevelopersOperations,
                         servicesOperations,
                         applicationsOperations,
-                        clientOperations,
                         targetOperations);
             }
 
