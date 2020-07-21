@@ -482,9 +482,9 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                 .doOnSubscribe(aVoid -> log.info("Unbinding app", applicationName, "from service", serviceName))
                 .doOnSuccess(aVoid -> log.verbose(
                         "Unbinding app", applicationName, "from service", serviceName, "completed"))
-                .onErrorStop()
-                .doOnError(this::whenServiceNotFound, (throwable) -> {
+                .onErrorResume(this::whenServiceNotFound, (throwable) -> {
                             log.warning("Could not unbind from service", serviceName + ":", throwable.getMessage());
+                            return Mono.empty();
                         });
     }
 
