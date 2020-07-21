@@ -27,7 +27,8 @@ public class VersionPropertiesFileUtils {
     /**
      * Determines the API-Version from our application
      * If it fails, the API Version will be marked as NOT_FOUND and the error will be logged.
-     *
+     * @param resourceProvider the resource provider, used to get an input stream from an resource file
+     * @param properties the properties object
      * @return API-Version
      */
     public static String determineApiVersion(ResourceProvider resourceProvider, Properties properties) {
