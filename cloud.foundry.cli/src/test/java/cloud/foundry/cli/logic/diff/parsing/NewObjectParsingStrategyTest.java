@@ -72,7 +72,7 @@ public class NewObjectParsingStrategyTest {
         assertThat(changes.get(1).getAffectedObject(), is(specBean));
 
         assertThat(changes.get(0), Matchers.instanceOf(CfContainerChange.class));
-        assertThat(changes.get(0).getPath(), Matchers.contains("root", "spec", "spaceDevelopers"));
+        assertThat(changes.get(0).getPath(), Matchers.contains("root", "spec"));
         assertThat(changes.get(0).getPropertyName(), is("spaceDevelopers"));
         assertThat(changes.get(0).getAffectedObject(), is(specBean));
         CfContainerChange cfContainerChange = (CfContainerChange) changes.get(0);

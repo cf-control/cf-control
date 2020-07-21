@@ -44,11 +44,10 @@ public class NewObjectParsingStrategy extends AbstractParsingStrategy {
                        .peek(s ->  log.debug("Appending", propertyName,"container change with added entry:", s))
                        .map(s -> new CfContainerValueChanged(s, ChangeType.ADDED))
                        .collect(Collectors.toList());
-               List<String> path = this.extractPathFrom(change);
-               path.add(propertyName);
+
                CfContainerChange spaceDevelopersChange = new CfContainerChange(change.getAffectedObject().get(),
                        propertyName,
-                       path,
+                       this.extractPathFrom(change),
                        addedSpaceDevelopers);
                cfChanges.add(spaceDevelopersChange);
             }
