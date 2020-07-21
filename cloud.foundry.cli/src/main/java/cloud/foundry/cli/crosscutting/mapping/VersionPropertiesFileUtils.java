@@ -7,7 +7,7 @@ import java.io.InputStream;
 import java.util.Properties;
 
 /**
- * Utils class for reading information from property files.
+ * Utils class for reading information from properties file.
  */
 public class VersionPropertiesFileUtils {
 
