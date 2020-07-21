@@ -3,7 +3,6 @@ package cloud.foundry.cli.logic.diff.change.parsing;
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.logic.diff.change.CfChange;
 import cloud.foundry.cli.logic.diff.change.ChangeType;
-import cloud.foundry.cli.logic.diff.change.container.CfContainerChange;
 import cloud.foundry.cli.logic.diff.change.map.CfMapChange;
 import cloud.foundry.cli.logic.diff.change.map.CfMapValueChanged;
 import org.javers.core.diff.Change;

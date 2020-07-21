@@ -5,7 +5,6 @@ import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationManifestBean;
 import cloud.foundry.cli.logic.diff.change.CfChange;
 import cloud.foundry.cli.logic.diff.change.ChangeParser;
 import cloud.foundry.cli.logic.diff.change.object.CfObjectValueChanged;
-import cloud.foundry.cli.logic.diff.change.object.CfRemovedObject;
 import org.javers.core.Javers;
 import org.javers.core.JaversBuilder;
 import org.javers.core.diff.Change;
@@ -69,8 +68,8 @@ public class ValueChangeParsingStrategy extends AbstractParsingStrategy {
         }
 
         log.verbose("Parsing change type", change.getClass().getSimpleName(), "to custom change type",
-                CfObjectValueChanged.class.getSimpleName(), "with property", valueChange.getPropertyName(), "and changed value from",
-                valueChange.getLeft(), "to", valueChange.getRight());
+                CfObjectValueChanged.class.getSimpleName(), "with property", valueChange.getPropertyName(), 
+                "and changed value from",valueChange.getLeft(), "to", valueChange.getRight());
         List<CfChange> cfChanges = Collections.singletonList(new CfObjectValueChanged(change.getAffectedObject().get(),
                 valueChange.getPropertyName(),
                 this.extractPathFrom(change),
@@ -78,7 +77,8 @@ public class ValueChangeParsingStrategy extends AbstractParsingStrategy {
                 Objects.toString(valueChange.getRight(), null)
         ));
         log.debug("Parsing change type", change.getClass().getSimpleName(), "to custom change type",
-                CfObjectValueChanged.class.getSimpleName(), "with property", valueChange.getPropertyName(), "and changed value from",
+                CfObjectValueChanged.class.getSimpleName(), "with property",
+                valueChange.getPropertyName(), "and changed value from",
                 valueChange.getLeft(), "to", valueChange.getRight(), "completed");
         return cfChanges;
     }

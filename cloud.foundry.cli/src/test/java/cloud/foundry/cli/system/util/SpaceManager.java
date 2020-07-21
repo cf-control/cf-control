@@ -6,7 +6,7 @@ import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
 import cloud.foundry.cli.operations.ApplicationsOperations;
 import cloud.foundry.cli.operations.ServicesOperations;
 import cloud.foundry.cli.operations.SpaceOperations;
-import cloud.foundry.cli.services.LoginCommandOptions;
+import cloud.foundry.cli.services.OptionalLoginCommandOptions;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.routes.DeleteOrphanedRoutesRequest;
@@ -146,14 +146,14 @@ public class SpaceManager implements AutoCloseable {
         }
 
         // setup login command options for initialization of the cloud foundry operations instance
-        LoginCommandOptions loginCommandOptions = new LoginCommandOptions();
-        loginCommandOptions.setUserName(getCfUsername());
-        loginCommandOptions.setPassword(getCfPassword());
-        loginCommandOptions.setOrganization(getCfOrganization());
-        loginCommandOptions.setApiHost(getCfApiEndpoint());
-        loginCommandOptions.setSpace(spaceName);
+        OptionalLoginCommandOptions optionalLoginCommandOptions = new OptionalLoginCommandOptions();
+        optionalLoginCommandOptions.setUserName(getCfUsername());
+        optionalLoginCommandOptions.setPassword(getCfPassword());
+        optionalLoginCommandOptions.setOrganization(getCfOrganization());
+        optionalLoginCommandOptions.setApiHost(getCfApiEndpoint());
+        optionalLoginCommandOptions.setSpace(spaceName);
 
-        cfOperations = CfOperationsCreator.createCfOperations(loginCommandOptions);
+        cfOperations = CfOperationsCreator.createCfOperations(null, optionalLoginCommandOptions);
 
         // apparently, there are some strange race conditions with the login which we might run into when querying the
         // spaces directly

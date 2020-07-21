@@ -13,7 +13,8 @@ import cloud.foundry.cli.logic.diff.DiffResult;
 import cloud.foundry.cli.logic.diff.change.CfChange;
 import cloud.foundry.cli.logic.diff.change.container.CfContainerChange;
 import cloud.foundry.cli.operations.*;
-import cloud.foundry.cli.services.LoginCommandOptions;
+import cloud.foundry.cli.services.OptionalLoginCommandOptions;
+
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -110,7 +111,7 @@ public class ApplyLogic {
      * @param loginCommandOptions LoginCommandOptions
      * @throws NullPointerException if one of the desired parameters is null.
      */
-    public void apply(ConfigBean desiredConfigBean, LoginCommandOptions loginCommandOptions) {
+    public void apply(ConfigBean desiredConfigBean, OptionalLoginCommandOptions loginCommandOptions) {
         checkNotNull(desiredConfigBean);
         checkNotNull(loginCommandOptions);
         checkNotNull(desiredConfigBean.getTarget(), "Target bean may not be null.");
@@ -142,7 +143,8 @@ public class ApplyLogic {
                 // not a good solution but necessary right now, since there is no time accomplish this in
                 // a more elegant way
                 loginCommandOptions.setSpace(desiredSpaceName);
-                initializeOperations(CfOperationsCreator.createCfOperations(loginCommandOptions));
+                initializeOperations(
+                    CfOperationsCreator.createCfOperations(desiredConfigBean.getTarget(), loginCommandOptions));
             } else {
                 log.info("Space", desiredSpaceName, "already exists, skipping");
 

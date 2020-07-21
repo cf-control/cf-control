@@ -28,7 +28,7 @@ public class ApplyController implements Callable<Integer> {
     private static final Log log = Log.getLog(ApplyController.class);
 
     @Mixin
-    private LoginCommandOptions loginOptions;
+    private OptionalLoginCommandOptions loginOptions;
 
     @Mixin
     private YamlCommandOptions yamlCommandOptions;
@@ -45,7 +45,9 @@ public class ApplyController implements Callable<Integer> {
         log.verbose("Interpreting YAML file completed");
 
 
-        DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+        DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(
+                                                            desiredConfigBean.getTarget(),
+                                                            loginOptions);
 
         log.verbose("Auto starting apps:", !noAutoStart);
         ApplyLogic applyLogic = new ApplyLogic(cfOperations, !noAutoStart);

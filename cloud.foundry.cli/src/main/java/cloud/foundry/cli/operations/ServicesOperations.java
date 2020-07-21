@@ -6,9 +6,7 @@ import cloud.foundry.cli.crosscutting.exceptions.UpdateException;
 import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
 import cloud.foundry.cli.crosscutting.logging.Log;
 
-import org.cloudfoundry.client.v2.services.GetServiceRequest;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
-import org.cloudfoundry.operations.applications.GetApplicationRequest;
 import org.cloudfoundry.operations.routes.ListRoutesRequest;
 import org.cloudfoundry.operations.routes.Route;
 import org.cloudfoundry.operations.services.*;
@@ -137,7 +135,9 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
         // delete the service
         // create the service
         // bind all routes, apps and keys from first step to the newly created service
-        return Flux.zip(getRoutes(serviceInstanceName).collectList(), getApps(serviceInstanceName).collectList(), getKeys(serviceInstanceName).collectList())
+        return Flux.zip(getRoutes(serviceInstanceName).collectList(), 
+            getApps(serviceInstanceName).collectList(), 
+            getKeys(serviceInstanceName).collectList())
                 .flatMap(o -> remove(serviceInstanceName)
                         .then(create(serviceInstanceName, serviceBean))
                         .then(bindRoutes(serviceInstanceName,o.getT1())

@@ -13,6 +13,8 @@ import cloud.foundry.cli.crosscutting.mapping.beans.*;
 
 import cloud.foundry.cli.operations.*;
 import cloud.foundry.cli.services.LoginCommandOptions;
+import cloud.foundry.cli.services.OptionalLoginCommandOptions;
+
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
@@ -32,7 +34,7 @@ public class ApplyLogicTest {
     @Test
     public void testApplyOnNullParametersThrowsException() {
         ApplyLogic applyLogic =  new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
-        assertThrows(NullPointerException.class, () -> applyLogic.apply(null, new LoginCommandOptions()));
+        assertThrows(NullPointerException.class, () -> applyLogic.apply(null, new OptionalLoginCommandOptions()));
         assertThrows(NullPointerException.class, () -> applyLogic.apply(new ConfigBean(), null));
     }
 
@@ -42,7 +44,8 @@ public class ApplyLogicTest {
         ApplyLogic applyLogic =  new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
         ConfigBean desiredConfig = new ConfigBean();
 
-        assertThrows(NullPointerException.class, () -> applyLogic.apply(desiredConfig, new LoginCommandOptions()));
+        assertThrows(NullPointerException.class, () -> applyLogic.apply(desiredConfig, 
+                                                  new OptionalLoginCommandOptions()));                
     }
 
     @Test
@@ -76,7 +79,7 @@ public class ApplyLogicTest {
         applyLogic.setSpaceOperations(spaceOperationsMock);
 
         // when
-        applyLogic.apply(desiredConfigBean, new LoginCommandOptions());
+        applyLogic.apply(desiredConfigBean, new OptionalLoginCommandOptions());
 
         // then
         verify(spaceOperationsMock, times(1)).getAll();
@@ -109,7 +112,7 @@ public class ApplyLogicTest {
         applyLogic.setGetLogic(getLogicMock);
         applyLogic.setSpaceOperations(spaceOperationsMock);
 
-        LoginCommandOptions loginCommandOptions = new LoginCommandOptions();
+        OptionalLoginCommandOptions loginCommandOptions = new OptionalLoginCommandOptions();
         loginCommandOptions.setApiHost("apiHost");
         loginCommandOptions.setSpace("space");
         loginCommandOptions.setOrganization("org");
@@ -186,7 +189,7 @@ public class ApplyLogicTest {
         applyLogic.setSpaceOperations(spaceOperationsMock);
 
         // when
-        applyLogic.apply(desiredConfigBean, new LoginCommandOptions());
+        applyLogic.apply(desiredConfigBean, new OptionalLoginCommandOptions());
 
         // then
         verify(spaceOperationsMock, times(1)).getAll();

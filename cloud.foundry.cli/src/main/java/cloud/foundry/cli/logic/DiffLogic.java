@@ -9,7 +9,6 @@ import cloud.foundry.cli.crosscutting.mapping.beans.Bean;
 import cloud.foundry.cli.logic.diff.DiffNode;
 import cloud.foundry.cli.logic.diff.DiffResult;
 import cloud.foundry.cli.logic.diff.Differ;
-import cloud.foundry.cli.logic.diff.change.parsing.ValueChangeParsingStrategy;
 import cloud.foundry.cli.logic.diff.output.DiffOutput;
 
 /**
