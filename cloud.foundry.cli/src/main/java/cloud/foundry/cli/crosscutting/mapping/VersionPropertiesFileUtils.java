@@ -35,8 +35,7 @@ public class VersionPropertiesFileUtils {
                 VersionPropertiesFileUtils.class);
         try {
             properties.load(inputStream);
-            String value = properties.getProperty(VERSION);
-            return value;
+            return  properties.getProperty(VERSION);
         } catch (IOException e) {
             log.error("Could not read the api version", e.getMessage());
             return "NOT_FOUND";
