@@ -50,8 +50,9 @@ public class ApplyController implements Callable<Integer> {
         log.verbose("Auto starting apps:", !noAutoStart);
         ApplyLogic applyLogic = new ApplyLogic(cfOperations, !noAutoStart);
 
+        log.info("Apply process started");
         applyLogic.apply(desiredConfigBean, loginOptions);
-
+        log.info("Apply process completed");
         return 0;
     }
 }

@@ -38,8 +38,10 @@ public class SpaceDevelopersRequestsPlanner {
         spaceDevelopersChange.getChangedValues().forEach(
                 changedValue -> {
                     if (changedValue.getChangeType() == ChangeType.ADDED) {
+                        log.debug("Requesting assignment as space developer for", changedValue.getValue());
                         requests.add(spaceDevelopersOperations.assign(changedValue.getValue(), spaceId));
                     } else if (changedValue.getChangeType() == ChangeType.REMOVED) {
+                        log.debug("Requesting revocation as space developer for", changedValue.getValue());
                         requests.add(spaceDevelopersOperations.remove(changedValue.getValue(), spaceId));
                     }
                 }

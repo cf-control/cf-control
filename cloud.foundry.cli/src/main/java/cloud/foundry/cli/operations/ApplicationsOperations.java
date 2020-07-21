@@ -326,9 +326,9 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
         return cloudFoundryOperations.applications().scale(scaleRequest)
                 .doOnSubscribe(aVoid -> {
                     log.info("Scaling application", applicationName);
-                    log.debug("New disk limit:", diskLimit);
-                    log.debug("New memory limit:", memoryLimit);
-                    log.debug("New number of instances:", instances); })
+                    if(diskLimit != null) log.debug("New disk limit:", diskLimit);
+                    if(memoryLimit != null) log.debug("New memory limit:", memoryLimit);
+                    if(instances != null) log.debug("New number of instances:", instances); })
                 .doOnSuccess(aVoid -> log.verbose("Scaling application", applicationName, "completed"))
                 .onErrorStop()
                 .then();
