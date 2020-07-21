@@ -31,7 +31,9 @@ public class SpaceOperations extends AbstractOperations<DefaultCloudFoundryOpera
                 // ignore space ids for now (they could be cached to avoid querying them again,
                 // when manipulating space developers)
                 .map(SpaceSummary::getName)
-                .collectList();
+                .collectList()
+                .doOnSubscribe(subscription -> log.info("Querying all spaces"))
+                .doOnSuccess(stringApplicationBeanMap -> log.verbose("Querying all spaces completed"));
     }
 
     /**

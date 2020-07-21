@@ -25,11 +25,13 @@ public class GetController implements Callable<Integer> {
     private static final Log log = Log.getLog(GetController.class);
 
     @Mixin
-    private static LoginCommandOptions loginOptions;
+    private static RequiredLoginCommandOptions requiredLoginCommandOptions;
 
     @Override
     public Integer call() {
-        DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+        DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(
+                null,
+                requiredLoginCommandOptions);
         GetLogic getLogic = new GetLogic();
 
         SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
@@ -38,7 +40,7 @@ public class GetController implements Callable<Integer> {
 
         log.info("Fetching all information for target space");
         ConfigBean allInformation = getLogic.getAll(spaceDevelopersOperations, servicesOperations,
-                applicationsOperations, loginOptions);
+                applicationsOperations, requiredLoginCommandOptions);
         log.verbose("Fetching all information for target space completed");
 
         System.out.println(YamlMapper.dump(allInformation));

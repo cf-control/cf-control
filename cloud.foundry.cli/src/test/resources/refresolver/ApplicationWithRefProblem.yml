@@ -1,6 +1,6 @@
 name: testApp
 path:
-  $ref: ApplicationPathWithRefProblem.yml#/PATHWRONG
+  $ref: ApplicationPath.yml#/PATHWRONG
 manifest:
   memory : 2048
   instances : 1

@@ -33,7 +33,7 @@ public class RenameController implements Callable<Integer> {
         private static final Log log = Log.getLog(RenameApplicationCommand.class);
 
         @Mixin
-        private LoginCommandOptions loginOptions;
+        private RequiredLoginCommandOptions loginOptions;
 
         @Parameters(index = "0", description = "The current name of the app")
         private String currentName;
@@ -43,7 +43,7 @@ public class RenameController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(null, loginOptions);
             ApplicationsOperations applicationOperations = new ApplicationsOperations(cfOperations);
 
             RenameLogic renameLogic = new RenameLogic();
@@ -63,7 +63,7 @@ public class RenameController implements Callable<Integer> {
         private static final Log log = Log.getLog(RenameController.RenameServiceCommand.class);
 
         @Mixin
-        private LoginCommandOptions loginOptions;
+        private RequiredLoginCommandOptions loginOptions;
 
         @Parameters(index = "0", description = "The current name of the service")
         private String currentName;
@@ -73,7 +73,7 @@ public class RenameController implements Callable<Integer> {
 
         @Override
         public Integer call() throws Exception {
-            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
+            DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(null, loginOptions);
             ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
 
             RenameLogic renameLogic = new RenameLogic();

@@ -34,10 +34,10 @@ public class GetLogic {
      * Gets all the necessary configuration-information from a cloud foundry
      * instance.
      *
-     * @param spaceDevelopersOperations SpaceDevelopersOperations
-     * @param servicesOperations ServicesOperations
-     * @param applicationsOperations ApplicationsOperations
-     * @param loginOptions LoginCommandOptions
+     * @param spaceDevelopersOperations operations for manipulating space developers on a cloud foundry instance.
+     * @param servicesOperations operations for querying and manipulating services on a cloud foundry instance.
+     * @param applicationsOperations operations for querying and manipulating applications on a cloud foundry instance.
+     * @param loginOptions user provided Login-Options
      * @return ConfigBean
      * @throws GetException if an error occurs during the information retrieving
      */
@@ -131,6 +131,7 @@ public class GetLogic {
         target.setEndpoint(loginOptions.getApiHost());
         target.setOrg(loginOptions.getOrganization());
         target.setSpace(loginOptions.getSpace());
+
         return target;
     }
 

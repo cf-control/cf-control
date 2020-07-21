@@ -32,16 +32,19 @@ public class DiffController implements Callable<Integer> {
     private static final Log log = Log.getLog(DiffController.class);
 
     @Mixin
-    private LoginCommandOptions loginOptions;
+    private OptionalLoginCommandOptions loginOptions;
 
     @Mixin
     private YamlCommandOptions yamlCommandOptions;
 
     @Override
     public Integer call() throws IOException {
-        DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(loginOptions);
         ConfigBean desiredConfigBean = YamlMapper.loadBeanFromFile(yamlCommandOptions.getYamlFilePath(),
                 ConfigBean.class);
+
+        DefaultCloudFoundryOperations cfOperations = CfOperationsCreator.createCfOperations(
+                desiredConfigBean.getTarget(),
+                loginOptions);
 
         log.debug("Desired config:", desiredConfigBean);
 

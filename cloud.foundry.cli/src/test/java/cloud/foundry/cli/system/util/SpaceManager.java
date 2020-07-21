@@ -6,7 +6,7 @@ import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
 import cloud.foundry.cli.operations.ApplicationsOperations;
 import cloud.foundry.cli.operations.ServicesOperations;
 import cloud.foundry.cli.operations.SpaceOperations;
-import cloud.foundry.cli.services.LoginCommandOptions;
+import cloud.foundry.cli.services.OptionalLoginCommandOptions;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.routes.DeleteOrphanedRoutesRequest;
@@ -146,14 +146,14 @@ public class SpaceManager implements AutoCloseable {
         }
 
         // setup login command options for initialization of the cloud foundry operations instance
-        LoginCommandOptions loginCommandOptions = new LoginCommandOptions();
-        loginCommandOptions.setUserName(getCfUsername());
-        loginCommandOptions.setPassword(getCfPassword());
-        loginCommandOptions.setOrganization(getCfOrganization());
-        loginCommandOptions.setApiHost(getCfApiEndpoint());
-        loginCommandOptions.setSpace(spaceName);
+        OptionalLoginCommandOptions optionalLoginCommandOptions = new OptionalLoginCommandOptions();
+        optionalLoginCommandOptions.setUserName(getCfUsername());
+        optionalLoginCommandOptions.setPassword(getCfPassword());
+        optionalLoginCommandOptions.setOrganization(getCfOrganization());
+        optionalLoginCommandOptions.setApiHost(getCfApiEndpoint());
+        optionalLoginCommandOptions.setSpace(spaceName);
 
-        cfOperations = CfOperationsCreator.createCfOperations(loginCommandOptions);
+        cfOperations = CfOperationsCreator.createCfOperations(null, optionalLoginCommandOptions);
 
         // apparently, there are some strange race conditions with the login which we might run into when querying the
         // spaces directly
@@ -170,7 +170,7 @@ public class SpaceManager implements AutoCloseable {
 
         // create operations instances that are needed by the space configurator
         servicesOperations = new ServicesOperations(cfOperations);
-        applicationsOperations = new ApplicationsOperations(cfOperations);
+        applicationsOperations = new ApplicationsOperations(cfOperations, false);
     }
 
     /**
@@ -180,8 +180,17 @@ public class SpaceManager implements AutoCloseable {
      */
     public String requestCreationOfService(ServiceBean desiredServiceBean) {
         String randomName = "service-" + makeRandomString();
-        servicesToCreate.put(randomName, desiredServiceBean);
+        requestCreationOfService(randomName, desiredServiceBean);
         return randomName;
+    }
+
+    /**
+     * Registers a service that is desired be created on the space.
+     * @param serviceName the name of the desired service
+     * @param desiredServiceBean the bean of the desired service
+     */
+    public void requestCreationOfService(String serviceName, ServiceBean desiredServiceBean) {
+        servicesToCreate.put(serviceName, desiredServiceBean);
     }
 
     /**
@@ -191,8 +200,17 @@ public class SpaceManager implements AutoCloseable {
      */
     public String requestCreationOfApplication(ApplicationBean desiredApplicationBean) {
         String randomName = "app-" + makeRandomString();
-        applicationsToCreate.put(randomName, desiredApplicationBean);
+        requestCreationOfApplication(randomName, desiredApplicationBean);
         return randomName;
+    }
+
+    /**
+     * Registers an application that is desired be created on the space.
+     * @param applicationName the name of the desired application
+     * @param desiredApplicationBean the bean of the desired application
+     */
+    public void requestCreationOfApplication(String applicationName, ApplicationBean desiredApplicationBean) {
+        applicationsToCreate.put(applicationName, desiredApplicationBean);
     }
 
     /**
@@ -226,7 +244,7 @@ public class SpaceManager implements AutoCloseable {
 
         List<Mono<Void>> resultingCreationRequests = applicationsToCreate.entrySet().stream()
                 .map(applicationEntry ->
-                        applicationsOperations.create(applicationEntry.getKey(), applicationEntry.getValue(), false))
+                        applicationsOperations.create(applicationEntry.getKey(), applicationEntry.getValue()))
                 .collect(Collectors.toList());
         return resultingCreationRequests;
     }

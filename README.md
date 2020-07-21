@@ -97,21 +97,14 @@ You can have the tool create a machine-readable log file by specifying the `--lo
   -u, --user=<userName>                  Your account's e-mail address or username.
   -f, --force                            Force deletion without confirmation.
   -y, --yaml=<yamlFile>                  The path to the yaml file. (Not needed for the get commands)
+  -ns --no-auto-start                    Don't start apps when they get deployed. (Only for the apply command) 
 ```
 
-##### [HINT - DEFAULT VALUES FOR SOME PARAMS]
+##### [HINT - TARGET INFORMATION FOR SOME COMMANDS]
 
-To reduce the number of the program parameters `api`, `organization` and `space`, there is a property file [cf_control.properties](cloud.foundry.cli/src/main/resources/cf_control.properties) that defines default values for the <code>get</code> command.
-For the <code>diff/apply</code> commands, the paramters can be fetched from the target section of the given YAML file.
+For the `diff/apply` commands, some parameters can be fetched from the target section of the given YAML file.
 
-So the default values are defined in the cf_control.properties file:
-
-```
-  -a=api.run.pivotal.io
-  -o=cloud.foundry.cli
-  -s=development
-```
-the defined values in a given YAML file could be:
+The defined values in a given YAML file could be:
 
 ```
 target:
@@ -120,27 +113,19 @@ target:
   space=development
 ```
 
-This reduces the number of program parameters to be called.
-However, if a value other than the default value is required, 
-this corresponding parameter can be set with its value in the program call.
 
 *The specification is:*  
-Passed value -> overwrites default value  
-No value -> default value is used 
+Passed value -> overwrites yaml file value  
+No value is passed -> yaml file value is used   
 
-  For example, you can run the following commands: 
-  
- <code>get</code> command:
- 
- `java -jar cf-control.jar get -u mustermann@test.com -p somePassword`
-  
- <code>diff</code> and <code>apply</code> commands:
+If no value is passed (passed value and yaml file value are not available), you will receive an error.
+
+  For example, you can run the following <code>diff</code> and <code>apply</code> commands:
  
  `java -jar cf-control.jar diff -u mustermann@test.com -p somePassword -y pathToYamlFile`
  
  `java -jar cf-control.jar apply -u mustermann@test.com -p somePassword -y pathToYamlFile`
- 
- 
+
 ### YAML Specification Reference
 
 ```
@@ -186,6 +171,11 @@ spec:
     pythonApp:
       ...
 ```
+#### App: Meta Information
+The app ```meta``` setting is a way to give the user the possibility to provide custom meta information for the application they are deploying.
+For example, the user can give the app a custom version tag or any other application specific info.
+
+When a change of the meta string was detected during the apply process the app will be redeployed.
 
 ### Convenience features
 

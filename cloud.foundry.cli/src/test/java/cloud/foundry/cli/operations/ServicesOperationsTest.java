@@ -34,9 +34,6 @@ import java.util.Map;
 
 public class ServicesOperationsTest {
 
-    private static final String USER_PROVIDED_SERVICE_INSTANCE = "user_provided_service_instance";
-    private static final String MANAGER_PROVIDED_SERVICE_INSTANCE = "manager_provided_service_instance";
-
     @Test
     public void testGetServicesWithMockData() {
         // given
@@ -101,8 +98,8 @@ public class ServicesOperationsTest {
         Services servicesMock = Mockito.mock(Services.class);
 
         Mono<Void> mono = Mono.empty();
-        Mockito.when(cfMock.services()).thenReturn(servicesMock);
-        Mockito.when(servicesMock.createInstance(any(CreateServiceInstanceRequest.class)))
+        when(cfMock.services()).thenReturn(servicesMock);
+        when(servicesMock.createInstance(any(CreateServiceInstanceRequest.class)))
             .thenReturn(mono);
 
         ServicesOperations servicesOperations = new ServicesOperations(cfMock);
@@ -119,8 +116,8 @@ public class ServicesOperationsTest {
         verify(serviceBeanMock, times(1)).getService();
         verify(servicesMock, times(1)).createInstance(any(CreateServiceInstanceRequest.class));
         StepVerifier.create(actualMono)
-                .expectComplete()
-                .verify();
+            .expectComplete()
+            .verify();
     }
 
     @Test
@@ -137,25 +134,71 @@ public class ServicesOperationsTest {
     @Test
     public void testUpdate() {
         // given
+        // for remove service instance
+        Route route1 = Route.builder().service("someservice").domain("domain")
+            .host("host").id("id").space("space").build();
+        Route route2 = Route.builder().service("someservice2").domain("domain")
+            .host("host").id("id").space("space").build();
+        Route route3 = Route.builder().service("someservice").domain("otherdomain")
+            .host("host").id("id").space("space").build();
+
+        ServiceInstance serviceInstance = ServiceInstance.builder()
+            .service("someservice")
+            .name("servicename")
+            .applications("app1", "app2")
+            .id("someid")
+            .type(ServiceInstanceType.MANAGED)
+            .build();
+
+        ServiceKey serviceKey = ServiceKey.builder().id("someid").name("name").build();
+        ServiceKey serviceKey2 = ServiceKey.builder().id("someid").name("name2").build();
+
+        DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
+        Services servicesMock = mock(Services.class);
+        Routes routesMock = mock(Routes.class);
+
+       
+        mockGetServiceInstance(cfOperationsMock, servicesMock, serviceInstance);
+        mockListRoutes(cfOperationsMock, routesMock, Arrays.asList(route1, route2, route3));
+        mockUnbindRoute(cfOperationsMock, servicesMock);
+        mockUnbindApp(cfOperationsMock, servicesMock);
+        mockListServiceKeys(cfOperationsMock, servicesMock, Arrays.asList(serviceKey, serviceKey2));
+        mockDeleteServiceKey(cfOperationsMock, servicesMock);
+        mockDeleteServiceInstance(cfOperationsMock, servicesMock);
+
+        // for create service instance
         ServiceBean serviceBeanMock = mockServiceBean();
-        String serviceInstanceName = "serviceInstanceName";
-        DefaultCloudFoundryOperations cfMock = Mockito.mock(DefaultCloudFoundryOperations.class);
-        Services servicesMock = Mockito.mock(Services.class);
-        when(cfMock.services()).thenReturn(servicesMock);
-
         Mono<Void> mono = Mono.empty();
-        when(servicesMock.updateInstance(any(UpdateServiceInstanceRequest.class))).thenReturn(mono);
-
+        when(cfOperationsMock.services()).thenReturn(servicesMock);
+        when(servicesMock.createInstance(any(CreateServiceInstanceRequest.class)))
+            .thenReturn(mono);
+        
         // when
-        ServicesOperations servicesOperations = new ServicesOperations(cfMock);
-        Mono<Void> actualMono = servicesOperations.update(serviceInstanceName, serviceBeanMock);
+        ServicesOperations servicesOperations = new ServicesOperations(cfOperationsMock);
+        Mono<Void> request = servicesOperations.update("someservice", serviceBeanMock);
+        request.block();
 
         // then
-        assertThat(mono, notNullValue());
-        verify(servicesMock, times(1)).updateInstance(any(UpdateServiceInstanceRequest.class));
-        StepVerifier.create(actualMono)
-                .expectComplete()
-                .verify();
+        assertThat(request, notNullValue());
+        
+        verify(servicesMock, times(2)).getInstance(any());
+        verify(routesMock, times(1)).list(any());
+        verify(servicesMock, times(2)).unbindRoute(any());
+        verify(servicesMock, times(2)).unbind(any());
+        verify(servicesMock, times(1)).listServiceKeys(any());
+        verify(servicesMock, times(2)).deleteServiceKey(any());
+        verify(servicesMock, times(1)).deleteInstance(any(DeleteServiceInstanceRequest.class));
+        
+        verify(serviceBeanMock, times(1)).getParams();
+        verify(serviceBeanMock, times(1)).getPlan();
+        verify(serviceBeanMock, times(1)).getTags();
+        verify(serviceBeanMock, times(1)).getService();
+        verify(servicesMock, times(1)).createInstance(any(CreateServiceInstanceRequest.class));
+        
+        StepVerifier.create(request)
+            .expectNext()
+            .expectComplete()
+            .verify();
     }
 
     @Test
@@ -188,8 +231,8 @@ public class ServicesOperationsTest {
         assertThat(actualMono, notNullValue());
         verify(servicesMock, times(1)).renameInstance(any(RenameServiceInstanceRequest.class));
         StepVerifier.create(actualMono)
-                .expectComplete()
-                .verify();
+            .expectComplete()
+            .verify();
     }
 
     @Test
@@ -207,19 +250,19 @@ public class ServicesOperationsTest {
     public void testRemoveServiceInstance() {
         // given
         Route route1 = Route.builder().service("someservice").domain("domain")
-                .host("host").id("id").space("space").build();
+            .host("host").id("id").space("space").build();
         Route route2 = Route.builder().service("someservice2").domain("domain")
-                .host("host").id("id").space("space").build();
+            .host("host").id("id").space("space").build();
         Route route3 = Route.builder().service("someservice").domain("otherdomain")
-                .host("host").id("id").space("space").build();
+            .host("host").id("id").space("space").build();
 
         ServiceInstance serviceInstance = ServiceInstance.builder()
-                .service("someservice")
-                .name("servicename")
-                .applications("app1", "app2")
-                .id("someid")
-                .type(ServiceInstanceType.MANAGED)
-                .build();
+            .service("someservice")
+            .name("servicename")
+            .applications("app1", "app2")
+            .id("someid")
+            .type(ServiceInstanceType.MANAGED)
+            .build();
 
         ServiceKey serviceKey = ServiceKey.builder().id("someid").name("name").build();
         ServiceKey serviceKey2 = ServiceKey.builder().id("someid").name("name2").build();
@@ -244,26 +287,26 @@ public class ServicesOperationsTest {
 
         // then
         verify(servicesMock, times(2)).getInstance(any());
-        verify(routesMock,times(1)).list(any());
-        verify(servicesMock,times(2)).unbindRoute(any());
-        verify(servicesMock,times(2)).unbind(any());
-        verify(servicesMock,times(1)).listServiceKeys(any());
-        verify(servicesMock,times(2)).deleteServiceKey(any());
+        verify(routesMock, times(1)).list(any());
+        verify(servicesMock, times(2)).unbindRoute(any());
+        verify(servicesMock, times(2)).unbind(any());
+        verify(servicesMock, times(1)).listServiceKeys(any());
+        verify(servicesMock, times(2)).deleteServiceKey(any());
         StepVerifier.create(request)
-                .expectNext()
-                .expectComplete()
-                .verify();
+            .expectNext()
+            .expectComplete()
+            .verify();
     }
 
     @Test
     public void testRemoveServiceInstanceWithoutConditions() {
         // given
         ServiceInstance serviceInstance = ServiceInstance.builder()
-                .service("someservice")
-                .name("servicename")
-                .id("someid")
-                .type(ServiceInstanceType.MANAGED)
-                .build();
+            .service("someservice")
+            .name("servicename")
+            .id("someid")
+            .type(ServiceInstanceType.MANAGED)
+            .build();
 
         DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
         Services servicesMock = mock(Services.class);
@@ -292,9 +335,9 @@ public class ServicesOperationsTest {
         verify(servicesMock, times(0)).unbind(any(UnbindServiceInstanceRequest.class));
         verify(servicesMock, times(0)).unbindRoute(any(UnbindRouteServiceInstanceRequest.class));
         StepVerifier
-                .create(request)
-                .expectComplete()
-                .verify();
+            .create(request)
+            .expectComplete()
+            .verify();
     }
 
     @Test
@@ -311,11 +354,11 @@ public class ServicesOperationsTest {
     public void testUnbindRoutesSucceeds() {
         // given
         Route route1 = Route.builder().service("someservice").domain("domain")
-                .host("host").id("id").space("space").build();
+            .host("host").id("id").space("space").build();
         Route route2 = Route.builder().service("someservice2").domain("domain")
-                .host("host").id("id").space("space").build();
+            .host("host").id("id").space("space").build();
         Route route3 = Route.builder().service("someservice").domain("otherdomain")
-                .host("host").id("id").space("space").build();
+            .host("host").id("id").space("space").build();
 
         DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
         Routes routesMock = mock(Routes.class);
@@ -334,8 +377,8 @@ public class ServicesOperationsTest {
         verify(routesMock, times(1)).list(any());
         verify(servicesMock, times(2)).unbindRoute(any());
         StepVerifier.create(requests)
-                .expectComplete()
-                .verify();
+            .expectComplete()
+            .verify();
     }
 
     @Test
@@ -358,8 +401,8 @@ public class ServicesOperationsTest {
         verify(routesMock, times(1)).list(any());
         verify(servicesMock, times(0)).unbindRoute(any());
         StepVerifier.create(requests)
-                .expectComplete()
-                .verify();
+            .expectComplete()
+            .verify();
     }
 
     @Test
@@ -376,12 +419,12 @@ public class ServicesOperationsTest {
     public void testUnbindAppsSucceeds() {
         // given
         ServiceInstance serviceInstance = ServiceInstance.builder()
-                .service("someservice")
-                .name("servicename")
-                .applications("app1", "app2")
-                .id("someid")
-                .type(ServiceInstanceType.USER_PROVIDED)
-                .build();
+            .service("someservice")
+            .name("servicename")
+            .applications("app1", "app2")
+            .id("someid")
+            .type(ServiceInstanceType.USER_PROVIDED)
+            .build();
 
         DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
         Services servicesMock = mock(Services.class);
@@ -398,19 +441,19 @@ public class ServicesOperationsTest {
         verify(servicesMock, times(1)).getInstance(any());
         verify(servicesMock, times(2)).unbind(any());
         StepVerifier.create(requests)
-                .expectComplete()
-                .verify();
+            .expectComplete()
+            .verify();
     }
 
     @Test
     public void testUnbindAppsWhenThereAreNoApps() {
         // given
         ServiceInstance serviceInstance = ServiceInstance.builder()
-                .service("someservice")
-                .name("servicename")
-                .id("someid")
-                .type(ServiceInstanceType.MANAGED)
-                .build();
+            .service("someservice")
+            .name("servicename")
+            .id("someid")
+            .type(ServiceInstanceType.MANAGED)
+            .build();
 
         DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
         Services servicesMock = mock(Services.class);
@@ -426,8 +469,8 @@ public class ServicesOperationsTest {
         verify(servicesMock, times(1)).getInstance(any());
         verify(servicesMock, times(0)).unbind(any());
         StepVerifier.create(requests)
-                .expectComplete()
-                .verify();
+            .expectComplete()
+            .verify();
     }
 
     @Test
@@ -440,7 +483,6 @@ public class ServicesOperationsTest {
         assertThrows(NullPointerException.class, () -> servicesOperations.unbindApps(null));
     }
 
-
     @Test
     public void testDeleteKeysSucceeds() {
         // given
@@ -448,11 +490,11 @@ public class ServicesOperationsTest {
         ServiceKey serviceKey2 = ServiceKey.builder().id("someid").name("name2").build();
 
         ServiceInstance serviceInstance = ServiceInstance.builder()
-                .service("someservice")
-                .name("servicename")
-                .id("someid")
-                .type(ServiceInstanceType.MANAGED)
-                .build();
+            .service("someservice")
+            .name("servicename")
+            .id("someid")
+            .type(ServiceInstanceType.MANAGED)
+            .build();
 
         DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
         Services servicesMock = mock(Services.class);
@@ -471,19 +513,19 @@ public class ServicesOperationsTest {
         verify(servicesMock, times(1)).listServiceKeys(any());
         verify(servicesMock, times(2)).deleteServiceKey(any());
         StepVerifier.create(requests)
-                .expectComplete()
-                .verify();
+            .expectComplete()
+            .verify();
     }
 
     @Test
     public void testDeleteKeysWhenThereAreNoKeys() {
         // given
         ServiceInstance serviceInstance = ServiceInstance.builder()
-                .service("someservice")
-                .name("servicename")
-                .id("someid")
-                .type(ServiceInstanceType.MANAGED)
-                .build();
+            .service("someservice")
+            .name("servicename")
+            .id("someid")
+            .type(ServiceInstanceType.MANAGED)
+            .build();
 
         DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
         Services servicesMock = mock(Services.class);
@@ -501,19 +543,19 @@ public class ServicesOperationsTest {
         verify(servicesMock, times(1)).listServiceKeys(any());
         verify(servicesMock, times(0)).deleteServiceKey(any());
         StepVerifier.create(requests)
-                .expectComplete()
-                .verify();
+            .expectComplete()
+            .verify();
     }
 
     @Test
     public void testDeleteKeysWhenServiceIsUserProvided() {
         // given
         ServiceInstance serviceInstance = ServiceInstance.builder()
-                .service("someservice")
-                .name("servicename")
-                .id("someid")
-                .type(ServiceInstanceType.USER_PROVIDED)
-                .build();
+            .service("someservice")
+            .name("servicename")
+            .id("someid")
+            .type(ServiceInstanceType.USER_PROVIDED)
+            .build();
 
         DefaultCloudFoundryOperations cfOperationsMock = mock(DefaultCloudFoundryOperations.class);
         Services servicesMock = mock(Services.class);
@@ -531,8 +573,8 @@ public class ServicesOperationsTest {
         verify(servicesMock, times(0)).listServiceKeys(any());
         verify(servicesMock, times(0)).deleteServiceKey(any());
         StepVerifier.create(requests)
-                .expectComplete()
-                .verify();
+            .expectComplete()
+            .verify();
     }
 
     @Test
@@ -559,14 +601,14 @@ public class ServicesOperationsTest {
 
         // then
         UnbindServiceInstanceRequest unbindServiceInstanceRequest = UnbindServiceInstanceRequest
-                .builder()
-                .applicationName("someapp")
-                .serviceInstanceName("someservice")
-                .build();
+            .builder()
+            .applicationName("someapp")
+            .serviceInstanceName("someservice")
+            .build();
         verify(servicesMock, times(1)).unbind(unbindServiceInstanceRequest);
         StepVerifier.create(request)
-                .expectComplete()
-                .verify();
+            .expectComplete()
+            .verify();
     }
 
     @Test
@@ -580,64 +622,65 @@ public class ServicesOperationsTest {
         assertThrows(NullPointerException.class, () -> servicesOperations.unbindApp("someservice", null));
     }
 
-    private void mockListRoutes(DefaultCloudFoundryOperations cfOperationsMock, Routes routesMock, List<Route> routes) {
+    private void mockListRoutes(DefaultCloudFoundryOperations cfOperationsMock, Routes routesMock,
+        List<Route> routes) {
         when(cfOperationsMock.routes())
-                .thenReturn(routesMock);
+            .thenReturn(routesMock);
 
         when(routesMock.list(any()))
-                .thenReturn(Flux.fromIterable(routes));
+            .thenReturn(Flux.fromIterable(routes));
     }
 
     private void mockUnbindRoute(DefaultCloudFoundryOperations cfOperationsMock, Services servicesMock) {
         when(cfOperationsMock.services())
-                .thenReturn(servicesMock);
+            .thenReturn(servicesMock);
 
         when(servicesMock.unbindRoute(any(UnbindRouteServiceInstanceRequest.class)))
-                .thenReturn(Mono.empty());
+            .thenReturn(Mono.empty());
     }
 
     private void mockGetServiceInstance(DefaultCloudFoundryOperations cfOperationsMock,
-                                        Services servicesMock,
-                                        ServiceInstance serviceInstance) {
+        Services servicesMock,
+        ServiceInstance serviceInstance) {
         when(cfOperationsMock.services())
-                .thenReturn(servicesMock);
+            .thenReturn(servicesMock);
 
         when(servicesMock.getInstance(any(GetServiceInstanceRequest.class)))
-                .thenReturn(Mono.just(serviceInstance));
+            .thenReturn(Mono.just(serviceInstance));
     }
 
     private void mockUnbindApp(DefaultCloudFoundryOperations cfOperationsMock, Services servicesMock) {
         when(cfOperationsMock.services())
-                .thenReturn(servicesMock);
+            .thenReturn(servicesMock);
 
         when(servicesMock.unbind(any(UnbindServiceInstanceRequest.class)))
-                .thenReturn(Mono.empty());
+            .thenReturn(Mono.empty());
     }
 
     private void mockListServiceKeys(DefaultCloudFoundryOperations cfOperationsMock,
-                                     Services servicesMock,
-                                     List<ServiceKey> serviceKeys) {
+        Services servicesMock,
+        List<ServiceKey> serviceKeys) {
         when(cfOperationsMock.services())
-                .thenReturn(servicesMock);
+            .thenReturn(servicesMock);
 
         when(servicesMock.listServiceKeys(any(ListServiceKeysRequest.class)))
-                .thenReturn(Flux.fromIterable(serviceKeys));
+            .thenReturn(Flux.fromIterable(serviceKeys));
     }
 
     private void mockDeleteServiceKey(DefaultCloudFoundryOperations cfOperationsMock, Services servicesMock) {
         when(cfOperationsMock.services())
-                .thenReturn(servicesMock);
+            .thenReturn(servicesMock);
 
         when(servicesMock.deleteServiceKey(any(DeleteServiceKeyRequest.class)))
-                .thenReturn(Mono.empty());
+            .thenReturn(Mono.empty());
     }
 
     private void mockDeleteServiceInstance(DefaultCloudFoundryOperations cfOperationsMock, Services serivcesMock) {
         when(cfOperationsMock.services())
-                .thenReturn(serivcesMock);
+            .thenReturn(serivcesMock);
 
         when(serivcesMock.deleteInstance(any(DeleteServiceInstanceRequest.class)))
-                .thenReturn(Mono.empty());
+            .thenReturn(Mono.empty());
     }
 
     private ServiceBean mockServiceBean() {

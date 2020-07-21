@@ -1,6 +1,7 @@
 package cloud.foundry.cli.crosscutting.mapping;
 
 import cloud.foundry.cli.crosscutting.exceptions.RefResolvingException;
+import cloud.foundry.cli.crosscutting.exceptions.YamlParsingException;
 import cloud.foundry.cli.crosscutting.exceptions.YamlTreeNodeNotFoundException;
 import cloud.foundry.cli.crosscutting.logging.Log;
 
@@ -46,6 +47,7 @@ public class RefResolver implements YamlTreeVisitor {
      * @param rootFilePath path to the root YAML file (used to resolve relative $ref entries)
      * @return the new root of the specified yaml tree after the ref-resolving process
      * @throws RefResolvingException if an error during the ref-resolution process occurs
+     * @throws YamlParsingException if the content of a referred configuration file cannot be parsed as yaml
      */
     public static Object resolveRefs(Object yamlTreeRoot, String rootFilePath) {
         log.debug("Resolving occurrences of", RefResolver.REF_KEY);
@@ -60,6 +62,22 @@ public class RefResolver implements YamlTreeVisitor {
     private Object doResolveRefs() {
         YamlTreeVisitor.visit(this, yamlTreeRoot);
         return overridingNode;
+    }
+
+    /**
+     * Resolves ref-occurrences in the specified mapping node and in all its descendant nodes.
+     * @param mappingNode the mapping node to be resolved
+     * @throws YamlParsingException if the content of a referred configuration file cannot be parsed as yaml
+     * @throws RefResolvingException if the specified mapping node contains a ref-occurrence that cannot be resolved
+     *                               or if a descendant node of the mapping cannot be resolved
+     */
+    @Override
+    public void visitMapping(Map<Object, Object> mappingNode) {
+        if (!mappingNode.containsKey(REF_KEY)) {
+            visitRegularMapping(mappingNode);
+            return;
+        }
+        visitRefMapping(mappingNode);
     }
 
     private void visitRegularMapping(Map<Object, Object> regularMappingNode) {
@@ -86,7 +104,7 @@ public class RefResolver implements YamlTreeVisitor {
         String filePath = extractFilePath(refValue);
         YamlPointer yamlPointer = extractYamlPointer(refValue);
 
-        String parentYamlFileDirectoryPath = Paths.get(parentYamlFilePath).getParent().toAbsolutePath().toString();
+        String parentYamlFileDirectoryPath = Paths.get(parentYamlFilePath).toAbsolutePath().getParent().toString();
         String absoluteFilePath;
 
         try {
@@ -142,21 +160,6 @@ public class RefResolver implements YamlTreeVisitor {
                     " with an invalid syntax:" + illegalArgumentException.getMessage(), illegalArgumentException);
         }
         return yamlPointer;
-    }
-
-    /**
-     * Resolves ref-occurrences in the specified mapping node and in all its descendant nodes.
-     * @param mappingNode the mapping node to be resolved
-     * @throws RefResolvingException if the specified mapping node contains a ref-occurrence that cannot be resolved
-     *                               or if a descendant node of the mapping cannot be resolved
-     */
-    @Override
-    public void visitMapping(Map<Object, Object> mappingNode) {
-        if (!mappingNode.containsKey(REF_KEY)) {
-            visitRegularMapping(mappingNode);
-            return;
-        }
-        visitRefMapping(mappingNode);
     }
 
     /**
