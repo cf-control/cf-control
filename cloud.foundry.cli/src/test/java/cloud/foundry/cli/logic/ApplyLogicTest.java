@@ -12,7 +12,6 @@ import static org.mockito.Mockito.verify;
 import cloud.foundry.cli.crosscutting.mapping.beans.*;
 
 import cloud.foundry.cli.operations.*;
-import cloud.foundry.cli.services.LoginCommandOptions;
 import cloud.foundry.cli.services.OptionalLoginCommandOptions;
 
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
@@ -44,8 +43,8 @@ public class ApplyLogicTest {
         ApplyLogic applyLogic =  new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
         ConfigBean desiredConfig = new ConfigBean();
 
-        assertThrows(NullPointerException.class, () -> applyLogic.apply(desiredConfig, 
-                                                  new OptionalLoginCommandOptions()));                
+        assertThrows(NullPointerException.class, () -> applyLogic.apply(desiredConfig,
+                                                  new OptionalLoginCommandOptions()));
     }
 
     @Test
@@ -87,7 +86,7 @@ public class ApplyLogicTest {
                 any(ServicesOperations.class),
                 any(ApplicationsOperations.class),
                 any(ClientOperations.class),
-                any(LoginCommandOptions.class));
+                any(TargetOperations.class));
     }
 
     @Test
@@ -118,7 +117,7 @@ public class ApplyLogicTest {
         loginCommandOptions.setOrganization("org");
         loginCommandOptions.setUserName("userName");
         loginCommandOptions.setPassword("password");
-        
+
         // when
         applyLogic.apply(desiredConfigBean, loginCommandOptions);
 
@@ -129,7 +128,7 @@ public class ApplyLogicTest {
                 any(ServicesOperations.class),
                 any(ApplicationsOperations.class),
                 any(ClientOperations.class),
-                any(LoginCommandOptions.class));
+                any(TargetOperations.class));
     }
 
     @Test
@@ -197,7 +196,7 @@ public class ApplyLogicTest {
                 any(ServicesOperations.class),
                 any(ApplicationsOperations.class),
                 any(ClientOperations.class),
-                any(LoginCommandOptions.class));
+                any(TargetOperations.class));
         verify(spaceDevelopersOperations, times(1)).getSpaceId();
         verify(spaceDevelopersOperations, times(1)).assign("spaceDeveloper1", "spaceId");
         verify(applicationsOperations, times(1)).create(eq("app"), any(ApplicationBean.class));

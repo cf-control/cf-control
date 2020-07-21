@@ -11,7 +11,6 @@ import org.javers.core.diff.Change;
 import org.javers.core.diff.changetype.NewObject;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -33,9 +32,9 @@ public class NewObjectParsingStrategy extends AbstractParsingStrategy {
     protected List<CfChange> doParse(Change change) {
         List<CfChange> cfChanges = new LinkedList<>();
 
-        // since JaVers doesn't explicitly create a change object for the space developers when spec bean is a new object
+        // since JaVers doesn't explicitly create a change object for the space devs when spec bean is a new object
         // so creating it manually
-        if(change.getAffectedObject().get() instanceof SpecBean) {
+        if (change.getAffectedObject().get() instanceof SpecBean) {
             List<String> spaceDevelopers = ((SpecBean) change.getAffectedObject().get()).getSpaceDevelopers();
             if (spaceDevelopers != null) {
                 String propertyName = "spaceDevelopers";

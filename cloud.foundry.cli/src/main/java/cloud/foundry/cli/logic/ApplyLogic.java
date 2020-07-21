@@ -38,7 +38,7 @@ public class ApplyLogic {
     private SpaceDevelopersOperations spaceDevelopersOperations;
     private ServicesOperations servicesOperations;
     private ApplicationsOperations applicationsOperations;
-
+    private TargetOperations targetOperations;
     private SpaceOperations spaceOperations;
     private ClientOperations clientOperations;
 
@@ -77,6 +77,7 @@ public class ApplyLogic {
         this.spaceOperations = new SpaceOperations(cfOperations);
         this.spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
         this.clientOperations = new ClientOperations(cfOperations);
+        this.targetOperations = new TargetOperations(cfOperations);
     }
 
     public void setApplicationsOperations(ApplicationsOperations applicationsOperations) {
@@ -153,7 +154,7 @@ public class ApplyLogic {
                         servicesOperations,
                         applicationsOperations,
                         clientOperations,
-                        loginCommandOptions);
+                        targetOperations);
             }
 
             // diffing

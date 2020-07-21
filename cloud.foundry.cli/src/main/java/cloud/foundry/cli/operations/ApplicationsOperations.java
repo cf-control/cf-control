@@ -8,7 +8,6 @@ import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationManifestBean;
-import org.cloudfoundry.client.v2.ClientV2Exception;
 import org.cloudfoundry.client.v3.*;
 import org.cloudfoundry.client.v3.applications.*;
 
@@ -28,7 +27,6 @@ import reactor.core.publisher.Mono;
 
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
