@@ -24,4 +24,4 @@ spec:
 target:
   endpoint: api.name.io
   org: org.name
-  space: spacename
+  space: development
