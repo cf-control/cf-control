@@ -15,10 +15,7 @@ import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationManifestBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
 
 import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
-import cloud.foundry.cli.operations.ApplicationsOperations;
-import cloud.foundry.cli.operations.ClientOperations;
-import cloud.foundry.cli.operations.ServicesOperations;
-import cloud.foundry.cli.operations.SpaceDevelopersOperations;
+import cloud.foundry.cli.operations.*;
 import cloud.foundry.cli.services.OptionalLoginCommandOptions;
 import org.cloudfoundry.client.v3.Metadata;
 import org.cloudfoundry.operations.applications.ApplicationHealthCheck;
@@ -61,11 +58,11 @@ public class GetLogicTest {
         when(mockApplications.getAll()).thenReturn(monoApplications);
 
         ClientOperations mockClientOperations = mockClientOperations();
-        OptionalLoginCommandOptions mockOptionalLoginCommandOptions = mockLoginCommandOptions();
+        TargetOperations mockTargetOperations = mockTargetOperations();
 
         // when
         ConfigBean configBean = getLogic.getAll(mockSpaceDevelopers, mockServices, mockApplications,
-                mockClientOperations, mockOptionalLoginCommandOptions);
+                mockClientOperations, mockTargetOperations);
 
         // then
         assertThat(configBean.getApiVersion(), is("API VERSION"));
@@ -86,13 +83,13 @@ public class GetLogicTest {
         ServicesOperations mockServices = mockServicesOperations();
         ApplicationsOperations mockApplications = mockApplicationOperations();
         ClientOperations mockClientOperations = mockClientOperations();
-        OptionalLoginCommandOptions mockOptionalLoginCommandOptions = mockLoginCommandOptions();
+        TargetOperations mockTargetOperations = mockTargetOperations();
 
         GetLogic getLogic = new GetLogic();
 
         // when
         ConfigBean configBean = getLogic.getAll(mockSpaceDevelopers, mockServices,
-                mockApplications, mockClientOperations, mockOptionalLoginCommandOptions);
+                mockApplications, mockClientOperations, mockTargetOperations);
 
         // then
         assertThat(configBean.getApiVersion(), is("API VERSION"));
@@ -309,13 +306,13 @@ public class GetLogicTest {
         return mockClientOperations;
     }
 
-    private OptionalLoginCommandOptions mockLoginCommandOptions() {
-        OptionalLoginCommandOptions mockOptionalLoginCommandOptions = mock(OptionalLoginCommandOptions.class);
-        when(mockOptionalLoginCommandOptions.getApiHost()).thenReturn("SOME API ENDPOINT");
-        when(mockOptionalLoginCommandOptions.getSpace()).thenReturn("development");
-        when(mockOptionalLoginCommandOptions.getOrganization()).thenReturn("cloud.foundry.cli");
+    private TargetOperations mockTargetOperations() {
+        TargetOperations mockTargetOperations = mock(TargetOperations.class);
+        when(mockTargetOperations.getApiHost()).thenReturn("SOME API ENDPOINT");
+        when(mockTargetOperations.getSpace()).thenReturn("development");
+        when(mockTargetOperations.getOrganization()).thenReturn("cloud.foundry.cli");
 
-        return mockOptionalLoginCommandOptions;
+        return mockTargetOperations;
     }
 
 }
