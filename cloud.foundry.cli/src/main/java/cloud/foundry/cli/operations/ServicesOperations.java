@@ -135,15 +135,17 @@ public class ServicesOperations extends AbstractOperations<DefaultCloudFoundryOp
         // delete the service
         // create the service
         // bind all routes, apps and keys from first step to the newly created service
-        return Flux.zip(getRoutes(serviceInstanceName).collectList(), 
-            getApps(serviceInstanceName).collectList(), 
+        return Flux.zip(getRoutes(serviceInstanceName).collectList(),
+            getApps(serviceInstanceName).collectList(),
             getKeys(serviceInstanceName).collectList())
                 .flatMap(o -> remove(serviceInstanceName)
                         .then(create(serviceInstanceName, serviceBean))
                         .then(bindRoutes(serviceInstanceName,o.getT1())
                                         .and(bindApps(serviceInstanceName, o.getT2()))
                                         .and(bindKeys(serviceInstanceName, o.getT3()))))
-                .then();
+                .then()
+                .doOnSubscribe(aVoid -> log.info("Updating service", serviceInstanceName))
+                .doOnSuccess(aVoid -> log.verbose("Updating service", serviceInstanceName, "completed"));
     }
 
     private Flux<Route> getRoutes(String serviceInstanceName) {
