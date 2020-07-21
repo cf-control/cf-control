@@ -41,8 +41,6 @@ public class ApplyLogic {
     private TargetOperations targetOperations;
     private SpaceOperations spaceOperations;
 
-    private boolean autoStart;
-
     /**
      * Creates a new instance that will use the provided cf operations internally.
      * Starts newly created apps automatically by default
@@ -64,18 +62,14 @@ public class ApplyLogic {
     public ApplyLogic(@Nonnull DefaultCloudFoundryOperations cfOperations, boolean autoStart) {
         checkNotNull(cfOperations);
 
-        this.autoStart = autoStart;
-        initializeOperations(cfOperations);
-        this.getLogic = new GetLogic();
-        this.diffLogic = new DiffLogic();
-    }
-
-    private void initializeOperations(DefaultCloudFoundryOperations cfOperations) {
         this.servicesOperations = new ServicesOperations(cfOperations);
         this.applicationsOperations = new ApplicationsOperations(cfOperations, autoStart);
         this.spaceOperations = new SpaceOperations(cfOperations);
         this.spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
         this.targetOperations = new TargetOperations(cfOperations);
+
+        this.getLogic = new GetLogic();
+        this.diffLogic = new DiffLogic();
     }
 
     public void setApplicationsOperations(ApplicationsOperations applicationsOperations) {
@@ -94,6 +88,10 @@ public class ApplyLogic {
         this.servicesOperations = servicesOperations;
     }
 
+    public void setTargetOperations(TargetOperations targetOperations) {
+        this.targetOperations = targetOperations;
+    }
+
     public void setDiffLogic(DiffLogic diffLogic) {
         this.diffLogic = diffLogic;
     }
@@ -107,12 +105,10 @@ public class ApplyLogic {
      * such that it matches with a desired configuration ({@link ConfigBean}).
      *
      * @param desiredConfigBean   desired configuration for a cloud foundry instance
-     * @param loginCommandOptions LoginCommandOptions
      * @throws NullPointerException if one of the desired parameters is null.
      */
-    public void apply(ConfigBean desiredConfigBean, OptionalLoginCommandOptions loginCommandOptions) {
+    public void apply(ConfigBean desiredConfigBean) {
         checkNotNull(desiredConfigBean);
-        checkNotNull(loginCommandOptions);
         checkNotNull(desiredConfigBean.getTarget(), "Target bean may not be null.");
         checkNotNull(desiredConfigBean.getTarget().getSpace(), "Space may not be null.");
 
@@ -127,7 +123,7 @@ public class ApplyLogic {
 
             ConfigBean liveConfigBean = new ConfigBean();
 
-            String desiredSpaceName = desiredConfigBean.getTarget().getSpace();
+            String desiredSpaceName = targetOperations.getSpace();
             // when it's a new space the getAll process can be skipped, since there is nothing to compare the config to
             if (!spaceNames.contains(desiredSpaceName)) {
                 log.info("Creating space", desiredSpaceName);
@@ -138,12 +134,6 @@ public class ApplyLogic {
 
                 // switch to desired space
                 log.info("Switching to space", desiredSpaceName);
-
-                // not a good solution but necessary right now, since there is no time accomplish this in
-                // a more elegant way
-                loginCommandOptions.setSpace(desiredSpaceName);
-                initializeOperations(
-                    CfOperationsCreator.createCfOperations(desiredConfigBean.getTarget(), loginCommandOptions));
             } else {
                 log.info("Space", desiredSpaceName, "already exists, skipping");
 

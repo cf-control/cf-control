@@ -53,7 +53,7 @@ public class ApplyController implements Callable<Integer> {
         ApplyLogic applyLogic = new ApplyLogic(cfOperations, !noAutoStart);
 
         log.info("Apply process started");
-        applyLogic.apply(desiredConfigBean, loginOptions);
+        applyLogic.apply(desiredConfigBean);
         log.info("Apply process completed");
         return 0;
     }

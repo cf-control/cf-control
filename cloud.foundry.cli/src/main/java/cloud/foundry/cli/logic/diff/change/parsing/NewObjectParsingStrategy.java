@@ -2,6 +2,7 @@ package cloud.foundry.cli.logic.diff.change.parsing;
 
 import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
+import cloud.foundry.cli.crosscutting.mapping.validation.ObjectPropertyValidation;
 import cloud.foundry.cli.logic.diff.change.CfChange;
 import cloud.foundry.cli.logic.diff.change.ChangeType;
 import cloud.foundry.cli.logic.diff.change.container.CfContainerChange;
@@ -21,6 +22,15 @@ import java.util.stream.Collectors;
  */
 public class NewObjectParsingStrategy extends AbstractParsingStrategy {
 
+    /**
+     * Name of the spaceDevelopers property within the spec bean class
+     */
+    private static final String SPACE_DEVELOPERS_PROPERTY_NAME = "spaceDevelopers";
+
+    static {
+        ObjectPropertyValidation.checkListExists(SpecBean.class, SPACE_DEVELOPERS_PROPERTY_NAME, String.class);
+    }
+
     private static final Log log = Log.getLog(NewObjectParsingStrategy.class);
 
     @Override
@@ -37,15 +47,16 @@ public class NewObjectParsingStrategy extends AbstractParsingStrategy {
         if (change.getAffectedObject().get() instanceof SpecBean) {
             List<String> spaceDevelopers = ((SpecBean) change.getAffectedObject().get()).getSpaceDevelopers();
             if (spaceDevelopers != null) {
-                String propertyName = "spaceDevelopers";
 
                List<CfContainerValueChanged> addedSpaceDevelopers = spaceDevelopers.stream()
-                       .peek(s ->  log.debug("Appending", propertyName,"container change with added entry:", s))
+                       .peek(s ->  log.debug("Appending",
+                               SPACE_DEVELOPERS_PROPERTY_NAME,
+                               "container change with added entry:", s))
                        .map(s -> new CfContainerValueChanged(s, ChangeType.ADDED))
                        .collect(Collectors.toList());
 
                CfContainerChange spaceDevelopersChange = new CfContainerChange(change.getAffectedObject().get(),
-                       propertyName,
+                       SPACE_DEVELOPERS_PROPERTY_NAME,
                        this.extractPathFrom(change),
                        addedSpaceDevelopers);
                cfChanges.add(spaceDevelopersChange);

@@ -12,7 +12,6 @@ import static org.mockito.Mockito.verify;
 import cloud.foundry.cli.crosscutting.mapping.beans.*;
 
 import cloud.foundry.cli.operations.*;
-import cloud.foundry.cli.services.OptionalLoginCommandOptions;
 
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.junit.jupiter.api.Test;
@@ -31,10 +30,9 @@ public class ApplyLogicTest {
     }
 
     @Test
-    public void testApplyOnNullParametersThrowsException() {
+    public void testApplyOnNullParameterThrowsException() {
         ApplyLogic applyLogic =  new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
-        assertThrows(NullPointerException.class, () -> applyLogic.apply(null, new OptionalLoginCommandOptions()));
-        assertThrows(NullPointerException.class, () -> applyLogic.apply(new ConfigBean(), null));
+        assertThrows(NullPointerException.class, () -> applyLogic.apply(null));
     }
 
 
@@ -43,8 +41,7 @@ public class ApplyLogicTest {
         ApplyLogic applyLogic =  new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
         ConfigBean desiredConfig = new ConfigBean();
 
-        assertThrows(NullPointerException.class, () -> applyLogic.apply(desiredConfig,
-                                                  new OptionalLoginCommandOptions()));
+        assertThrows(NullPointerException.class, () -> applyLogic.apply(desiredConfig));
     }
 
     @Test
@@ -53,7 +50,7 @@ public class ApplyLogicTest {
         ConfigBean desiredConfig = new ConfigBean();
         desiredConfig.setTarget(new TargetBean());
 
-        assertThrows(NullPointerException.class, () -> applyLogic.apply(new ConfigBean(), null));
+        assertThrows(NullPointerException.class, () -> applyLogic.apply(new ConfigBean()));
     }
 
     @Test
@@ -74,11 +71,17 @@ public class ApplyLogicTest {
         SpaceOperations spaceOperationsMock = mock(SpaceOperations.class);
         when(spaceOperationsMock.getAll()).thenReturn(Mono.just(Collections.singletonList("space")));
 
+        // mock space operations
+        TargetOperations targetOperationsMock = mock(TargetOperations.class);
+        when(targetOperationsMock.getSpace()).thenReturn("space");
+
         applyLogic.setGetLogic(getLogicMock);
         applyLogic.setSpaceOperations(spaceOperationsMock);
+        applyLogic.setTargetOperations(targetOperationsMock);
 
         // when
-        applyLogic.apply(desiredConfigBean, new OptionalLoginCommandOptions());
+        applyLogic.apply(desiredConfigBean);
+        applyLogic.setTargetOperations(targetOperationsMock);
 
         // then
         verify(spaceOperationsMock, times(1)).getAll();
@@ -107,18 +110,17 @@ public class ApplyLogicTest {
         when(spaceOperationsMock.getAll()).thenReturn(Mono.just(Collections.emptyList()));
         when(spaceOperationsMock.create(anyString())).thenReturn(Mono.empty());
 
+        // mock space operations
+        TargetOperations targetOperationsMock = mock(TargetOperations.class);
+        when(targetOperationsMock.getSpace()).thenReturn("space");
+
+
         applyLogic.setGetLogic(getLogicMock);
         applyLogic.setSpaceOperations(spaceOperationsMock);
-
-        OptionalLoginCommandOptions loginCommandOptions = new OptionalLoginCommandOptions();
-        loginCommandOptions.setApiHost("apiHost");
-        loginCommandOptions.setSpace("space");
-        loginCommandOptions.setOrganization("org");
-        loginCommandOptions.setUserName("userName");
-        loginCommandOptions.setPassword("password");
+        applyLogic.setTargetOperations(targetOperationsMock);
 
         // when
-        applyLogic.apply(desiredConfigBean, loginCommandOptions);
+        applyLogic.apply(desiredConfigBean);
 
         // then
         verify(spaceOperationsMock, times(1)).getAll();
@@ -177,6 +179,10 @@ public class ApplyLogicTest {
         SpaceOperations spaceOperationsMock = mock(SpaceOperations.class);
         when(spaceOperationsMock.getAll()).thenReturn(Mono.just(Collections.singletonList("space")));
 
+        // mock space operations
+        TargetOperations targetOperationsMock = mock(TargetOperations.class);
+        when(targetOperationsMock.getSpace()).thenReturn("space");
+
         ApplyLogic applyLogic = new ApplyLogic(mock(DefaultCloudFoundryOperations.class));
 
         applyLogic.setGetLogic(getLogicMock);
@@ -184,9 +190,10 @@ public class ApplyLogicTest {
         applyLogic.setApplicationsOperations(applicationsOperations);
         applyLogic.setServicesOperations(servicesOperations);
         applyLogic.setSpaceOperations(spaceOperationsMock);
+        applyLogic.setTargetOperations(targetOperationsMock);
 
         // when
-        applyLogic.apply(desiredConfigBean, new OptionalLoginCommandOptions());
+        applyLogic.apply(desiredConfigBean);
 
         // then
         verify(spaceOperationsMock, times(1)).getAll();
