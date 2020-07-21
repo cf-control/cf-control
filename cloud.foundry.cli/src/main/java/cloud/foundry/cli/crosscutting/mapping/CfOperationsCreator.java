@@ -62,6 +62,7 @@ public class CfOperationsCreator {
     }
 
     private static TargetBean replaceTargetOptions(TargetBean targetBean, LoginCommandOptions commandOptions) {
+        // as the passed target bean can be null, a new instance is then created to avoid null pointer exceptions
         if (targetBean == null) {
             targetBean = new TargetBean();
         }
