@@ -2,6 +2,7 @@ package cloud.foundry.cli.logic;
 
 import cloud.foundry.cli.crosscutting.exceptions.GetException;
 import cloud.foundry.cli.crosscutting.logging.Log;
+import cloud.foundry.cli.crosscutting.mapping.ResourceProvider;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
 import cloud.foundry.cli.crosscutting.mapping.beans.ServiceBean;
@@ -10,8 +11,10 @@ import cloud.foundry.cli.crosscutting.mapping.beans.SpecBean;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import cloud.foundry.cli.operations.*;
+import cloud.foundry.cli.crosscutting.mapping.VersionPropertiesFileUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -31,7 +34,6 @@ public class GetLogic {
      * @param spaceDevelopersOperations operations for manipulating space developers on a cloud foundry instance
      * @param servicesOperations operations for querying and manipulating services on a cloud foundry instance
      * @param applicationsOperations operations for querying and manipulating applications on a cloud foundry instance
-     * @param clientOperations operations to determine meta-information from a cloud foundry instance
      * @param targetOperations operations to determine target information from a cloud foundry instance
      * @return a config bean instance holding all configurable information from a cloud foundry instance
      * @throws GetException if an error occurs during the information retrieving
@@ -39,18 +41,18 @@ public class GetLogic {
     public ConfigBean getAll(SpaceDevelopersOperations spaceDevelopersOperations,
                              ServicesOperations servicesOperations,
                              ApplicationsOperations applicationsOperations,
-                             ClientOperations clientOperations,
                              TargetOperations targetOperations) {
 
-        Mono<String> apiVersion = clientOperations.determineApiVersion();
+        String apiVersion = VersionPropertiesFileUtils.determineApiVersion(new ResourceProvider(), new Properties());
         Mono<List<String>> spaceDevelopers = spaceDevelopersOperations.getAll();
         Mono<Map<String, ServiceBean>> services = servicesOperations.getAll();
         Mono<Map<String, ApplicationBean>> apps = applicationsOperations.getAll();
         ConfigBean configBean = new ConfigBean();
         SpecBean specBean = new SpecBean();
+        configBean.setApiVersion(apiVersion);
         // start async querying of config data from the cloud foundry instance
         log.debug("Fetching apps, services and space developers data");
-        Flux<Object> getAllRequests = Flux.merge(apiVersion.doOnSuccess(configBean::setApiVersion),
+        Flux<Object> getAllRequests = Flux.merge(
                 spaceDevelopers.doOnSuccess(specBean::setSpaceDevelopers),
                 services.doOnSuccess(specBean::setServices),
                 apps.doOnSuccess(specBean::setApps));

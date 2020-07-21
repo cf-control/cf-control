@@ -49,14 +49,13 @@ public class DiffController implements Callable<Integer> {
         SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
         ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
-        ClientOperations clientOperations = new ClientOperations(cfOperations);
         TargetOperations targetOperations = new TargetOperations(cfOperations);
 
         GetLogic getLogic = new GetLogic();
 
         log.info("Fetching all information for target space");
         ConfigBean currentConfigBean = getLogic.getAll(spaceDevelopersOperations, servicesOperations,
-                applicationsOperations, clientOperations, targetOperations);
+                applicationsOperations, targetOperations);
         log.verbose("Fetching all information for target space completed");
 
         log.debug("Current Config:", currentConfigBean);

@@ -35,12 +35,11 @@ public class GetController implements Callable<Integer> {
         SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
         ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
-        ClientOperations clientOperations = new ClientOperations(cfOperations);
         TargetOperations targetOperations = new TargetOperations(cfOperations);
 
         log.info("Fetching all information for target space");
         ConfigBean allInformation = getLogic.getAll(spaceDevelopersOperations, servicesOperations,
-                applicationsOperations, clientOperations, targetOperations);
+                applicationsOperations, targetOperations);
         log.verbose("Fetching all information for target space completed");
 
         System.out.println(YamlMapper.dump(allInformation));
