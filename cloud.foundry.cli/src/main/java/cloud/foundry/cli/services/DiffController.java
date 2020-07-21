@@ -9,10 +9,7 @@ import cloud.foundry.cli.crosscutting.mapping.YamlMapper;
 import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
 import cloud.foundry.cli.logic.DiffLogic;
 import cloud.foundry.cli.logic.GetLogic;
-import cloud.foundry.cli.operations.ApplicationsOperations;
-import cloud.foundry.cli.operations.ClientOperations;
-import cloud.foundry.cli.operations.SpaceDevelopersOperations;
-import cloud.foundry.cli.operations.ServicesOperations;
+import cloud.foundry.cli.operations.*;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 
 import java.io.IOException;
@@ -53,12 +50,13 @@ public class DiffController implements Callable<Integer> {
         ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
         ClientOperations clientOperations = new ClientOperations(cfOperations);
+        TargetOperations targetOperations = new TargetOperations(cfOperations);
 
         GetLogic getLogic = new GetLogic();
 
         log.info("Fetching all information for target space");
         ConfigBean currentConfigBean = getLogic.getAll(spaceDevelopersOperations, servicesOperations,
-                applicationsOperations, clientOperations, loginOptions);
+                applicationsOperations, clientOperations, targetOperations);
         log.verbose("Fetching all information for target space completed");
 
         log.debug("Current Config:", currentConfigBean);
