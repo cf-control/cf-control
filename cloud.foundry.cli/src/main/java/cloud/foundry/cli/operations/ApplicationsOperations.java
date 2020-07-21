@@ -8,6 +8,7 @@ import cloud.foundry.cli.crosscutting.logging.Log;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationManifestBean;
+import org.cloudfoundry.client.v2.ClientV2Exception;
 import org.cloudfoundry.client.v3.*;
 import org.cloudfoundry.client.v3.applications.*;
 
@@ -27,6 +28,7 @@ import reactor.core.publisher.Mono;
 
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -190,15 +192,21 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                         .build())
                 .doOnSubscribe(subscription -> log.info("Pushing manifest for application", appName))
                 .doOnSuccess(aVoid -> log.verbose("Pushing manifest for application", appName, "completed"))
-                .onErrorContinue(this::whenServiceNotFound, log::warning)
-                .onErrorStop()
                 .then(getAppId(appName).flatMap(appId -> updateAppMeta(appName, appId, bean)))
+                .onErrorResume(throwable -> !whenAppNotExists(throwable), throwable -> {
+                    log.warning(throwable);
+                    return Mono.empty();
+                })
                 .doOnSubscribe(subscription -> {
                     log.debug("Creating application", appName);
                     log.debug("App's bean:", bean);
                 })
-                .doOnSuccess(aVoid -> log.verbose("Creating application", appName, "completed"))
-                .onErrorStop();
+                .doOnSuccess(aVoid -> log.verbose("Creating application", appName, "completed"));
+    }
+
+    private boolean whenAppNotExists(Throwable throwable) {
+        return throwable instanceof IllegalStateException
+                && throwable.getMessage().equals("Error when trying to get application id: App does not exist");
     }
 
     private boolean whenServiceNotFound(Throwable throwable) {
@@ -216,7 +224,7 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                 .list()
                 .filter(applicationSummary -> applicationSummary.getName().equals(appName))
                 .switchIfEmpty(Mono.error(
-                    new CreationException("Error when trying to get application id: App does not exist.")))
+                    new IllegalStateException("Error when trying to get application id: App does not exist")))
                 .map(ApplicationSummary::getId)
                 .collectList()
                 .map(strings -> strings.get(0));
