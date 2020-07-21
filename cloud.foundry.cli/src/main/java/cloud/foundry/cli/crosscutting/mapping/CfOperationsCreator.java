@@ -66,24 +66,30 @@ public class CfOperationsCreator {
             targetBean = new TargetBean();
         }
 
+        // create a new resulting target bean instance in order to avoid manipulating the passed target bean instance
+        TargetBean result = new TargetBean();
+        result.setEndpoint(targetBean.getEndpoint());
+        result.setOrg(targetBean.getOrg());
+        result.setSpace(targetBean.getSpace());
+
         String apiHost = commandOptions.getApiHost();
         String organization = commandOptions.getOrganization();
         String space = commandOptions.getSpace();
 
         if (!isBlank(apiHost)) {
             logReplacingTargetOption("endpoint", targetBean.getEndpoint(), apiHost);
-            targetBean.setEndpoint(apiHost);
+            result.setEndpoint(apiHost);
         }
         if (!isBlank(organization)) {
             logReplacingTargetOption("organization", targetBean.getOrg(), apiHost);
-            targetBean.setOrg(organization);
+            result.setOrg(organization);
         }
         if (!isBlank(space)) {
             logReplacingTargetOption("space", targetBean.getSpace(), apiHost);
-            targetBean.setSpace(space);
+            result.setSpace(space);
         }
 
-        return targetBean;
+        return result;
     }
 
     private static void logReplacingTargetOption(String informationName, String targetValue, String argumentValue) {
