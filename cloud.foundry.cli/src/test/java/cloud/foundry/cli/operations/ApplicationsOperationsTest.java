@@ -16,10 +16,10 @@ import cloud.foundry.cli.mocking.DefaultCloudFoundryOperationsMockBuilder;
 import cloud.foundry.cli.crosscutting.mapping.beans.ApplicationBean;
 import cloud.foundry.cli.crosscutting.exceptions.CreationException;
 import org.cloudfoundry.client.v3.Metadata;
-import org.cloudfoundry.client.v3.applications.CreateApplicationRequest;
 
 import org.cloudfoundry.client.CloudFoundryClient;
 import org.cloudfoundry.client.v3.applications.ApplicationsV3;
+import org.cloudfoundry.client.v3.applications.UpdateApplicationRequest;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import org.cloudfoundry.operations.applications.*;
 import org.cloudfoundry.operations.domains.Domain;
@@ -120,7 +120,7 @@ public class ApplicationsOperationsTest {
         ApplicationManifest appManifest = createMockApplicationManifest();
         Metadata metadata = Metadata
                 .builder()
-                .annotation(ApplicationBean.PATH_KEY, "/test/uri")
+                .annotation(ApplicationBean.PATH_KEY, "some/path")
                 .annotation(ApplicationBean.METADATA_KEY, "somemeta")
                 .build();
 
@@ -134,10 +134,22 @@ public class ApplicationsOperationsTest {
                 .setSpaceId("spaceId")
                 .setCloudFoundryClient(cfcMock)
                 .build();
+
+        when(applicationsMock.list())
+                .thenReturn(Flux.just(ApplicationSummary.builder()
+                        .name(appManifest.getName())
+                        .id("appId")
+                        .runningInstances(appManifest.getInstances())
+                        .requestedState("STOPPED")
+                        .memoryLimit(appManifest.getMemory())
+                        .instances(appManifest.getInstances())
+                        .diskQuota(appManifest.getDisk())
+                        .build()));
 
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(dcfoMock);
 
         ApplicationBean applicationsBean = new ApplicationBean(appManifest, metadata);
+        applicationsBean.setPath("some/path");
         applicationsBean.setMeta("somemeta");
 
         //when
@@ -145,37 +157,33 @@ public class ApplicationsOperationsTest {
         request.block();
 
         // then
-        ApplicationManifest appManifestExpected = ApplicationManifest
-                .builder()
-                .from(appManifest)
-                .environmentVariables(null)
-                .build();
-        PushApplicationManifestRequest expectedApplicationManifestRequest = PushApplicationManifestRequest
-                .builder()
-                .manifest(ApplicationManifest.builder()
-                    .from(appManifestExpected)
-                    .build())
-                .noStart(false)
-                .build();
         verify(dcfoMock.applications(), times(1))
-                .pushManifest(eq(expectedApplicationManifestRequest));
+                .pushManifest(any(PushApplicationManifestRequest.class));
+        UpdateApplicationRequest expectedUpdateRequest = UpdateApplicationRequest
+                .builder()
+                .applicationId("appId")
+                .metadata(Metadata.builder()
+                        .annotation(ApplicationBean.PATH_KEY, "some/path")
+                        .annotation(ApplicationBean.METADATA_KEY, "somemeta")
+                        .build())
+                .build();
         verify(applicationsV3Mock, times(1))
-                .create(any(CreateApplicationRequest.class));
-        verify(dcfoMock, times(1))
-                .getSpaceId();
+                .update(eq(expectedUpdateRequest));
     }
 
     @Test
-    public void testCreateDoesntStartAppWhenAutoStartSetToFalse() throws CreationException {
+    public void testCreateWhenNoAppIdFoundThrowsException() throws CreationException {
         // given
         ApplicationManifest appManifest = createMockApplicationManifest();
         Metadata metadata = Metadata
                 .builder()
-                .annotation(ApplicationBean.PATH_KEY, "/test/uri")
+                .annotation(ApplicationBean.PATH_KEY, "some/path")
                 .annotation(ApplicationBean.METADATA_KEY, "somemeta")
                 .build();
 
-        Applications applicationsMock = ApplicationsMockBuilder.get().build();
+        Applications applicationsMock = ApplicationsMockBuilder
+                .get()
+                .build();
         ApplicationsV3 applicationsV3Mock = ApplicationsV3MockBuilder.get().build();
         CloudFoundryClient cfcMock = CloudFoundryClientMockBuilder.get()
                 .setApplicationsV3(applicationsV3Mock)
@@ -186,34 +194,24 @@ public class ApplicationsOperationsTest {
                 .setCloudFoundryClient(cfcMock)
                 .build();
 
-        ApplicationsOperations applicationsOperations = new ApplicationsOperations(dcfoMock, false);
+        when(applicationsMock.list()).thenReturn(Flux.empty());
+
+        ApplicationsOperations applicationsOperations = new ApplicationsOperations(dcfoMock);
 
         ApplicationBean applicationsBean = new ApplicationBean(appManifest, metadata);
+        applicationsBean.setPath("some/path");
         applicationsBean.setMeta("somemeta");
 
         //when
         Mono<Void> request = applicationsOperations.create(appManifest.getName(), applicationsBean);
-        request.block();
 
         // then
-        ApplicationManifest expectedAppManifest = ApplicationManifest
-                .builder()
-                .from(appManifest)
-                .environmentVariables(null)
-                .build();
-        PushApplicationManifestRequest expectedApplicationManifestRequest = PushApplicationManifestRequest
-                .builder()
-                .manifest(ApplicationManifest.builder()
-                        .from(expectedAppManifest)
-                        .build())
-                .noStart(true)
-                .build();
+        Exception exception = assertThrows(IllegalStateException.class, request::block);
+        assertThat(exception.getMessage(), is("Error when trying to get application id: App does not exist"));
         verify(dcfoMock.applications(), times(1))
-                .pushManifest(eq(expectedApplicationManifestRequest));
-        verify(applicationsV3Mock, times(1))
-                .create(any(CreateApplicationRequest.class));
-        verify(dcfoMock, times(1))
-                .getSpaceId();
+                .pushManifest(any(PushApplicationManifestRequest.class));
+        verify(applicationsV3Mock, times(0))
+                .update(any(UpdateApplicationRequest.class));
     }
 
     @Test

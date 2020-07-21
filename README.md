@@ -69,17 +69,6 @@ You can have the tool create a machine-readable log file by specifying the `--lo
                   it would apply.
 ```
 
-##### apply [SUBCOMMAND]
-```
-  space-developers   Apply the differences between the space developers given in the YAML file and
-                     in the live system.
-
-  services           Create/remove services that are present in the given yaml file, but not in your cf instance.
-  
-  applications       Apply the differences between the apps given in the yaml file and
-                     the configuration of the apps of your cf instance.
-```
-
 ##### rename [SUBCOMMAND]
 ```
   application        Rename an existing app.

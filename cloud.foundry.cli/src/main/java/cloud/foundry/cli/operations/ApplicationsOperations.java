@@ -147,7 +147,9 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
      */
     public Mono<Void> update(String appName, ApplicationBean bean) {
         return this.remove(appName)
-                .then(this.create(appName, bean));
+                .then(this.create(appName, bean))
+                .doOnSubscribe(aVoid -> log.info("Updating application", appName))
+                .doOnSuccess(aVoid -> log.verbose("Updating application", appName, "completed"));
     }
 
 
@@ -182,68 +184,66 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
 
     private Mono<Void> doCreate(String appName, ApplicationBean bean) {
         return this.cloudFoundryOperations
-                .getSpaceId()
-                .flatMap(spaceId -> this.cloudFoundryOperations
-                        .getCloudFoundryClient()
-                        .applicationsV3()
-                        .create(buildCreateApplicationRequest(spaceId, appName, bean))
-                        .doOnSubscribe(subscription -> {
-                            log.debug("Creating application", appName);
-                            log.debug("App's bean:", bean);
-                        })
-                        .doOnSuccess(aVoid -> log.info("Creating application", appName, "completed"))
-                        .then())
-                .then(this.cloudFoundryOperations
                 .applications()
                 .pushManifest(PushApplicationManifestRequest
                         .builder()
                         .manifest(buildApplicationManifest(appName, bean))
                         .noStart(!this.autoStart)
                         .build())
-                .onErrorContinue(this::whenServiceNotFound, log::warning)
-                .doOnSubscribe(subscription -> log.info("Pushing manifest for application", appName))
-                .doOnSuccess(aVoid -> log.verbose("Pushing manifest for application", appName, "completed")));
+                .doOnSubscribe(subscription -> log.verbose("Pushing manifest for application", appName))
+                .doOnSuccess(aVoid -> log.debug("Pushing manifest for application", appName, "completed"))
+                .then(getAppId(appName).flatMap(appId -> updateAppMeta(appName, appId, bean)))
+                .onErrorResume(throwable -> !whenAppNotExists(throwable), throwable -> {
+                    log.warning(throwable);
+                    return Mono.empty();
+                })
+                .doOnSubscribe(subscription -> {
+                    log.info("Creating application", appName);
+                    log.debug("App's bean:", bean);
+                })
+                .doOnSuccess(aVoid -> log.verbose("Creating application", appName, "completed"));
+    }
 
+    private boolean whenAppNotExists(Throwable throwable) {
+        return throwable instanceof IllegalStateException
+                && throwable.getMessage().equals("Error when trying to get application id: App does not exist");
     }
 
     private boolean whenServiceNotFound(Throwable throwable) {
         return throwable instanceof IllegalArgumentException
             && throwable.getMessage().contains("Service instance")
-            && throwable.getMessage().contains("could not be found");
+            && (
+                    throwable.getMessage().contains("could not be found") ||
+                    throwable.getMessage().contains("does not exist")
+               );
     }
 
-    private CreateApplicationRequest buildCreateApplicationRequest(String spaceId,
-                                                                   String appName,
-                                                                   ApplicationBean bean) {
-        Map<String,? extends String> envVars = Collections.emptyMap();
-        if (bean.getManifest() != null && bean.getManifest().getEnvironmentVariables() != null) {
-            envVars = bean.getManifest().getEnvironmentVariables().entrySet()
-                    .stream()
-                    .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().toString()));
-        }
+    private Mono<String> getAppId(String appName) {
+        return this.cloudFoundryOperations
+                .applications()
+                .list()
+                .filter(applicationSummary -> applicationSummary.getName().equals(appName))
+                .switchIfEmpty(Mono.error(
+                    new IllegalStateException("Error when trying to get application id: App does not exist")))
+                .map(ApplicationSummary::getId)
+                .collectList()
+                .map(strings -> strings.get(0));
+    }
 
-        ToOneRelationship spaceRelationship = ToOneRelationship.builder()
-                .data(Relationship.builder().id(spaceId).build())
-                .build();
-
-        Lifecycle lifecycle = null;
-        if (bean.getPath() != null || bean.getManifest() != null) {
-            lifecycle = Lifecycle.builder()
-                    .type(LifecycleType.BUILDPACK)
-                    .data(BuildpackData.builder().buildpacks(bean.getManifest().getBuildpack()).build())
-                    .build();
-        }
-
-        return CreateApplicationRequest.builder()
-                .environmentVariables(envVars)
-                .lifecycle(lifecycle)
-                .metadata(Metadata.builder()
-                        .annotation(ApplicationBean.METADATA_KEY, bean.getMeta())
-                        .annotation(ApplicationBean.PATH_KEY, bean.getPath())
+    private Mono<Void> updateAppMeta(String appName, String appId, ApplicationBean bean) {
+        return this.cloudFoundryOperations
+                .getCloudFoundryClient()
+                .applicationsV3()
+                .update(UpdateApplicationRequest.builder()
+                        .metadata(Metadata.builder()
+                                .annotation(ApplicationBean.PATH_KEY, bean.getPath())
+                                .annotation(ApplicationBean.METADATA_KEY, bean.getMeta())
+                                .build())
+                        .applicationId(appId)
                         .build())
-                .name(appName)
-                .relationships(ApplicationRelationships.builder().space(spaceRelationship).build())
-                .build();
+                .then()
+                .doOnSubscribe(subscription -> log.debug("Updating app meta for application", appName))
+                .doOnSuccess(subscription -> log.debug("Updating app meta for application", appName, "completed"));
     }
 
     private ApplicationManifest buildApplicationManifest(String appName, ApplicationBean bean) {
@@ -269,6 +269,7 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                 .instances(bean.getManifest().getInstances())
                 .memory(bean.getManifest().getMemory())
                 .noRoute(noRoute)
+                .environmentVariables(bean.getManifest().getEnvironmentVariables())
                 .randomRoute(bean.getManifest().getRandomRoute())
                 .routes(getAppRoutes(bean.getManifest().getRoutes()))
                 .stack(bean.getManifest().getStack())
@@ -333,9 +334,9 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
         return cloudFoundryOperations.applications().scale(scaleRequest)
                 .doOnSubscribe(aVoid -> {
                     log.info("Scaling application", applicationName);
-                    log.debug("New disk limit:", diskLimit);
-                    log.debug("New memory limit:", memoryLimit);
-                    log.debug("New number of instances:", instances); })
+                    if (diskLimit != null) log.debug("New disk limit:", diskLimit);
+                    if (memoryLimit != null) log.debug("New memory limit:", memoryLimit);
+                    if (instances != null) log.debug("New number of instances:", instances); })
                 .doOnSuccess(aVoid -> log.verbose("Scaling application", applicationName, "completed"))
                 .onErrorStop()
                 .then();
@@ -480,7 +481,11 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
         return cloudFoundryOperations.services().unbind(unbindServiceRequest)
                 .doOnSubscribe(aVoid -> log.info("Unbinding app", applicationName, "from service", serviceName))
                 .doOnSuccess(aVoid -> log.verbose(
-                        "Unbinding app", applicationName, "from service", serviceName, "completed"));
+                        "Unbinding app", applicationName, "from service", serviceName, "completed"))
+                .onErrorStop()
+                .doOnError(this::whenServiceNotFound, (throwable) -> {
+                            log.warning("Could not unbind from service", serviceName + ":", throwable.getMessage());
+                        });
     }
 
     /**
@@ -543,7 +548,7 @@ public class ApplicationsOperations extends AbstractOperations<DefaultCloudFound
                         .host(decomposedRoute.getHost())
                         .build())
                         .doOnSubscribe(aVoid -> log.info("Removing route", route, "from app", applicationName))
-                        .doOnSuccess(aVoid -> log.info(
+                        .doOnSuccess(aVoid -> log.verbose(
                                 "Removing route", route, "from app", applicationName, "completed")));
     }
 
