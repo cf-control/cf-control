@@ -3,7 +3,7 @@ package cloud.foundry.cli.crosscutting.mapping;
 import java.io.InputStream;
 
 /**
- * Class used for accessing information from property files.
+ * Class used for accessing information from properties file.
  */
 public class ResourceProvider {
 
