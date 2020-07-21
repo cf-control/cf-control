@@ -13,11 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import cloud.foundry.cli.operations.ApplicationsOperations;
-import cloud.foundry.cli.operations.ServicesOperations;
-import cloud.foundry.cli.operations.SpaceDevelopersOperations;
+import cloud.foundry.cli.operations.*;
 import cloud.foundry.cli.crosscutting.mapping.VersionPropertiesFileUtils;
-import cloud.foundry.cli.services.LoginCommandOptions;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -34,17 +31,17 @@ public class GetLogic {
      * Gets all the necessary configuration-information from a cloud foundry
      * instance.
      *
-     * @param spaceDevelopersOperations operations for manipulating space developers on a cloud foundry instance.
-     * @param servicesOperations operations for querying and manipulating services on a cloud foundry instance.
-     * @param applicationsOperations operations for querying and manipulating applications on a cloud foundry instance.
-     * @param loginOptions user provided Login-Options
-     * @return ConfigBean
+     * @param spaceDevelopersOperations operations for manipulating space developers on a cloud foundry instance
+     * @param servicesOperations operations for querying and manipulating services on a cloud foundry instance
+     * @param applicationsOperations operations for querying and manipulating applications on a cloud foundry instance
+     * @param targetOperations operations to determine target information from a cloud foundry instance
+     * @return a config bean instance holding all configurable information from a cloud foundry instance
      * @throws GetException if an error occurs during the information retrieving
      */
     public ConfigBean getAll(SpaceDevelopersOperations spaceDevelopersOperations,
                              ServicesOperations servicesOperations,
                              ApplicationsOperations applicationsOperations,
-                             LoginCommandOptions loginOptions) {
+                             TargetOperations targetOperations) {
 
         String apiVersion = VersionPropertiesFileUtils.determineApiVersion(new ResourceProvider(), new Properties());
         Mono<List<String>> spaceDevelopers = spaceDevelopersOperations.getAll();
@@ -67,7 +64,7 @@ public class GetLogic {
         }
 
         configBean.setSpec(specBean);
-        configBean.setTarget(determineTarget(loginOptions));
+        configBean.setTarget(determineTarget(targetOperations));
         return configBean;
     }
 
@@ -123,14 +120,14 @@ public class GetLogic {
      * Determines the Target-Node configuration-information from a cloud foundry
      * instance.
      *
-     * @param loginOptions LoginCommandOptions
-     * @return TargetBean
+     * @param targetOperations the target operations that are used to gather the required information
+     * @return a target bean instance holding all target information
      */
-    private TargetBean determineTarget(LoginCommandOptions loginOptions) {
+    private TargetBean determineTarget(TargetOperations targetOperations) {
         TargetBean target = new TargetBean();
-        target.setEndpoint(loginOptions.getApiHost());
-        target.setOrg(loginOptions.getOrganization());
-        target.setSpace(loginOptions.getSpace());
+        target.setEndpoint(targetOperations.getApiHost());
+        target.setOrg(targetOperations.getOrganization());
+        target.setSpace(targetOperations.getSpace());
 
         return target;
     }

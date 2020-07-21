@@ -5,9 +5,7 @@ import cloud.foundry.cli.crosscutting.mapping.beans.ConfigBean;
 import cloud.foundry.cli.crosscutting.mapping.CfOperationsCreator;
 import cloud.foundry.cli.crosscutting.mapping.YamlMapper;
 import cloud.foundry.cli.logic.GetLogic;
-import cloud.foundry.cli.operations.ApplicationsOperations;
-import cloud.foundry.cli.operations.ServicesOperations;
-import cloud.foundry.cli.operations.SpaceDevelopersOperations;
+import cloud.foundry.cli.operations.*;
 import org.cloudfoundry.operations.DefaultCloudFoundryOperations;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
@@ -37,10 +35,11 @@ public class GetController implements Callable<Integer> {
         SpaceDevelopersOperations spaceDevelopersOperations = new SpaceDevelopersOperations(cfOperations);
         ServicesOperations servicesOperations = new ServicesOperations(cfOperations);
         ApplicationsOperations applicationsOperations = new ApplicationsOperations(cfOperations);
+        TargetOperations targetOperations = new TargetOperations(cfOperations);
 
         log.info("Fetching all information for target space");
         ConfigBean allInformation = getLogic.getAll(spaceDevelopersOperations, servicesOperations,
-                applicationsOperations, requiredLoginCommandOptions);
+                applicationsOperations, targetOperations);
         log.verbose("Fetching all information for target space completed");
 
         System.out.println(YamlMapper.dump(allInformation));
